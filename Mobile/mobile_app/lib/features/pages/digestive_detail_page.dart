@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/core/l10n/enum_labels.dart';
+import 'package:hkt_livestock_agentic/core/charts/line_chart_readout.dart';
 import 'package:hkt_livestock_agentic/core/models/health_models.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
@@ -424,13 +425,17 @@ class DigestiveDetailPage extends ConsumerWidget {
             const SizedBox(height: 8),
             SizedBox(
               height: 180,
-              child: LineChart(
-                LineChartData(
+              child: LineChartReadout(
+                timestamps: spots
+                    .map((spot) => readings[spot.x.toInt()].timestamp)
+                    .toList(),
+                formatValue: (value) => value.toStringAsFixed(1),
+                chartDataBuilder: (touchData) => LineChartData(
+                  lineTouchData: touchData,
                   gridData: const FlGridData(
                     show: true,
                     drawVerticalLine: false,
                   ),
-                  lineTouchData: const LineTouchData(enabled: false),
                   titlesData: FlTitlesData(
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(

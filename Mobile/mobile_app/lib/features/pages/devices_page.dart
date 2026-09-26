@@ -4,7 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
-import 'package:hkt_livestock_agentic/core/charts/health_line_touch.dart';
+import 'package:hkt_livestock_agentic/core/charts/line_chart_readout.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/dashboard/presentation/dashboard_controller.dart';
@@ -1147,25 +1147,35 @@ class _DeviceHealthSeries {
   factory _DeviceHealthSeries.fromJson(Map<String, dynamic> data) {
     return _DeviceHealthSeries(
       temperature72h: _points(data['temperature72h'], 'temperature'),
-      motility24h: _points(data['motility24h'], 'frequency',
-          fallbackKey: 'counterDelta'),
+      motility24h: _points(
+        data['motility24h'],
+        'frequency',
+        fallbackKey: 'counterDelta',
+      ),
     );
   }
 
-  static List<_DeviceHealthPoint> _points(Object? raw, String valueKey,
-      {String? fallbackKey}) {
+  static List<_DeviceHealthPoint> _points(
+    Object? raw,
+    String valueKey, {
+    String? fallbackKey,
+  }) {
     return (raw as List? ?? [])
         .whereType<Map>()
         .map((item) => Map<String, dynamic>.from(item))
-        .where((item) => item[valueKey] != null ||
-            (fallbackKey != null && item[fallbackKey] != null))
+        .where(
+          (item) =>
+              item[valueKey] != null ||
+              (fallbackKey != null && item[fallbackKey] != null),
+        )
         .map(
           (item) => _DeviceHealthPoint(
             value:
-                ((item[valueKey] ?? (fallbackKey == null ? null : item[fallbackKey]))
+                ((item[valueKey] ??
+                            (fallbackKey == null ? null : item[fallbackKey]))
                         as num?)
                     ?.toDouble() ??
-                    0,
+                0,
             timestamp: DateTime.parse(item['timestamp'] as String),
           ),
         )
@@ -1247,8 +1257,11 @@ class _DeviceTrendSection extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         SizedBox(
           height: 140,
-          child: LineChart(
-            LineChartData(
+          child: LineChartReadout(
+            timestamps: points.map((point) => point.timestamp).toList(),
+            formatValue: formatValue,
+            chartDataBuilder: (touchData) => LineChartData(
+              lineTouchData: touchData,
               minY: minY,
               maxY: maxY,
               gridData: const FlGridData(show: true, drawVerticalLine: false),
@@ -1293,10 +1306,6 @@ class _DeviceTrendSection extends StatelessWidget {
                   ),
                 ),
               ],
-              lineTouchData: healthLineTouchData(
-                timestamps: points.map((point) => point.timestamp).toList(),
-                formatValue: formatValue,
-              ),
             ),
           ),
         ),
@@ -1461,14 +1470,16 @@ class _HealthScoreCard extends StatelessWidget {
   String _dimTip(BuildContext context, String key, int score) {
     final l10n = AppLocalizations.of(context)!;
     final basis = switch (key) {
-      'battery' => device.batteryPercent != null
-          ? l10n.healthBasisBattery(device.batteryPercent!)
-          : l10n.healthBasisMissing,
+      'battery' =>
+        device.batteryPercent != null
+            ? l10n.healthBasisBattery(device.batteryPercent!)
+            : l10n.healthBasisMissing,
       'signal' => _signalBasis(l10n),
       'online' => _onlineBasis(l10n),
-      'tamper' => (device.antiDisassemblyStatus ?? 0) == 0
-          ? l10n.healthBasisTamperOk
-          : l10n.healthBasisTamperTriggered,
+      'tamper' =>
+        (device.antiDisassemblyStatus ?? 0) == 0
+            ? l10n.healthBasisTamperOk
+            : l10n.healthBasisTamperTriggered,
       'reporting' => _reportingBasis(l10n),
       _ => l10n.healthBasisMissing,
     };

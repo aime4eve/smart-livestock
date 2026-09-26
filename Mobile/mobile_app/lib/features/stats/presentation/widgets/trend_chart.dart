@@ -1,5 +1,6 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:hkt_livestock_agentic/core/charts/line_chart_readout.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/stats/domain/stats_repository.dart';
 
@@ -48,22 +49,27 @@ class TrendChart extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             SizedBox(
               height: 160,
-              child: LineChart(
-                LineChartData(
+              child: LineChartReadout(
+                timestamps: const [],
+                readoutTitle: (index) => trend[index].date,
+                formatValue: (value) => '${value.toStringAsFixed(2)}$suffix',
+                chartDataBuilder: (touchData) => LineChartData(
                   minY: yMin,
                   maxY: yMax,
                   gridData: FlGridData(
                     show: true,
                     drawVerticalLine: false,
                     horizontalInterval: range > 0 ? range / 4 : 1,
-                    getDrawingHorizontalLine: (value) => FlLine(
-                      color: Colors.grey.shade300,
-                      strokeWidth: 0.5,
-                    ),
+                    getDrawingHorizontalLine: (value) =>
+                        FlLine(color: Colors.grey.shade300, strokeWidth: 0.5),
                   ),
                   titlesData: FlTitlesData(
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
@@ -71,12 +77,22 @@ class TrendChart extends StatelessWidget {
                         interval: 1,
                         getTitlesWidget: (value, meta) {
                           final idx = value.toInt();
-                          if (idx < 0 || idx >= trend.length) return const SizedBox.shrink();
+                          if (idx < 0 || idx >= trend.length) {
+                            return const SizedBox.shrink();
+                          }
                           final date = trend[idx].date;
-                          final label = date.length >= 5 ? date.substring(5) : date;
+                          final label = date.length >= 5
+                              ? date.substring(5)
+                              : date;
                           return Padding(
                             padding: const EdgeInsets.only(top: 4),
-                            child: Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                            child: Text(
+                              label,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey,
+                              ),
+                            ),
                           );
                         },
                       ),
@@ -88,7 +104,10 @@ class TrendChart extends StatelessWidget {
                         getTitlesWidget: (value, meta) {
                           return Text(
                             '${value.toStringAsFixed(1)}$suffix',
-                            style: const TextStyle(fontSize: 10, color: Colors.grey),
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey,
+                            ),
                           );
                         },
                       ),
@@ -117,20 +136,7 @@ class TrendChart extends StatelessWidget {
                       ),
                     ),
                   ],
-                  lineTouchData: LineTouchData(
-                    touchTooltipData: LineTouchTooltipData(
-                      getTooltipColor: (_) => Colors.blueGrey.shade800,
-                      tooltipRoundedRadius: 6,
-                      getTooltipItems: (spots) => spots.map((s) {
-                        final idx = s.x.toInt();
-                        final date = idx >= 0 && idx < trend.length ? trend[idx].date : '';
-                        return LineTooltipItem(
-                          '$date\n${s.y.toStringAsFixed(2)}$suffix',
-                          const TextStyle(color: Colors.white, fontSize: 12),
-                        );
-                      }).toList(),
-                    ),
-                  ),
+                  lineTouchData: touchData,
                 ),
               ),
             ),

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/core/l10n/enum_labels.dart';
 import 'package:hkt_livestock_agentic/core/charts/temperature_axis.dart';
+import 'package:hkt_livestock_agentic/core/charts/line_chart_readout.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/core/models/health_models.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
@@ -208,10 +209,13 @@ class FeverDetailPage extends ConsumerWidget {
             const SizedBox(height: 8),
             SizedBox(
               height: 160,
-              child: BarChart(
-                BarChartData(
+              child: BarChartReadout(
+                timestamps: const [],
+                readoutTitle: (index) => hours[index].date,
+                formatValue: (value) => '${value.toStringAsFixed(0)}h',
+                chartDataBuilder: (touchData) => BarChartData(
                   maxY: (maxHours > 0 ? maxHours : 1) * 1.2,
-                  barTouchData: BarTouchData(enabled: false),
+                  barTouchData: touchData,
                   barGroups: spots
                       .map(
                         (s) => BarChartGroupData(
@@ -432,15 +436,19 @@ class FeverDetailPage extends ConsumerWidget {
             const SizedBox(height: 8),
             SizedBox(
               height: 180,
-              child: LineChart(
-                LineChartData(
+              child: LineChartReadout(
+                timestamps: readings
+                    .map((reading) => reading.timestamp)
+                    .toList(),
+                formatValue: (value) => '${value.toStringAsFixed(1)}°C',
+                chartDataBuilder: (touchData) => LineChartData(
+                  lineTouchData: touchData,
                   minY: minTemp,
                   maxY: maxTemp,
                   gridData: const FlGridData(
                     show: true,
                     drawVerticalLine: false,
                   ),
-                  lineTouchData: const LineTouchData(enabled: false),
                   titlesData: FlTitlesData(
                     leftTitles: temperatureAxisTitles(
                       minY: minTemp,

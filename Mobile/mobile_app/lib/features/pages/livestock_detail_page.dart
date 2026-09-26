@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/core/l10n/enum_labels.dart';
 import 'package:hkt_livestock_agentic/core/charts/temperature_axis.dart';
-import 'package:hkt_livestock_agentic/core/charts/health_line_touch.dart';
+import 'package:hkt_livestock_agentic/core/charts/line_chart_readout.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
@@ -68,87 +68,87 @@ class LivestockDetailPage extends ConsumerWidget {
         ref.read(dataRefreshedAtProvider(livestockId).notifier).mark();
       },
       child: Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.livestockDetailTitle),
-        bottom: DataFreshnessIndicator(refreshedAt: refreshedAt),
-        leading: IconButton(
-          key: const Key('livestock-back'),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go(AppRoute.livestockList.path);
-            }
-          },
-          icon: const Icon(Icons.arrow_back),
-        ),
-        actions: [
-          IconButton(
-            key: const Key('livestock-detail-edit'),
-            icon: const Icon(Icons.edit_outlined),
+        appBar: AppBar(
+          title: Text(l10n.livestockDetailTitle),
+          bottom: DataFreshnessIndicator(refreshedAt: refreshedAt),
+          leading: IconButton(
+            key: const Key('livestock-back'),
             onPressed: () {
-              final detail = asyncData.value;
-              if (detail != null) {
-                _showEditForm(context, ref, detail);
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go(AppRoute.livestockList.path);
               }
             },
+            icon: const Icon(Icons.arrow_back),
           ),
-          IconButton(
-            key: const Key('livestock-detail-delete'),
-            icon: const Icon(Icons.delete_outline, color: AppColors.danger),
-            onPressed: () {
-              final detail = asyncData.value;
-              if (detail != null) {
-                _showDeleteConfirm(context, ref, detail);
-              }
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        key: const Key('page-livestock-detail'),
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            asyncData.when(
-              data: (detail) => Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _LivestockInfoCard(detail: detail),
-                  const SizedBox(height: AppSpacing.md),
-                  _DeviceListCard(detail: detail),
-                  GatewayDistanceCard(livestockId: detail.livestockId),
-                  const SizedBox(height: AppSpacing.md),
-                  _HealthDataCard(detail: detail),
-                  const SizedBox(height: AppSpacing.md),
-                  _LocationCard(detail: detail),
-                ],
-              ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('${l10n.commonLoadFailed}: $e'),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => ref
-                          .read(
-                            livestockDetailControllerProvider(
-                              livestockId,
-                            ).notifier,
-                          )
-                          .refresh(),
-                      child: Text(l10n.commonRetry),
-                    ),
-                  ],
-                ),
-              ),
+          actions: [
+            IconButton(
+              key: const Key('livestock-detail-edit'),
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: () {
+                final detail = asyncData.value;
+                if (detail != null) {
+                  _showEditForm(context, ref, detail);
+                }
+              },
+            ),
+            IconButton(
+              key: const Key('livestock-detail-delete'),
+              icon: const Icon(Icons.delete_outline, color: AppColors.danger),
+              onPressed: () {
+                final detail = asyncData.value;
+                if (detail != null) {
+                  _showDeleteConfirm(context, ref, detail);
+                }
+              },
             ),
           ],
         ),
-      ),
+        body: SingleChildScrollView(
+          key: const Key('page-livestock-detail'),
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              asyncData.when(
+                data: (detail) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _LivestockInfoCard(detail: detail),
+                    const SizedBox(height: AppSpacing.md),
+                    _DeviceListCard(detail: detail),
+                    GatewayDistanceCard(livestockId: detail.livestockId),
+                    const SizedBox(height: AppSpacing.md),
+                    _HealthDataCard(detail: detail),
+                    const SizedBox(height: AppSpacing.md),
+                    _LocationCard(detail: detail),
+                  ],
+                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('${l10n.commonLoadFailed}: $e'),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => ref
+                            .read(
+                              livestockDetailControllerProvider(
+                                livestockId,
+                              ).notifier,
+                            )
+                            .refresh(),
+                        child: Text(l10n.commonRetry),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -359,14 +359,12 @@ void _showBindDeviceSheet(
     context: context,
     isScrollControlled: true,
     builder: (ctx) => _BindDeviceSheet(livestockId: detail.livestockId),
-  ).then(
-    (_) {
-      ref.invalidate(livestockListControllerProvider);
-      ref
-          .read(livestockDetailControllerProvider(detail.livestockId).notifier)
-          .refresh();
-    },
-  );
+  ).then((_) {
+    ref.invalidate(livestockListControllerProvider);
+    ref
+        .read(livestockDetailControllerProvider(detail.livestockId).notifier)
+        .refresh();
+  });
 }
 
 void _showUnbindConfirm(
@@ -379,11 +377,7 @@ void _showUnbindConfirm(
   showDialog(
     context: context,
     builder: (ctx) => AlertDialog(
-      icon: const Icon(
-        Icons.link_off,
-        color: AppColors.warning,
-        size: 48,
-      ),
+      icon: const Icon(Icons.link_off, color: AppColors.warning, size: 48),
       title: Text(l10n.installUnbindConfirmTitle),
       content: Text(l10n.installUnbindConfirmMsg(device.name)),
       actions: [
@@ -426,14 +420,10 @@ Future<void> _unbindDevice(
       }
     }
     if (installation == null) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.commonLoadFailed)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(l10n.commonLoadFailed)));
       return;
     }
-    await ref
-        .read(devicesRepositoryProvider)
-        .uninstall(installation.id);
+    await ref.read(devicesRepositoryProvider).uninstall(installation.id);
     if (context.mounted) {
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.installUnbindSuccess)),
@@ -466,14 +456,12 @@ void _showEditForm(
       birthDate: detail.birthDate,
       weight: detail.weightKg,
     ),
-  ).then(
-    (_) {
-      ref.invalidate(livestockListControllerProvider);
-      ref
-          .read(livestockDetailControllerProvider(detail.livestockId).notifier)
-          .refresh();
-    },
-  );
+  ).then((_) {
+    ref.invalidate(livestockListControllerProvider);
+    ref
+        .read(livestockDetailControllerProvider(detail.livestockId).notifier)
+        .refresh();
+  });
 }
 
 void _showDeleteConfirm(
@@ -660,9 +648,7 @@ class _BindDeviceSheetState extends ConsumerState<_BindDeviceSheet> {
       if (!mounted) return;
       setState(() {
         _page += 1;
-        _devices.addAll(
-          data.items.where((d) => !boundTypes.contains(d.type)),
-        );
+        _devices.addAll(data.items.where((d) => !boundTypes.contains(d.type)));
         _hasMore = data.items.length >= _pageSize;
         _loading = false;
         _loadingMore = false;
@@ -927,15 +913,17 @@ class _FeverTrendSection extends ConsumerWidget {
                 Text(
                   l10n.feverDetailChartTitle,
                   style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.bold),
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Spacer(),
                 Text(
                   l10n.latestDataAt(formatMdhm(latestPoint)),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                        fontSize: 11,
-                      ),
+                    color: AppColors.textSecondary,
+                    fontSize: 11,
+                  ),
                 ),
               ],
             ),
@@ -948,8 +936,11 @@ class _FeverTrendSection extends ConsumerWidget {
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: LineChart(
-                LineChartData(
+              child: LineChartReadout(
+                timestamps: timestamps,
+                formatValue: (value) => '${value.toStringAsFixed(1)}°C',
+                chartDataBuilder: (touchData) => LineChartData(
+                  lineTouchData: touchData,
                   minY: minTemp,
                   maxY: maxTemp,
                   gridData: const FlGridData(
@@ -1004,10 +995,6 @@ class _FeverTrendSection extends ConsumerWidget {
                       dotData: const FlDotData(show: false),
                     ),
                   ],
-                  lineTouchData: healthLineTouchData(
-                    timestamps: timestamps,
-                    formatValue: (value) => '${value.toStringAsFixed(1)}°C',
-                  ),
                 ),
               ),
             ),
@@ -1067,7 +1054,9 @@ class _DigestiveTrendSection extends ConsumerWidget {
         final spots = readings
             .asMap()
             .entries
-            .map((entry) => FlSpot(entry.key.toDouble(), entry.value.frequency!))
+            .map(
+              (entry) => FlSpot(entry.key.toDouble(), entry.value.frequency!),
+            )
             .toList();
         final timestamps = readings
             .map((reading) => reading.timestamp)
@@ -1093,15 +1082,17 @@ class _DigestiveTrendSection extends ConsumerWidget {
                 Text(
                   l10n.digestiveDetailChartTitle,
                   style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.bold),
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Spacer(),
                 Text(
                   l10n.latestDataAt(formatMdhm(latestPoint)),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                        fontSize: 11,
-                      ),
+                    color: AppColors.textSecondary,
+                    fontSize: 11,
+                  ),
                 ),
               ],
             ),
@@ -1114,8 +1105,11 @@ class _DigestiveTrendSection extends ConsumerWidget {
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: LineChart(
-                LineChartData(
+              child: LineChartReadout(
+                timestamps: timestamps,
+                formatValue: (value) => value.toStringAsFixed(1),
+                chartDataBuilder: (touchData) => LineChartData(
+                  lineTouchData: touchData,
                   minY: minFrequency,
                   maxY: maxFrequency,
                   gridData: const FlGridData(
@@ -1173,10 +1167,6 @@ class _DigestiveTrendSection extends ConsumerWidget {
                       dotData: const FlDotData(show: false),
                     ),
                   ],
-                  lineTouchData: healthLineTouchData(
-                    timestamps: timestamps,
-                    formatValue: (value) => value.toStringAsFixed(1),
-                  ),
                 ),
               ),
             ),
@@ -1282,15 +1272,17 @@ class _EstrusTrendSection extends ConsumerWidget {
                 Text(
                   l10n.estrusDetailChartTitle,
                   style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.bold),
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Spacer(),
                 Text(
                   l10n.latestDataAt(formatMdhm(latestPoint)),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                        fontSize: 11,
-                      ),
+                    color: AppColors.textSecondary,
+                    fontSize: 11,
+                  ),
                 ),
               ],
             ),
@@ -1303,8 +1295,11 @@ class _EstrusTrendSection extends ConsumerWidget {
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: LineChart(
-                LineChartData(
+              child: LineChartReadout(
+                timestamps: timestamps,
+                formatValue: (value) => value.toInt().toString(),
+                chartDataBuilder: (touchData) => LineChartData(
+                  lineTouchData: touchData,
                   minY: 0,
                   maxY: 100,
                   gridData: const FlGridData(
@@ -1350,10 +1345,6 @@ class _EstrusTrendSection extends ConsumerWidget {
                       dotData: const FlDotData(show: true),
                     ),
                   ],
-                  lineTouchData: healthLineTouchData(
-                    timestamps: timestamps,
-                    formatValue: (value) => value.toInt().toString(),
-                  ),
                 ),
               ),
             ),
@@ -1401,9 +1392,9 @@ class _LocationCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.xs),
             Text(
               l10n.dataUpdatedAt(formatMdhm(detail.lastPositionAt!)),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
             ),
           ],
           const SizedBox(height: AppSpacing.md),
