@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
-import 'package:hkt_livestock_agentic/core/charts/line_chart_readout.dart';
 import 'package:hkt_livestock_agentic/core/models/health_models.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
@@ -266,12 +265,11 @@ class EstrusDetailPage extends ConsumerWidget {
             const SizedBox(height: 8),
             SizedBox(
               height: 180,
-              child: LineChartReadout(
-                timestamps: trend.map((point) => point.timestamp).toList(),
-                formatValue: (value) => value.toInt().toString(),
-                chartDataBuilder: (touchData) => LineChartData(
+              child: LineChart(
+                LineChartData(
                   minY: 0,
                   maxY: 100,
+                  lineTouchData: const LineTouchData(enabled: false),
                   gridData: const FlGridData(
                     show: true,
                     drawVerticalLine: false,
