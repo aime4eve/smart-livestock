@@ -164,8 +164,8 @@ class WorkerJourneyTest extends AbstractJourneyTest {
         }
 
         @Test
-        @DisplayName("worker 不能处理告警（handle）")
-        void worker_cannotHandleAlert() {
+        @DisplayName("worker 可以处理告警（handle）")
+        void worker_canHandleAlert() {
             var listData = getApi(workerToken, "/api/v1/farms/1/alerts?page=0&size=50");
             var items = getItems(listData);
 
@@ -177,7 +177,7 @@ class WorkerJourneyTest extends AbstractJourneyTest {
             String alertId = extractId(acknowledged.get());
             var resp = postRaw(workerToken,
                     "/api/v1/farms/1/alerts/" + alertId + "/handle", null);
-            assertThat(resp.getStatusCode().value()).isEqualTo(403);
+            assertThat(resp.getStatusCode().value()).isEqualTo(200);
         }
 
         @Test

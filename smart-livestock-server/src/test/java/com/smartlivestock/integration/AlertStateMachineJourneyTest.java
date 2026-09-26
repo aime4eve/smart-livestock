@@ -96,13 +96,13 @@ class AlertStateMachineJourneyTest extends AbstractJourneyTest {
         }
 
         @Test
-        @DisplayName("worker 不能 dismiss 告警")
-        void workerCannotDismiss() {
+        @DisplayName("worker 可以 dismiss 告警")
+        void workerCanDismiss() {
             String alertId = createActiveAlert(1L);
 
             var resp = postRaw(workerToken,
                     "/api/v1/farms/1/alerts/" + alertId + "/dismiss", null);
-            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+            assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
     }
 
