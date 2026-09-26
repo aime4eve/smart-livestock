@@ -2,7 +2,10 @@ package com.smartlivestock.health.domain.service;
 
 import com.smartlivestock.health.domain.model.TempStatus;
 import com.smartlivestock.health.domain.model.TemperatureLog;
+import com.smartlivestock.shared.common.MessageResolver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -20,6 +23,17 @@ import java.util.List;
  */
 @Service
 public class FeverAnalysisService {
+
+    private final MessageResolver messageResolver;
+
+    @Autowired
+    public FeverAnalysisService(MessageResolver messageResolver) {
+        this.messageResolver = messageResolver;
+    }
+
+    public FeverAnalysisService() {
+        this(null);
+    }
 
     private static final BigDecimal FEVER_THRESHOLD = new BigDecimal("1.0");
     private static final BigDecimal HIGH_FEVER_THRESHOLD = new BigDecimal("1.5");
@@ -67,11 +81,40 @@ public class FeverAnalysisService {
 
    public String generateConclusion(TempStatus status, BigDecimal delta, Duration duration) {
        return switch (status) {
-            case CRITICAL -> "Severely elevated temperature for" + formatDuration(duration) + ". Isolate immediately and contact a veterinarian.";
-            case FEVER -> "Temperature sustained high for" + formatDuration(duration) + ". Isolate and monitor.";
-            case ELEVATED -> "Slightly elevated temperature. Continue monitoring.";
-            case NORMAL -> "Temperature normal";
+            case CRITICAL -> resolve(
+                    "health.fever.conclusion.critical",
+                    new Object[]{formatDuration(duration)},
+                    "Severely elevated temperature for" + formatDuration(duration)
+                            + ". Isolate immediately and contact a veterinarian.");
+            case FEVER -> resolve(
+                    "health.fever.conclusion.fever",
+                    new Object[]{formatDuration(duration)},
+                    "Temperature sustained high for" + formatDuration(duration) + ". Isolate and monitor.");
+            case ELEVATED -> resolve(
+                    "health.fever.conclusion.elevated",
+                    null,
+                    "Slightly elevated temperature. Continue monitoring.");
+            case NORMAL -> resolve(
+                    "health.fever.conclusion.normal",
+                    null,
+                    "Temperature normal");
        };
+   }
+
+   private String resolve(String key, Object[] args, String fallback) {
+       if (messageResolver == null) return fallback;
+       return messageResolver.resolve(key, args, LocaleContextHolder.getLocale());
+   }
+
+   private String formatDuration(Duration duration) {
+       if (duration == null || duration.toHours() < 1) {
+           return resolve("health.duration.lessThanOneHour", null, " less than 1 hour");
+       }
+       return resolve(
+               "health.duration.hours",
+               new Object[]{duration.toHours()},
+               " " + duration.toHours() + " hours"
+       );
    }
 
     /**
@@ -102,10 +145,4 @@ public class FeverAnalysisService {
         return Duration.between(firstElevated, latestTime).compareTo(SUSTAINED_DURATION) >= 0;
     }
 
-   private String formatDuration(Duration duration) {
-       if (duration == null) return "";
-       long hours = duration.toHours();
-        if (hours < 1) return " less than 1 hour";
-        return " " + hours + " hours";
-   }
 }

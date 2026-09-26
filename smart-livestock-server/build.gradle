@@ -113,6 +113,12 @@ tasks.named('test') {
     systemProperty 'spring.classformat.ignore', 'true'
     // Docker 29+ requires minimum API 1.40; docker-java defaults to 1.32
     systemProperty 'docker.api.version', '1.40'
+    testLogging {
+        events 'failed'
+        exceptionFormat 'full'
+        showCauses true
+        showStackTraces true
+    }
     doFirst {
         def buildDir = layout.buildDirectory.get().asFile
         if (buildDir.exists()) {

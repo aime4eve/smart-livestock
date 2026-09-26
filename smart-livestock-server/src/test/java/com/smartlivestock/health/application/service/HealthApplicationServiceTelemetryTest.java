@@ -48,6 +48,7 @@ class HealthApplicationServiceTelemetryTest {
     @Mock private EpidemicAnalysisService epidemicService;
     @Mock private HealthAnomalyService healthAnomalyService;
     @Mock private HealthAlertBridgeService healthAlertBridgeService;
+    @Mock private com.smartlivestock.shared.common.MessageResolver messageResolver;
 
     private HealthApplicationService service;
 
@@ -60,7 +61,8 @@ class HealthApplicationServiceTelemetryTest {
                 subscriptionPort,
                 healthAnomalyService,
                 healthAlertBridgeService,
-               feverService, digestiveService, estrusAnalysisService, epidemicService);
+               feverService, digestiveService, estrusAnalysisService, epidemicService,
+                messageResolver);
 
         // refreshSnapshot calls ensureSnapshotExists then findByLivestockId.
         doNothing().when(snapshotRepo).ensureSnapshotExists(anyLong(), anyLong());

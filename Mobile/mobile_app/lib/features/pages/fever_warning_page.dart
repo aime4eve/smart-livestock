@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/features/fever_warning/presentation/fever_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/health_models.dart';
+import 'package:hkt_livestock_agentic/core/l10n/enum_labels.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class FeverWarningPage extends ConsumerWidget {
@@ -14,7 +15,11 @@ class FeverWarningPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final asyncList = ref.watch(feverListControllerProvider);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.feverWarningTitle), backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+      appBar: AppBar(
+        title: Text(l10n.feverWarningTitle),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+      ),
       body: asyncList.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
@@ -23,14 +28,32 @@ class FeverWarningPage extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.cloud_off, size: 48, color: AppColors.textSecondary),
+                const Icon(
+                  Icons.cloud_off,
+                  size: 48,
+                  color: AppColors.textSecondary,
+                ),
                 const SizedBox(height: 12),
-                Text(l10n.commonLoadFailed, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(
+                  l10n.commonLoadFailed,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 8),
-                Text('$e', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary), textAlign: TextAlign.center),
+                Text(
+                  '$e',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
-                  onPressed: () => ref.read(feverListControllerProvider.notifier).refresh(),
+                  onPressed: () =>
+                      ref.read(feverListControllerProvider.notifier).refresh(),
                   icon: const Icon(Icons.refresh),
                   label: Text(l10n.commonRetry),
                 ),
@@ -40,10 +63,16 @@ class FeverWarningPage extends ConsumerWidget {
         ),
         data: (items) {
           if (items.isEmpty) {
-            return Center(child: Text(l10n.feverNoData, style: const TextStyle(fontSize: 16)));
+            return Center(
+              child: Text(
+                l10n.feverNoData,
+                style: const TextStyle(fontSize: 16),
+              ),
+            );
           }
           return RefreshIndicator(
-            onRefresh: () => ref.read(feverListControllerProvider.notifier).refresh(),
+            onRefresh: () =>
+                ref.read(feverListControllerProvider.notifier).refresh(),
             child: ListView.builder(
               itemCount: items.length,
               padding: const EdgeInsets.all(12),
@@ -62,35 +91,64 @@ class _FeverCard extends StatelessWidget {
 
   Color _statusColor() {
     switch (item.status) {
-      case 'CRITICAL': return AppColors.danger;
-      case 'FEVER': return AppColors.warning;
-      case 'ELEVATED': return AppColors.info;
-      default: return AppColors.success;
+      case 'CRITICAL':
+        return AppColors.danger;
+      case 'FEVER':
+        return AppColors.warning;
+      case 'ELEVATED':
+        return AppColors.info;
+      default:
+        return AppColors.success;
     }
   }
 
   IconData _statusIcon() {
     switch (item.status) {
-      case 'CRITICAL': return Icons.error;
-      case 'FEVER': return Icons.warning;
-      default: return Icons.info;
+      case 'CRITICAL':
+        return Icons.error;
+      case 'FEVER':
+        return Icons.warning;
+      default:
+        return Icons.info;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final color = _statusColor();
+    final statusLabel = tempStatusLabel(
+      AppLocalizations.of(context)!,
+      item.status,
+    );
+    final breedLabel = breedStatusLabel(
+      AppLocalizations.of(context)!,
+      item.breed,
+    );
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: color.withValues(alpha: 0.3))),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(color: color.withValues(alpha: 0.3)),
+      ),
       child: ListTile(
         leading: Icon(_statusIcon(), color: color, size: 28),
-        title: Text(item.livestockCode, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text('${item.breed ?? ""}  ${item.currentTemp.toStringAsFixed(1)}°C  ▲+${item.delta.toStringAsFixed(1)}'),
+        title: Text(
+          item.livestockCode,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(
+          '$breedLabel  ${item.currentTemp.toStringAsFixed(1)}°C  ▲+${item.delta.toStringAsFixed(1)}',
+        ),
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
-          child: Text(item.status, style: TextStyle(fontSize: 11, color: color)),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            statusLabel,
+            style: TextStyle(fontSize: 11, color: color),
+          ),
         ),
         onTap: () => context.push('/twin/fever/${item.livestockId}'),
       ),

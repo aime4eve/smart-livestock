@@ -11,6 +11,7 @@ public enum AlertType {
     AI_ANOMALY,
     DEVICE_TAMPER,
     DEVICE_LOW_BATTERY,
+    DEVICE_OFFLINE,
     LINK_QUALITY,
     OUTLIER,
     RETURN_HOME

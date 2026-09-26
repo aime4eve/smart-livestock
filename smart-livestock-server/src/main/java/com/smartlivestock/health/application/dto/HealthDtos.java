@@ -254,6 +254,152 @@ public final class HealthDtos {
             Long livestockId, String diseaseType
     ) {}
 
+    // ── Epidemic workbench (three-view contact tracing) ─────────
+
+    public record EpidemicAnimalRef(
+            String livestockId,
+            String livestockCode
+    ) {}
+
+    public record EpidemicSourceData(
+            String livestockId,
+            String livestockCode,
+            String diseaseType,
+            Instant markedAt,
+            String status
+    ) {}
+
+    public record EpidemicHerdMetricsData(
+            BigDecimal avgTemperature,
+            double abnormalRate,
+            int totalLivestock,
+            int abnormalCount,
+            String riskLevel
+    ) {}
+
+    public record EpidemicWorkbenchContext(
+            EpidemicSourceData source,
+            int windowHours,
+            Instant generatedAt,
+            Instant syncedAt,
+            EpidemicHerdMetricsData herdMetrics,
+            Integer lastContactAgeMinutes
+    ) {}
+
+    public record EpidemicTierSummary(
+            String key,
+            int rank,
+            int count
+    ) {}
+
+    public record EpidemicHealthSignal(
+            BigDecimal currentTemp,
+            String tempStatus,
+            String motilityStatus,
+            boolean hasActiveHealthAlert,
+            BigDecimal aiAnomalyScore
+    ) {}
+
+    public record EpidemicLivestockWorkbenchItem(
+            String livestockId,
+            String livestockCode,
+            String fenceName,
+            String dispositionTier,
+            int rank,
+            String recommendedAction,
+            String actionStatus,
+            Long dispositionId,
+            Instant dueAt,
+            boolean directSourceContact,
+            int shortestDepth,
+            int directContactCount,
+            int maxRiskScore,
+            String maxRiskLevel,
+            Instant lastContactAt,
+            Integer lastContactAgeMinutes,
+            EpidemicHealthSignal health,
+            List<String> reasonCodes,
+            List<Long> eventIds,
+            List<String> pathIds
+    ) {}
+
+    public record EpidemicEventItem(
+            Long eventId,
+            EpidemicAnimalRef from,
+            EpidemicAnimalRef to,
+            double proximityMeters,
+            int durationMinutes,
+            Instant lastContactAt,
+            long hoursAgo,
+            int timeScore,
+            int distanceScore,
+            int durationScore,
+            int riskScore,
+            String riskLevel,
+            List<String> factorCodes
+    ) {}
+
+    public record EpidemicGraphNode(
+            String livestockId,
+            String livestockCode,
+            String kind,
+            String dispositionTier
+    ) {}
+
+    public record EpidemicGraphEdge(
+            String edgeId,
+            String fromLivestockId,
+            String toLivestockId,
+            Long eventId,
+            int depth,
+            int riskScore,
+            String riskLevel
+    ) {}
+
+    public record EpidemicGraphPath(
+            String pathId,
+            List<String> livestockIds,
+            List<String> edgeIds,
+            int depth,
+            int riskScore,
+            String riskLevel
+    ) {}
+
+    public record EpidemicNetworkGraph(
+            String sourceLivestockId,
+            int maxDepth,
+            List<EpidemicGraphNode> nodes,
+            List<EpidemicGraphEdge> edges,
+            List<EpidemicGraphPath> paths
+    ) {}
+
+    public record EpidemicWorkbenchResponse(
+            EpidemicWorkbenchContext context,
+            List<EpidemicTierSummary> tiers,
+            List<EpidemicLivestockWorkbenchItem> livestock,
+            List<EpidemicEventItem> events,
+            EpidemicNetworkGraph network
+    ) {}
+
+    public record EpidemicDispositionRequest(
+            Long livestockId,
+            Long sourceLivestockId,
+            String actionCode,
+            Long eventId
+    ) {}
+
+    public record EpidemicDispositionResponse(
+            Long id,
+            String livestockId,
+            String sourceLivestockId,
+            String tier,
+            String actionCode,
+            String status,
+            List<String> reasonCodes,
+            Instant dueAt,
+            Instant completedAt
+    ) {}
+
 // ── Stats / Trends ─────────────────────────────────────────
 
     public record StatsTrendPoint(String date, double value) {}

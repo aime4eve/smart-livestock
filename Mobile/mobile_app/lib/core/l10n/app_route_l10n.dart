@@ -51,6 +51,7 @@ extension AppRouteL10n on AppRoute {
       case AppRoute.platformRevenue:
         return l10n.navRevenue;
       case AppRoute.devices:
+      case AppRoute.deviceDetail:
      case AppRoute.livestockList:
      case AppRoute.livestockDetail:
       case AppRoute.stats:

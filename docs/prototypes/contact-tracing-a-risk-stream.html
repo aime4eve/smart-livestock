@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>方案 A · 接触追踪风险分诊记录流</title>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      --color-primary: #2F6B3B;
+      --color-primary-dark: #244F2D;
+      --color-primary-soft: #E3F0E4;
+      --color-surface: #F8F6F0;
+      --color-surface-alt: #FFFFFF;
+      --color-surface-muted: #F2F0EA;
+      --color-border: #D7D2C6;
+      --color-text-primary: #263126;
+      --color-text-secondary: #617061;
+      --color-danger: #C2564B;
+      --color-danger-strong: #B3352C;
+      --color-danger-soft: #FBE8E6;
+      --color-warning: #D28A2D;
+      --color-warning-strong: #B36A16;
+      --color-warning-soft: #FFF2DE;
+      --color-success: #4C9A5F;
+      --color-success-soft: #E4F3E8;
+      --color-info: #4A7F9D;
+      --color-info-soft: #EAF2F6;
+
+      --font-family-app: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --font-size-caption: 11px;
+      --font-size-body: 13px;
+      --font-size-title: 15px;
+      --font-size-page-title: 18px;
+      --font-weight-regular: 400;
+      --font-weight-medium: 500;
+      --font-weight-semibold: 600;
+      --font-weight-bold: 700;
+      --line-height-tight: 1.2;
+      --line-height-normal: 1.45;
+
+      --spacing-2xs: 4px;
+      --spacing-xs: 8px;
+      --spacing-sm: 12px;
+      --spacing-md: 16px;
+      --spacing-lg: 20px;
+      --spacing-xl: 24px;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-pill: 999px;
+      --border-hairline: 1px solid var(--color-border);
+      --shadow-card: 0 1px 2px rgba(38, 49, 38, 0.06);
+      --shadow-app: 0 18px 50px rgba(38, 49, 38, 0.16);
+      --touch-target: 44px;
+      --app-width: 390px;
+      --app-height: 844px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; }
+    body {
+      display: grid;
+      place-items: center;
+      min-height: 100dvh;
+      padding: 24px;
+      background: #E8E6E0;
+      color: var(--color-text-primary);
+      font-family: var(--font-family-app);
+    }
+    button { font: inherit; border: 0; background: none; color: inherit; cursor: pointer; }
+    .prototype-link {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 10;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: var(--shadow-card);
+      color: var(--color-primary-dark);
+      font-size: var(--font-size-body);
+      font-weight: var(--font-weight-semibold);
+      text-decoration: none;
+    }
+    .app {
+      position: relative;
+      width: var(--app-width);
+      height: var(--app-height);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: var(--color-surface);
+      border-radius: 28px;
+      border: 1px solid rgba(215, 210, 198, 0.72);
+      box-shadow: var(--shadow-app);
+    }
+    @media (max-width: 480px), (max-height: 900px) {
+      body { padding: 0; background: var(--color-surface); }
+      .prototype-link { display: none; }
+      .app { width: 100%; max-width: none; height: 100dvh; border: 0; border-radius: 0; box-shadow: none; }
+    }
+
+    .app-bar {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: var(--touch-target) 1fr var(--touch-target);
+      align-items: center;
+      min-height: 60px;
+      padding: 8px 6px;
+      background: var(--color-primary);
+      color: #fff;
+    }
+    .icon-btn {
+      width: var(--touch-target);
+      height: var(--touch-target);
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius-pill);
+      transition: background-color 0.18s ease;
+    }
+    .icon-btn:hover { background: rgba(255, 255, 255, 0.14); }
+    .icon-btn svg { width: 22px; height: 22px; }
+    .app-bar-title { text-align: center; font-size: var(--font-size-title); font-weight: var(--font-weight-semibold); }
+
+    .screen-body {
+      flex: 1 1 auto;
+      overflow: auto;
+      padding: var(--spacing-md) var(--spacing-md) 104px;
+      scrollbar-width: none;
+    }
+    .screen-body::-webkit-scrollbar { display: none; }
+
+    .risk-banner {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      min-height: 58px;
+      padding: var(--spacing-sm);
+      border-radius: var(--radius-lg);
+      background: var(--color-warning-soft);
+      color: var(--color-warning-strong);
+    }
+    .risk-banner-icon {
+      flex: 0 0 auto;
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius-md);
+      background: rgba(210, 138, 45, 0.16);
+    }
+    .risk-banner-icon svg { width: 20px; height: 20px; }
+    .risk-banner-title { font-size: var(--font-size-title); font-weight: var(--font-weight-bold); line-height: var(--line-height-tight); }
+    .risk-banner-sub { margin-top: 3px; font-size: var(--font-size-caption); color: rgba(122, 78, 23, 0.82); }
+
+    .count-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--spacing-xs);
+      margin-top: var(--spacing-sm);
+    }
+    .count-card {
+      min-height: 74px;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--radius-md);
+      border: var(--border-hairline);
+      background: var(--color-surface-alt);
+      box-shadow: var(--shadow-card);
+    }
+    .count-card[data-severity="high"] { border-color: rgba(194, 86, 75, 0.34); }
+    .count-card[data-severity="medium"] { border-color: rgba(210, 138, 45, 0.34); }
+    .count-card[data-severity="low"] { border-color: rgba(76, 154, 95, 0.34); }
+    .count-label { display: flex; align-items: center; gap: 5px; font-size: var(--font-size-caption); color: var(--color-text-secondary); }
+    .count-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .count-value { margin-top: 5px; font-size: 22px; font-weight: var(--font-weight-bold); line-height: 1; }
+
+    .window-strip {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      display: flex;
+      gap: var(--spacing-2xs);
+      margin-top: var(--spacing-sm);
+      padding: 4px;
+      border-radius: var(--radius-pill);
+      background: rgba(242, 240, 234, 0.94);
+      backdrop-filter: blur(12px);
+      border: var(--border-hairline);
+    }
+    .window-btn {
+      flex: 1 1 0;
+      height: 36px;
+      border-radius: var(--radius-pill);
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-caption);
+      font-weight: var(--font-weight-semibold);
+      transition: background-color 0.18s ease, color 0.18s ease;
+    }
+    .window-btn[aria-pressed="true"] {
+      background: var(--color-surface-alt);
+      color: var(--color-primary-dark);
+      box-shadow: var(--shadow-card);
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--spacing-xs);
+      margin: var(--spacing-md) 2px var(--spacing-xs);
+    }
+    .section-heading h2 { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
+    .section-heading span { font-size: var(--font-size-caption); color: var(--color-text-secondary); }
+
+    .record-list { display: flex; flex-direction: column; gap: var(--spacing-xs); }
+    .record {
+      padding: var(--spacing-sm);
+      border-radius: var(--radius-lg);
+      border: var(--border-hairline);
+      background: var(--color-surface-alt);
+      box-shadow: var(--shadow-card);
+    }
+    .record[data-risk="high"] { border-left: 4px solid var(--color-danger); }
+    .record[data-risk="medium"] { border-left: 4px solid var(--color-warning); }
+    .record[data-risk="low"] { border-left: 4px solid var(--color-success); }
+    .record-top { display: flex; align-items: flex-start; gap: var(--spacing-xs); }
+    .record-pair { min-width: 0; flex: 1; font-size: var(--font-size-title); font-weight: var(--font-weight-bold); line-height: var(--line-height-tight); }
+    .record-score {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 2px;
+      min-width: 54px;
+      justify-content: center;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-caption);
+      font-weight: var(--font-weight-bold);
+    }
+    .record-score b { font-size: 16px; }
+    .record[data-risk="high"] .record-score { color: var(--color-danger-strong); background: var(--color-danger-soft); }
+    .record[data-risk="medium"] .record-score { color: var(--color-warning-strong); background: var(--color-warning-soft); }
+    .record[data-risk="low"] .record-score { color: var(--color-success); background: var(--color-success-soft); }
+    .risk-name { margin-left: 5px; font-size: 10px; font-weight: var(--font-weight-semibold); }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--spacing-xs);
+      margin-top: var(--spacing-sm);
+    }
+    .metric {
+      min-width: 0;
+      padding: 7px 8px;
+      border-radius: var(--radius-sm);
+      background: var(--color-surface-muted);
+      color: var(--color-text-secondary);
+    }
+    .metric-label { display: flex; align-items: center; gap: 4px; font-size: 10px; white-space: nowrap; }
+    .metric-label svg { width: 12px; height: 12px; flex: 0 0 auto; }
+    .metric-value { margin-top: 3px; color: var(--color-text-primary); font-size: var(--font-size-body); font-weight: var(--font-weight-semibold); white-space: nowrap; }
+
+    .factor-row { display: flex; flex-wrap: wrap; gap: var(--spacing-2xs); margin-top: var(--spacing-xs); }
+    .factor {
+      padding: 4px 7px;
+      border-radius: var(--radius-sm);
+      font-size: 10px;
+      font-weight: var(--font-weight-medium);
+      background: var(--color-surface-muted);
+      color: var(--color-text-secondary);
+    }
+    .factor[data-active="true"] { color: var(--color-danger-strong); background: var(--color-danger-soft); }
+    .record-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-xs);
+      margin-top: var(--spacing-sm);
+      padding-top: var(--spacing-xs);
+      border-top: var(--border-hairline);
+    }
+    .record-meta { min-width: 0; font-size: var(--font-size-caption); color: var(--color-text-secondary); }
+    .text-btn {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 34px;
+      padding: 0 8px;
+      border-radius: var(--radius-sm);
+      color: var(--color-primary-dark);
+      font-size: var(--font-size-caption);
+      font-weight: var(--font-weight-semibold);
+    }
+    .text-btn:hover { background: var(--color-primary-soft); }
+    .text-btn svg { width: 15px; height: 15px; }
+
+    .bottom-bar {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 4;
+      padding: var(--spacing-sm) var(--spacing-md) max(var(--spacing-md), env(safe-area-inset-bottom));
+      background: rgba(248, 246, 240, 0.94);
+      border-top: var(--border-hairline);
+      backdrop-filter: blur(16px);
+    }
+    .primary-btn {
+      width: 100%;
+      height: var(--touch-target);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-xs);
+      border-radius: var(--radius-md);
+      background: var(--color-primary);
+      color: #fff;
+      font-size: var(--font-size-body);
+      font-weight: var(--font-weight-semibold);
+      box-shadow: 0 6px 16px rgba(47, 107, 59, 0.22);
+    }
+    .primary-btn svg { width: 18px; height: 18px; }
+  </style>
+</head>
+<body>
+  <a class="prototype-link" href="contact-tracing-prototype-index.html">
+    <i data-lucide="arrow-left"></i>
+    选择方案
+  </a>
+  <main class="app" data-prototype="contact-tracing-a-risk-stream">
+    <header class="app-bar">
+      <button class="icon-btn" type="button" aria-label="返回"><i data-lucide="arrow-left"></i></button>
+      <h1 class="app-bar-title">疫病防控</h1>
+      <button class="icon-btn" type="button" aria-label="筛选设置"><i data-lucide="list-filter"></i></button>
+    </header>
+
+    <div class="screen-body">
+      <section class="risk-banner" aria-label="当前风险">
+        <span class="risk-banner-icon"><i data-lucide="siren"></i></span>
+        <div>
+          <p class="risk-banner-title">风险等级：关注</p>
+          <p class="risk-banner-sub">最近同步 6/30 22:08 · 数据窗口 72 小时</p>
+        </div>
+      </section>
+
+      <section class="count-strip" aria-label="风险数量">
+        <article class="count-card" data-severity="high">
+          <p class="count-label"><span class="count-dot" style="background: var(--color-danger);"></span>高风险</p>
+          <p class="count-value">2</p>
+        </article>
+        <article class="count-card" data-severity="medium">
+          <p class="count-label"><span class="count-dot" style="background: var(--color-warning);"></span>中风险</p>
+          <p class="count-value">5</p>
+        </article>
+        <article class="count-card" data-severity="low">
+          <p class="count-label"><span class="count-dot" style="background: var(--color-success);"></span>低风险</p>
+          <p class="count-value">11</p>
+        </article>
+      </section>
+
+      <div class="window-strip" role="group" aria-label="时间窗口">
+        <button class="window-btn" type="button" aria-pressed="false">24h</button>
+        <button class="window-btn" type="button" aria-pressed="false">48h</button>
+        <button class="window-btn" type="button" aria-pressed="true">72h</button>
+        <button class="window-btn" type="button" aria-pressed="false">全部</button>
+      </div>
+
+      <div class="section-heading">
+        <h2>高风险接触</h2>
+        <span>按风险分数排序</span>
+      </div>
+      <section class="record-list" aria-label="高风险接触记录">
+        <article class="record" data-risk="high">
+          <div class="record-top">
+            <h3 class="record-pair">48 ↔ 12</h3>
+            <p class="record-score"><b>82</b><span class="risk-name">高风险</span></p>
+          </div>
+          <div class="metric-row">
+            <div class="metric">
+              <p class="metric-label"><i data-lucide="ruler"></i>距离</p>
+              <p class="metric-value">3.7m</p>
+            </div>
+            <div class="metric">
+              <p class="metric-label"><i data-lucide="clock"></i>持续</p>
+              <p class="metric-value">22min</p>
+            </div>
+            <div class="metric">
+              <p class="metric-label"><i data-lucide="calendar"></i>时间</p>
+              <p class="metric-value">22:04</p>
+            </div>
+          </div>
+          <div class="factor-row">
+            <span class="factor" data-active="true">距离近</span>
+            <span class="factor" data-active="true">接触久</span>
+            <span class="factor" data-active="true">24h 内</span>
+          </div>
+          <div class="record-actions">
+            <p class="record-meta">来源 48 · 目标 12</p>
+            <button class="text-btn" type="button">查看牛只<i data-lucide="chevron-right"></i></button>
+          </div>
+        </article>
+
+        <article class="record" data-risk="high">
+          <div class="record-top">
+            <h3 class="record-pair">48 ↔ 49</h3>
+            <p class="record-score"><b>78</b><span class="risk-name">高风险</span></p>
+          </div>
+          <div class="metric-row">
+            <div class="metric">
+              <p class="metric-label"><i data-lucide="ruler"></i>距离</p>
+              <p class="metric-value">3.3m</p>
+            </div>
+            <div class="metric">
+              <p class="metric-label"><i data-lucide="clock"></i>持续</p>
+              <p class="metric-value">18min</p>
+            </div>
+            <div class="metric">
+              <p class="metric-label"><i data-lucide="calendar"></i>时间</p>
+              <p class="metric-value">22:04</p>
+            </div>
+          </div>
+          <div class="factor-row">
+            <span class="factor" data-active="true">距离近</span>
+            <span class="factor" data-active="true">接触久</span>
+            <span class="factor" data-active="true">24h 内</span>
+          </div>
+          <div class="record-actions">
+            <p class="record-meta">来源 48 · 目标 49</p>
+            <button class="text-btn" type="button">查看牛只<i data-lucide="chevron-right"></i></button>
+          </div>
+        </article>
+      </section>
+
+      <div class="section-heading">
+        <h2>中风险接触</h2>
+        <span>建议重点观察</span>
+      </div>
+      <section class="record-list" aria-label="中风险接触记录">
+        <article class="record" data-risk="medium">
+          <div class="record-top">
+            <h3 class="record-pair">48 ↔ 50</h3>
+            <p class="record-score"><b>64</b><span class="risk-name">中风险</span></p>
+          </div>
+          <div class="metric-row">
+            <div class="metric">
+              <p class="metric-label"><i data-lucide="ruler"></i>距离</p>
+              <p class="metric-value">6.0m</p>
+            </div>
+            <div class="metric">
+              <p class="metric-label"><i data-lucide="clock"></i>持续</p>
+              <p class="metric-value">11min</p>
+            </div>
+            <div class="metric">
+              <p class="metric-label"><i data-lucide="calendar"></i>时间</p>
+              <p class="metric-value">22:04</p>
+            </div>
+          </div>
+          <div class="factor-row">
+            <span class="factor" data-active="true">时间新</span>
+            <span class="factor">距离中等</span>
+            <span class="factor">接触较短</span>
+          </div>
+          <div class="record-actions">
+            <p class="record-meta">来源 48 · 目标 50</p>
+            <button class="text-btn" type="button">查看牛只<i data-lucide="chevron-right"></i></button>
+          </div>
+        </article>
+      </section>
+
+      <div class="section-heading">
+        <h2>低风险接触</h2>
+        <span>保留核查证据</span>
+      </div>
+      <section class="record-list" aria-label="低风险接触记录">
+        <article class="record" data-risk="low">
+          <div class="record-top">
+            <h3 class="record-pair">3 ↔ 4</h3>
+            <p class="record-score"><b>28</b><span class="risk-name">低风险</span></p>
+          </div>
+          <div class="metric-row">
+            <div class="metric">
+              <p class="metric-label"><i data-lucide="ruler"></i>距离</p>
+              <p class="metric-value">5.7m</p>
+            </div>
+            <div class="metric">
+              <p class="metric-label"><i data-lucide="clock"></i>持续</p>
+              <p class="metric-value">4min</p>
+            </div>
+            <div class="metric">
+              <p class="metric-label"><i data-lucide="calendar"></i>时间</p>
+              <p class="metric-value">4/8</p>
+            </div>
+          </div>
+          <div class="factor-row">
+            <span class="factor">时间较旧</span>
+            <span class="factor">接触较短</span>
+          </div>
+          <div class="record-actions">
+            <p class="record-meta">来源 3 · 目标 4</p>
+            <button class="text-btn" type="button">查看牛只<i data-lucide="chevron-right"></i></button>
+          </div>
+        </article>
+      </section>
+    </div>
+
+    <nav class="bottom-bar" aria-label="应急处置">
+      <button class="primary-btn" type="button"><i data-lucide="clipboard-list"></i>生成处置清单</button>
+    </nav>
+  </main>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

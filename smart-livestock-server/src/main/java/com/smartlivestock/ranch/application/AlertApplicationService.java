@@ -40,7 +40,7 @@ public class AlertApplicationService {
     private static final Set<String> GROUP_FENCE = Set.of("FENCE_BREACH", "FENCE_APPROACH", "ZONE_APPROACH");
     private static final Set<String> GROUP_HEALTH = Set.of(
             "TEMPERATURE_ABNORMAL", "DIGESTIVE_ABNORMAL", "ESTRUS", "EPIDEMIC", "AI_ANOMALY");
-    private static final Set<String> GROUP_DEVICE = Set.of("DEVICE_TAMPER", "DEVICE_LOW_BATTERY");
+    private static final Set<String> GROUP_DEVICE = Set.of("DEVICE_TAMPER", "DEVICE_LOW_BATTERY", "DEVICE_OFFLINE");
 
     private final AlertRepository alertRepository;
     private final SpringDataAlertReadStatusRepository readStatusRepository;

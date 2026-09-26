@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:tc:postgresql:16:///smart_livestock_test
+    url: jdbc:tc:postgresql:16:///smart_livestock_test?TC_INITSCRIPT=db/testcontainers_init.sql
   jpa:
     hibernate:
       ddl-auto: validate

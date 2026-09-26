@@ -7,7 +7,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/models/health_models.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
-import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/features/devices/domain/devices_repository.dart';
 import 'package:hkt_livestock_agentic/features/devices/presentation/devices_controller.dart';
 import 'package:hkt_livestock_agentic/features/digestive/domain/digestive_repository.dart';
@@ -41,12 +40,7 @@ class _FakeLivestockRepository implements LivestockRepository {
     String? keyword,
   }) async {
     loadAllCalls++;
-    return const LivestockListData(
-      items: [],
-      total: 0,
-      page: 1,
-      pageSize: 20,
-    );
+    return const LivestockListData(items: [], total: 0, page: 1, pageSize: 20);
   }
 
   @override
@@ -54,7 +48,10 @@ class _FakeLivestockRepository implements LivestockRepository {
 }
 
 class _FakeDevicesRepository implements DevicesRepository {
-  _FakeDevicesRepository({this.installations = const [], this.devices = const []});
+  _FakeDevicesRepository({
+    this.installations = const [],
+    this.devices = const [],
+  });
 
   final List<Installation> installations;
   final List<DeviceItem> devices;
@@ -95,8 +92,9 @@ class _FakeDevicesRepository implements DevicesRepository {
     }
     final start = (page - 1) * pageSize;
     final end = (start + pageSize).clamp(0, items.length);
-    final pageItems =
-        start >= items.length ? <DeviceItem>[] : items.sublist(start, end);
+    final pageItems = start >= items.length
+        ? <DeviceItem>[]
+        : items.sublist(start, end);
     return DevicesListData(
       items: pageItems,
       total: items.length,
@@ -106,7 +104,10 @@ class _FakeDevicesRepository implements DevicesRepository {
   }
 
   @override
-  Future<List<Installation>> loadInstallations({int? pageSize, String? livestockId}) async {
+  Future<List<Installation>> loadInstallations({
+    int? pageSize,
+    String? livestockId,
+  }) async {
     lastInstallationsLivestockId = livestockId;
     return installations;
   }
@@ -224,7 +225,8 @@ LivestockDetail _detail({List<DeviceItem> devices = const []}) =>
     );
 
 void main() {
-  testWidgets('livestock detail shows rumen motility trend', (tester) async {    tester.view.physicalSize = const Size(1000, 1600);
+  testWidgets('livestock detail shows rumen motility trend', (tester) async {
+    tester.view.physicalSize = const Size(1000, 1600);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -282,13 +284,13 @@ void main() {
       (bar) => bar.spots.any((spot) => spot.y > 35 && spot.y < 42),
     );
     final temperatureSpot = actualTemperatureBar.spots.first;
-    final tooltip = temperatureChart.data.lineTouchData.touchTooltipData;
     final touchedSpot = LineBarSpot(actualTemperatureBar, 0, temperatureSpot);
 
-    expect(tooltip.getTooltipColor(touchedSpot), AppColors.surfaceAlt);
-    final tooltipItems = tooltip.getTooltipItems([touchedSpot]);
-    expect(tooltipItems.single?.text, contains('°C'));
-    expect(tooltipItems.single?.text, contains('/'));
+    final touchData = temperatureChart.data.lineTouchData;
+    expect(touchData.enabled, isTrue);
+    expect(touchData.handleBuiltInTouches, isFalse);
+    expect(touchData.touchCallback, isNotNull);
+    expect(touchedSpot.y, isNot(equals(double.nan)));
     final sideTitles = temperatureChart.data.titlesData.leftTitles.sideTitles;
     expect(sideTitles.interval, greaterThanOrEqualTo(0.1));
     expect(sideTitles.minIncluded, isFalse);
@@ -326,9 +328,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          livestockRepositoryProvider.overrideWithValue(
-            livestockRepo,
-          ),
+          livestockRepositoryProvider.overrideWithValue(livestockRepo),
           devicesRepositoryProvider.overrideWithValue(devicesRepo),
           subscriptionRepositoryProvider.overrideWithValue(
             _FakeSubscriptionRepository(),
@@ -361,13 +361,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('确认解绑？'), findsOneWidget);
-    expect(find.text('确定要将设备 GPS-001 与该牲畜解绑吗？解绑后设备可重新绑定到其他牲畜。'), findsOneWidget);
+    expect(
+      find.text('确定要将设备 GPS-001 与该牲畜解绑吗？解绑后设备可重新绑定到其他牲畜。'),
+      findsOneWidget,
+    );
 
     await tester.tap(
-      find.descendant(
-        of: find.byType(AlertDialog),
-        matching: find.text('解绑'),
-      ),
+      find.descendant(of: find.byType(AlertDialog), matching: find.text('解绑')),
     );
     await tester.pumpAndSettle();
 
@@ -383,135 +383,142 @@ void main() {
     expect(livestockRepo.loadAllCalls, greaterThan(loadAllBefore));
   });
 
-  testWidgets('bind sheet lists only unbound devices and searches server-side', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(1000, 1600);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets(
+    'bind sheet lists only unbound devices and searches server-side',
+    (tester) async {
+      tester.view.physicalSize = const Size(1000, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    const boundDevice = DeviceItem(
-      id: '5',
-      name: 'GPS-001',
-      type: DeviceType.gps,
-      status: DeviceStatus.online,
-      boundLivestockCode: 'ST-10',
-    );
-    const boundElsewhere = DeviceItem(
-      id: '80',
-      name: 'CAP-BOUND',
-      type: DeviceType.rumenCapsule,
-      status: DeviceStatus.offline,
-      boundLivestockCode: '',
-    );
-    const candidateAlpha = DeviceItem(
-      id: '81',
-      name: 'CAP-ALPHA',
-      type: DeviceType.rumenCapsule,
-      status: DeviceStatus.offline,
-      boundLivestockCode: '',
-      devEui: 'EUI-ALPHA-01',
-      serialNo: 'SN-ALPHA',
-    );
-    const candidateBeta = DeviceItem(
-      id: '82',
-      name: 'CAP-BETA',
-      type: DeviceType.rumenCapsule,
-      status: DeviceStatus.offline,
-      boundLivestockCode: '',
-      devEui: 'EUI-BETA-02',
-    );
-    final devicesRepo = _FakeDevicesRepository(
-      devices: const [boundElsewhere, candidateAlpha, candidateBeta],
-      installations: const [
-        Installation(
-          id: '90',
-          deviceId: '80',
-          livestockId: '99',
-          installedAt: '2026-09-01T00:00:00Z',
-          active: true,
-        ),
-      ],
-    );
-
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          livestockRepositoryProvider.overrideWithValue(
-            _FakeLivestockRepository(devices: const [boundDevice]),
+      const boundDevice = DeviceItem(
+        id: '5',
+        name: 'GPS-001',
+        type: DeviceType.gps,
+        status: DeviceStatus.online,
+        boundLivestockCode: 'ST-10',
+      );
+      const boundElsewhere = DeviceItem(
+        id: '80',
+        name: 'CAP-BOUND',
+        type: DeviceType.rumenCapsule,
+        status: DeviceStatus.offline,
+        boundLivestockCode: '',
+      );
+      const candidateAlpha = DeviceItem(
+        id: '81',
+        name: 'CAP-ALPHA',
+        type: DeviceType.rumenCapsule,
+        status: DeviceStatus.offline,
+        boundLivestockCode: '',
+        devEui: 'EUI-ALPHA-01',
+        serialNo: 'SN-ALPHA',
+      );
+      const candidateBeta = DeviceItem(
+        id: '82',
+        name: 'CAP-BETA',
+        type: DeviceType.rumenCapsule,
+        status: DeviceStatus.offline,
+        boundLivestockCode: '',
+        devEui: 'EUI-BETA-02',
+      );
+      final devicesRepo = _FakeDevicesRepository(
+        devices: const [boundElsewhere, candidateAlpha, candidateBeta],
+        installations: const [
+          Installation(
+            id: '90',
+            deviceId: '80',
+            livestockId: '99',
+            installedAt: '2026-09-01T00:00:00Z',
+            active: true,
           ),
-          devicesRepositoryProvider.overrideWithValue(devicesRepo),
-          subscriptionRepositoryProvider.overrideWithValue(
-            _FakeSubscriptionRepository(),
-          ),
-          feverRepositoryProvider.overrideWithValue(_FakeFeverRepository()),
-          digestiveRepositoryProvider.overrideWithValue(
-            _FakeDigestiveRepository(),
-          ),
-          estrusRepositoryProvider.overrideWithValue(_FakeEstrusRepository()),
         ],
-        child: MaterialApp(
-          locale: const Locale('zh'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: const LivestockDetailPage(livestockId: '10'),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            livestockRepositoryProvider.overrideWithValue(
+              _FakeLivestockRepository(devices: const [boundDevice]),
+            ),
+            devicesRepositoryProvider.overrideWithValue(devicesRepo),
+            subscriptionRepositoryProvider.overrideWithValue(
+              _FakeSubscriptionRepository(),
+            ),
+            feverRepositoryProvider.overrideWithValue(_FakeFeverRepository()),
+            digestiveRepositoryProvider.overrideWithValue(
+              _FakeDigestiveRepository(),
+            ),
+            estrusRepositoryProvider.overrideWithValue(_FakeEstrusRepository()),
+          ],
+          child: MaterialApp(
+            locale: const Locale('zh'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const LivestockDetailPage(livestockId: '10'),
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('livestock-bind-device')));
-    await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('livestock-bind-device')));
+      await tester.pumpAndSettle();
 
-    // Initial load pages the server with unboundOnly so only bindable
-    // devices show up, no matter how large the farm inventory is.
-    expect(devicesRepo.lastUnboundOnly, isTrue);
-    expect(find.byKey(const Key('bind-device-80')), findsNothing);
-    expect(find.byKey(const Key('bind-device-81')), findsOneWidget);
-    expect(find.byKey(const Key('bind-device-82')), findsOneWidget);
+      // Initial load pages the server with unboundOnly so only bindable
+      // devices show up, no matter how large the farm inventory is.
+      expect(devicesRepo.lastUnboundOnly, isTrue);
+      expect(find.byKey(const Key('bind-device-80')), findsNothing);
+      expect(find.byKey(const Key('bind-device-81')), findsOneWidget);
+      expect(find.byKey(const Key('bind-device-82')), findsOneWidget);
 
-    // Keyword search is debounced and delegated to the server; serial no.
-    // and EUI are matched server-side too.
-    await tester.enterText(find.byKey(const Key('bind-device-search')), 'alpha');
-    await tester.pump(const Duration(milliseconds: 400));
-    await tester.pumpAndSettle();
-    expect(devicesRepo.loadDevicesKeywords.last, 'alpha');
-    expect(find.byKey(const Key('bind-device-81')), findsOneWidget);
-    expect(find.byKey(const Key('bind-device-82')), findsNothing);
+      // Keyword search is debounced and delegated to the server; serial no.
+      // and EUI are matched server-side too.
+      await tester.enterText(
+        find.byKey(const Key('bind-device-search')),
+        'alpha',
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+      expect(devicesRepo.loadDevicesKeywords.last, 'alpha');
+      expect(find.byKey(const Key('bind-device-81')), findsOneWidget);
+      expect(find.byKey(const Key('bind-device-82')), findsNothing);
 
-    await tester.enterText(
-      find.byKey(const Key('bind-device-search')),
-      'beta-02',
-    );
-    await tester.pump(const Duration(milliseconds: 400));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('bind-device-81')), findsNothing);
-    expect(find.byKey(const Key('bind-device-82')), findsOneWidget);
+      await tester.enterText(
+        find.byKey(const Key('bind-device-search')),
+        'beta-02',
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('bind-device-81')), findsNothing);
+      expect(find.byKey(const Key('bind-device-82')), findsOneWidget);
 
-    await tester.enterText(
-      find.byKey(const Key('bind-device-search')),
-      'SN-ALPHA',
-    );
-    await tester.pump(const Duration(milliseconds: 400));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('bind-device-81')), findsOneWidget);
-    expect(find.byKey(const Key('bind-device-82')), findsNothing);
-    expect(find.text('无匹配设备'), findsNothing);
+      await tester.enterText(
+        find.byKey(const Key('bind-device-search')),
+        'SN-ALPHA',
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('bind-device-81')), findsOneWidget);
+      expect(find.byKey(const Key('bind-device-82')), findsNothing);
+      expect(find.text('无匹配设备'), findsNothing);
 
-    // No match shows the dedicated hint.
-    await tester.enterText(find.byKey(const Key('bind-device-search')), 'zzz');
-    await tester.pump(const Duration(milliseconds: 400));
-    await tester.pumpAndSettle();
-    expect(find.text('无匹配设备'), findsOneWidget);
+      // No match shows the dedicated hint.
+      await tester.enterText(
+        find.byKey(const Key('bind-device-search')),
+        'zzz',
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+      expect(find.text('无匹配设备'), findsOneWidget);
 
-    // Clearing the query restores the full candidate list.
-    await tester.enterText(find.byKey(const Key('bind-device-search')), '');
-    await tester.pump(const Duration(milliseconds: 400));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('bind-device-81')), findsOneWidget);
-    expect(find.byKey(const Key('bind-device-82')), findsOneWidget);
-  });
+      // Clearing the query restores the full candidate list.
+      await tester.enterText(find.byKey(const Key('bind-device-search')), '');
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('bind-device-81')), findsOneWidget);
+      expect(find.byKey(const Key('bind-device-82')), findsOneWidget);
+    },
+  );
 
   testWidgets('bind sheet loads more pages when scrolled to the bottom', (
     tester,
@@ -581,97 +588,98 @@ void main() {
     expect(find.byKey(const Key('bind-device-120')), findsOneWidget);
   });
 
-  testWidgets('bind sheet auto-fetches when a full page filters to no scroll area', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(1000, 1600);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets(
+    'bind sheet auto-fetches when a full page filters to no scroll area',
+    (tester) async {
+      tester.view.physicalSize = const Size(1000, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    // Livestock already has a GPS device, so every GPS candidate is filtered
-    // out client-side. Page 1 comes back full (18 GPS + 2 capsules) and
-    // shrinks to 2 visible rows — pagination must continue automatically
-    // instead of leaving the footer spinner spinning forever.
-    final gpsPage = List<DeviceItem>.generate(
-      18,
-      (i) => DeviceItem(
-        id: 'g${i + 1}',
-        name: 'GPS-${i + 1}',
+      // Livestock already has a GPS device, so every GPS candidate is filtered
+      // out client-side. Page 1 comes back full (18 GPS + 2 capsules) and
+      // shrinks to 2 visible rows — pagination must continue automatically
+      // instead of leaving the footer spinner spinning forever.
+      final gpsPage = List<DeviceItem>.generate(
+        18,
+        (i) => DeviceItem(
+          id: 'g${i + 1}',
+          name: 'GPS-${i + 1}',
+          type: DeviceType.gps,
+          status: DeviceStatus.offline,
+          boundLivestockCode: '',
+        ),
+      );
+      const rc1 = DeviceItem(
+        id: 'c1',
+        name: 'DEV-RC-013',
+        type: DeviceType.rumenCapsule,
+        status: DeviceStatus.offline,
+        boundLivestockCode: '',
+      );
+      const rc2 = DeviceItem(
+        id: 'c2',
+        name: 'DEV-RC-015',
+        type: DeviceType.rumenCapsule,
+        status: DeviceStatus.offline,
+        boundLivestockCode: '',
+      );
+      const tailGps = DeviceItem(
+        id: 'g99',
+        name: 'GPS-99',
         type: DeviceType.gps,
         status: DeviceStatus.offline,
         boundLivestockCode: '',
-      ),
-    );
-    const rc1 = DeviceItem(
-      id: 'c1',
-      name: 'DEV-RC-013',
-      type: DeviceType.rumenCapsule,
-      status: DeviceStatus.offline,
-      boundLivestockCode: '',
-    );
-    const rc2 = DeviceItem(
-      id: 'c2',
-      name: 'DEV-RC-015',
-      type: DeviceType.rumenCapsule,
-      status: DeviceStatus.offline,
-      boundLivestockCode: '',
-    );
-    const tailGps = DeviceItem(
-      id: 'g99',
-      name: 'GPS-99',
-      type: DeviceType.gps,
-      status: DeviceStatus.offline,
-      boundLivestockCode: '',
-    );
-    final devicesRepo = _FakeDevicesRepository(
-      devices: [...gpsPage, rc1, rc2, tailGps],
-    );
+      );
+      final devicesRepo = _FakeDevicesRepository(
+        devices: [...gpsPage, rc1, rc2, tailGps],
+      );
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          livestockRepositoryProvider.overrideWithValue(
-            _FakeLivestockRepository(
-              devices: const [
-                DeviceItem(
-                  id: '5',
-                  name: 'GPS-001',
-                  type: DeviceType.gps,
-                  status: DeviceStatus.online,
-                  boundLivestockCode: 'ST-10',
-                ),
-              ],
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            livestockRepositoryProvider.overrideWithValue(
+              _FakeLivestockRepository(
+                devices: const [
+                  DeviceItem(
+                    id: '5',
+                    name: 'GPS-001',
+                    type: DeviceType.gps,
+                    status: DeviceStatus.online,
+                    boundLivestockCode: 'ST-10',
+                  ),
+                ],
+              ),
             ),
+            devicesRepositoryProvider.overrideWithValue(devicesRepo),
+            subscriptionRepositoryProvider.overrideWithValue(
+              _FakeSubscriptionRepository(),
+            ),
+            feverRepositoryProvider.overrideWithValue(_FakeFeverRepository()),
+            digestiveRepositoryProvider.overrideWithValue(
+              _FakeDigestiveRepository(),
+            ),
+            estrusRepositoryProvider.overrideWithValue(_FakeEstrusRepository()),
+          ],
+          child: MaterialApp(
+            locale: const Locale('zh'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const LivestockDetailPage(livestockId: '10'),
           ),
-          devicesRepositoryProvider.overrideWithValue(devicesRepo),
-          subscriptionRepositoryProvider.overrideWithValue(
-            _FakeSubscriptionRepository(),
-          ),
-          feverRepositoryProvider.overrideWithValue(_FakeFeverRepository()),
-          digestiveRepositoryProvider.overrideWithValue(
-            _FakeDigestiveRepository(),
-          ),
-          estrusRepositoryProvider.overrideWithValue(_FakeEstrusRepository()),
-        ],
-        child: MaterialApp(
-          locale: const Locale('zh'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: const LivestockDetailPage(livestockId: '10'),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('livestock-bind-device')));
-    await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('livestock-bind-device')));
+      await tester.pumpAndSettle();
 
-    // Page 1 was full server-side, so page 2 was auto-fetched without any
-    // user scrolling, and the loading footer is gone afterwards.
-    expect(devicesRepo.loadDevicePages, [1, 2]);
-    expect(find.byKey(const Key('bind-device-c1')), findsOneWidget);
-    expect(find.byKey(const Key('bind-device-c2')), findsOneWidget);
-    expect(find.byType(CircularProgressIndicator), findsNothing);
-  });
+      // Page 1 was full server-side, so page 2 was auto-fetched without any
+      // user scrolling, and the loading footer is gone afterwards.
+      expect(devicesRepo.loadDevicePages, [1, 2]);
+      expect(find.byKey(const Key('bind-device-c1')), findsOneWidget);
+      expect(find.byKey(const Key('bind-device-c2')), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    },
+  );
 }

@@ -142,6 +142,36 @@
   "@authLoginDescription": {},
   "deviceTypeGps": "GPS Tracker",
   "@deviceTypeGps": {},
+  "deviceDetailTitle": "Device detail",
+  "@deviceDetailTitle": {},
+  "deviceDetailBasic": "Basic info",
+  "@deviceDetailBasic": {},
+  "deviceDetailSignal": "Signal & communication",
+  "@deviceDetailSignal": {},
+  "deviceDetailBinding": "Binding",
+  "@deviceDetailBinding": {},
+  "deviceDetailRuntime": "Runtime",
+  "@deviceDetailRuntime": {},
+  "deviceDetailLifecycle": "Lifecycle",
+  "@deviceDetailLifecycle": {},
+  "deviceDetailLastSync": "Last sync",
+  "@deviceDetailLastSync": {},
+  "deviceDetailGateway": "Last gateway",
+  "@deviceDetailGateway": {},
+  "deviceDetailSerial": "Serial no.",
+  "@deviceDetailSerial": {},
+  "deviceDetailPlatform": "Platform device ID",
+  "@deviceDetailPlatform": {},
+  "deviceDetailEui": "DevEUI",
+  "@deviceDetailEui": {},
+  "deviceDetailAntiTamper": "Anti-tamper",
+  "@deviceDetailAntiTamper": {},
+  "deviceDetailNormal": "Normal",
+  "@deviceDetailNormal": {},
+  "deviceDetailTriggered": "Triggered",
+  "@deviceDetailTriggered": {},
+  "deviceDetailNone": "Not bound",
+  "@deviceDetailNone": {},
   "deviceTypeRumenCapsule": "Rumen Capsule",
   "@deviceTypeRumenCapsule": {},
   "deviceTypeEarTag": "Ear Tag",
@@ -150,6 +180,8 @@
   "@subscriptionTierBasic": {},
   "subscriptionTierStandard": "Standard",
   "@subscriptionTierStandard": {},
+  "subscriptionTierStandardPlus": "Standard+",
+  "@subscriptionTierStandardPlus": {},
   "subscriptionTierPremium": "Premium",
   "@subscriptionTierPremium": {},
   "subscriptionTierEnterprise": "Enterprise",
@@ -2225,6 +2257,137 @@
   "@epidemicContactNote": {},
   "viewContactTracing": "View Contact Tracing",
   "@viewContactTracing": {},
+  "epidemicWorkbenchSynced": "Risk model {hours}h · Sync {time}",
+  "@epidemicWorkbenchSynced": {
+    "placeholders": {
+      "hours": {"type": "int"},
+      "time": {"type": "String"}
+    }
+  },
+  "epidemicTabDisposition": "Disposition",
+  "@epidemicTabDisposition": {},
+  "epidemicTabRecords": "Records",
+  "@epidemicTabRecords": {},
+  "epidemicTabNetwork": "Network",
+  "@epidemicTabNetwork": {},
+  "epidemicSuspectedSource": "Suspected source",
+  "@epidemicSuspectedSource": {},
+  "epidemicContactLivestockCount": "Contact cattle",
+  "@epidemicContactLivestockCount": {},
+  "epidemicCriticalDispositionCount": "Level 1",
+  "@epidemicCriticalDispositionCount": {},
+  "epidemicMostRecentContact": "Latest contact",
+  "@epidemicMostRecentContact": {},
+  "epidemicMinutesShort": "min",
+  "@epidemicMinutesShort": {},
+  "epidemicDispositionQueueTitle": "Disposition queue",
+  "@epidemicDispositionQueueTitle": {},
+  "epidemicTierSortHint": "By tier, then risk and time",
+  "@epidemicTierSortHint": {},
+  "epidemicTierCritical": "Level 1 · Isolate",
+  "@epidemicTierCritical": {},
+  "epidemicTierObservation": "Level 2 · Observe",
+  "@epidemicTierObservation": {},
+  "epidemicTierTracking": "Level 3 · Track",
+  "@epidemicTierTracking": {},
+  "epidemicTierArchive": "Level 4 · Archive",
+  "@epidemicTierArchive": {},
+  "epidemicTierCriticalAction": "Isolate and notify vet in 2 hours",
+  "@epidemicTierCriticalAction": {},
+  "epidemicTierObservationAction": "Recheck health in 24 hours",
+  "@epidemicTierObservationAction": {},
+  "epidemicTierTrackingAction": "Continue contact checks in 72 hours",
+  "@epidemicTierTrackingAction": {},
+  "epidemicTierArchiveAction": "No immediate action; retain evidence",
+  "@epidemicTierArchiveAction": {},
+  "epidemicHeadSuffix": " head",
+  "@epidemicHeadSuffix": {},
+  "epidemicLivestockLabel": "Livestock",
+  "@epidemicLivestockLabel": {},
+  "epidemicContactCattle": "Contacts",
+  "@epidemicContactCattle": {},
+  "epidemicMaxRisk": "Max risk",
+  "@epidemicMaxRisk": {},
+  "epidemicTemperature": "Temp",
+  "@epidemicTemperature": {},
+  "epidemicShowEvidence": "Evidence · {count}",
+  "@epidemicShowEvidence": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "epidemicHideEvidence": "Hide evidence",
+  "@epidemicHideEvidence": {},
+  "epidemicLastSeenMinutes": "Contacted {minutes} min ago",
+  "@epidemicLastSeenMinutes": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "epidemicContactNetworkAction": "Network",
+  "@epidemicContactNetworkAction": {},
+  "epidemicActionIsolateVet": "Isolate and notify vet",
+  "@epidemicActionIsolateVet": {},
+  "epidemicActionImmediateCheck": "Check now",
+  "@epidemicActionImmediateCheck": {},
+  "epidemicActionMarkObservation": "Mark observation",
+  "@epidemicActionMarkObservation": {},
+  "epidemicActionContinueTracing": "Continue tracing",
+  "@epidemicActionContinueTracing": {},
+  "epidemicActionArchive": "Archive",
+  "@epidemicActionArchive": {},
+  "epidemicRecordTriageTitle": "Contact record triage",
+  "@epidemicRecordTriageTitle": {},
+  "epidemicRiskSortHint": "Sorted by risk score",
+  "@epidemicRiskSortHint": {},
+  "epidemicWindowHours": "{hours}h",
+  "@epidemicWindowHours": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "epidemicWindowAll": "All",
+  "@epidemicWindowAll": {},
+  "epidemicDistance": "Distance",
+  "@epidemicDistance": {},
+  "epidemicDuration": "Duration",
+  "@epidemicDuration": {},
+  "epidemicDispositionByLivestock": "Disposition by animal",
+  "@epidemicDispositionByLivestock": {},
+  "epidemicFirstLayer": "First-layer contacts",
+  "@epidemicFirstLayer": {},
+  "epidemicTapNodeHint": "Tap a node for details",
+  "@epidemicTapNodeHint": {},
+  "epidemicHighRiskPaths": "High-risk paths",
+  "@epidemicHighRiskPaths": {},
+  "epidemicSpreadHint": "Judge spread direction",
+  "@epidemicSpreadHint": {},
+  "epidemicCumulativeRisk": "Cumulative risk",
+  "@epidemicCumulativeRisk": {},
+  "epidemicFactorFresh": "Within 24h",
+  "@epidemicFactorFresh": {},
+  "epidemicFactorRecent": "Within 48h",
+  "@epidemicFactorRecent": {},
+  "epidemicFactorNear": "Near contact",
+  "@epidemicFactorNear": {},
+  "epidemicFactorModerateDistance": "Moderate distance",
+  "@epidemicFactorModerateDistance": {},
+  "epidemicFactorLongDuration": "Long duration",
+  "@epidemicFactorLongDuration": {},
+  "epidemicFactorMediumDuration": "Medium duration",
+  "@epidemicFactorMediumDuration": {},
+  "epidemicReasonDirectSource": "Direct source contact",
+  "@epidemicReasonDirectSource": {},
+  "epidemicReasonPathExposure": "Path exposure",
+  "@epidemicReasonPathExposure": {},
+  "epidemicReasonHealthAbnormal": "Health abnormality",
+  "@epidemicReasonHealthAbnormal": {},
+  "epidemicFilter": "Filter",
+  "@epidemicFilter": {},
+  "epidemicEmergencyReport": "Emergency report",
+  "@epidemicEmergencyReport": {},
+  "epidemicInvestigationReport": "Investigation report",
+  "@epidemicInvestigationReport": {},
   "livestockBreed": "Breed",
   "@livestockBreed": {},
   "livestockAgeMonthsLabel": "Age",
@@ -4920,14 +5083,42 @@
 "@reconcileOffBy": {},
   "heroTitleCalm": "All calm on the ranch",
   "@heroTitleCalm": {},
-  "heroTitleAttention": "{n} need attention",
-  "@heroTitleAttention": {"placeholders": {"n": {"type": "int"}}},
+  "heroTitleNeedsAttention": "Ranch needs attention",
+  "@heroTitleNeedsAttention": {},
   "heroDatePattern": "{w}, {m}/{d}",
   "@heroDatePattern": {"placeholders": {"m": {"type": "int"}, "d": {"type": "int"}, "w": {"type": "String"}}},
   "weekday0": "Sun", "weekday1": "Mon", "weekday2": "Tue", "weekday3": "Wed",
   "weekday4": "Thu", "weekday5": "Fri", "weekday6": "Sat",
-  "heroSub": "{healthy}/{total} healthy · {fences} fences to patrol",
-  "@heroSub": {"placeholders": {"healthy": {"type": "int"}, "total": {"type": "int"}, "fences": {"type": "int"}}},
+  "heroSub": "{healthy}/{total} healthy",
+  "@heroSub": {"placeholders": {"healthy": {"type": "int"}, "total": {"type": "int"}}},
+  "heroAttentionHealth": "{count} critical livestock",
+  "@heroAttentionHealth": {"placeholders": {"count": {"type": "int"}}},
+  "heroAttentionOutside": "{count} outside fence",
+  "@heroAttentionOutside": {"placeholders": {"count": {"type": "int"}}},
+  "heroAttentionAlerts": "{count} severe alerts",
+  "@heroAttentionAlerts": {"placeholders": {"count": {"type": "int"}}},
+  "ranchOutsideFenceTitle": "Livestock outside fences",
+  "@ranchOutsideFenceTitle": {},
+  "ranchOutsideFenceHint": "Tap an animal for details",
+  "@ranchOutsideFenceHint": {},
+  "ranchOutsideFenceStatus": "Outside all active fences",
+  "@ranchOutsideFenceStatus": {},
+  "ranchOutsideFenceView": "View fence status",
+  "@ranchOutsideFenceView": {},
+  "ranchSevereAlertTitle": "Severe alerts",
+  "@ranchSevereAlertTitle": {},
+  "ranchSevereAlertHint": "Tap an alert for details",
+  "@ranchSevereAlertHint": {},
+  "ranchSevereAlertCenter": "View alert center",
+  "@ranchSevereAlertCenter": {},
+  "ranchCriticalLivestockTitle": "Critical livestock",
+  "@ranchCriticalLivestockTitle": {},
+  "ranchCriticalLivestockHint": "Tap an animal for details",
+  "@ranchCriticalLivestockHint": {},
+  "ranchCriticalLivestockEmpty": "No details available",
+  "@ranchCriticalLivestockEmpty": {},
+  "ranchCriticalAlertHistory": "View health alert history",
+  "@ranchCriticalAlertHistory": {},
   "heroRingLabel": "healthy",
   "heroChipHead": "head",
   "heroChipDevice": "devices online",
@@ -4969,5 +5160,113 @@
   "@aiSummaryWatching": {"placeholders": {"n": {"type": "int"}}},
   "aiNotReady": "AI watch not started yet; shows up automatically once ready",
   "recHint": " (tickets may be missing — patrol advised)"
+
+  ,"workbenchImmediate": "Immediate"
+  ,"@workbenchImmediate": {}
+  ,"workbenchImmediateSub": "Breach · epidemic · tamper"
+  ,"@workbenchImmediateSub": {}
+  ,"workbenchField": "Field check"
+  ,"@workbenchFieldSub": "Approach · battery · offline"
+  ,"@workbenchFieldSub": {}
+  ,"workbenchObserve": "Observe"
+  ,"@workbenchObserve": {}
+  ,"workbenchObserveSub": "AI watch · no ticket"
+  ,"@workbenchObserveSub": {}
+  ,"workbenchResolved": "Handled today"
+  ,"@workbenchResolved": {}
+  ,"workbenchResolvedSub": "Closed today"
+  ,"@workbenchResolvedSub": {}
+  ,"workbenchAllBuckets": "All"
+  ,"@workbenchAllBuckets": {}
+  ,"workbenchAllAssets": "All assets"
+  ,"@workbenchAllAssets": {}
+  ,"workbenchLivestock": "Livestock"
+  ,"@workbenchLivestock": {}
+  ,"workbenchHerd": "Herd"
+  ,"@workbenchHerd": {}
+  ,"workbenchFence": "Fence"
+  ,"@workbenchFence": {}
+  ,"workbenchDevice": "Device"
+  ,"@workbenchDevice": {}
+  ,"workbenchActiveUnread": "{active} active · {unread} unread"
+  ,"@workbenchActiveUnread": {"placeholders": {"active": {"type": "int"}, "unread": {"type": "int"}}}
+  ,"workbenchContextOverview": "Overview: ranch state"
+  ,"@workbenchContextOverview": {}
+  ,"workbenchContextFence": "Fence: spatial assets"
+  ,"@workbenchContextFence": {}
+  ,"workbenchContextAlert": "Alerts: unified action"
+  ,"@workbenchContextAlert": {}
+  ,"workbenchViewAll": "View all {count}"
+  ,"@workbenchViewAll": {"placeholders": {"count": {"type": "int"}}}
+  ,"workbenchLoadMore": "Load more"
+  ,"@workbenchLoadMore": {}
+  ,"workbenchShownOf": "Showing {shown} / {total}"
+  ,"@workbenchShownOf": {"placeholders": {"shown": {"type": "int"}, "total": {"type": "int"}}}
+  ,"workbenchNextStep": "Next step"
+  ,"@workbenchNextStep": {}
+  ,"workbenchNow": "Now"
+  ,"@workbenchNow": {}
+  ,"workbenchKeyMetrics": "Key metrics"
+  ,"@workbenchKeyMetrics": {}
+  ,"workbenchEvidence": "Evidence"
+  ,"@workbenchEvidence": {}
+  ,"workbenchLifecycle": "Lifecycle"
+  ,"@workbenchLifecycle": {}
+  ,"workbenchAffected": "Affected"
+  ,"@workbenchAffected": {}
+  ,"workbenchSeverity": "Severity"
+  ,"@workbenchSeverity": {}
+  ,"workbenchFirstReport": "First report"
+  ,"@workbenchFirstReport": {}
+  ,"workbenchAiBand": "AI verdict"
+  ,"@workbenchAiBand": {}
+  ,"workbenchAiScore": "Technical score"
+  ,"@workbenchAiScore": {}
+  ,"workbenchEvidenceCount": "Evidence"
+  ,"@workbenchEvidenceCount": {}
+  ,"workbenchUnread": "Unread"
+  ,"@workbenchUnread": {}
+  ,"workbenchRecommendFence": "Locate the fence and affected livestock first"
+  ,"@workbenchRecommendFence": {}
+  ,"workbenchRecommendLivestock": "Review the episode and key metrics first"
+  ,"@workbenchRecommendLivestock": {}
+  ,"workbenchRecommendDevice": "Check fitment and signal first"
+  ,"@workbenchRecommendDevice": {}
+  ,"workbenchRecommendHerd": "Confirm the herd abnormal distribution first"
+  ,"@workbenchRecommendHerd": {}
+  ,"workbenchRecommendResolved": "Confirm the result and follow-up observation"
+  ,"@workbenchRecommendResolved": {}
+  ,"workbenchActionMap": "Map"
+  ,"@workbenchActionMap": {}
+  ,"workbenchActionTrajectory": "Track"
+  ,"@workbenchActionTrajectory": {}
+  ,"workbenchActionMarkRead": "Mark read"
+  ,"@workbenchActionMarkRead": {}
+  ,"workbenchActionProcess": "Handle"
+  ,"@workbenchActionProcess": {}
+  ,"workbenchActionLivestock": "Cattle"
+  ,"@workbenchActionLivestock": {}
+  ,"workbenchActionFence": "Fence"
+  ,"@workbenchActionFence": {}
+  ,"workbenchActionDevice": "Device"
+  ,"@workbenchActionDevice": {}
+  ,"workbenchActionAi": "AI evidence"
+  ,"@workbenchActionAi": {}
+  ,"workbenchTechnicalEvidence": "Technical evidence folded"
+  ,"@workbenchTechnicalEvidence": {}
+  ,"workbenchResolvedAt": "Resolved at"
+  ,"@workbenchResolvedAt": {}
+  ,"workbenchProcessedToast": "Alert handled"
+  ,"@workbenchProcessedToast": {}
+  ,"workbenchReadToast": "Marked as read"
+  ,"@workbenchReadToast": {}
+  ,"workbenchEmpty": "No alerts for this filter"
+  ,"@workbenchEmpty": {}
+  ,"workbenchEmptyHint": "Try another bucket or asset range"
+  ,"@workbenchEmptyHint": {}
+  ,"workbenchAiRanking": "Who needs attention"
+  ,"@workbenchAiRanking": {}
+  ,"workbenchClose": "Close"
+  ,"@workbenchClose": {}
 
 }

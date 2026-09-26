@@ -28,6 +28,59 @@ final epidemicControllerProvider =
   EpidemicController.new,
 );
 
+class EpidemicWorkbenchController extends FarmScopedAsyncNotifier<EpidemicWorkbenchData> {
+  String? sourceLivestockId;
+  int windowHours = 72;
+
+  @override
+  Future<EpidemicWorkbenchData> build() async {
+    watchActiveFarmId();
+    return ref.read(epidemicRepositoryProvider).fetchWorkbench(
+          sourceLivestockId: sourceLivestockId,
+          windowHours: windowHours,
+        );
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => ref
+        .read(epidemicRepositoryProvider)
+        .fetchWorkbench(sourceLivestockId: sourceLivestockId, windowHours: windowHours));
+  }
+
+  Future<void> setSource(String? value) async {
+    sourceLivestockId = value;
+    await refresh();
+  }
+
+  Future<void> setWindowHours(int value) async {
+    windowHours = value;
+    await refresh();
+  }
+
+  Future<void> markDisposition(EpidemicLivestockItem item) async {
+    await ref.read(epidemicRepositoryProvider).createDisposition(
+          livestockId: item.livestockId,
+          sourceLivestockId: state.value!.context.source.livestockId,
+          actionCode: item.recommendedAction,
+        );
+    await refresh();
+  }
+
+  Future<void> complete(EpidemicLivestockItem item) async {
+    final id = item.dispositionId;
+    if (id != null) {
+      await ref.read(epidemicRepositoryProvider).completeDisposition(id);
+      await refresh();
+    }
+  }
+}
+
+final epidemicWorkbenchControllerProvider =
+    AsyncNotifierProvider<EpidemicWorkbenchController, EpidemicWorkbenchData>(
+  EpidemicWorkbenchController.new,
+);
+
 class EpidemicContactController extends AsyncNotifier<ContactNetworkResponse> {
   EpidemicContactController(this.livestockId);
   final String livestockId;

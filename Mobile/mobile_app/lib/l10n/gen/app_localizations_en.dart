@@ -219,6 +219,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deviceTypeGps => 'GPS Tracker';
 
   @override
+  String get deviceDetailTitle => 'Device detail';
+
+  @override
+  String get deviceDetailBasic => 'Basic info';
+
+  @override
+  String get deviceDetailSignal => 'Signal & communication';
+
+  @override
+  String get deviceDetailBinding => 'Binding';
+
+  @override
+  String get deviceDetailRuntime => 'Runtime';
+
+  @override
+  String get deviceDetailLifecycle => 'Lifecycle';
+
+  @override
+  String get deviceDetailLastSync => 'Last sync';
+
+  @override
+  String get deviceDetailGateway => 'Last gateway';
+
+  @override
+  String get deviceDetailSerial => 'Serial no.';
+
+  @override
+  String get deviceDetailPlatform => 'Platform device ID';
+
+  @override
+  String get deviceDetailEui => 'DevEUI';
+
+  @override
+  String get deviceDetailAntiTamper => 'Anti-tamper';
+
+  @override
+  String get deviceDetailNormal => 'Normal';
+
+  @override
+  String get deviceDetailTriggered => 'Triggered';
+
+  @override
+  String get deviceDetailNone => 'Not bound';
+
+  @override
   String get deviceTypeRumenCapsule => 'Rumen Capsule';
 
   @override
@@ -229,6 +274,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get subscriptionTierStandard => 'Standard';
+
+  @override
+  String get subscriptionTierStandardPlus => 'Standard+';
 
   @override
   String get subscriptionTierPremium => 'Premium';
@@ -2686,6 +2734,187 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get viewContactTracing => 'View Contact Tracing';
+
+  @override
+  String epidemicWorkbenchSynced(int hours, String time) {
+    return 'Risk model ${hours}h · Sync $time';
+  }
+
+  @override
+  String get epidemicTabDisposition => 'Disposition';
+
+  @override
+  String get epidemicTabRecords => 'Records';
+
+  @override
+  String get epidemicTabNetwork => 'Network';
+
+  @override
+  String get epidemicSuspectedSource => 'Suspected source';
+
+  @override
+  String get epidemicContactLivestockCount => 'Contact cattle';
+
+  @override
+  String get epidemicCriticalDispositionCount => 'Level 1';
+
+  @override
+  String get epidemicMostRecentContact => 'Latest contact';
+
+  @override
+  String get epidemicMinutesShort => 'min';
+
+  @override
+  String get epidemicDispositionQueueTitle => 'Disposition queue';
+
+  @override
+  String get epidemicTierSortHint => 'By tier, then risk and time';
+
+  @override
+  String get epidemicTierCritical => 'Level 1 · Isolate';
+
+  @override
+  String get epidemicTierObservation => 'Level 2 · Observe';
+
+  @override
+  String get epidemicTierTracking => 'Level 3 · Track';
+
+  @override
+  String get epidemicTierArchive => 'Level 4 · Archive';
+
+  @override
+  String get epidemicTierCriticalAction => 'Isolate and notify vet in 2 hours';
+
+  @override
+  String get epidemicTierObservationAction => 'Recheck health in 24 hours';
+
+  @override
+  String get epidemicTierTrackingAction =>
+      'Continue contact checks in 72 hours';
+
+  @override
+  String get epidemicTierArchiveAction =>
+      'No immediate action; retain evidence';
+
+  @override
+  String get epidemicHeadSuffix => ' head';
+
+  @override
+  String get epidemicLivestockLabel => 'Livestock';
+
+  @override
+  String get epidemicContactCattle => 'Contacts';
+
+  @override
+  String get epidemicMaxRisk => 'Max risk';
+
+  @override
+  String get epidemicTemperature => 'Temp';
+
+  @override
+  String epidemicShowEvidence(int count) {
+    return 'Evidence · $count';
+  }
+
+  @override
+  String get epidemicHideEvidence => 'Hide evidence';
+
+  @override
+  String epidemicLastSeenMinutes(int minutes) {
+    return 'Contacted $minutes min ago';
+  }
+
+  @override
+  String get epidemicContactNetworkAction => 'Network';
+
+  @override
+  String get epidemicActionIsolateVet => 'Isolate and notify vet';
+
+  @override
+  String get epidemicActionImmediateCheck => 'Check now';
+
+  @override
+  String get epidemicActionMarkObservation => 'Mark observation';
+
+  @override
+  String get epidemicActionContinueTracing => 'Continue tracing';
+
+  @override
+  String get epidemicActionArchive => 'Archive';
+
+  @override
+  String get epidemicRecordTriageTitle => 'Contact record triage';
+
+  @override
+  String get epidemicRiskSortHint => 'Sorted by risk score';
+
+  @override
+  String epidemicWindowHours(int hours) {
+    return '${hours}h';
+  }
+
+  @override
+  String get epidemicWindowAll => 'All';
+
+  @override
+  String get epidemicDistance => 'Distance';
+
+  @override
+  String get epidemicDuration => 'Duration';
+
+  @override
+  String get epidemicDispositionByLivestock => 'Disposition by animal';
+
+  @override
+  String get epidemicFirstLayer => 'First-layer contacts';
+
+  @override
+  String get epidemicTapNodeHint => 'Tap a node for details';
+
+  @override
+  String get epidemicHighRiskPaths => 'High-risk paths';
+
+  @override
+  String get epidemicSpreadHint => 'Judge spread direction';
+
+  @override
+  String get epidemicCumulativeRisk => 'Cumulative risk';
+
+  @override
+  String get epidemicFactorFresh => 'Within 24h';
+
+  @override
+  String get epidemicFactorRecent => 'Within 48h';
+
+  @override
+  String get epidemicFactorNear => 'Near contact';
+
+  @override
+  String get epidemicFactorModerateDistance => 'Moderate distance';
+
+  @override
+  String get epidemicFactorLongDuration => 'Long duration';
+
+  @override
+  String get epidemicFactorMediumDuration => 'Medium duration';
+
+  @override
+  String get epidemicReasonDirectSource => 'Direct source contact';
+
+  @override
+  String get epidemicReasonPathExposure => 'Path exposure';
+
+  @override
+  String get epidemicReasonHealthAbnormal => 'Health abnormality';
+
+  @override
+  String get epidemicFilter => 'Filter';
+
+  @override
+  String get epidemicEmergencyReport => 'Emergency report';
+
+  @override
+  String get epidemicInvestigationReport => 'Investigation report';
 
   @override
   String get livestockBreed => 'Breed';
@@ -6139,9 +6368,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get heroTitleCalm => 'All calm on the ranch';
 
   @override
-  String heroTitleAttention(int n) {
-    return '$n need attention';
-  }
+  String get heroTitleNeedsAttention => 'Ranch needs attention';
 
   @override
   String heroDatePattern(int m, int d, String w) {
@@ -6170,9 +6397,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weekday6 => 'Sat';
 
   @override
-  String heroSub(int healthy, int total, int fences) {
-    return '$healthy/$total healthy · $fences fences to patrol';
+  String heroSub(int healthy, int total) {
+    return '$healthy/$total healthy';
   }
+
+  @override
+  String heroAttentionHealth(int count) {
+    return '$count critical livestock';
+  }
+
+  @override
+  String heroAttentionOutside(int count) {
+    return '$count outside fence';
+  }
+
+  @override
+  String heroAttentionAlerts(int count) {
+    return '$count severe alerts';
+  }
+
+  @override
+  String get ranchOutsideFenceTitle => 'Livestock outside fences';
+
+  @override
+  String get ranchOutsideFenceHint => 'Tap an animal for details';
+
+  @override
+  String get ranchOutsideFenceStatus => 'Outside all active fences';
+
+  @override
+  String get ranchOutsideFenceView => 'View fence status';
+
+  @override
+  String get ranchSevereAlertTitle => 'Severe alerts';
+
+  @override
+  String get ranchSevereAlertHint => 'Tap an alert for details';
+
+  @override
+  String get ranchSevereAlertCenter => 'View alert center';
+
+  @override
+  String get ranchCriticalLivestockTitle => 'Critical livestock';
+
+  @override
+  String get ranchCriticalLivestockHint => 'Tap an animal for details';
+
+  @override
+  String get ranchCriticalLivestockEmpty => 'No details available';
+
+  @override
+  String get ranchCriticalAlertHistory => 'View health alert history';
 
   @override
   String get heroRingLabel => 'healthy';
@@ -6300,4 +6575,176 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recHint => ' (tickets may be missing — patrol advised)';
+
+  @override
+  String get workbenchImmediate => 'Immediate';
+
+  @override
+  String get workbenchImmediateSub => 'Breach · epidemic · tamper';
+
+  @override
+  String get workbenchField => 'Field check';
+
+  @override
+  String get workbenchFieldSub => '接近 · 低电 · 离线';
+
+  @override
+  String get workbenchObserve => 'Observe';
+
+  @override
+  String get workbenchObserveSub => 'AI watch · no ticket';
+
+  @override
+  String get workbenchResolved => 'Handled today';
+
+  @override
+  String get workbenchResolvedSub => 'Closed today';
+
+  @override
+  String get workbenchAllBuckets => 'All';
+
+  @override
+  String get workbenchAllAssets => 'All assets';
+
+  @override
+  String get workbenchLivestock => 'Livestock';
+
+  @override
+  String get workbenchHerd => 'Herd';
+
+  @override
+  String get workbenchFence => 'Fence';
+
+  @override
+  String get workbenchDevice => 'Device';
+
+  @override
+  String workbenchActiveUnread(int active, int unread) {
+    return '$active active · $unread unread';
+  }
+
+  @override
+  String get workbenchContextOverview => 'Overview: ranch state';
+
+  @override
+  String get workbenchContextFence => 'Fence: spatial assets';
+
+  @override
+  String get workbenchContextAlert => 'Alerts: unified action';
+
+  @override
+  String workbenchViewAll(int count) {
+    return 'View all $count';
+  }
+
+  @override
+  String get workbenchLoadMore => 'Load more';
+
+  @override
+  String workbenchShownOf(int shown, int total) {
+    return 'Showing $shown / $total';
+  }
+
+  @override
+  String get workbenchNextStep => 'Next step';
+
+  @override
+  String get workbenchNow => 'Now';
+
+  @override
+  String get workbenchKeyMetrics => 'Key metrics';
+
+  @override
+  String get workbenchEvidence => 'Evidence';
+
+  @override
+  String get workbenchLifecycle => 'Lifecycle';
+
+  @override
+  String get workbenchAffected => 'Affected';
+
+  @override
+  String get workbenchSeverity => 'Severity';
+
+  @override
+  String get workbenchFirstReport => 'First report';
+
+  @override
+  String get workbenchAiBand => 'AI verdict';
+
+  @override
+  String get workbenchAiScore => 'Technical score';
+
+  @override
+  String get workbenchEvidenceCount => 'Evidence';
+
+  @override
+  String get workbenchUnread => 'Unread';
+
+  @override
+  String get workbenchRecommendFence =>
+      'Locate the fence and affected livestock first';
+
+  @override
+  String get workbenchRecommendLivestock =>
+      'Review the episode and key metrics first';
+
+  @override
+  String get workbenchRecommendDevice => 'Check fitment and signal first';
+
+  @override
+  String get workbenchRecommendHerd =>
+      'Confirm the herd abnormal distribution first';
+
+  @override
+  String get workbenchRecommendResolved =>
+      'Confirm the result and follow-up observation';
+
+  @override
+  String get workbenchActionMap => 'Map';
+
+  @override
+  String get workbenchActionTrajectory => 'Track';
+
+  @override
+  String get workbenchActionMarkRead => 'Mark read';
+
+  @override
+  String get workbenchActionProcess => 'Handle';
+
+  @override
+  String get workbenchActionLivestock => 'Cattle';
+
+  @override
+  String get workbenchActionFence => 'Fence';
+
+  @override
+  String get workbenchActionDevice => 'Device';
+
+  @override
+  String get workbenchActionAi => 'AI evidence';
+
+  @override
+  String get workbenchTechnicalEvidence => 'Technical evidence folded';
+
+  @override
+  String get workbenchResolvedAt => 'Resolved at';
+
+  @override
+  String get workbenchProcessedToast => 'Alert handled';
+
+  @override
+  String get workbenchReadToast => 'Marked as read';
+
+  @override
+  String get workbenchEmpty => 'No alerts for this filter';
+
+  @override
+  String get workbenchEmptyHint => 'Try another bucket or asset range';
+
+  @override
+  String get workbenchAiRanking => 'Who needs attention';
+
+  @override
+  String get workbenchClose => 'Close';
 }

@@ -50,6 +50,7 @@ class HealthOverviewFixesTest {
     @Mock private FeverAnalysisService feverService;
     @Mock private DigestiveAnalysisService digestiveService;
     @Mock private EstrusAnalysisService estrusAnalysisService;
+    @Mock private com.smartlivestock.shared.common.MessageResolver messageResolver;
 
     private EpidemicAnalysisService epidemicService = new EpidemicAnalysisService();
     private HealthApplicationService service;
@@ -59,7 +60,8 @@ class HealthOverviewFixesTest {
         service = new HealthApplicationService(snapshotRepo, tempLogRepo, motilityLogRepo,
                 activityLogRepo, estrusScoreRepo, contactTraceRepo, ranchQueryPort,
                 ranchCommandPort, subscriptionPort, healthAnomalyService, healthAlertBridgeService,
-                feverService, digestiveService, estrusAnalysisService, epidemicService);
+                feverService, digestiveService, estrusAnalysisService, epidemicService,
+                messageResolver);
         lenient().when(ranchQueryPort.countActiveAlertsByFarmId(1L)).thenReturn(0);
         lenient().when(ranchQueryPort.findActiveAlertsByFarmIdAndTypes(eq(1L), anyCollection()))
                 .thenReturn(List.of());

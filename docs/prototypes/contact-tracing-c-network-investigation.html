@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>方案 C · 传播链调查视图</title>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      --color-primary: #2F6B3B;
+      --color-primary-dark: #244F2D;
+      --color-primary-soft: #E3F0E4;
+      --color-surface: #F8F6F0;
+      --color-surface-alt: #FFFFFF;
+      --color-surface-muted: #F2F0EA;
+      --color-border: #D7D2C6;
+      --color-text-primary: #263126;
+      --color-text-secondary: #617061;
+      --color-danger: #C2564B;
+      --color-danger-strong: #B3352C;
+      --color-danger-soft: #FBE8E6;
+      --color-warning: #D28A2D;
+      --color-warning-strong: #B36A16;
+      --color-warning-soft: #FFF2DE;
+      --color-success: #4C9A5F;
+      --color-success-soft: #E4F3E8;
+      --color-info: #4A7F9D;
+      --color-info-soft: #EAF2F6;
+
+      --font-family-app: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --font-size-caption: 11px;
+      --font-size-body: 13px;
+      --font-size-title: 15px;
+      --font-size-page-title: 18px;
+      --font-weight-regular: 400;
+      --font-weight-medium: 500;
+      --font-weight-semibold: 600;
+      --font-weight-bold: 700;
+      --line-height-tight: 1.2;
+      --line-height-normal: 1.45;
+
+      --spacing-2xs: 4px;
+      --spacing-xs: 8px;
+      --spacing-sm: 12px;
+      --spacing-md: 16px;
+      --spacing-lg: 20px;
+      --spacing-xl: 24px;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-pill: 999px;
+      --border-hairline: 1px solid var(--color-border);
+      --shadow-card: 0 1px 2px rgba(38, 49, 38, 0.06);
+      --shadow-app: 0 18px 50px rgba(38, 49, 38, 0.16);
+      --touch-target: 44px;
+      --app-width: 390px;
+      --app-height: 844px;
+      --graph-height: 248px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      display: grid;
+      place-items: center;
+      min-height: 100dvh;
+      padding: 24px;
+      background: #E8E6E0;
+      color: var(--color-text-primary);
+      font-family: var(--font-family-app);
+    }
+    button { font: inherit; border: 0; background: none; color: inherit; cursor: pointer; }
+    .prototype-link {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 10;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: var(--shadow-card);
+      color: var(--color-primary-dark);
+      font-size: var(--font-size-body);
+      font-weight: var(--font-weight-semibold);
+      text-decoration: none;
+    }
+    .app {
+      position: relative;
+      width: var(--app-width);
+      height: var(--app-height);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--color-surface);
+      border-radius: 28px;
+      border: 1px solid rgba(215, 210, 198, 0.72);
+      box-shadow: var(--shadow-app);
+    }
+    @media (max-width: 480px), (max-height: 900px) {
+      body { padding: 0; background: var(--color-surface); }
+      .prototype-link { display: none; }
+      .app { width: 100%; max-width: none; height: 100dvh; border: 0; border-radius: 0; box-shadow: none; }
+    }
+
+    .app-bar {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: var(--touch-target) 1fr var(--touch-target);
+      align-items: center;
+      min-height: 60px;
+      padding: 8px 6px;
+      background: var(--color-primary);
+      color: #fff;
+    }
+    .icon-btn {
+      width: var(--touch-target);
+      height: var(--touch-target);
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius-pill);
+    }
+    .icon-btn:hover { background: rgba(255, 255, 255, 0.14); }
+    .icon-btn svg { width: 22px; height: 22px; }
+    .app-bar-title { text-align: center; font-size: var(--font-size-title); font-weight: var(--font-weight-semibold); }
+
+    .screen-body {
+      flex: 1 1 auto;
+      overflow: auto;
+      padding: var(--spacing-md) var(--spacing-md) 104px;
+      scrollbar-width: none;
+    }
+    .screen-body::-webkit-scrollbar { display: none; }
+
+    .source-band {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-sm);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(194, 86, 75, 0.18);
+      background: linear-gradient(90deg, rgba(194, 86, 75, 0.13), rgba(194, 86, 75, 0.04));
+    }
+    .source-marker {
+      flex: 0 0 auto;
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius-md);
+      background: var(--color-danger);
+      color: #fff;
+      font-size: var(--font-size-title);
+      font-weight: var(--font-weight-bold);
+    }
+    .source-copy { min-width: 0; flex: 1; }
+    .source-title { display: flex; align-items: center; gap: 6px; color: var(--color-danger-strong); font-size: var(--font-size-title); font-weight: var(--font-weight-bold); }
+    .source-status { padding: 3px 6px; border-radius: var(--radius-sm); background: rgba(194, 86, 75, 0.14); font-size: 10px; }
+    .source-sub { margin-top: 3px; font-size: var(--font-size-caption); color: var(--color-text-secondary); }
+
+    .view-strip {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      display: flex;
+      gap: var(--spacing-2xs);
+      margin-top: var(--spacing-sm);
+      padding: 4px;
+      border-radius: var(--radius-pill);
+      border: var(--border-hairline);
+      background: rgba(242, 240, 234, 0.94);
+      backdrop-filter: blur(12px);
+    }
+    .view-btn {
+      flex: 1 1 0;
+      height: 36px;
+      border-radius: var(--radius-pill);
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-caption);
+      font-weight: var(--font-weight-semibold);
+    }
+    .view-btn[aria-pressed="true"] { background: var(--color-surface-alt); color: var(--color-primary-dark); box-shadow: var(--shadow-card); }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-xs);
+      margin: var(--spacing-md) 2px var(--spacing-xs);
+    }
+    .section-heading h2 { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
+    .section-heading span { font-size: var(--font-size-caption); color: var(--color-text-secondary); }
+
+    .graph-card {
+      overflow: hidden;
+      border: var(--border-hairline);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-alt);
+      box-shadow: var(--shadow-card);
+    }
+    .graph-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-xs);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-bottom: var(--border-hairline);
+    }
+    .graph-toolbar strong { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
+    .graph-mode { display: inline-flex; align-items: center; gap: 4px; color: var(--color-text-secondary); font-size: 10px; font-weight: var(--font-weight-semibold); }
+    .graph-mode svg { width: 14px; height: 14px; }
+    .graph-stage { position: relative; height: var(--graph-height); background: linear-gradient(180deg, #FCFBF8 0%, var(--color-surface) 100%); }
+    .graph-stage svg { display: block; width: 100%; height: 100%; }
+    .graph-legend {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-top: var(--border-hairline);
+      color: var(--color-text-secondary);
+      font-size: 10px;
+    }
+    .legend-item { display: inline-flex; align-items: center; gap: 4px; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .legend-line { width: 16px; height: 3px; border-radius: var(--radius-pill); }
+
+    .path-list { display: flex; flex-direction: column; gap: var(--spacing-xs); }
+    .path-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--spacing-xs);
+      align-items: center;
+      padding: var(--spacing-sm);
+      border: var(--border-hairline);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-alt);
+      box-shadow: var(--shadow-card);
+    }
+    .path-card[data-risk="high"] { border-left: 4px solid var(--color-danger); }
+    .path-card[data-risk="medium"] { border-left: 4px solid var(--color-warning); }
+    .path-title { font-size: var(--font-size-title); font-weight: var(--font-weight-bold); }
+    .path-detail { margin-top: 4px; font-size: var(--font-size-caption); color: var(--color-text-secondary); }
+    .path-score { min-width: 54px; padding: 5px 8px; border-radius: var(--radius-sm); text-align: center; font-size: var(--font-size-caption); font-weight: var(--font-weight-bold); }
+    .path-score[data-risk="high"] { background: var(--color-danger-soft); color: var(--color-danger-strong); }
+    .path-score[data-risk="medium"] { background: var(--color-warning-soft); color: var(--color-warning-strong); }
+
+    .evidence-list { border: var(--border-hairline); border-radius: var(--radius-lg); background: var(--color-surface-alt); box-shadow: var(--shadow-card); overflow: hidden; }
+    .evidence-item {
+      width: 100%;
+      min-height: 66px;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: var(--spacing-xs);
+      align-items: center;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      text-align: left;
+    }
+    .evidence-item:hover { background: var(--color-surface-muted); }
+    .evidence-item + .evidence-item { border-top: var(--border-hairline); }
+    .evidence-index {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius-sm);
+      background: var(--color-surface-muted);
+      color: var(--color-text-secondary);
+      font-size: 10px;
+      font-weight: var(--font-weight-bold);
+    }
+    .evidence-pair { font-size: var(--font-size-body); font-weight: var(--font-weight-semibold); }
+    .evidence-detail { margin-top: 2px; font-size: 10px; color: var(--color-text-secondary); }
+    .risk-tag { padding: 4px 7px; border-radius: var(--radius-pill); font-size: 10px; font-weight: var(--font-weight-bold); }
+    .risk-tag[data-risk="high"] { background: var(--color-danger-soft); color: var(--color-danger-strong); }
+    .risk-tag[data-risk="medium"] { background: var(--color-warning-soft); color: var(--color-warning-strong); }
+    .risk-tag[data-risk="low"] { background: var(--color-success-soft); color: var(--color-success); }
+
+    .bottom-bar {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 4;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-xs);
+      padding: var(--spacing-sm) var(--spacing-md) max(var(--spacing-md), env(safe-area-inset-bottom));
+      background: rgba(248, 246, 240, 0.94);
+      border-top: var(--border-hairline);
+      backdrop-filter: blur(16px);
+    }
+    .bottom-quiet, .bottom-primary {
+      height: var(--touch-target);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-body);
+      font-weight: var(--font-weight-semibold);
+    }
+    .bottom-quiet { border: var(--border-hairline); background: var(--color-surface-alt); color: var(--color-text-secondary); }
+    .bottom-primary { background: var(--color-primary); color: #fff; }
+    .bottom-quiet svg, .bottom-primary svg { width: 18px; height: 18px; }
+  </style>
+</head>
+<body>
+  <a class="prototype-link" href="contact-tracing-prototype-index.html">
+    <i data-lucide="arrow-left"></i>
+    选择方案
+  </a>
+  <main class="app" data-prototype="contact-tracing-c-network-investigation">
+    <header class="app-bar">
+      <button class="icon-btn" type="button" aria-label="返回"><i data-lucide="arrow-left"></i></button>
+      <h1 class="app-bar-title">疫情接触追踪</h1>
+      <button class="icon-btn" type="button" aria-label="调查设置"><i data-lucide="settings-2"></i></button>
+    </header>
+
+    <div class="screen-body">
+      <section class="source-band" aria-label="疑似源头">
+        <div class="source-marker">48</div>
+        <div class="source-copy">
+          <p class="source-title">疑似源头 48<span class="source-status">调查中</span></p>
+          <p class="source-sub">口蹄疫疑似 · 标记 6/30 20:12</p>
+        </div>
+      </section>
+
+      <div class="view-strip" role="group" aria-label="视图模式">
+        <button class="view-btn" type="button" aria-pressed="true">传播链</button>
+        <button class="view-btn" type="button" aria-pressed="false">风险路径</button>
+        <button class="view-btn" type="button" aria-pressed="false">记录证据</button>
+      </div>
+
+      <div class="section-heading">
+        <h2>第一层接触</h2>
+        <span>点击节点查看详情</span>
+      </div>
+      <section class="graph-card" aria-label="接触网络图">
+        <div class="graph-toolbar">
+          <strong>48 的接触网络</strong>
+          <span class="graph-mode"><i data-lucide="radar"></i>一阶</span>
+        </div>
+        <div class="graph-stage">
+          <svg viewBox="0 0 342 248" role="img" aria-label="牛只 48 与 12、49、50 的接触网络">
+            <defs>
+              <filter id="node-shadow" x="-30%" y="-30%" width="160%" height="160%">
+                <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#263126" flood-opacity="0.14"/>
+              </filter>
+            </defs>
+            <line x1="171" y1="124" x2="63" y2="55" stroke="#C2564B" stroke-width="5" stroke-linecap="round" opacity="0.82"/>
+            <line x1="171" y1="124" x2="280" y2="55" stroke="#C2564B" stroke-width="4" stroke-linecap="round" opacity="0.72"/>
+            <line x1="171" y1="124" x2="70" y2="188" stroke="#D28A2D" stroke-width="3" stroke-linecap="round" opacity="0.72"/>
+            <line x1="63" y1="55" x2="280" y2="55" stroke="#D28A2D" stroke-width="2" stroke-linecap="round" stroke-dasharray="7 6" opacity="0.55"/>
+
+            <g font-family="-apple-system, BlinkMacSystemFont, PingFang SC, sans-serif">
+              <rect x="76" y="70" width="71" height="21" rx="6" fill="#fff" stroke="#D7D2C6"/>
+              <text x="111" y="84" text-anchor="middle" font-size="10" fill="#B3352C" font-weight="700">3.7m · 22min</text>
+
+              <rect x="194" y="70" width="70" height="21" rx="6" fill="#fff" stroke="#D7D2C6"/>
+              <text x="229" y="84" text-anchor="middle" font-size="10" fill="#B3352C" font-weight="700">3.3m · 18min</text>
+
+              <rect x="92" y="150" width="71" height="21" rx="6" fill="#fff" stroke="#D7D2C6"/>
+              <text x="127" y="164" text-anchor="middle" font-size="10" fill="#B36A16" font-weight="700">6.0m · 11min</text>
+
+              <g filter="url(#node-shadow)">
+                <circle cx="171" cy="124" r="30" fill="#C2564B"/>
+              </g>
+              <text x="171" y="129" text-anchor="middle" font-size="15" fill="#fff" font-weight="700">48</text>
+              <text x="171" y="171" text-anchor="middle" font-size="10" fill="#617061">疑似源头</text>
+
+              <g filter="url(#node-shadow)">
+                <circle cx="63" cy="55" r="24" fill="#B3352C"/>
+              </g>
+              <text x="63" y="60" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">12</text>
+              <text x="63" y="93" text-anchor="middle" font-size="10" fill="#617061">一级</text>
+
+              <g filter="url(#node-shadow)">
+                <circle cx="280" cy="55" r="24" fill="#B3352C"/>
+              </g>
+              <text x="280" y="60" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">49</text>
+              <text x="280" y="93" text-anchor="middle" font-size="10" fill="#617061">一级</text>
+
+              <g filter="url(#node-shadow)">
+                <circle cx="70" cy="188" r="24" fill="#D28A2D"/>
+              </g>
+              <text x="70" y="193" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">50</text>
+              <text x="70" y="226" text-anchor="middle" font-size="10" fill="#617061">二级</text>
+            </g>
+          </svg>
+        </div>
+        <div class="graph-legend">
+          <span class="legend-item"><span class="legend-dot" style="background: var(--color-danger);"></span>源头 / 高风险</span>
+          <span class="legend-item"><span class="legend-dot" style="background: var(--color-warning);"></span>重点观察</span>
+          <span class="legend-item"><span class="legend-line" style="background: var(--color-danger);"></span>接触强度</span>
+        </div>
+      </section>
+
+      <div class="section-heading">
+        <h2>高风险路径</h2>
+        <span>用于判断扩散方向</span>
+      </div>
+      <section class="path-list" aria-label="高风险路径">
+        <article class="path-card" data-risk="high">
+          <div>
+            <p class="path-title">48 → 12 → 4</p>
+            <p class="path-detail">累计风险 132 · 最近 6/30 22:04 · 2 次近距离</p>
+          </div>
+          <p class="path-score" data-risk="high">高风险</p>
+        </article>
+        <article class="path-card" data-risk="medium">
+          <div>
+            <p class="path-title">48 → 50 → 17</p>
+            <p class="path-detail">累计风险 94 · 最近 6/30 21:12 · 1 次中等接触</p>
+          </div>
+          <p class="path-score" data-risk="medium">关注</p>
+        </article>
+      </section>
+
+      <div class="section-heading">
+        <h2>记录证据</h2>
+        <span>按时间倒序</span>
+      </div>
+      <section class="evidence-list" aria-label="接触记录证据">
+        <button class="evidence-item" type="button">
+          <span class="evidence-index">01</span>
+          <span>
+            <span class="evidence-pair">48 ↔ 12</span>
+            <span class="evidence-detail">3.7m · 22min · 6/30 22:04</span>
+          </span>
+          <span class="risk-tag" data-risk="high">高</span>
+        </button>
+        <button class="evidence-item" type="button">
+          <span class="evidence-index">02</span>
+          <span>
+            <span class="evidence-pair">48 ↔ 49</span>
+            <span class="evidence-detail">3.3m · 18min · 6/30 22:04</span>
+          </span>
+          <span class="risk-tag" data-risk="high">高</span>
+        </button>
+        <button class="evidence-item" type="button">
+          <span class="evidence-index">03</span>
+          <span>
+            <span class="evidence-pair">48 ↔ 50</span>
+            <span class="evidence-detail">6.0m · 11min · 6/30 22:04</span>
+          </span>
+          <span class="risk-tag" data-risk="medium">中</span>
+        </button>
+        <button class="evidence-item" type="button">
+          <span class="evidence-index">04</span>
+          <span>
+            <span class="evidence-pair">49 ↔ 50</span>
+            <span class="evidence-detail">5.7m · 7min · 6/30 21:12</span>
+          </span>
+          <span class="risk-tag" data-risk="medium">中</span>
+        </button>
+      </section>
+    </div>
+
+    <nav class="bottom-bar" aria-label="调查操作">
+      <button class="bottom-quiet" type="button"><i data-lucide="layers"></i>展开二层</button>
+      <button class="bottom-primary" type="button"><i data-lucide="file-output"></i>生成调查报告</button>
+    </nav>
+  </main>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

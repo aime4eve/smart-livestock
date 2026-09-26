@@ -61,8 +61,8 @@ class JourneyIntegrationTest extends AbstractJourneyTest {
         Map<String, Object> ackResult = postApi(workerToken, "/api/v1/farms/1/alerts/" + alertId + "/read", null);
         assertThat(ackResult).isNotNull();
 
-        // --- Step 7: worker 尝试处理告警（无权限应被拒绝） ---
+        // --- Step 7: worker can process alerts from the unified workbench ---
         var handleResp = postRaw(workerToken, "/api/v1/farms/1/alerts/" + alertId + "/handle", null);
-        assertThat(handleResp.getBody().get("code")).isNotEqualTo("OK");
+        assertThat(handleResp.getBody().get("code")).isEqualTo("OK");
     }
 }

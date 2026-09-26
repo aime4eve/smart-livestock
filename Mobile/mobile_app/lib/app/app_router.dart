@@ -25,10 +25,10 @@ import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/b2b_worker
 import 'package:hkt_livestock_agentic/features/pages/alerts_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/dashboard_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/devices_page.dart';
+import 'package:hkt_livestock_agentic/features/devices/presentation/device_detail_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/digestive_detail_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/digestive_page.dart';
-import 'package:hkt_livestock_agentic/features/pages/epidemic_page.dart';
-import 'package:hkt_livestock_agentic/features/pages/epidemic_contact_page.dart';
+import 'package:hkt_livestock_agentic/features/pages/epidemic_workbench_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/estrus_detail_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/estrus_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/fence_form_page.dart';
@@ -165,9 +165,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoute.twin.path,
             name: AppRoute.twin.routeName,
             // NIX-245: twin overview merged into the ranch overview tab
-            redirect: (context, state) => state.matchedLocation == AppRoute.twin.path
-                ? AppRoute.ranch.path
-                : null,
+            redirect: (context, state) => state.uri.path == AppRoute.twin.path
+              ? AppRoute.ranch.path
+              : null,
             builder: (context, state) => const TwinOverviewPage(),
             routes: [
               GoRoute(
@@ -218,14 +218,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'epidemic',
                 name: AppRoute.twinEpidemic.routeName,
-                builder: (context, state) => const EpidemicPage(),
+                builder: (context, state) {
+                  final source = state.uri.queryParameters['sourceLivestockId'];
+                  final viewName = state.uri.queryParameters['view'] ?? 'disposition';
+                  final view = switch (viewName) {
+                    'records' => EpidemicWorkbenchView.records,
+                    'network' => EpidemicWorkbenchView.network,
+                    _ => EpidemicWorkbenchView.disposition,
+                  };
+                  return EpidemicWorkbenchPage(
+                    sourceLivestockId: source,
+                    initialView: view,
+                  );
+                },
                 routes: [
                   GoRoute(
                     path: 'contacts/:livestockId',
                     name: AppRoute.twinEpidemicContact.routeName,
-                    builder: (context, state) {
+                    redirect: (context, state) {
                       final id = state.pathParameters['livestockId']!;
-                      return EpidemicContactPage(livestockId: id);
+                      return '/twin/epidemic?view=network&sourceLivestockId=$id';
                     },
                   ),
                 ],
@@ -238,9 +250,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
            builder: (context, state) => Consumer(
              builder: (context, ref, child) {
                final role = ref.watch(sessionControllerProvider).role!;
-               final category = state.uri.queryParameters['category'];
-               final fenceId = state.uri.queryParameters['fenceId'];
-               return AlertsPage(role: role, category: category, fenceId: fenceId);
+              final category = state.uri.queryParameters['category'];
+              final fenceId = state.uri.queryParameters['fenceId'];
+               return AlertsPage(
+                 role: role,
+                 bucket: state.uri.queryParameters['bucket'],
+                 asset: state.uri.queryParameters['asset'],
+                 category: category,
+                 fenceId: fenceId,
+                 source: state.uri.queryParameters['source'],
+               );
               },
             ),
           ),
@@ -310,6 +329,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
            name: AppRoute.devices.routeName,
            builder: (context, state) => const DevicesPage(),
          ),
+          GoRoute(
+            path: AppRoute.deviceDetail.path,
+            name: AppRoute.deviceDetail.routeName,
+            builder: (context, state) {
+              final deviceId = state.pathParameters['deviceId']!;
+              return DeviceDetailPage(deviceId: deviceId);
+            },
+          ),
           GoRoute(
             path: AppRoute.livestockList.path,
             name: AppRoute.livestockList.routeName,
