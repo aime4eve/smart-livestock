@@ -14,6 +14,7 @@ import com.smartlivestock.ranch.domain.port.IoTQueryPort;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.infrastructure.persistence.SpringDataAlertReadStatusRepository;
 import com.smartlivestock.ranch.infrastructure.persistence.entity.AlertReadStatusJpaEntity;
+import com.smartlivestock.ranch.application.signal.SignalRevisionService;
 import com.smartlivestock.shared.cache.RedisCacheService;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -48,6 +49,7 @@ public class AlertApplicationService {
     private final IoTQueryPort ioTQueryPort;
     private final RedisCacheService redisCacheService;
     private final ObjectMapper objectMapper;
+    private final SignalRevisionService signalRevisionService;
 
     // ── Create ──
 
@@ -55,6 +57,7 @@ public class AlertApplicationService {
     public AlertDto createAlert(Long farmId, AlertType type, Severity severity, String message) {
         Alert alert = new Alert(farmId, null, null, type, severity, message);
         Alert saved = alertRepository.save(alert);
+        signalRevisionService.bumpStatus(farmId);
         return fromLocalized(saved);
     }
 
@@ -63,6 +66,7 @@ public class AlertApplicationService {
                                 AlertType type, Severity severity, String message) {
         Alert alert = new Alert(farmId, livestockId, fenceId, type, severity, message);
         Alert saved = alertRepository.save(alert);
+        signalRevisionService.bumpStatus(farmId);
         return fromLocalized(saved);
     }
 
@@ -239,6 +243,7 @@ public class AlertApplicationService {
         Alert alert = getAlertDomain(alertId); // ensure exists
         readStatusRepository.insertOnConflictDoNothing(alertId, userId);
         evictSummaryCache(alert.getFarmId(), userId);
+        signalRevisionService.bumpStatus(alert.getFarmId());
         return getAlertWithReadStatus(alertId, userId);
     }
 
@@ -255,6 +260,7 @@ public class AlertApplicationService {
             }
         }
         affectedFarms.forEach(farmId -> evictSummaryCache(farmId, userId));
+        affectedFarms.forEach(signalRevisionService::bumpStatus);
         return count;
     }
 
@@ -266,6 +272,7 @@ public class AlertApplicationService {
         alert.dismiss(userId);
         Alert saved = alertRepository.save(alert);
         evictSummaryCache(saved.getFarmId(), userId);
+        signalRevisionService.bumpStatus(saved.getFarmId());
         return getAlertWithReadStatus(saved.getId(), userId);
     }
 
@@ -274,6 +281,7 @@ public class AlertApplicationService {
         Alert alert = getAlertDomain(alertId);
         alert.autoResolve();
         Alert saved = alertRepository.save(alert);
+        signalRevisionService.bumpStatus(alert.getFarmId());
         return fromLocalized(saved);
     }
 
@@ -284,6 +292,7 @@ public class AlertApplicationService {
         for (Alert alert : activeAlerts) {
             alert.autoResolve();
             alertRepository.save(alert);
+            signalRevisionService.bumpStatus(alert.getFarmId());
         }
     }
 

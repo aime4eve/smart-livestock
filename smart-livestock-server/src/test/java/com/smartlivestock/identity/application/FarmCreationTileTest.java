@@ -43,7 +43,8 @@ class FarmCreationTileTest {
         });
 
         FarmApplicationService svc = new FarmApplicationService(farmRepository, persistenceContext,
-                tenantRepository, userRepository, assignmentRepository, ranchCommandPort);
+                tenantRepository, userRepository, assignmentRepository, ranchCommandPort,
+                org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class));
 
         List<Coordinate> vertices = List.of(
                 new Coordinate(BigDecimal.valueOf(28.1), BigDecimal.valueOf(112.8)),
@@ -70,7 +71,8 @@ class FarmCreationTileTest {
         });
 
         FarmApplicationService svc = new FarmApplicationService(farmRepository, persistenceContext,
-                tenantRepository, userRepository, assignmentRepository, ranchCommandPort);
+                tenantRepository, userRepository, assignmentRepository, ranchCommandPort,
+                org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class));
 
         CreateFarmCommand cmd = new CreateFarmCommand("测试牧场", BigDecimal.valueOf(28.2),
                 BigDecimal.valueOf(113.0), BigDecimal.valueOf(100));

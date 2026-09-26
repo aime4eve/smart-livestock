@@ -17,6 +17,10 @@ public class HealthSnapshot {
     private Integer estrusScore;
     private ActivityStatus activityStatus;
     private Instant lastAssessedAt;
+    private Instant currentTempRecordedAt;
+    private String currentTempSource;
+    private Instant currentMotilityRecordedAt;
+    private String currentMotilitySource;
     private Instant createdAt;
     private Instant updatedAt;
     private BigDecimal aiAnomalyScore;
@@ -60,6 +64,14 @@ public class HealthSnapshot {
 
     public Instant getLastAssessedAt() { return lastAssessedAt; }
     public void setLastAssessedAt(Instant lastAssessedAt) { this.lastAssessedAt = lastAssessedAt; }
+    public Instant getCurrentTempRecordedAt() { return currentTempRecordedAt; }
+    public void setCurrentTempRecordedAt(Instant currentTempRecordedAt) { this.currentTempRecordedAt = currentTempRecordedAt; }
+    public String getCurrentTempSource() { return currentTempSource; }
+    public void setCurrentTempSource(String currentTempSource) { this.currentTempSource = currentTempSource; }
+    public Instant getCurrentMotilityRecordedAt() { return currentMotilityRecordedAt; }
+    public void setCurrentMotilityRecordedAt(Instant currentMotilityRecordedAt) { this.currentMotilityRecordedAt = currentMotilityRecordedAt; }
+    public String getCurrentMotilitySource() { return currentMotilitySource; }
+    public void setCurrentMotilitySource(String currentMotilitySource) { this.currentMotilitySource = currentMotilitySource; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

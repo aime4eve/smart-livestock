@@ -50,6 +50,8 @@ class AlertSummaryTest {
 
     @Mock
     private RedisCacheService redisCacheService;
+    @Mock
+    private com.smartlivestock.ranch.application.signal.SignalRevisionService signalRevisionService;
 
     private AlertApplicationService service;
 
@@ -58,7 +60,7 @@ class AlertSummaryTest {
         // Real ObjectMapper: the summary is serialized into the Redis cache
         service = new AlertApplicationService(
                 alertRepository, readStatusRepository, alertMessageLocalizer,
-                ioTQueryPort, redisCacheService, new ObjectMapper());
+                ioTQueryPort, redisCacheService, new ObjectMapper(), signalRevisionService);
     }
 
     @Test

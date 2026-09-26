@@ -9,6 +9,8 @@ import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.domain.repository.FenceRepository;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import com.smartlivestock.ranch.domain.service.FenceBreachDetector;
+import com.smartlivestock.ranch.application.signal.SignalLocationProjectionService;
+import com.smartlivestock.ranch.application.signal.SignalRevisionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -43,6 +46,8 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
     private final FenceRepository fenceRepository;
     private final AlertRepository alertRepository;
     private final FenceBreachDetector fenceBreachDetector;
+    private final SignalLocationProjectionService locationProjectionService;
+    private final SignalRevisionService signalRevisionService;
 
     @Override
     @Transactional
@@ -80,6 +85,19 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
             }
 
             Long farmId = livestock.getFarmId();
+            Instant recordedAt = root.path("recordedAt").isTextual()
+                    ? Instant.parse(root.path("recordedAt").asText())
+                    : Instant.now();
+            locationProjectionService.projectCurrentFix(
+                    livestockId,
+                    farmId,
+                    deviceId,
+                    latitude,
+                    longitude,
+                    null,
+                    recordedAt,
+                    source
+            );
             List<Fence> fences = fenceRepository.findByFarmId(farmId);
             if (fences.isEmpty()) return;
 
@@ -152,12 +170,14 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
         for (Alert alert : breachAlerts) {
             alert.autoResolve();
             alertRepository.save(alert);
+            signalRevisionService.bumpStatus(farmId);
             log.info("Auto-resolved FENCE_BREACH alert [{}] for livestock [{}] - returned to safe zone",
                     alert.getId(), livestockId);
         }
         for (Alert alert : approachAlerts) {
             alert.autoResolve();
             alertRepository.save(alert);
+            signalRevisionService.bumpStatus(farmId);
             log.info("Auto-resolved FENCE_APPROACH alert [{}] for livestock [{}] - returned to safe zone",
                     alert.getId(), livestockId);
         }
@@ -193,6 +213,7 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
                 position.longitude().toPlainString()
         )));
         alertRepository.save(alert);
+        signalRevisionService.bumpStatus(livestock.getFarmId());
         log.info("Created {} alert for livestock [{}] fence [{}]", type, livestock.getId(), fence.getId());
     }
 
@@ -208,6 +229,7 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
             if (fences.stream().anyMatch(f -> f.getId().equals(alert.getFenceId()))) {
                 alert.autoResolve();
                 alertRepository.save(alert);
+                signalRevisionService.bumpStatus(alert.getFarmId());
                 log.info("Auto-resolved FENCE_APPROACH [{}] - escalated to FENCE_BREACH", alert.getId());
             }
         }

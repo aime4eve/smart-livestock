@@ -7,6 +7,7 @@ import java.util.Optional;
 
 public interface UserFarmAssignmentRepository {
     boolean existsByUserIdAndFarmId(Long userId, Long farmId);
+    boolean existsByUserIdAndFarmIdAndStatus(Long userId, Long farmId, String status);
     void save(Long userId, Long farmId, String role, String status);
     void updateStatus(Long userId, Long farmId, String status);
     void updateRoleAndStatus(Long userId, Long farmId, String role, String status);
