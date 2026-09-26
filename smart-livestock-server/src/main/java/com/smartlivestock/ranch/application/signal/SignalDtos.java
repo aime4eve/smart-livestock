@@ -20,6 +20,10 @@ public final class SignalDtos {
     public record HealthSignal(
             String status,
             List<String> activeAlertTypes,
+            HealthMetricsSignal metrics
+    ) {}
+
+    public record HealthMetricsSignal(
             HealthMetricSignal rumenTemperature,
             HealthMetricSignal rumenMotility
     ) {}

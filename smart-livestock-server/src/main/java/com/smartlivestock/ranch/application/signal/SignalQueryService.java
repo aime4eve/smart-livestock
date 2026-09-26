@@ -3,6 +3,7 @@ package com.smartlivestock.ranch.application.signal;
 import com.smartlivestock.health.domain.model.HealthSnapshot;
 import com.smartlivestock.health.domain.repository.HealthSnapshotRepository;
 import com.smartlivestock.health.infrastructure.persistence.jpa.AnomalyScoreJpaRepository;
+import com.smartlivestock.identity.domain.repository.UserFarmAssignmentRepository;
 import com.smartlivestock.ranch.application.signal.SignalDtos.AiSignal;
 import com.smartlivestock.ranch.application.signal.SignalDtos.AlertSummarySignal;
 import com.smartlivestock.ranch.application.signal.SignalDtos.DeviceSignal;
@@ -57,17 +58,20 @@ public class SignalQueryService {
     private final SpringDataAlertRepository alertRepository;
     private final FenceRepository fenceRepository;
     private final IoTQueryPort ioTQueryPort;
+    private final UserFarmAssignmentRepository userFarmAssignmentRepository;
 
     @Transactional(readOnly = true)
     public LivestockSignalResponse getLivestockSignals(
             Long farmId, List<Long> requestedLivestockIds, String cursor, Long userId) {
         try {
+            authorizeFarmAccess(farmId, userId);
             List<Long> livestockIds = normalizeLivestockIds(requestedLivestockIds, MAX_LIVESTOCK_IDS);
             FarmSignalRevision revision = revisionService.ensureFarm(farmId);
             long cursorRevision = parseListCursor(cursor);
             revisionService.validateListCursor(revision, cursorRevision);
 
-            boolean changed = cursorRevision < revision.statusRevision();
+            boolean initialSync = cursorRevision == 0;
+            boolean changed = initialSync || cursorRevision < revision.statusRevision();
             List<LivestockSignal> items = changed
                     ? buildLivestockSignals(farmId, livestockIds, userId, revision.statusRevision())
                     : List.of();
@@ -77,7 +81,10 @@ public class SignalQueryService {
         } catch (IllegalArgumentException e) {
             throw new com.smartlivestock.shared.common.ApiException(
                     com.smartlivestock.shared.common.ErrorCode.VALIDATION_ERROR, e.getMessage());
-        } catch (IllegalStateException e) {
+        } catch (SignalCursorInvalidException e) {
+            throw new com.smartlivestock.shared.common.ApiException(
+                    com.smartlivestock.shared.common.ErrorCode.SIGNAL_CURSOR_INVALID, e.getMessage());
+        } catch (SignalCursorTooOldException e) {
             throw new com.smartlivestock.shared.common.ApiException(
                     com.smartlivestock.shared.common.ErrorCode.SIGNAL_CURSOR_TOO_OLD,
                     e.getMessage() + "; resyncRequired=true"
@@ -89,37 +96,59 @@ public class SignalQueryService {
     public MapSignalResponse getMapSignals(
             Long farmId, String cursor, boolean includeGeometry, Long userId) {
         try {
+            authorizeFarmAccess(farmId, userId);
             FarmSignalRevision revision = revisionService.ensureFarm(farmId);
             MapCursor cursorState = revisionService.validateMapCursor(revision, cursor);
 
-            List<Livestock> livestock = activeLivestock(farmId, null);
-            if (livestock.size() > MAX_MAP_LIVESTOCK) {
-                throw new IllegalArgumentException("Map signal endpoint is limited to 1,000 active livestock");
-            }
-
-        List<Long> livestockIds = livestock.stream().map(Livestock::getId).toList();
             boolean statusChanged = revision.statusRevision() > cursorState.statusRevision();
             boolean positionChanged = revision.positionRevision() > cursorState.positionRevision();
             boolean fenceGeometryChanged =
                     revision.fenceGeometryRevision() > cursorState.fenceGeometryRevision();
+            boolean initialStatus = cursorState.statusRevision() == 0;
+            boolean initialPosition = cursorState.positionRevision() == 0;
+            boolean initialGeometry = cursorState.fenceGeometryRevision() == 0;
+            statusChanged = initialStatus || statusChanged;
+            positionChanged = initialPosition || positionChanged;
+            fenceGeometryChanged = initialGeometry || fenceGeometryChanged;
             boolean changed = statusChanged || positionChanged || fenceGeometryChanged;
+
+            if (!changed) {
+                return unchangedMapResponse(farmId, revision);
+            }
+
+            long activeLivestockCount = livestockRepository.countByFarmIdPaged(farmId);
+            if (activeLivestockCount > MAX_MAP_LIVESTOCK) {
+                throw new SignalMapTooLargeException(
+                        "Map signal endpoint is limited to 1,000 active livestock");
+            }
+
+            List<Livestock> livestock = activeLivestock(farmId, null);
+            List<Long> livestockIds = livestock.stream().map(Livestock::getId).toList();
 
             List<LivestockSignal> signals = statusChanged
                     ? buildLivestockSignals(farmId, livestockIds, userId, revision.statusRevision())
                     : List.of();
             List<PositionSignal> positions = positionChanged
-                    ? locationRepository
-                            .findByFarmIdAndPositionRevisionGreaterThan(farmId, cursorState.positionRevision())
+                    ? (initialPosition
+                            ? locationRepository.findByFarmId(farmId)
+                            : locationRepository.findByFarmIdAndPositionRevisionGreaterThan(
+                                    farmId, cursorState.positionRevision()))
                             .stream()
                             .map(this::toPositionSignal)
                             .toList()
                     : List.of();
 
-        List<Fence> fences = fenceRepository.findByFarmId(farmId);
-        List<Alert> activeAlerts = alertRepository.findByFarmIdAndStatus(farmId, "ACTIVE")
-                .stream().map(this::toAlert).toList();
-        List<LivestockLocationSnapshotJpaEntity> snapshots =
-                locationRepository.findByFarmId(farmId);
+            List<Fence> fences = statusChanged || fenceGeometryChanged
+                    ? fenceRepository.findByFarmId(farmId)
+                    : List.of();
+            List<Alert> activeAlerts = statusChanged || fenceGeometryChanged
+                    ? alertRepository.findByFarmIdAndStatus(farmId, "ACTIVE")
+                            .stream().map(this::toAlert).toList()
+                    : List.of();
+            List<LivestockLocationSnapshotJpaEntity> snapshots =
+                    statusChanged || fenceGeometryChanged
+                            ? locationRepository.findByFarmId(farmId)
+                            : List.of();
             List<MapFenceSignal> fenceSignals = changed
                     ? buildFenceSignals(
                             fences,
@@ -148,12 +177,44 @@ public class SignalQueryService {
         } catch (IllegalArgumentException e) {
             throw new com.smartlivestock.shared.common.ApiException(
                     com.smartlivestock.shared.common.ErrorCode.VALIDATION_ERROR, e.getMessage());
-        } catch (IllegalStateException e) {
+        } catch (SignalCursorTooOldException e) {
             throw new com.smartlivestock.shared.common.ApiException(
                     com.smartlivestock.shared.common.ErrorCode.SIGNAL_CURSOR_TOO_OLD,
                     e.getMessage() + "; resyncRequired=true"
             );
+        } catch (SignalMapTooLargeException e) {
+            throw new com.smartlivestock.shared.common.ApiException(
+                    com.smartlivestock.shared.common.ErrorCode.SIGNAL_MAP_TOO_LARGE, e.getMessage());
         }
+    }
+
+    private void authorizeFarmAccess(Long farmId, Long userId) {
+        if (userId == null
+                || !userFarmAssignmentRepository.existsByUserIdAndFarmIdAndStatus(
+                        userId, farmId, "ACTIVE")) {
+            throw new com.smartlivestock.shared.common.ApiException(
+                    com.smartlivestock.shared.common.ErrorCode.AUTH_FORBIDDEN,
+                    "无权访问该牧场信号");
+        }
+    }
+
+    private MapSignalResponse unchangedMapResponse(Long farmId, FarmSignalRevision revision) {
+        String cursor = revision.statusRevision() + ":" + revision.positionRevision() + ":"
+                + revision.fenceGeometryRevision();
+        return new MapSignalResponse(
+                farmId,
+                revision.statusRevision(),
+                revision.positionRevision(),
+                revision.fenceGeometryRevision(),
+                cursor,
+                false,
+                false,
+                false,
+                false,
+                List.of(),
+                List.of(),
+                List.of()
+        );
     }
 
     private List<LivestockSignal> buildLivestockSignals(
@@ -244,14 +305,18 @@ public class SignalQueryService {
                         ? "CRITICAL" : "WATCH".equals(temp.status()) || "WATCH".equals(motility.status())
                         ? "WATCH" : "NORMAL";
 
-        boolean aiAlert = activeTypes.contains("AI_ANOMALY");
-        AiSignal ai = aiScore == null ? new AiSignal("NONE", null, null, null)
-                : new AiSignal(
-                        aiAlert ? "ALERT" : aiScore.getAnomalyScore().doubleValue() >= 0.4 ? "OBSERVE" : "NONE",
-                        aiScore.getAnomalyScore().doubleValue(),
-                        aiScore.getAnomalyType(),
-                        aiScore.getCreatedAt()
-                );
+        boolean aiAlert = activeAlerts.stream()
+                .anyMatch(alert -> "AI".equals(alert.getSource())
+                        || alert.getType() == com.smartlivestock.ranch.domain.model.AlertType.AI_ANOMALY);
+        Double aiScoreValue = snapshot == null ? null
+                : snapshot.getAiAnomalyScore() == null ? null : snapshot.getAiAnomalyScore().doubleValue();
+        String aiScoreType = snapshot == null ? null : snapshot.getAiAnomalyType();
+        Instant aiScoreAt = snapshot == null ? null : snapshot.getAiAssessedAt();
+        String aiStatus = aiAlert ? "ALERT"
+                : aiScoreValue == null ? "NONE"
+                : com.smartlivestock.health.application.service.AiHealthBands.band(aiScoreValue).equals("watch")
+                ? "OBSERVE" : "NONE";
+        AiSignal ai = new AiSignal(aiStatus, aiScoreValue, aiScoreType, aiScoreAt);
 
         GpsCoordinate position = location == null ? null : new GpsCoordinate(
                 location.getLatitude(),
@@ -281,7 +346,11 @@ public class SignalQueryService {
                 livestock.getId(),
                 livestock.getLivestockCode(),
                 revision,
-                new HealthSignal(healthStatus, activeTypes, temp, motility),
+                new HealthSignal(
+                        healthStatus,
+                        activeTypes,
+                        new com.smartlivestock.ranch.application.signal.SignalDtos.HealthMetricsSignal(temp, motility)
+                ),
                 ai,
                 new FenceSignal(fenceStatus, activeTypes.stream()
                         .filter(type -> type.equals("FENCE_BREACH")
@@ -445,6 +514,7 @@ public class SignalQueryService {
                 entity.getMessage()
         );
         alert.setId(entity.getId());
+        alert.setSource(entity.getSource());
         return alert;
     }
 }

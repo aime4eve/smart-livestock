@@ -63,7 +63,8 @@ public class SignalRevisionService {
     public MapCursor validateMapCursor(FarmSignalRevision revision, String cursor) {
         String[] parts = cursor == null || cursor.isBlank() ? new String[0] : cursor.split(":");
         if (parts.length != 3) {
-            throw new IllegalArgumentException("cursor must be statusRevision:positionRevision:fenceGeometryRevision");
+            throw new SignalCursorInvalidException(
+                    "cursor must be statusRevision:positionRevision:fenceGeometryRevision");
         }
         try {
             long status = Long.parseLong(parts[0]);
@@ -74,17 +75,18 @@ public class SignalRevisionService {
             validateRevision("fence geometry", geometry, revision.fenceGeometryRevision(), revision.updatedAt());
             return new MapCursor(status, position, geometry);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("cursor components must be non-negative integers", e);
+            throw new SignalCursorInvalidException("cursor components must be non-negative integers", e);
         }
     }
 
     private void validateRevision(String name, long cursor, long current, Instant updatedAt) {
         if (cursor < 0 || cursor > current) {
-            throw new IllegalArgumentException(name + " cursor is invalid or ahead of the current signal state");
+            throw new SignalCursorInvalidException(
+                    name + " cursor is invalid or ahead of the current signal state");
         }
         if (current - cursor > REPLAY_LIMIT
                 || updatedAt.isBefore(Instant.now().minus(MAX_CURSOR_AGE_HOURS, ChronoUnit.HOURS))) {
-            throw new IllegalStateException(name + " cursor is too old and requires a full resync");
+            throw new SignalCursorTooOldException(name + " cursor is too old and requires a full resync");
         }
     }
 

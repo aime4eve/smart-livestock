@@ -10,6 +10,7 @@ import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import com.smartlivestock.ranch.application.command.CreateLivestockCommand;
 import com.smartlivestock.ranch.application.command.UpdateLivestockCommand;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
+import com.smartlivestock.ranch.application.signal.SignalLocationProjectionService;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
 import java.util.List;
@@ -30,6 +32,7 @@ public class LivestockApplicationService {
     private final IoTQueryPort iotQueryPort;
     private final IoTCommandPort iotCommandPort;
     private final SignalRevisionService signalRevisionService;
+    private final SignalLocationProjectionService signalLocationProjectionService;
 
     @Transactional
     public LivestockDto createLivestock(CreateLivestockCommand command) {
@@ -73,10 +76,27 @@ public class LivestockApplicationService {
         Livestock livestock = livestockRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "error.livestockNotFound", new Object[]{id}));
-        livestock.updatePosition(lat, lng);
-        livestockRepository.save(livestock);
+        Long deviceId = iotQueryPort.findActiveDevicesByLivestockIds(List.of(id))
+                .getOrDefault(id, List.of())
+                .stream()
+                .findFirst()
+                .map(com.smartlivestock.ranch.domain.port.dto.DeviceBrief::deviceId)
+                .orElse(null);
+        if (deviceId == null) {
+            throw new ApiException(ErrorCode.STATE_CONFLICT,
+                    "error.deviceNotFound", new Object[]{id});
+        }
+        signalLocationProjectionService.projectCurrentFix(
+                livestock.getId(),
+                livestock.getFarmId(),
+                deviceId,
+                lat,
+                lng,
+                null,
+                Instant.now(),
+                "HTTP"
+        );
         signalRevisionService.bumpStatus(livestock.getFarmId());
-        signalRevisionService.bumpPosition(livestock.getFarmId());
     }
 
     @Transactional

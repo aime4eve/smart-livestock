@@ -21,6 +21,11 @@ public class JpaUserFarmAssignmentRepositoryImpl implements UserFarmAssignmentRe
     }
 
     @Override
+    public boolean existsByUserIdAndFarmIdAndStatus(Long userId, Long farmId, String status) {
+        return springDataRepo.existsByUserIdAndFarmIdAndStatus(userId, farmId, status);
+    }
+
+    @Override
     public void save(Long userId, Long farmId, String role, String status) {
         UserFarmAssignmentJpaEntity entity = new UserFarmAssignmentJpaEntity();
         entity.setUserId(userId);

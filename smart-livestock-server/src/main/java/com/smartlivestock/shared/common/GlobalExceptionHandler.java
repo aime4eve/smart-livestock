@@ -1,5 +1,6 @@
 package com.smartlivestock.shared.common;
 
+import com.smartlivestock.ranch.application.signal.SignalCursorTooOldException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 @RestControllerAdvice
@@ -40,6 +42,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(status)
                 .body(ApiResponse.error(ex.getCode(), resolvedMessage, requestId));
+    }
+
+    @ExceptionHandler(SignalCursorTooOldException.class)
+    public ResponseEntity<ApiResponse<Map<String, Boolean>>> handleSignalCursorTooOld(
+            SignalCursorTooOldException ex) {
+        String requestId = currentRequestId();
+        log.warn("[{}] Signal cursor too old: {}", requestId, ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.GONE)
+                .body(ApiResponse.errorWithData(
+                        ErrorCode.SIGNAL_CURSOR_TOO_OLD,
+                        ex.getMessage(),
+                        Map.of("resyncRequired", true),
+                        requestId
+                ));
     }
 
     @ExceptionHandler(DomainException.class)

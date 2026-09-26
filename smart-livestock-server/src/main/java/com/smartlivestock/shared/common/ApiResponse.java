@@ -94,4 +94,9 @@ public class ApiResponse<T> {
                 data
         );
     }
+
+    public static <T> ApiResponse<T> errorWithData(
+            ErrorCode code, String message, T data, String requestId) {
+        return new ApiResponse<>(code.name(), message, requestId, data);
+    }
 }
