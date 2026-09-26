@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/core/l10n/enum_labels.dart';
-import 'package:hkt_livestock_agentic/core/charts/line_chart_readout.dart';
+import 'package:hkt_livestock_agentic/core/charts/chart_readout_layer.dart';
 import 'package:hkt_livestock_agentic/core/models/health_models.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';

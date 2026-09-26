@@ -9,8 +9,8 @@ import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
 ///
 /// The chart keeps ownership of its dynamic value domain. This layer only
 /// adds an overlay; it never changes chart bounds, position, or zoom.
-class LineChartReadout extends StatefulWidget {
-  const LineChartReadout({
+class ChartReadoutLayer extends StatefulWidget {
+  const ChartReadoutLayer({
     super.key,
     required this.timestamps,
     required this.formatValue,
@@ -24,10 +24,10 @@ class LineChartReadout extends StatefulWidget {
   final String? Function(int index)? readoutTitle;
 
   @override
-  State<LineChartReadout> createState() => _LineChartReadoutState();
+  State<ChartReadoutLayer> createState() => _ChartReadoutLayerState();
 }
 
-class _LineChartReadoutState extends State<LineChartReadout> {
+class _ChartReadoutLayerState extends State<ChartReadoutLayer> {
   ChartReadoutData? _readout;
 
   void _handleTouchEvent(FlTouchEvent event, LineTouchResponse? response) {
@@ -111,6 +111,17 @@ class _LineChartReadoutState extends State<LineChartReadout> {
       width - cardWidth - margin,
     );
   }
+}
+
+/// Backward-compatible name for existing line-chart callers.
+class LineChartReadout extends ChartReadoutLayer {
+  const LineChartReadout({
+    super.key,
+    required super.timestamps,
+    required super.formatValue,
+    required super.chartDataBuilder,
+    super.readoutTitle,
+  });
 }
 
 /// High-contrast hover/touch readout for a grouped bar chart.

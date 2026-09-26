@@ -4,7 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
-import 'package:hkt_livestock_agentic/core/charts/line_chart_readout.dart';
+import 'package:hkt_livestock_agentic/core/charts/chart_readout_layer.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/dashboard/presentation/dashboard_controller.dart';

@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/core/l10n/enum_labels.dart';
 import 'package:hkt_livestock_agentic/core/charts/temperature_axis.dart';
-import 'package:hkt_livestock_agentic/core/charts/line_chart_readout.dart';
+import 'package:hkt_livestock_agentic/core/charts/chart_readout_layer.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
