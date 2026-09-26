@@ -125,6 +125,9 @@ public class GlobalExceptionHandler {
             case RESOURCE_DELETED -> HttpStatus.GONE;
             case FARM_SCOPE_CONFLICT -> HttpStatus.CONFLICT;
             case RATE_LIMIT_EXCEEDED -> HttpStatus.TOO_MANY_REQUESTS;
+            case SIGNAL_CURSOR_INVALID -> HttpStatus.CONFLICT;
+            case SIGNAL_CURSOR_TOO_OLD -> HttpStatus.GONE;
+            case SIGNAL_MAP_TOO_LARGE -> HttpStatus.BAD_REQUEST;
             case AGENTIC_PLATFORM_DEVICE_NOT_MAPPED -> HttpStatus.CONFLICT;
             case AGENTIC_PLATFORM_SERVICE_UNAVAILABLE -> HttpStatus.SERVICE_UNAVAILABLE;
             case AGENTIC_PLATFORM_REGISTRATION_FAILED -> HttpStatus.BAD_GATEWAY;

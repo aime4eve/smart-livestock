@@ -44,6 +44,8 @@ class GpsLogEventConsumerTest {
     @Mock private FenceRepository fenceRepository;
     @Mock private AlertRepository alertRepository;
     @Mock private FenceBreachDetector fenceBreachDetector;
+    @Mock private com.smartlivestock.ranch.application.signal.SignalLocationProjectionService locationProjectionService;
+    @Mock private com.smartlivestock.ranch.application.signal.SignalRevisionService signalRevisionService;
 
     private GpsLogEventConsumer consumer;
 
@@ -51,7 +53,8 @@ class GpsLogEventConsumerTest {
     void setUp() {
         consumer = new GpsLogEventConsumer(
                 new ObjectMapper(), ioTQueryPort, livestockRepository,
-                fenceRepository, alertRepository, fenceBreachDetector);
+                fenceRepository, alertRepository, fenceBreachDetector,
+                locationProjectionService, signalRevisionService);
     }
 
     private static String message(String source) {

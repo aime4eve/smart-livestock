@@ -10,6 +10,7 @@ import com.smartlivestock.identity.domain.repository.TenantRepository;
 import com.smartlivestock.identity.domain.repository.UserFarmAssignmentRepository;
 import com.smartlivestock.identity.domain.repository.UserRepository;
 import com.smartlivestock.identity.domain.port.RanchCommandPort;
+import com.smartlivestock.ranch.application.signal.SignalRevisionService;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class FarmApplicationService {
     private final UserRepository userRepository;
     private final UserFarmAssignmentRepository assignmentRepository;
     private final RanchCommandPort ranchCommandPort;
+    private final SignalRevisionService signalRevisionService;
 
     @Transactional
     public FarmDto createFarm(Long tenantId, CreateFarmCommand command, Long userId) {
@@ -36,6 +38,7 @@ public class FarmApplicationService {
         }
         Farm farm = new Farm(tenantId, command.name(), command.latitude(), command.longitude(), command.areaHectares());
         Farm saved = farmRepository.save(farm);
+        signalRevisionService.ensureFarm(saved.getId());
 
         if (userId != null) {
             autoAssignOwner(userId, saved.getId(), tenantId);

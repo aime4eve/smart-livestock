@@ -8,6 +8,9 @@ import com.smartlivestock.iot.domain.model.DeviceType;
 import com.smartlivestock.iot.domain.model.Installation;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.domain.repository.InstallationRepository;
+import com.smartlivestock.ranch.application.signal.SignalRevisionService;
+import com.smartlivestock.iot.domain.port.RanchQueryPort;
+import com.smartlivestock.iot.domain.port.dto.LivestockInfo;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,8 @@ public class InstallationApplicationService {
 
     private final DeviceRepository deviceRepository;
     private final InstallationRepository installationRepository;
+    private final RanchQueryPort ranchQueryPort;
+    private final SignalRevisionService signalRevisionService;
 
     @Transactional
     public InstallationDto install(InstallDeviceCommand command) {
@@ -44,6 +49,7 @@ public class InstallationApplicationService {
         }
        Installation installation = new Installation(command.deviceId(), command.livestockId(), command.operatorId());
         Installation saved = installationRepository.save(installation);
+        bumpLivestockStatus(command.livestockId());
         return InstallationDto.from(saved);
     }
 
@@ -65,6 +71,7 @@ public class InstallationApplicationService {
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "设备无活跃安装记录: " + deviceId));
         installation.remove();
         installationRepository.save(installation);
+        bumpLivestockStatus(installation.getLivestockId());
     }
 
     @Transactional(readOnly = true)
@@ -85,6 +92,7 @@ public class InstallationApplicationService {
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "安装记录不存在: " + installationId));
         installation.remove();
         Installation saved = installationRepository.save(installation);
+        bumpLivestockStatus(installation.getLivestockId());
         return InstallationDto.from(saved);
     }
 
@@ -106,5 +114,11 @@ public class InstallationApplicationService {
         return installationRepository.findActiveByLivestockIdAndDeviceType(
                         livestockId, DeviceType.EAR_TAG)
                 .map(InstallationDto::from);
+    }
+
+    private void bumpLivestockStatus(Long livestockId) {
+        ranchQueryPort.findLivestockById(livestockId)
+                .map(LivestockInfo::farmId)
+                .ifPresent(signalRevisionService::bumpStatus);
     }
 }

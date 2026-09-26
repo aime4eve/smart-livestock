@@ -43,7 +43,8 @@ class FenceApplicationServiceTest {
     void setUp() {
         service = new FenceApplicationService(
                 fenceRepository, alertRepository, fenceZoneRepository, livestockRepository,
-                bufferPolygonCalculator, new FenceLivestockCounter());
+                bufferPolygonCalculator, new FenceLivestockCounter(),
+                org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class));
     }
 
     @Test

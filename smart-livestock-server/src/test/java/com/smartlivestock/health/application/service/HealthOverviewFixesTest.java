@@ -60,6 +60,7 @@ class HealthOverviewFixesTest {
         service = new HealthApplicationService(snapshotRepo, tempLogRepo, motilityLogRepo,
                 activityLogRepo, estrusScoreRepo, contactTraceRepo, ranchQueryPort,
                 ranchCommandPort, subscriptionPort, healthAnomalyService, healthAlertBridgeService,
+                org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class),
                 feverService, digestiveService, estrusAnalysisService, epidemicService,
                 messageResolver);
         lenient().when(ranchQueryPort.countActiveAlertsByFarmId(1L)).thenReturn(0);
