@@ -396,6 +396,383 @@ class EpidemicData {
   }
 }
 
+class EpidemicAnimalRef {
+  const EpidemicAnimalRef({required this.livestockId, required this.livestockCode});
+  final String livestockId;
+  final String livestockCode;
+
+  factory EpidemicAnimalRef.fromJson(Map<String, dynamic> m) => EpidemicAnimalRef(
+        livestockId: (m['livestockId'] ?? '').toString(),
+        livestockCode: m['livestockCode']?.toString() ?? '?',
+      );
+}
+
+class EpidemicSourceData {
+  const EpidemicSourceData({
+    required this.livestockId,
+    required this.livestockCode,
+    this.diseaseType,
+    this.markedAt,
+    required this.status,
+  });
+  final String livestockId;
+  final String livestockCode;
+  final String? diseaseType;
+  final DateTime? markedAt;
+  final String status;
+
+  factory EpidemicSourceData.fromJson(Map<String, dynamic> m) => EpidemicSourceData(
+        livestockId: (m['livestockId'] ?? '').toString(),
+        livestockCode: m['livestockCode']?.toString() ?? '?',
+        diseaseType: m['diseaseType']?.toString(),
+        markedAt: m['markedAt'] == null ? null : DateTime.parse(m['markedAt'] as String),
+        status: m['status']?.toString() ?? 'UNMARKED',
+      );
+}
+
+class EpidemicHerdMetricsData {
+  const EpidemicHerdMetricsData({
+    required this.avgTemperature,
+    required this.abnormalRate,
+    required this.totalLivestock,
+    required this.abnormalCount,
+    required this.riskLevel,
+  });
+  final double avgTemperature;
+  final double abnormalRate;
+  final int totalLivestock;
+  final int abnormalCount;
+  final String riskLevel;
+
+  factory EpidemicHerdMetricsData.fromJson(Map<String, dynamic> m) => EpidemicHerdMetricsData(
+        avgTemperature: (m['avgTemperature'] as num?)?.toDouble() ?? 0,
+        abnormalRate: (m['abnormalRate'] as num?)?.toDouble() ?? 0,
+        totalLivestock: (m['totalLivestock'] as num?)?.toInt() ?? 0,
+        abnormalCount: (m['abnormalCount'] as num?)?.toInt() ?? 0,
+        riskLevel: m['riskLevel']?.toString() ?? 'Normal',
+      );
+}
+
+class EpidemicWorkbenchContext {
+  const EpidemicWorkbenchContext({
+    required this.source,
+    required this.windowHours,
+    required this.generatedAt,
+    required this.syncedAt,
+    required this.herdMetrics,
+    this.lastContactAgeMinutes,
+  });
+  final EpidemicSourceData source;
+  final int windowHours;
+  final DateTime generatedAt;
+  final DateTime syncedAt;
+  final EpidemicHerdMetricsData herdMetrics;
+  final int? lastContactAgeMinutes;
+
+  factory EpidemicWorkbenchContext.fromJson(Map<String, dynamic> m) => EpidemicWorkbenchContext(
+        source: EpidemicSourceData.fromJson(Map<String, dynamic>.from(m['source'] as Map)),
+        windowHours: (m['windowHours'] as num?)?.toInt() ?? 72,
+        generatedAt: m['generatedAt'] == null ? DateTime.now() : DateTime.parse(m['generatedAt'] as String),
+        syncedAt: m['syncedAt'] == null ? DateTime.now() : DateTime.parse(m['syncedAt'] as String),
+        herdMetrics: EpidemicHerdMetricsData.fromJson(
+            Map<String, dynamic>.from((m['herdMetrics'] ?? const {}) as Map)),
+        lastContactAgeMinutes: (m['lastContactAgeMinutes'] as num?)?.toInt(),
+      );
+}
+
+class EpidemicTierSummary {
+  const EpidemicTierSummary({required this.key, required this.rank, required this.count});
+  final String key;
+  final int rank;
+  final int count;
+
+  factory EpidemicTierSummary.fromJson(Map<String, dynamic> m) => EpidemicTierSummary(
+        key: m['key']?.toString() ?? 'ARCHIVE',
+        rank: (m['rank'] as num?)?.toInt() ?? 4,
+        count: (m['count'] as num?)?.toInt() ?? 0,
+      );
+}
+
+class EpidemicHealthSignal {
+  const EpidemicHealthSignal({
+    this.currentTemp,
+    this.tempStatus,
+    this.motilityStatus,
+    required this.hasActiveHealthAlert,
+    this.aiAnomalyScore,
+  });
+  final double? currentTemp;
+  final String? tempStatus;
+  final String? motilityStatus;
+  final bool hasActiveHealthAlert;
+  final double? aiAnomalyScore;
+
+  factory EpidemicHealthSignal.fromJson(Map<String, dynamic> m) => EpidemicHealthSignal(
+        currentTemp: (m['currentTemp'] as num?)?.toDouble(),
+        tempStatus: m['tempStatus']?.toString(),
+        motilityStatus: m['motilityStatus']?.toString(),
+        hasActiveHealthAlert: m['hasActiveHealthAlert'] == true,
+        aiAnomalyScore: (m['aiAnomalyScore'] as num?)?.toDouble(),
+      );
+}
+
+class EpidemicLivestockItem {
+  const EpidemicLivestockItem({
+    required this.livestockId,
+    required this.livestockCode,
+    this.fenceName,
+    required this.dispositionTier,
+    required this.rank,
+    required this.recommendedAction,
+    required this.actionStatus,
+    this.dispositionId,
+    this.dueAt,
+    required this.directSourceContact,
+    required this.shortestDepth,
+    required this.directContactCount,
+    required this.maxRiskScore,
+    required this.maxRiskLevel,
+    this.lastContactAt,
+    this.lastContactAgeMinutes,
+    required this.health,
+    required this.reasonCodes,
+    required this.eventIds,
+    required this.pathIds,
+  });
+  final String livestockId;
+  final String livestockCode;
+  final String? fenceName;
+  final String dispositionTier;
+  final int rank;
+  final String recommendedAction;
+  final String actionStatus;
+  final int? dispositionId;
+  final DateTime? dueAt;
+  final bool directSourceContact;
+  final int shortestDepth;
+  final int directContactCount;
+  final int maxRiskScore;
+  final String maxRiskLevel;
+  final DateTime? lastContactAt;
+  final int? lastContactAgeMinutes;
+  final EpidemicHealthSignal health;
+  final List<String> reasonCodes;
+  final List<int> eventIds;
+  final List<String> pathIds;
+
+  factory EpidemicLivestockItem.fromJson(Map<String, dynamic> m) => EpidemicLivestockItem(
+        livestockId: (m['livestockId'] ?? '').toString(),
+        livestockCode: m['livestockCode']?.toString() ?? '?',
+        fenceName: m['fenceName']?.toString(),
+        dispositionTier: m['dispositionTier']?.toString() ?? 'ARCHIVE',
+        rank: (m['rank'] as num?)?.toInt() ?? 4,
+        recommendedAction: m['recommendedAction']?.toString() ?? 'ARCHIVE_ONLY',
+        actionStatus: m['actionStatus']?.toString() ?? 'PENDING',
+        dispositionId: (m['dispositionId'] as num?)?.toInt(),
+        dueAt: m['dueAt'] == null ? null : DateTime.parse(m['dueAt'] as String),
+        directSourceContact: m['directSourceContact'] == true,
+        shortestDepth: (m['shortestDepth'] as num?)?.toInt() ?? 99,
+        directContactCount: (m['directContactCount'] as num?)?.toInt() ?? 0,
+        maxRiskScore: (m['maxRiskScore'] as num?)?.toInt() ?? 0,
+        maxRiskLevel: m['maxRiskLevel']?.toString() ?? 'LOW',
+        lastContactAt: m['lastContactAt'] == null ? null : DateTime.parse(m['lastContactAt'] as String),
+        lastContactAgeMinutes: (m['lastContactAgeMinutes'] as num?)?.toInt(),
+        health: EpidemicHealthSignal.fromJson(
+            Map<String, dynamic>.from((m['health'] ?? const {}) as Map)),
+        reasonCodes: (m['reasonCodes'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+        eventIds: (m['eventIds'] as List?)?.map((e) => (e as num).toInt()).toList() ?? const [],
+        pathIds: (m['pathIds'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+      );
+}
+
+class EpidemicEventData {
+  const EpidemicEventData({
+    required this.eventId,
+    required this.from,
+    required this.to,
+    required this.proximityMeters,
+    required this.durationMinutes,
+    required this.lastContactAt,
+    required this.hoursAgo,
+    required this.riskScore,
+    required this.riskLevel,
+    required this.factorCodes,
+  });
+  final int eventId;
+  final EpidemicAnimalRef from;
+  final EpidemicAnimalRef to;
+  final double proximityMeters;
+  final int durationMinutes;
+  final DateTime lastContactAt;
+  final int hoursAgo;
+  final int riskScore;
+  final String riskLevel;
+  final List<String> factorCodes;
+
+  factory EpidemicEventData.fromJson(Map<String, dynamic> m) {
+    final last = m['lastContactAt'] == null ? DateTime.now() : DateTime.parse(m['lastContactAt'] as String);
+    return EpidemicEventData(
+      eventId: (m['eventId'] as num?)?.toInt() ?? 0,
+      from: EpidemicAnimalRef.fromJson(Map<String, dynamic>.from((m['from'] ?? const {}) as Map)),
+      to: EpidemicAnimalRef.fromJson(Map<String, dynamic>.from((m['to'] ?? const {}) as Map)),
+      proximityMeters: (m['proximityMeters'] as num?)?.toDouble() ?? 0,
+      durationMinutes: (m['durationMinutes'] as num?)?.toInt() ?? 0,
+      lastContactAt: last,
+      hoursAgo: (m['hoursAgo'] as num?)?.toInt() ?? 0,
+      riskScore: (m['riskScore'] as num?)?.toInt() ?? 0,
+      riskLevel: m['riskLevel']?.toString() ?? 'LOW',
+      factorCodes: (m['factorCodes'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+    );
+  }
+}
+
+class EpidemicGraphNode {
+  const EpidemicGraphNode({
+    required this.livestockId,
+    required this.livestockCode,
+    required this.kind,
+    this.dispositionTier,
+  });
+  final String livestockId;
+  final String livestockCode;
+  final String kind;
+  final String? dispositionTier;
+
+  factory EpidemicGraphNode.fromJson(Map<String, dynamic> m) => EpidemicGraphNode(
+        livestockId: (m['livestockId'] ?? '').toString(),
+        livestockCode: m['livestockCode']?.toString() ?? '?',
+        kind: m['kind']?.toString() ?? 'CONTACT',
+        dispositionTier: m['dispositionTier']?.toString(),
+      );
+}
+
+class EpidemicGraphEdge {
+  const EpidemicGraphEdge({
+    required this.edgeId,
+    required this.fromLivestockId,
+    required this.toLivestockId,
+    required this.eventId,
+    required this.depth,
+    required this.riskScore,
+    required this.riskLevel,
+  });
+  final String edgeId;
+  final String fromLivestockId;
+  final String toLivestockId;
+  final int eventId;
+  final int depth;
+  final int riskScore;
+  final String riskLevel;
+
+  factory EpidemicGraphEdge.fromJson(Map<String, dynamic> m) => EpidemicGraphEdge(
+        edgeId: m['edgeId']?.toString() ?? '',
+        fromLivestockId: (m['fromLivestockId'] ?? '').toString(),
+        toLivestockId: (m['toLivestockId'] ?? '').toString(),
+        eventId: (m['eventId'] as num?)?.toInt() ?? 0,
+        depth: (m['depth'] as num?)?.toInt() ?? 1,
+        riskScore: (m['riskScore'] as num?)?.toInt() ?? 0,
+        riskLevel: m['riskLevel']?.toString() ?? 'LOW',
+      );
+}
+
+class EpidemicGraphPath {
+  const EpidemicGraphPath({
+    required this.pathId,
+    required this.livestockIds,
+    required this.edgeIds,
+    required this.depth,
+    required this.riskScore,
+    required this.riskLevel,
+  });
+  final String pathId;
+  final List<String> livestockIds;
+  final List<String> edgeIds;
+  final int depth;
+  final int riskScore;
+  final String riskLevel;
+
+  factory EpidemicGraphPath.fromJson(Map<String, dynamic> m) => EpidemicGraphPath(
+        pathId: m['pathId']?.toString() ?? '',
+        livestockIds: (m['livestockIds'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+        edgeIds: (m['edgeIds'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+        depth: (m['depth'] as num?)?.toInt() ?? 0,
+        riskScore: (m['riskScore'] as num?)?.toInt() ?? 0,
+        riskLevel: m['riskLevel']?.toString() ?? 'LOW',
+      );
+}
+
+class EpidemicNetworkData {
+  const EpidemicNetworkData({
+    required this.sourceLivestockId,
+    required this.maxDepth,
+    required this.nodes,
+    required this.edges,
+    required this.paths,
+  });
+  final String sourceLivestockId;
+  final int maxDepth;
+  final List<EpidemicGraphNode> nodes;
+  final List<EpidemicGraphEdge> edges;
+  final List<EpidemicGraphPath> paths;
+
+  factory EpidemicNetworkData.fromJson(Map<String, dynamic> m) => EpidemicNetworkData(
+        sourceLivestockId: (m['sourceLivestockId'] ?? '').toString(),
+        maxDepth: (m['maxDepth'] as num?)?.toInt() ?? 2,
+        nodes: (m['nodes'] as List?)
+                ?.whereType<Map<String, dynamic>>()
+                .map(EpidemicGraphNode.fromJson)
+                .toList() ??
+            const [],
+        edges: (m['edges'] as List?)
+                ?.whereType<Map<String, dynamic>>()
+                .map(EpidemicGraphEdge.fromJson)
+                .toList() ??
+            const [],
+        paths: (m['paths'] as List?)
+                ?.whereType<Map<String, dynamic>>()
+                .map(EpidemicGraphPath.fromJson)
+                .toList() ??
+            const [],
+      );
+}
+
+class EpidemicWorkbenchData {
+  const EpidemicWorkbenchData({
+    required this.context,
+    required this.tiers,
+    required this.livestock,
+    required this.events,
+    required this.network,
+  });
+  final EpidemicWorkbenchContext context;
+  final List<EpidemicTierSummary> tiers;
+  final List<EpidemicLivestockItem> livestock;
+  final List<EpidemicEventData> events;
+  final EpidemicNetworkData network;
+
+  factory EpidemicWorkbenchData.fromJson(Map<String, dynamic> m) => EpidemicWorkbenchData(
+        context: EpidemicWorkbenchContext.fromJson(
+            Map<String, dynamic>.from((m['context'] ?? const {}) as Map)),
+        tiers: (m['tiers'] as List?)
+                ?.whereType<Map<String, dynamic>>()
+                .map(EpidemicTierSummary.fromJson)
+                .toList() ??
+            const [],
+        livestock: (m['livestock'] as List?)
+                ?.whereType<Map<String, dynamic>>()
+                .map(EpidemicLivestockItem.fromJson)
+                .toList() ??
+            const [],
+        events: (m['events'] as List?)
+                ?.whereType<Map<String, dynamic>>()
+                .map(EpidemicEventData.fromJson)
+                .toList() ??
+            const [],
+        network: EpidemicNetworkData.fromJson(
+            Map<String, dynamic>.from((m['network'] ?? const {}) as Map)),
+      );
+}
+
 // ── Health Detail Chart Models (subscription-gated) ───────────
 
 class DailyFeverHour {

@@ -17,6 +17,8 @@ import 'package:hkt_livestock_agentic/features/fence/domain/fence_polygon_contai
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/core/models/core_models.dart';
+import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
 import 'package:hkt_livestock_agentic/features/twin_overview/presentation/twin_overview_controller.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_widget.dart';
@@ -26,6 +28,7 @@ import 'package:hkt_livestock_agentic/features/alerts/data/alerts_api_repository
 import 'package:hkt_livestock_agentic/features/alerts/domain/alert_workbench.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/alert_workbench_controller.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_workbench_detail_sheet.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_detail_sheet.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_workbench_view.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/trajectory_sheet.dart';
 import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
@@ -541,7 +544,12 @@ class _RanchPageState extends ConsumerState<RanchPage>
             context,
             stats: stats,
             farmName: farmName,
-            breachedFences: breachedFences,
+            overview: overview,
+            criticalCount: overview.overallStats.criticalCount,
+            outsideFenceCount: overview.overallStats.outsideFenceCount,
+            severeAlertCount: activeAlerts
+                .where((a) => a.severity == 'CRITICAL')
+                .length,
           ),
           _buildNeedsAttentionSection(
             context,
@@ -567,7 +575,10 @@ class _RanchPageState extends ConsumerState<RanchPage>
     BuildContext context, {
     required dynamic stats,
     required String farmName,
-    required int breachedFences,
+    required RanchOverview overview,
+    required int criticalCount,
+    required int outsideFenceCount,
+    required int severeAlertCount,
   }) {
     final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
@@ -589,10 +600,28 @@ class _RanchPageState extends ConsumerState<RanchPage>
     final double rate = stats?.healthyRate ?? 0;
     final total = stats?.totalLivestock ?? 0;
     final healthy = (rate * total).round();
-    final title = rate >= 0.95
+    final attentionLabels = <String>[
+      if (criticalCount > 0) l10n.heroAttentionHealth(criticalCount),
+      if (outsideFenceCount > 0) l10n.heroAttentionOutside(outsideFenceCount),
+      if (severeAlertCount > 0) l10n.heroAttentionAlerts(severeAlertCount),
+    ];
+    final isCalm = rate >= 0.95 &&
+        criticalCount == 0 &&
+        outsideFenceCount == 0 &&
+        severeAlertCount == 0;
+    final title = isCalm
         ? l10n.heroTitleCalm
-        : l10n.heroTitleAttention(total - healthy);
+        : attentionLabels.length == 1
+            ? attentionLabels.single
+            : l10n.heroTitleNeedsAttention;
     final online = stats?.deviceOnlineRate ?? 0;
+    final criticalLivestock = overview.livestockMarkers
+        .where((marker) => marker.healthStatus == 'CRITICAL')
+        .toList();
+    final outsideFenceLivestock = _outsideFenceLivestock(overview);
+    final severeAlerts = overview.alerts
+        .where((alert) => alert.status == 'ACTIVE' && alert.severity == 'CRITICAL')
+        .toList();
 
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 13, 14, 12),
@@ -640,7 +669,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      l10n.heroSub(healthy, total, breachedFences),
+                      l10n.heroSub(healthy, total),
                       style: TextStyle(
                         fontSize: 10,
                         color: Colors.white.withValues(alpha: 0.8),
@@ -687,6 +716,48 @@ class _RanchPageState extends ConsumerState<RanchPage>
             ],
           ),
           const SizedBox(height: 10),
+          if (attentionLabels.isNotEmpty) ...[
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                if (criticalCount > 0)
+                  _buildAttentionChip(
+                    label: l10n.heroAttentionHealth(criticalCount),
+                    icon: Icons.monitor_heart_outlined,
+                    color: AppColors.danger,
+                    onTap: () => _showCriticalLivestockSheet(
+                      context,
+                      overview,
+                      criticalLivestock,
+                    ),
+                  ),
+                if (outsideFenceCount > 0)
+                  _buildAttentionChip(
+                    label: l10n.heroAttentionOutside(outsideFenceCount),
+                    icon: Icons.fence,
+                    color: AppColors.warning,
+                    onTap: () => _showOutsideFenceSheet(
+                      context,
+                      overview,
+                      outsideFenceLivestock,
+                    ),
+                  ),
+                if (severeAlertCount > 0)
+                  _buildAttentionChip(
+                    label: l10n.heroAttentionAlerts(severeAlertCount),
+                    icon: Icons.warning_amber_rounded,
+                    color: AppColors.danger,
+                    onTap: () => _showSevereAlertSheet(
+                      context,
+                      overview,
+                      severeAlerts,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10),
+          ],
           Row(
             children: [
               Expanded(child: _heroChip('$total', l10n.heroChipHead)),
@@ -700,6 +771,525 @@ class _RanchPageState extends ConsumerState<RanchPage>
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  void _showCriticalLivestockSheet(
+    BuildContext context,
+    RanchOverview overview,
+    List<RanchLivestockMarker> livestock,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      builder: (sheetContext) {
+        final l10n = AppLocalizations.of(sheetContext)!;
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(sheetContext).size.height * 0.55,
+          ),
+          decoration: const BoxDecoration(
+            color: AppColors.surfaceAlt,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.monitor_heart_outlined,
+                        size: 16,
+                        color: AppColors.danger,
+                      ),
+                      const SizedBox(width: 7),
+                      Expanded(
+                        child: Text(
+                          l10n.ranchCriticalLivestockTitle,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 0, 14, 6),
+                  child: Text(
+                    livestock.isEmpty
+                        ? l10n.ranchCriticalLivestockEmpty
+                        : l10n.ranchCriticalLivestockHint,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+                    itemCount: livestock.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 6),
+                    itemBuilder: (sheetContext, index) {
+                      final marker = livestock[index];
+                      final reason = _criticalAlertLabel(
+                        marker.primaryAlert,
+                        AppLocalizations.of(sheetContext)!,
+                      );
+                      return Material(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(10),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(10),
+                          onTap: () {
+                            Navigator.of(sheetContext).pop();
+                            _showLivestockDetail(context, marker, overview);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 9,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.danger,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        marker.livestockCode,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        reason == null
+                                            ? l10n.ranchHealthStatusCritical
+                                            : '${l10n.ranchHealthStatusCritical} · $reason',
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.chevron_right,
+                                  size: 16,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 2, 14, 12),
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      context.push(
+                        '${AppRoute.alerts.path}?asset=health&source=hero',
+                      );
+                    },
+                    child: Text(l10n.ranchCriticalAlertHistory),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  List<RanchLivestockMarker> _outsideFenceLivestock(RanchOverview overview) {
+    final activeFences = overview.fences
+        .where((fence) => fence.active && fence.points.length >= 3)
+        .toList();
+    if (activeFences.isEmpty) return const [];
+
+    return overview.livestockMarkers
+        .where(
+          (marker) => !activeFences.any(
+            (fence) => fencePolygonContainsLatLng(
+              marker.toLatLng(),
+              fence.points,
+            ),
+          ),
+        )
+        .toList();
+  }
+
+  void _showAttentionDetailSheet(
+    BuildContext context, {
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String hint,
+    required int itemCount,
+    required Widget Function(BuildContext sheetContext, int index) itemBuilder,
+    required String actionLabel,
+    required VoidCallback onAction,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      builder: (sheetContext) {
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(sheetContext).size.height * 0.62,
+          ),
+          decoration: const BoxDecoration(
+            color: AppColors.surfaceAlt,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
+                  child: Row(
+                    children: [
+                      Icon(icon, size: 16, color: iconColor),
+                      const SizedBox(width: 7),
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 0, 14, 6),
+                  child: Text(
+                    itemCount == 0
+                        ? AppLocalizations.of(sheetContext)!
+                            .ranchCriticalLivestockEmpty
+                        : hint,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+                    itemCount: itemCount,
+                    separatorBuilder: (_, _) => const SizedBox(height: 6),
+                    itemBuilder: (sheetContext, index) =>
+                        itemBuilder(sheetContext, index),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 2, 14, 12),
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      onAction();
+                    },
+                    child: Text(actionLabel),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showOutsideFenceSheet(
+    BuildContext context,
+    RanchOverview overview,
+    List<RanchLivestockMarker> livestock,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    _showAttentionDetailSheet(
+      context,
+      icon: Icons.fence,
+      iconColor: AppColors.warning,
+      title: l10n.ranchOutsideFenceTitle,
+      hint: l10n.ranchOutsideFenceHint,
+      itemCount: livestock.length,
+      itemBuilder: (sheetContext, index) =>
+          _outsideFenceLivestockRow(
+            context,
+            overview,
+            livestock[index],
+            sheetContext,
+          ),
+      actionLabel: l10n.ranchOutsideFenceView,
+      onAction: () => setState(() {
+        _sheetTab = 1;
+        _sheetSnap = math.max(_sheetSnap, 1);
+      }),
+    );
+  }
+
+  Widget _outsideFenceLivestockRow(
+    BuildContext context,
+    RanchOverview overview,
+    RanchLivestockMarker marker,
+    BuildContext sheetContext,
+  ) {
+    final l10n = AppLocalizations.of(sheetContext)!;
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: () {
+          _showLivestockDetail(context, marker, overview);
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+          child: Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: AppColors.warning,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      marker.livestockCode,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.ranchOutsideFenceStatus,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right,
+                size: 16,
+                color: AppColors.textSecondary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showSevereAlertSheet(
+    BuildContext context,
+    RanchOverview overview,
+    List<RanchAlertData> alerts,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    _showAttentionDetailSheet(
+      context,
+      icon: Icons.warning_amber_rounded,
+      iconColor: AppColors.danger,
+      title: l10n.ranchSevereAlertTitle,
+      hint: l10n.ranchSevereAlertHint,
+      itemCount: alerts.length,
+      itemBuilder: (sheetContext, index) =>
+          _severeAlertRow(context, overview, alerts[index], sheetContext),
+      actionLabel: l10n.ranchSevereAlertCenter,
+      onAction: () => setState(() {
+        _sheetTab = 2;
+        _sheetSnap = math.max(_sheetSnap, 1);
+      }),
+    );
+  }
+
+  Widget _severeAlertRow(
+    BuildContext context,
+    RanchOverview overview,
+    RanchAlertData alert,
+    BuildContext sheetContext,
+  ) {
+    final l10n = AppLocalizations.of(sheetContext)!;
+    final occurredAt = DateTime.tryParse(alert.occurredAt ?? '');
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: () {
+          _openSevereAlertDetail(context, overview, alert);
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+          child: Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: AppColors.danger,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      alert.message,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                        height: 1.25,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      occurredAt == null
+                          ? l10n.ranchTimeUnknown
+                          : formatMdhm(occurredAt),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right,
+                size: 16,
+                color: AppColors.textSecondary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openSevereAlertDetail(
+    BuildContext context,
+    RanchOverview overview,
+    RanchAlertData alert,
+  ) async {
+    final role = ref.watch(sessionControllerProvider).role;
+    if (role == null) return;
+    await showAlertDetailSheet(
+      context,
+      role: role,
+      alert: AlertItem(
+        id: alert.id,
+        title: alert.message,
+        subtitle: _criticalAlertLabel(alert.type, AppLocalizations.of(context)!) ?? alert.type,
+        priority: alert.severity,
+        type: alert.type,
+        stage: alert.status,
+        livestockCode: overview.livestockMarkers
+                .where((marker) => marker.livestockId == alert.livestockId)
+                .firstOrNull
+                ?.livestockCode ??
+            '',
+        livestockId: alert.livestockId,
+        severity: alert.severity,
+        read: alert.read,
+        occurredAt: alert.occurredAt,
+        fenceId: alert.fenceId,
+        deviceCode: alert.deviceCode,
+      ),
+    );
+  }
+
+  String? _criticalAlertLabel(String primaryAlert, AppLocalizations l10n) {
+    return switch (primaryAlert) {
+      'FEVER' => l10n.ranchAlertTypeFever,
+      'DIGESTIVE_ABNORMAL' => l10n.ranchAlertTypeDigestive,
+      'ESTRUS' => l10n.ranchAlertTypeEstrus,
+      'EPIDEMIC' => l10n.ranchAlertTypeEpidemic,
+      _ => null,
+    };
+  }
+
+  Widget _buildAttentionChip({
+    required String label,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.white.withValues(alpha: 0.14),
+      shape: StadiumBorder(
+        side: BorderSide(color: color.withValues(alpha: 0.55)),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const StadiumBorder(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 12, color: color),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

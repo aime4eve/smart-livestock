@@ -2672,6 +2672,185 @@ class AppLocalizationsZh extends AppLocalizations {
   String get viewContactTracing => '查看接触追踪详情';
 
   @override
+  String epidemicWorkbenchSynced(int hours, String time) {
+    return '风险模型 ${hours}h · 同步 $time';
+  }
+
+  @override
+  String get epidemicTabDisposition => '处置';
+
+  @override
+  String get epidemicTabRecords => '记录';
+
+  @override
+  String get epidemicTabNetwork => '链路';
+
+  @override
+  String get epidemicSuspectedSource => '疑似源头';
+
+  @override
+  String get epidemicContactLivestockCount => '接触牛只';
+
+  @override
+  String get epidemicCriticalDispositionCount => '一级处置';
+
+  @override
+  String get epidemicMostRecentContact => '最近接触';
+
+  @override
+  String get epidemicMinutesShort => 'min';
+
+  @override
+  String get epidemicDispositionQueueTitle => '处置分级队列';
+
+  @override
+  String get epidemicTierSortHint => '先按处置等级，再按风险和时间';
+
+  @override
+  String get epidemicTierCritical => '一级 · 立即隔离';
+
+  @override
+  String get epidemicTierObservation => '二级 · 重点观察';
+
+  @override
+  String get epidemicTierTracking => '三级 · 常规追踪';
+
+  @override
+  String get epidemicTierArchive => '四级 · 归档备查';
+
+  @override
+  String get epidemicTierCriticalAction => '2 小时内隔离并通知兽医';
+
+  @override
+  String get epidemicTierObservationAction => '24 小时内完成健康复核';
+
+  @override
+  String get epidemicTierTrackingAction => '72 小时内持续核对接触';
+
+  @override
+  String get epidemicTierArchiveAction => '暂无即时动作，保留证据';
+
+  @override
+  String get epidemicHeadSuffix => '头';
+
+  @override
+  String get epidemicLivestockLabel => '牛只';
+
+  @override
+  String get epidemicContactCattle => '接触牛';
+
+  @override
+  String get epidemicMaxRisk => '最高风险';
+
+  @override
+  String get epidemicTemperature => '体温';
+
+  @override
+  String epidemicShowEvidence(int count) {
+    return '接触证据 · $count 条';
+  }
+
+  @override
+  String get epidemicHideEvidence => '收起接触证据';
+
+  @override
+  String epidemicLastSeenMinutes(int minutes) {
+    return '最近接触 $minutes 分钟前';
+  }
+
+  @override
+  String get epidemicContactNetworkAction => '传播链';
+
+  @override
+  String get epidemicActionIsolateVet => '隔离并通知兽医';
+
+  @override
+  String get epidemicActionImmediateCheck => '立即检查';
+
+  @override
+  String get epidemicActionMarkObservation => '标记观察';
+
+  @override
+  String get epidemicActionContinueTracing => '继续追踪';
+
+  @override
+  String get epidemicActionArchive => '归档备查';
+
+  @override
+  String get epidemicRecordTriageTitle => '接触记录分诊';
+
+  @override
+  String get epidemicRiskSortHint => '按风险分数排序';
+
+  @override
+  String epidemicWindowHours(int hours) {
+    return '${hours}h';
+  }
+
+  @override
+  String get epidemicWindowAll => '全部';
+
+  @override
+  String get epidemicDistance => '距离';
+
+  @override
+  String get epidemicDuration => '持续';
+
+  @override
+  String get epidemicDispositionByLivestock => '按牛只处置';
+
+  @override
+  String get epidemicFirstLayer => '第一层接触';
+
+  @override
+  String get epidemicTapNodeHint => '点击节点查看详情';
+
+  @override
+  String get epidemicHighRiskPaths => '高风险路径';
+
+  @override
+  String get epidemicSpreadHint => '用于判断扩散方向';
+
+  @override
+  String get epidemicCumulativeRisk => '累计风险';
+
+  @override
+  String get epidemicFactorFresh => '24小时内';
+
+  @override
+  String get epidemicFactorRecent => '48小时内';
+
+  @override
+  String get epidemicFactorNear => '近距离';
+
+  @override
+  String get epidemicFactorModerateDistance => '中等距离';
+
+  @override
+  String get epidemicFactorLongDuration => '接触久';
+
+  @override
+  String get epidemicFactorMediumDuration => '中等时长';
+
+  @override
+  String get epidemicReasonDirectSource => '直接接触源头';
+
+  @override
+  String get epidemicReasonPathExposure => '存在路径暴露';
+
+  @override
+  String get epidemicReasonHealthAbnormal => '健康异常';
+
+  @override
+  String get epidemicFilter => '筛选';
+
+  @override
+  String get epidemicEmergencyReport => '生成应急报告';
+
+  @override
+  String get epidemicInvestigationReport => '生成调查报告';
+
+  @override
   String get livestockBreed => '品种';
 
   @override
@@ -6038,9 +6217,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get heroTitleCalm => '牧场一切平稳';
 
   @override
-  String heroTitleAttention(int n) {
-    return '$n 只需要关注';
-  }
+  String get heroTitleNeedsAttention => '牧场需要关注';
 
   @override
   String heroDatePattern(int m, int d, String w) {
@@ -6069,9 +6246,57 @@ class AppLocalizationsZh extends AppLocalizations {
   String get weekday6 => '六';
 
   @override
-  String heroSub(int healthy, int total, int fences) {
-    return '$healthy/$total 只健康 · $fences 个围栏需要巡查';
+  String heroSub(int healthy, int total) {
+    return '$healthy/$total 只健康';
   }
+
+  @override
+  String heroAttentionHealth(int count) {
+    return '$count 只健康严重';
+  }
+
+  @override
+  String heroAttentionOutside(int count) {
+    return '$count 头越栏';
+  }
+
+  @override
+  String heroAttentionAlerts(int count) {
+    return '$count 条严重告警';
+  }
+
+  @override
+  String get ranchOutsideFenceTitle => '越栏牲畜';
+
+  @override
+  String get ranchOutsideFenceHint => '点击查看个体详情';
+
+  @override
+  String get ranchOutsideFenceStatus => '越出所有活动围栏';
+
+  @override
+  String get ranchOutsideFenceView => '查看围栏状态';
+
+  @override
+  String get ranchSevereAlertTitle => '严重告警';
+
+  @override
+  String get ranchSevereAlertHint => '点击查看告警详情';
+
+  @override
+  String get ranchSevereAlertCenter => '查看告警中心';
+
+  @override
+  String get ranchCriticalLivestockTitle => '健康严重牲畜';
+
+  @override
+  String get ranchCriticalLivestockHint => '点击查看个体详情';
+
+  @override
+  String get ranchCriticalLivestockEmpty => '暂无明细';
+
+  @override
+  String get ranchCriticalAlertHistory => '查看健康告警记录';
 
   @override
   String get heroRingLabel => '健康率';

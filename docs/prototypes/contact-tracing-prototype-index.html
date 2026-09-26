@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>接触追踪 UI/UX · 三套高保真方案</title>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      --color-primary: #2F6B3B;
+      --color-primary-dark: #244F2D;
+      --color-primary-soft: #E3F0E4;
+      --color-surface: #F8F6F0;
+      --color-surface-alt: #FFFFFF;
+      --color-surface-muted: #F2F0EA;
+      --color-border: #D7D2C6;
+      --color-text-primary: #263126;
+      --color-text-secondary: #617061;
+      --color-danger: #C2564B;
+      --color-danger-strong: #B3352C;
+      --color-danger-soft: #FBE8E6;
+      --color-warning: #D28A2D;
+      --color-warning-strong: #B36A16;
+      --color-warning-soft: #FFF2DE;
+      --color-info: #4A7F9D;
+      --color-info-soft: #EAF2F6;
+      --font-family-app: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --spacing-xs: 8px;
+      --spacing-sm: 12px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --spacing-xl: 40px;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-pill: 999px;
+      --border-hairline: 1px solid var(--color-border);
+      --shadow-card: 0 2px 8px rgba(38, 49, 38, 0.07);
+      --content-width: 1120px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100dvh;
+      padding: var(--spacing-lg);
+      background: #E8E6E0;
+      color: var(--color-text-primary);
+      font-family: var(--font-family-app);
+    }
+    main { width: min(100%, var(--content-width)); margin: 0 auto; }
+    .page-header { max-width: 760px; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: var(--radius-pill);
+      background: var(--color-primary-soft);
+      color: var(--color-primary-dark);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    h1 { margin-top: 14px; font-size: clamp(26px, 4vw, 38px); line-height: 1.15; letter-spacing: 0; }
+    .page-description { margin-top: 10px; color: var(--color-text-secondary); font-size: 15px; line-height: 1.6; }
+    .unified-card {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-lg);
+      padding: var(--spacing-md);
+      border: 1px solid rgba(47, 107, 59, 0.34);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(90deg, rgba(227, 240, 228, 0.9), rgba(255, 255, 255, 0.94));
+      box-shadow: var(--shadow-card);
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .unified-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(38, 49, 38, 0.12); }
+    .unified-icon {
+      flex: 0 0 auto;
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius-md);
+      background: var(--color-primary);
+      color: #fff;
+    }
+    .unified-icon svg { width: 24px; height: 24px; }
+    .unified-copy { min-width: 0; flex: 1; }
+    .unified-kicker { font-size: 12px; font-weight: 800; color: var(--color-primary-dark); }
+    .unified-title { margin-top: 4px; font-size: 20px; line-height: 1.25; }
+    .unified-description { margin-top: 6px; color: var(--color-text-secondary); font-size: 13px; line-height: 1.55; }
+    .unified-arrow { flex: 0 0 auto; color: var(--color-primary-dark); }
+    .unified-arrow svg { width: 20px; height: 20px; }
+    @media (max-width: 620px) {
+      .unified-card { align-items: flex-start; }
+    }
+    .plan-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--spacing-md); margin-top: var(--spacing-lg); }
+    @media (max-width: 860px) { .plan-grid { grid-template-columns: 1fr; } }
+    .plan-card {
+      display: flex;
+      flex-direction: column;
+      min-height: 330px;
+      border: var(--border-hairline);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-alt);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+    .plan-card:hover { transform: translateY(-2px); border-color: var(--color-primary); box-shadow: 0 12px 28px rgba(38, 49, 38, 0.12); }
+    .plan-visual { height: 104px; display: grid; place-items: center; }
+    .plan-card[data-plan="A"] .plan-visual { background: var(--color-info-soft); color: var(--color-info); }
+    .plan-card[data-plan="B"] .plan-visual { background: var(--color-danger-soft); color: var(--color-danger-strong); }
+    .plan-card[data-plan="C"] .plan-visual { background: var(--color-primary-soft); color: var(--color-primary-dark); }
+    .plan-visual svg { width: 34px; height: 34px; }
+    .plan-body { flex: 1; padding: var(--spacing-md); }
+    .plan-letter { font-size: 12px; font-weight: 800; color: var(--color-text-secondary); }
+    .plan-title { margin-top: 4px; font-size: 19px; line-height: 1.25; }
+    .plan-copy { margin-top: 8px; color: var(--color-text-secondary); font-size: 13px; line-height: 1.55; }
+    .plan-points { margin-top: 14px; list-style: none; }
+    .plan-points li { display: flex; gap: 6px; align-items: flex-start; color: var(--color-text-secondary); font-size: 12px; line-height: 1.5; }
+    .plan-points li + li { margin-top: 6px; }
+    .plan-points svg { width: 14px; height: 14px; flex: 0 0 auto; margin-top: 2px; color: var(--color-primary); }
+    .plan-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: var(--spacing-sm) var(--spacing-md); border-top: var(--border-hairline); background: var(--color-surface); color: var(--color-primary-dark); font-size: 13px; font-weight: 700; }
+    .recommendation { margin-top: var(--spacing-lg); padding: var(--spacing-md); border-radius: var(--radius-lg); border: var(--border-hairline); background: var(--color-surface-alt); box-shadow: var(--shadow-card); }
+    .recommendation h2 { font-size: 16px; }
+    .recommendation p { margin-top: 8px; color: var(--color-text-secondary); font-size: 13px; line-height: 1.6; }
+    .data-note { display: flex; gap: 10px; align-items: flex-start; margin-top: var(--spacing-md); padding: var(--spacing-sm); border-radius: var(--radius-md); background: var(--color-warning-soft); color: var(--color-warning-strong); font-size: 13px; line-height: 1.55; }
+    .data-note svg { width: 18px; height: 18px; flex: 0 0 auto; }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="page-header">
+      <p class="eyebrow"><i data-lucide="git-fork"></i>疫情应急处置</p>
+      <h1>接触追踪记录呈现 · 3 套高保真方案</h1>
+      <p class="page-description">三套方案共用同一套风险语义与设计令牌。差异在于：A 让接触事件更易分诊，B 让处置对象更明确，C 让传播路径更可调查。</p>
+    </header>
+
+    <a class="unified-card" href="contact-tracing-unified-experience.html">
+      <span class="unified-icon"><i data-lucide="layout-panel-left"></i></span>
+      <span class="unified-copy">
+        <span class="unified-kicker">最终建议 · A + B + C</span>
+        <span class="unified-title">三视图统一体验原型</span>
+        <span class="unified-description">以处置为默认入口，记录用于证据核查，链路用于扩散调查。三套视图共享风险模型、筛选条件和跨视图跳转。</span>
+      </span>
+      <span class="unified-arrow"><i data-lucide="arrow-right"></i></span>
+    </a>
+
+    <section class="plan-grid" aria-label="三套方案">
+      <a class="plan-card" data-plan="A" href="contact-tracing-a-risk-stream.html">
+        <div class="plan-visual"><i data-lucide="list-filter"></i></div>
+        <div class="plan-body">
+          <p class="plan-letter">方案 A</p>
+          <h2 class="plan-title">风险分诊记录流</h2>
+          <p class="plan-copy">保留接触事件列表，但按风险分数、时间窗口和成因重排，适合最快的记录层改造。</p>
+          <ul class="plan-points">
+            <li><i data-lucide="check"></i>高/中/低风险数量前置</li>
+            <li><i data-lucide="check"></i>24h / 48h / 72h 观察窗口</li>
+            <li><i data-lucide="check"></i>每条记录解释风险成因</li>
+          </ul>
+        </div>
+        <div class="plan-footer"><span>打开原型</span><i data-lucide="arrow-right"></i></div>
+      </a>
+
+      <a class="plan-card" data-plan="B" href="contact-tracing-b-priority-view.html">
+        <div class="plan-visual"><i data-lucide="clipboard-check"></i></div>
+        <div class="plan-body">
+          <p class="plan-letter">方案 B · 推荐</p>
+          <h2 class="plan-title">牛只处置分级视图</h2>
+          <p class="plan-copy">把多条接触记录聚合为“先处理哪头牛”，直接匹配隔离、观察和复核决策。</p>
+          <ul class="plan-points">
+            <li><i data-lucide="check"></i>一级 / 二级 / 三级处置队列</li>
+            <li><i data-lucide="check"></i>接触数与最高风险聚合</li>
+            <li><i data-lucide="check"></i>保留可展开的原始证据</li>
+          </ul>
+        </div>
+        <div class="plan-footer"><span>打开原型</span><i data-lucide="arrow-right"></i></div>
+      </a>
+
+      <a class="plan-card" data-plan="C" href="contact-tracing-c-network-investigation.html">
+        <div class="plan-visual"><i data-lucide="git-fork"></i></div>
+        <div class="plan-body">
+          <p class="plan-letter">方案 C</p>
+          <h2 class="plan-title">传播链调查视图</h2>
+          <p class="plan-copy">以疑似源头为中心展示第一层接触和高风险路径，适合需要判断扩散方向的调查场景。</p>
+          <ul class="plan-points">
+            <li><i data-lucide="check"></i>源头与一阶接触图形化</li>
+            <li><i data-lucide="check"></i>高风险传播路径单独提示</li>
+            <li><i data-lucide="check"></i>原始记录作为证据留存</li>
+          </ul>
+        </div>
+        <div class="plan-footer"><span>打开原型</span><i data-lucide="arrow-right"></i></div>
+      </a>
+    </section>
+
+    <aside class="recommendation" aria-label="选型建议">
+      <h2>选型建议</h2>
+      <p>若以疫情应急处置为核心，优先选 B；B 可以吸收 A 的记录行样式作为展开证据。C 更适合二期增强，因为多跳传播链需要后端与图交互能力支撑。</p>
+      <p class="data-note"><i data-lucide="triangle-alert"></i><span>实施前需要后端补齐接触时长、时间差、风险等级/分数，并提供牛只聚合数据；当前 overview 只返回前 20 条记录，前端不应自行硬算风险。</span></p>
+    </aside>
+  </main>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

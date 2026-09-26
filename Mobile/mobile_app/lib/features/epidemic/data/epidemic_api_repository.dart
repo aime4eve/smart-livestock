@@ -18,6 +18,45 @@ class EpidemicApiRepository implements EpidemicRepository {
   }
 
   @override
+  Future<EpidemicWorkbenchData> fetchWorkbench({
+    String? sourceLivestockId,
+    required int windowHours,
+    int maxDepth = 2,
+  }) async {
+    final query = <String>[
+      'windowHours=$windowHours',
+      'maxDepth=$maxDepth',
+      if (sourceLivestockId?.isNotEmpty == true) 'sourceLivestockId=$sourceLivestockId',
+    ].join('&');
+    final data = await ApiClient.instance.farmGet('/health/epidemic/workbench?$query');
+    return EpidemicWorkbenchData.fromJson(data);
+  }
+
+  @override
+  Future<int> createDisposition({
+    required String livestockId,
+    required String sourceLivestockId,
+    required String actionCode,
+    int? eventId,
+  }) async {
+    final data = await ApiClient.instance.farmPost(
+      '/health/epidemic/dispositions',
+      body: {
+        'livestockId': int.tryParse(livestockId),
+        'sourceLivestockId': int.tryParse(sourceLivestockId),
+        'actionCode': actionCode,
+        if (eventId != null) 'eventId': eventId,
+      },
+    );
+    return (data['id'] as num?)?.toInt() ?? 0;
+  }
+
+  @override
+  Future<void> completeDisposition(int dispositionId) async {
+    await ApiClient.instance.farmPost('/health/epidemic/dispositions/$dispositionId/complete');
+  }
+
+  @override
   Future<void> markDiseased(String livestockId, String diseaseType) async {
     await ApiClient.instance.farmPost(
       '/health/epidemic/mark',

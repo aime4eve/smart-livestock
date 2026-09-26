@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>接触追踪 · 三视图统一体验</title>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      --color-primary: #2F6B3B;
+      --color-primary-dark: #244F2D;
+      --color-primary-soft: #E3F0E4;
+      --color-surface: #F8F6F0;
+      --color-surface-alt: #FFFFFF;
+      --color-surface-muted: #F2F0EA;
+      --color-border: #D7D2C6;
+      --color-text-primary: #263126;
+      --color-text-secondary: #617061;
+      --color-danger: #C2564B;
+      --color-danger-strong: #B3352C;
+      --color-danger-soft: #FBE8E6;
+      --color-warning: #D28A2D;
+      --color-warning-strong: #B36A16;
+      --color-warning-soft: #FFF2DE;
+      --color-success: #4C9A5F;
+      --color-success-soft: #E4F3E8;
+      --color-info: #4A7F9D;
+      --color-info-soft: #EAF2F6;
+
+      --font-family-app: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --font-size-caption: 11px;
+      --font-size-body: 13px;
+      --font-size-title: 15px;
+      --font-weight-medium: 500;
+      --font-weight-semibold: 600;
+      --font-weight-bold: 700;
+      --line-height-tight: 1.2;
+      --line-height-normal: 1.45;
+
+      --spacing-2xs: 4px;
+      --spacing-xs: 8px;
+      --spacing-sm: 12px;
+      --spacing-md: 16px;
+      --spacing-lg: 20px;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-pill: 999px;
+      --border-hairline: 1px solid var(--color-border);
+      --shadow-card: 0 1px 2px rgba(38, 49, 38, 0.06);
+      --shadow-app: 0 18px 50px rgba(38, 49, 38, 0.16);
+      --touch-target: 44px;
+      --app-width: 390px;
+      --app-height: 844px;
+      --graph-height: 250px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      display: grid;
+      place-items: center;
+      min-height: 100dvh;
+      padding: 24px;
+      background: #E8E6E0;
+      color: var(--color-text-primary);
+      font-family: var(--font-family-app);
+    }
+    button { font: inherit; border: 0; background: none; color: inherit; cursor: pointer; }
+    .prototype-link {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 10;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: var(--shadow-card);
+      color: var(--color-primary-dark);
+      font-size: var(--font-size-body);
+      font-weight: var(--font-weight-semibold);
+      text-decoration: none;
+    }
+    .app {
+      position: relative;
+      width: var(--app-width);
+      height: var(--app-height);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--color-surface);
+      border-radius: 28px;
+      border: 1px solid rgba(215, 210, 198, 0.72);
+      box-shadow: var(--shadow-app);
+    }
+    @media (max-width: 480px), (max-height: 900px) {
+      body { padding: 0; background: var(--color-surface); }
+      .prototype-link { display: none; }
+      .app { width: 100%; max-width: none; height: 100dvh; border: 0; border-radius: 0; box-shadow: none; }
+    }
+
+    .app-bar {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: var(--touch-target) 1fr var(--touch-target);
+      align-items: center;
+      min-height: 60px;
+      padding: 8px 6px;
+      background: var(--color-primary);
+      color: #fff;
+    }
+    .icon-btn {
+      width: var(--touch-target);
+      height: var(--touch-target);
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius-pill);
+    }
+    .icon-btn:hover { background: rgba(255, 255, 255, 0.14); }
+    .icon-btn svg { width: 22px; height: 22px; }
+    .app-bar-copy { text-align: center; }
+    .app-bar-title { font-size: var(--font-size-title); font-weight: var(--font-weight-semibold); }
+    .app-bar-sub { margin-top: 2px; font-size: 10px; color: rgba(255, 255, 255, 0.76); }
+
+    .mode-tabs {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 4px;
+      padding: 4px;
+      background: #EDF1EA;
+      border-bottom: var(--border-hairline);
+    }
+    .mode-tab {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border-radius: var(--radius-md);
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-body);
+      font-weight: var(--font-weight-semibold);
+    }
+    .mode-tab svg { width: 16px; height: 16px; }
+    .mode-tab[aria-selected="true"] {
+      background: var(--color-surface-alt);
+      color: var(--color-primary-dark);
+      box-shadow: var(--shadow-card);
+    }
+    .mode-tab .count {
+      min-width: 18px;
+      height: 18px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: var(--radius-pill);
+      background: var(--color-danger-soft);
+      color: var(--color-danger-strong);
+      font-size: 10px;
+    }
+
+    .screen-body {
+      flex: 1 1 auto;
+      overflow: auto;
+      padding: var(--spacing-md) var(--spacing-md) 108px;
+      scrollbar-width: none;
+    }
+    .screen-body::-webkit-scrollbar { display: none; }
+    .mode-panel[hidden] { display: none; }
+
+    .shared-band {
+      padding: var(--spacing-sm);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(194, 86, 75, 0.18);
+      background: linear-gradient(90deg, rgba(194, 86, 75, 0.14), rgba(194, 86, 75, 0.04));
+    }
+    .shared-top { display: flex; align-items: center; gap: var(--spacing-sm); }
+    .shared-icon {
+      flex: 0 0 auto;
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius-md);
+      background: rgba(194, 86, 75, 0.14);
+      color: var(--color-danger-strong);
+    }
+    .shared-icon svg { width: 20px; height: 20px; }
+    .shared-title { font-size: var(--font-size-title); font-weight: var(--font-weight-bold); color: var(--color-danger-strong); }
+    .shared-sub { margin-top: 2px; font-size: var(--font-size-caption); color: var(--color-text-secondary); }
+    .shared-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--spacing-xs);
+      margin-top: var(--spacing-sm);
+    }
+    .shared-stat { padding: 8px; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.84); }
+    .shared-stat dt { font-size: 10px; color: var(--color-text-secondary); }
+    .shared-stat dd { margin-top: 4px; font-size: 18px; font-weight: var(--font-weight-bold); line-height: 1; }
+
+    .section-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--spacing-xs);
+      margin: var(--spacing-md) 2px var(--spacing-xs);
+    }
+    .section-heading h2 { font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
+    .section-heading span { font-size: var(--font-size-caption); color: var(--color-text-secondary); }
+
+    .chip-strip { display: flex; gap: var(--spacing-2xs); flex-wrap: wrap; }
+    .chip {
+      min-height: 30px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 10px;
+      border-radius: var(--radius-pill);
+      border: var(--border-hairline);
+      background: var(--color-surface-alt);
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-caption);
+      font-weight: var(--font-weight-semibold);
+    }
+    .chip[aria-pressed="true"] {
+      border-color: var(--color-primary);
+      background: var(--color-primary-soft);
+      color: var(--color-primary-dark);
+    }
+
+    .cattle-card, .record, .graph-card, .path-card {
+      border: var(--border-hairline);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-alt);
+      box-shadow: var(--shadow-card);
+    }
+    .queue { display: flex; flex-direction: column; gap: var(--spacing-sm); }
+    .cattle-card[data-priority="critical"] { border-left: 4px solid var(--color-danger); }
+    .cattle-card[data-priority="observation"] { border-left: 4px solid var(--color-warning); }
+    .cattle-header { display: flex; align-items: flex-start; gap: var(--spacing-sm); padding: var(--spacing-sm); }
+    .cattle-avatar {
+      flex: 0 0 auto;
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-title);
+      font-weight: var(--font-weight-bold);
+    }
+    .cattle-card[data-priority="critical"] .cattle-avatar { background: var(--color-danger-soft); color: var(--color-danger-strong); }
+    .cattle-card[data-priority="observation"] .cattle-avatar { background: var(--color-warning-soft); color: var(--color-warning-strong); }
+    .cattle-title { min-width: 0; flex: 1; }
+    .cattle-name { display: flex; align-items: center; gap: 6px; font-size: var(--font-size-title); font-weight: var(--font-weight-bold); }
+    .cattle-sub { margin-top: 3px; font-size: var(--font-size-caption); color: var(--color-text-secondary); }
+    .priority-badge {
+      flex: 0 0 auto;
+      padding: 4px 7px;
+      border-radius: var(--radius-sm);
+      font-size: 10px;
+      font-weight: var(--font-weight-bold);
+    }
+    .cattle-card[data-priority="critical"] .priority-badge { background: var(--color-danger-soft); color: var(--color-danger-strong); }
+    .cattle-card[data-priority="observation"] .priority-badge { background: var(--color-warning-soft); color: var(--color-warning-strong); }
+    .tier-strip {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--spacing-xs);
+      margin-bottom: var(--spacing-sm);
+    }
+    .tier-card {
+      min-height: 74px;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border: var(--border-hairline);
+      border-left-width: 4px;
+      border-radius: var(--radius-md);
+      background: var(--color-surface-alt);
+      box-shadow: var(--shadow-card);
+    }
+    .tier-card[data-tier="critical"] { border-left-color: var(--color-danger); }
+    .tier-card[data-tier="observation"] { border-left-color: var(--color-warning); }
+    .tier-card[data-tier="tracking"] { border-left-color: var(--color-info); }
+    .tier-card[data-tier="archive"] { border-left-color: var(--color-success); }
+    .tier-head { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-2xs); }
+    .tier-name { min-width: 0; overflow: hidden; color: var(--color-text-primary); font-size: var(--font-size-body); font-weight: var(--font-weight-bold); white-space: nowrap; text-overflow: ellipsis; }
+    .tier-count { flex: 0 0 auto; color: var(--color-text-secondary); font-size: var(--font-size-caption); font-weight: var(--font-weight-bold); }
+    .tier-action { display: block; margin-top: 4px; color: var(--color-text-secondary); font-size: 10px; line-height: var(--line-height-normal); }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--spacing-xs);
+      padding: 0 var(--spacing-sm) var(--spacing-sm);
+    }
+    .metric { min-width: 0; padding: 8px; border-radius: var(--radius-sm); background: var(--color-surface-muted); }
+    .metric dt { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--color-text-secondary); white-space: nowrap; }
+    .metric dt svg { width: 12px; height: 12px; flex: 0 0 auto; }
+    .metric dd { margin-top: 4px; font-size: var(--font-size-body); font-weight: var(--font-weight-bold); white-space: nowrap; }
+    .health-strip {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      margin: 0 var(--spacing-sm) var(--spacing-sm);
+      padding: 8px 10px;
+      border-radius: var(--radius-md);
+      background: var(--color-danger-soft);
+      color: var(--color-danger-strong);
+      font-size: var(--font-size-caption);
+      font-weight: var(--font-weight-semibold);
+    }
+    .health-strip svg { width: 15px; height: 15px; flex: 0 0 auto; }
+    .health-strip span:last-child { margin-left: auto; font-weight: var(--font-weight-medium); }
+    .evidence-toggle {
+      width: 100%;
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--spacing-sm);
+      border-top: var(--border-hairline);
+      background: var(--color-surface);
+      color: var(--color-primary-dark);
+      font-size: var(--font-size-caption);
+      font-weight: var(--font-weight-semibold);
+      text-align: left;
+    }
+    .evidence-toggle svg { width: 17px; height: 17px; transition: transform 0.18s ease; }
+    .evidence-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+    .evidence-panel { padding: var(--spacing-xs) var(--spacing-sm) var(--spacing-sm); }
+    .evidence-panel[hidden] { display: none; }
+    .evidence-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--spacing-xs);
+      align-items: center;
+      padding: var(--spacing-xs) 0;
+    }
+    .evidence-row + .evidence-row { border-top: var(--border-hairline); }
+    .evidence-pair { font-size: var(--font-size-body); font-weight: var(--font-weight-semibold); }
+    .evidence-detail { margin-top: 2px; font-size: 10px; color: var(--color-text-secondary); }
+    .score { min-width: 42px; padding: 4px 7px; border-radius: var(--radius-sm); text-align: center; font-size: var(--font-size-caption); font-weight: var(--font-weight-bold); }
+    .score[data-risk="high"] { background: var(--color-danger-soft); color: var(--color-danger-strong); }
+    .score[data-risk="medium"] { background: var(--color-warning-soft); color: var(--color-warning-strong); }
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-xs);
+      padding: var(--spacing-xs) var(--spacing-sm) var(--spacing-sm);
+      border-top: var(--border-hairline);
+    }
+    .ghost-btn, .solid-btn {
+      height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-caption);
+      font-weight: var(--font-weight-semibold);
+    }
+    .ghost-btn { border: var(--border-hairline); background: var(--color-surface-alt); color: var(--color-text-secondary); }
+    .solid-btn { background: var(--color-primary); color: #fff; }
+    .ghost-btn svg, .solid-btn svg { width: 16px; height: 16px; }
+
+    .count-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--spacing-xs);
+      margin-bottom: var(--spacing-xs);
+    }
+    .count-card { min-height: 72px; padding: 8px 10px; border: var(--border-hairline); border-radius: var(--radius-md); background: var(--color-surface-alt); }
+    .count-label { display: flex; align-items: center; gap: 5px; font-size: var(--font-size-caption); color: var(--color-text-secondary); }
+    .count-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .count-value { margin-top: 5px; font-size: 21px; font-weight: var(--font-weight-bold); line-height: 1; }
+    .record-list { display: flex; flex-direction: column; gap: var(--spacing-xs); }
+    .record { padding: var(--spacing-sm); }
+    .record[data-risk="high"] { border-left: 4px solid var(--color-danger); }
+    .record[data-risk="medium"] { border-left: 4px solid var(--color-warning); }
+    .record[data-risk="low"] { border-left: 4px solid var(--color-success); }
+    .record-top { display: flex; align-items: flex-start; gap: var(--spacing-xs); }
+    .record-pair { flex: 1; font-size: var(--font-size-title); font-weight: var(--font-weight-bold); }
+    .record .score { flex: 0 0 auto; min-width: 54px; }
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--spacing-xs);
+      margin-top: var(--spacing-xs);
+    }
+    .factor-row { display: flex; gap: var(--spacing-2xs); flex-wrap: wrap; margin-top: var(--spacing-xs); }
+    .factor { padding: 4px 7px; border-radius: var(--radius-sm); background: var(--color-surface-muted); color: var(--color-text-secondary); font-size: 10px; font-weight: var(--font-weight-medium); }
+    .factor[data-active="true"] { background: var(--color-danger-soft); color: var(--color-danger-strong); }
+    .link-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-xs);
+      margin-top: var(--spacing-xs);
+      padding-top: var(--spacing-xs);
+      border-top: var(--border-hairline);
+    }
+    .link-row p { font-size: var(--font-size-caption); color: var(--color-text-secondary); }
+    .jump-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 34px;
+      padding: 0 8px;
+      border-radius: var(--radius-sm);
+      color: var(--color-primary-dark);
+      font-size: var(--font-size-caption);
+      font-weight: var(--font-weight-semibold);
+    }
+    .jump-btn:hover { background: var(--color-primary-soft); }
+    .jump-btn svg { width: 15px; height: 15px; }
+
+    .graph-stage { height: var(--graph-height); overflow: hidden; background: linear-gradient(180deg, #FCFBF8, var(--color-surface)); }
+    .graph-stage svg { display: block; width: 100%; height: 100%; }
+    .graph-card { overflow: hidden; }
+    .graph-legend {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-top: var(--border-hairline);
+      color: var(--color-text-secondary);
+      font-size: 10px;
+    }
+    .legend-item { display: inline-flex; align-items: center; gap: 4px; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .legend-line { width: 16px; height: 3px; border-radius: var(--radius-pill); }
+    .path-list { display: flex; flex-direction: column; gap: var(--spacing-xs); }
+    .path-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--spacing-xs);
+      align-items: center;
+      padding: var(--spacing-sm);
+    }
+    .path-card[data-risk="high"] { border-left: 4px solid var(--color-danger); }
+    .path-card[data-risk="medium"] { border-left: 4px solid var(--color-warning); }
+    .path-title { font-size: var(--font-size-title); font-weight: var(--font-weight-bold); }
+    .path-detail { margin-top: 4px; font-size: var(--font-size-caption); color: var(--color-text-secondary); }
+    .path-score { min-width: 54px; padding: 5px 8px; border-radius: var(--radius-sm); text-align: center; font-size: var(--font-size-caption); font-weight: var(--font-weight-bold); }
+    .path-score[data-risk="high"] { background: var(--color-danger-soft); color: var(--color-danger-strong); }
+    .path-score[data-risk="medium"] { background: var(--color-warning-soft); color: var(--color-warning-strong); }
+
+    .bottom-bar {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 4;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-xs);
+      padding: var(--spacing-sm) var(--spacing-md) max(var(--spacing-md), env(safe-area-inset-bottom));
+      background: rgba(248, 246, 240, 0.94);
+      border-top: var(--border-hairline);
+      backdrop-filter: blur(16px);
+    }
+    .bottom-quiet, .bottom-primary {
+      height: var(--touch-target);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-body);
+      font-weight: var(--font-weight-semibold);
+    }
+    .bottom-quiet { border: var(--border-hairline); background: var(--color-surface-alt); color: var(--color-text-secondary); }
+    .bottom-primary { background: var(--color-primary); color: #fff; }
+    .bottom-quiet svg, .bottom-primary svg { width: 18px; height: 18px; }
+  </style>
+</head>
+<body>
+  <a class="prototype-link" href="contact-tracing-prototype-index.html">
+    <i data-lucide="arrow-left"></i>
+    选择方案
+  </a>
+
+  <main class="app" data-prototype="contact-tracing-unified-experience">
+    <header class="app-bar">
+      <button class="icon-btn" type="button" aria-label="返回"><i data-lucide="arrow-left"></i></button>
+      <div class="app-bar-copy">
+        <h1 class="app-bar-title">疫病防控</h1>
+        <p class="app-bar-sub">风险模型 72h · 同步 22:08</p>
+      </div>
+      <button class="icon-btn" type="button" aria-label="全局筛选"><i data-lucide="sliders-horizontal"></i></button>
+    </header>
+
+    <nav class="mode-tabs" role="tablist" aria-label="追踪视图">
+      <button class="mode-tab" id="tab-disposition" role="tab" data-target="panel-disposition" aria-selected="true">
+        <i data-lucide="clipboard-check"></i>处置
+      </button>
+      <button class="mode-tab" id="tab-records" role="tab" data-target="panel-records" aria-selected="false">
+        <i data-lucide="list-filter"></i>记录
+      </button>
+      <button class="mode-tab" id="tab-network" role="tab" data-target="panel-network" aria-selected="false">
+        <i data-lucide="git-fork"></i>链路
+      </button>
+    </nav>
+
+    <div class="screen-body">
+      <section class="shared-band" aria-label="应急概览">
+        <div class="shared-top">
+          <span class="shared-icon"><i data-lucide="siren"></i></span>
+          <div>
+            <p class="shared-title">疑似源头 48</p>
+            <p class="shared-sub">口蹄疫疑似 · 标记 6/30 20:12</p>
+          </div>
+        </div>
+        <dl class="shared-stats">
+          <div class="shared-stat"><dt>接触牛只</dt><dd>8 头</dd></div>
+          <div class="shared-stat"><dt>一级处置</dt><dd>2 头</dd></div>
+          <div class="shared-stat"><dt>最近接触</dt><dd>4min</dd></div>
+        </dl>
+      </section>
+
+      <section class="mode-panel" id="panel-disposition" role="tabpanel" aria-labelledby="tab-disposition">
+        <div class="section-heading">
+          <h2>处置分级队列</h2>
+          <span>先按处置等级，再按风险和时间</span>
+        </div>
+        <div class="tier-strip" aria-label="处置等级">
+          <article class="tier-card" data-tier="critical">
+            <p class="tier-head"><span class="tier-name">一级 · 立即隔离</span><span class="tier-count">2 头</span></p>
+            <span class="tier-action">2 小时内隔离并通知兽医</span>
+          </article>
+          <article class="tier-card" data-tier="observation">
+            <p class="tier-head"><span class="tier-name">二级 · 重点观察</span><span class="tier-count">1 头</span></p>
+            <span class="tier-action">24 小时内完成健康复核</span>
+          </article>
+          <article class="tier-card" data-tier="tracking">
+            <p class="tier-head"><span class="tier-name">三级 · 常规追踪</span><span class="tier-count">3 头</span></p>
+            <span class="tier-action">72 小时内持续核对接触</span>
+          </article>
+          <article class="tier-card" data-tier="archive">
+            <p class="tier-head"><span class="tier-name">四级 · 归档备查</span><span class="tier-count">2 头</span></p>
+            <span class="tier-action">暂无即时动作，保留证据</span>
+          </article>
+        </div>
+        <div class="queue">
+          <article class="cattle-card" data-priority="critical">
+            <header class="cattle-header">
+              <div class="cattle-avatar">12</div>
+              <div class="cattle-title">
+                <p class="cattle-name">牛只 12<span class="priority-badge">一级 · 立即隔离</span></p>
+                <p class="cattle-sub">围栏 A-03 · 最近接触 4 分钟前</p>
+              </div>
+            </header>
+            <dl class="metrics">
+              <div class="metric"><dt><i data-lucide="users"></i>接触牛</dt><dd>3 头</dd></div>
+              <div class="metric"><dt><i data-lucide="gauge"></i>最高风险</dt><dd>82</dd></div>
+              <div class="metric"><dt><i data-lucide="activity"></i>体温</dt><dd>39.8°C</dd></div>
+            </dl>
+            <div class="health-strip">
+              <i data-lucide="triangle-alert"></i>
+              <span>体温偏高 + 直接接触源头</span>
+              <span>2 小时内隔离</span>
+            </div>
+            <button class="evidence-toggle" type="button" aria-expanded="true" aria-controls="unified-evidence-12">
+              接触证据 · 3 条
+              <i data-lucide="chevron-down"></i>
+            </button>
+            <div class="evidence-panel" id="unified-evidence-12">
+              <div class="evidence-row">
+                <div>
+                  <p class="evidence-pair">48 ↔ 12</p>
+                  <p class="evidence-detail">3.7m · 22min · 6/30 22:04</p>
+                </div>
+                <p class="score" data-risk="high">82</p>
+              </div>
+              <div class="evidence-row">
+                <div>
+                  <p class="evidence-pair">12 ↔ 49</p>
+                  <p class="evidence-detail">4.2m · 16min · 6/30 21:38</p>
+                </div>
+                <p class="score" data-risk="high">74</p>
+              </div>
+            </div>
+            <div class="actions">
+              <button class="ghost-btn" type="button" data-jump="network"><i data-lucide="git-fork"></i>传播链</button>
+              <button class="solid-btn" type="button"><i data-lucide="eye"></i>标记观察</button>
+            </div>
+          </article>
+
+          <article class="cattle-card" data-priority="critical">
+            <header class="cattle-header">
+              <div class="cattle-avatar">49</div>
+              <div class="cattle-title">
+                <p class="cattle-name">牛只 49<span class="priority-badge">一级 · 立即检查</span></p>
+                <p class="cattle-sub">围栏 A-03 · 最近接触 12 分钟前</p>
+              </div>
+            </header>
+            <dl class="metrics">
+              <div class="metric"><dt><i data-lucide="users"></i>接触牛</dt><dd>2 头</dd></div>
+              <div class="metric"><dt><i data-lucide="gauge"></i>最高风险</dt><dd>78</dd></div>
+              <div class="metric"><dt><i data-lucide="activity"></i>体温</dt><dd>39.4°C</dd></div>
+            </dl>
+            <div class="health-strip">
+              <i data-lucide="triangle-alert"></i>
+              <span>直接接触疑似源头</span>
+              <span>4 小时内复核</span>
+            </div>
+            <div class="actions">
+              <button class="ghost-btn" type="button" data-jump="network"><i data-lucide="git-fork"></i>传播链</button>
+              <button class="solid-btn" type="button"><i data-lucide="eye"></i>标记观察</button>
+            </div>
+          </article>
+
+          <article class="cattle-card" data-priority="observation">
+            <header class="cattle-header">
+              <div class="cattle-avatar">50</div>
+              <div class="cattle-title">
+                <p class="cattle-name">牛只 50<span class="priority-badge">二级 · 重点观察</span></p>
+                <p class="cattle-sub">围栏 A-04 · 最近接触 18 分钟前</p>
+              </div>
+            </header>
+            <dl class="metrics">
+              <div class="metric"><dt><i data-lucide="users"></i>接触牛</dt><dd>2 头</dd></div>
+              <div class="metric"><dt><i data-lucide="gauge"></i>最高风险</dt><dd>64</dd></div>
+              <div class="metric"><dt><i data-lucide="activity"></i>体温</dt><dd>38.9°C</dd></div>
+            </dl>
+            <div class="health-strip" style="background: var(--color-warning-soft); color: var(--color-warning-strong);">
+              <i data-lucide="eye"></i>
+              <span>同栏中等接触，暂无异常</span>
+              <span>24 小时内复核</span>
+            </div>
+            <div class="actions">
+              <button class="ghost-btn" type="button" data-jump="network"><i data-lucide="git-fork"></i>传播链</button>
+              <button class="solid-btn" type="button"><i data-lucide="eye"></i>标记观察</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="mode-panel" id="panel-records" role="tabpanel" aria-labelledby="tab-records" hidden>
+        <div class="section-heading">
+          <h2>接触记录分诊</h2>
+          <span>按风险分数排序</span>
+        </div>
+        <div class="count-strip">
+          <article class="count-card">
+            <p class="count-label"><span class="count-dot" style="background: var(--color-danger);"></span>高风险</p>
+            <p class="count-value">2</p>
+          </article>
+          <article class="count-card">
+            <p class="count-label"><span class="count-dot" style="background: var(--color-warning);"></span>中风险</p>
+            <p class="count-value">5</p>
+          </article>
+          <article class="count-card">
+            <p class="count-label"><span class="count-dot" style="background: var(--color-success);"></span>低风险</p>
+            <p class="count-value">11</p>
+          </article>
+        </div>
+        <div class="chip-strip" role="group" aria-label="时间窗口">
+          <button class="chip" type="button" aria-pressed="false">24h</button>
+          <button class="chip" type="button" aria-pressed="false">48h</button>
+          <button class="chip" type="button" aria-pressed="true">72h</button>
+          <button class="chip" type="button" aria-pressed="false">全部</button>
+        </div>
+
+        <div class="section-heading">
+          <h2>高风险接触</h2>
+          <span>2 条记录</span>
+        </div>
+        <div class="record-list">
+          <article class="record" data-risk="high">
+            <div class="record-top">
+              <h3 class="record-pair">48 ↔ 12</h3>
+              <p class="score" data-risk="high"><b>82</b></p>
+            </div>
+            <div class="metric-row">
+              <div class="metric"><dt><i data-lucide="ruler"></i>距离</dt><dd>3.7m</dd></div>
+              <div class="metric"><dt><i data-lucide="clock"></i>持续</dt><dd>22min</dd></div>
+              <div class="metric"><dt><i data-lucide="calendar"></i>时间</dt><dd>22:04</dd></div>
+            </div>
+            <div class="factor-row">
+              <span class="factor" data-active="true">距离近</span>
+              <span class="factor" data-active="true">接触久</span>
+              <span class="factor" data-active="true">24h 内</span>
+            </div>
+            <div class="link-row">
+              <p>涉及牛只 12</p>
+              <button class="jump-btn" type="button" data-jump="disposition">按牛只处置<i data-lucide="chevron-right"></i></button>
+            </div>
+          </article>
+          <article class="record" data-risk="high">
+            <div class="record-top">
+              <h3 class="record-pair">48 ↔ 49</h3>
+              <p class="score" data-risk="high"><b>78</b></p>
+            </div>
+            <div class="metric-row">
+              <div class="metric"><dt><i data-lucide="ruler"></i>距离</dt><dd>3.3m</dd></div>
+              <div class="metric"><dt><i data-lucide="clock"></i>持续</dt><dd>18min</dd></div>
+              <div class="metric"><dt><i data-lucide="calendar"></i>时间</dt><dd>22:04</dd></div>
+            </div>
+            <div class="factor-row">
+              <span class="factor" data-active="true">距离近</span>
+              <span class="factor" data-active="true">接触久</span>
+            </div>
+            <div class="link-row">
+              <p>涉及牛只 49</p>
+              <button class="jump-btn" type="button" data-jump="disposition">按牛只处置<i data-lucide="chevron-right"></i></button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="mode-panel" id="panel-network" role="tabpanel" aria-labelledby="tab-network" hidden>
+        <div class="section-heading">
+          <h2>第一层接触</h2>
+          <span>点击节点查看详情</span>
+        </div>
+        <section class="graph-card" aria-label="接触网络图">
+          <div class="graph-stage">
+            <svg viewBox="0 0 342 250" role="img" aria-label="牛只 48 与 12、49、50 的接触网络">
+              <line x1="171" y1="125" x2="63" y2="55" stroke="#C2564B" stroke-width="5" stroke-linecap="round" opacity="0.82"/>
+              <line x1="171" y1="125" x2="280" y2="55" stroke="#C2564B" stroke-width="4" stroke-linecap="round" opacity="0.72"/>
+              <line x1="171" y1="125" x2="70" y2="188" stroke="#D28A2D" stroke-width="3" stroke-linecap="round" opacity="0.72"/>
+              <line x1="63" y1="55" x2="280" y2="55" stroke="#D28A2D" stroke-width="2" stroke-dasharray="7 6" opacity="0.55"/>
+
+              <g font-family="-apple-system, BlinkMacSystemFont, PingFang SC, sans-serif">
+                <rect x="76" y="70" width="71" height="21" rx="6" fill="#fff" stroke="#D7D2C6"/>
+                <text x="111" y="84" text-anchor="middle" font-size="10" fill="#B3352C" font-weight="700">3.7m · 22min</text>
+
+                <rect x="194" y="70" width="70" height="21" rx="6" fill="#fff" stroke="#D7D2C6"/>
+                <text x="229" y="84" text-anchor="middle" font-size="10" fill="#B3352C" font-weight="700">3.3m · 18min</text>
+
+                <g filter="drop-shadow(0 2px 3px rgba(38 49 38 / 0.14))">
+                  <circle cx="171" cy="125" r="30" fill="#C2564B"/>
+                </g>
+                <text x="171" y="130" text-anchor="middle" font-size="15" fill="#fff" font-weight="700">48</text>
+                <text x="171" y="172" text-anchor="middle" font-size="10" fill="#617061">疑似源头</text>
+
+                <circle cx="63" cy="55" r="24" fill="#B3352C"/>
+                <text x="63" y="60" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">12</text>
+                <text x="63" y="93" text-anchor="middle" font-size="10" fill="#617061">一级</text>
+
+                <circle cx="280" cy="55" r="24" fill="#B3352C"/>
+                <text x="280" y="60" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">49</text>
+                <text x="280" y="93" text-anchor="middle" font-size="10" fill="#617061">一级</text>
+
+                <circle cx="70" cy="188" r="24" fill="#D28A2D"/>
+                <text x="70" y="193" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">50</text>
+                <text x="70" y="226" text-anchor="middle" font-size="10" fill="#617061">二级</text>
+              </g>
+            </svg>
+          </div>
+          <div class="graph-legend">
+            <span class="legend-item"><span class="legend-dot" style="background: var(--color-danger);"></span>源头 / 高风险</span>
+            <span class="legend-item"><span class="legend-dot" style="background: var(--color-warning);"></span>重点观察</span>
+            <span class="legend-item"><span class="legend-line" style="background: var(--color-danger);"></span>接触强度</span>
+          </div>
+        </section>
+
+        <div class="section-heading">
+          <h2>高风险路径</h2>
+          <span>用于判断扩散方向</span>
+        </div>
+        <div class="path-list">
+          <article class="path-card" data-risk="high">
+            <div>
+              <p class="path-title">48 → 12 → 4</p>
+              <p class="path-detail">累计风险 132 · 最近 6/30 22:04</p>
+            </div>
+            <p class="path-score" data-risk="high">高风险</p>
+          </article>
+          <article class="path-card" data-risk="medium">
+            <div>
+              <p class="path-title">48 → 50 → 17</p>
+              <p class="path-detail">累计风险 94 · 最近 6/30 21:12</p>
+            </div>
+            <p class="path-score" data-risk="medium">关注</p>
+          </article>
+        </div>
+
+        <div class="section-heading">
+          <h2>调查结论</h2>
+          <span>来自路径与证据</span>
+        </div>
+        <article class="record">
+          <p style="font-size: var(--font-size-body); line-height: var(--line-height-normal);">疑似源头 48 已直接影响 3 头牛；12、49 属于高风险二级扩散点，建议先转入隔离观察。</p>
+          <div class="link-row">
+            <p>关联一级处置牛只 2 头</p>
+            <button class="jump-btn" type="button" data-jump="disposition">打开处置队列<i data-lucide="chevron-right"></i></button>
+          </div>
+        </article>
+      </section>
+    </div>
+
+    <nav class="bottom-bar" aria-label="全局操作">
+      <button class="bottom-quiet" type="button"><i data-lucide="filter"></i>筛选</button>
+      <button class="bottom-primary" type="button"><i data-lucide="file-output"></i>生成应急报告</button>
+    </nav>
+  </main>
+
+  <script>
+    const tabs = Array.from(document.querySelectorAll(".mode-tab"));
+    const panels = Array.from(document.querySelectorAll(".mode-panel"));
+    const bottomPrimary = document.querySelector(".bottom-primary");
+    const bottomCopy = {
+      disposition: "生成应急报告",
+      records: "导出接触记录",
+      network: "生成调查报告"
+    };
+
+    function activateMode(mode) {
+      tabs.forEach((tab) => {
+        const selected = tab.dataset.target === `panel-${mode}`;
+        tab.setAttribute("aria-selected", String(selected));
+      });
+      panels.forEach((panel) => {
+        panel.hidden = panel.id !== `panel-${mode}`;
+      });
+      bottomPrimary.childNodes[bottomPrimary.childNodes.length - 1].textContent = bottomCopy[mode];
+      document.querySelector(".screen-body").scrollTop = 0;
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => activateMode(tab.dataset.target.replace("panel-", "")));
+    });
+
+    document.querySelectorAll("[data-jump]").forEach((button) => {
+      button.addEventListener("click", () => activateMode(button.dataset.jump));
+    });
+
+    document.querySelectorAll(".chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        chip.closest(".chip-strip").querySelectorAll(".chip").forEach((item) => item.setAttribute("aria-pressed", "false"));
+        chip.setAttribute("aria-pressed", "true");
+      });
+    });
+
+    document.querySelectorAll(".evidence-toggle").forEach((button) => {
+      button.addEventListener("click", () => {
+        const panel = document.getElementById(button.getAttribute("aria-controls"));
+        const expanded = button.getAttribute("aria-expanded") === "true";
+        button.setAttribute("aria-expanded", String(!expanded));
+        panel.hidden = expanded;
+        button.childNodes[0].textContent = expanded
+          ? `显示接触证据 · ${panel.querySelectorAll(".evidence-row").length} 条`
+          : `收起接触证据 · ${panel.querySelectorAll(".evidence-row").length} 条`;
+      });
+    });
+
+    lucide.createIcons();
+  </script>
+</body>
+</html>

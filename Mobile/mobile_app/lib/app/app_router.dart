@@ -28,8 +28,7 @@ import 'package:hkt_livestock_agentic/features/pages/devices_page.dart';
 import 'package:hkt_livestock_agentic/features/devices/presentation/device_detail_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/digestive_detail_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/digestive_page.dart';
-import 'package:hkt_livestock_agentic/features/pages/epidemic_page.dart';
-import 'package:hkt_livestock_agentic/features/pages/epidemic_contact_page.dart';
+import 'package:hkt_livestock_agentic/features/pages/epidemic_workbench_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/estrus_detail_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/estrus_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/fence_form_page.dart';
@@ -219,14 +218,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'epidemic',
                 name: AppRoute.twinEpidemic.routeName,
-                builder: (context, state) => const EpidemicPage(),
+                builder: (context, state) {
+                  final source = state.uri.queryParameters['sourceLivestockId'];
+                  final viewName = state.uri.queryParameters['view'] ?? 'disposition';
+                  final view = switch (viewName) {
+                    'records' => EpidemicWorkbenchView.records,
+                    'network' => EpidemicWorkbenchView.network,
+                    _ => EpidemicWorkbenchView.disposition,
+                  };
+                  return EpidemicWorkbenchPage(
+                    sourceLivestockId: source,
+                    initialView: view,
+                  );
+                },
                 routes: [
                   GoRoute(
                     path: 'contacts/:livestockId',
                     name: AppRoute.twinEpidemicContact.routeName,
-                    builder: (context, state) {
+                    redirect: (context, state) {
                       final id = state.pathParameters['livestockId']!;
-                      return EpidemicContactPage(livestockId: id);
+                      return '/twin/epidemic?view=network&sourceLivestockId=$id';
                     },
                   ),
                 ],

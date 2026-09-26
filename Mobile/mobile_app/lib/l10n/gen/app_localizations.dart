@@ -4978,6 +4978,348 @@ abstract class AppLocalizations {
   /// **'查看接触追踪详情'**
   String get viewContactTracing;
 
+  /// No description provided for @epidemicWorkbenchSynced.
+  ///
+  /// In zh, this message translates to:
+  /// **'风险模型 {hours}h · 同步 {time}'**
+  String epidemicWorkbenchSynced(int hours, String time);
+
+  /// No description provided for @epidemicTabDisposition.
+  ///
+  /// In zh, this message translates to:
+  /// **'处置'**
+  String get epidemicTabDisposition;
+
+  /// No description provided for @epidemicTabRecords.
+  ///
+  /// In zh, this message translates to:
+  /// **'记录'**
+  String get epidemicTabRecords;
+
+  /// No description provided for @epidemicTabNetwork.
+  ///
+  /// In zh, this message translates to:
+  /// **'链路'**
+  String get epidemicTabNetwork;
+
+  /// No description provided for @epidemicSuspectedSource.
+  ///
+  /// In zh, this message translates to:
+  /// **'疑似源头'**
+  String get epidemicSuspectedSource;
+
+  /// No description provided for @epidemicContactLivestockCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'接触牛只'**
+  String get epidemicContactLivestockCount;
+
+  /// No description provided for @epidemicCriticalDispositionCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'一级处置'**
+  String get epidemicCriticalDispositionCount;
+
+  /// No description provided for @epidemicMostRecentContact.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近接触'**
+  String get epidemicMostRecentContact;
+
+  /// No description provided for @epidemicMinutesShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'min'**
+  String get epidemicMinutesShort;
+
+  /// No description provided for @epidemicDispositionQueueTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'处置分级队列'**
+  String get epidemicDispositionQueueTitle;
+
+  /// No description provided for @epidemicTierSortHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'先按处置等级，再按风险和时间'**
+  String get epidemicTierSortHint;
+
+  /// No description provided for @epidemicTierCritical.
+  ///
+  /// In zh, this message translates to:
+  /// **'一级 · 立即隔离'**
+  String get epidemicTierCritical;
+
+  /// No description provided for @epidemicTierObservation.
+  ///
+  /// In zh, this message translates to:
+  /// **'二级 · 重点观察'**
+  String get epidemicTierObservation;
+
+  /// No description provided for @epidemicTierTracking.
+  ///
+  /// In zh, this message translates to:
+  /// **'三级 · 常规追踪'**
+  String get epidemicTierTracking;
+
+  /// No description provided for @epidemicTierArchive.
+  ///
+  /// In zh, this message translates to:
+  /// **'四级 · 归档备查'**
+  String get epidemicTierArchive;
+
+  /// No description provided for @epidemicTierCriticalAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'2 小时内隔离并通知兽医'**
+  String get epidemicTierCriticalAction;
+
+  /// No description provided for @epidemicTierObservationAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'24 小时内完成健康复核'**
+  String get epidemicTierObservationAction;
+
+  /// No description provided for @epidemicTierTrackingAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'72 小时内持续核对接触'**
+  String get epidemicTierTrackingAction;
+
+  /// No description provided for @epidemicTierArchiveAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无即时动作，保留证据'**
+  String get epidemicTierArchiveAction;
+
+  /// No description provided for @epidemicHeadSuffix.
+  ///
+  /// In zh, this message translates to:
+  /// **'头'**
+  String get epidemicHeadSuffix;
+
+  /// No description provided for @epidemicLivestockLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'牛只'**
+  String get epidemicLivestockLabel;
+
+  /// No description provided for @epidemicContactCattle.
+  ///
+  /// In zh, this message translates to:
+  /// **'接触牛'**
+  String get epidemicContactCattle;
+
+  /// No description provided for @epidemicMaxRisk.
+  ///
+  /// In zh, this message translates to:
+  /// **'最高风险'**
+  String get epidemicMaxRisk;
+
+  /// No description provided for @epidemicTemperature.
+  ///
+  /// In zh, this message translates to:
+  /// **'体温'**
+  String get epidemicTemperature;
+
+  /// No description provided for @epidemicShowEvidence.
+  ///
+  /// In zh, this message translates to:
+  /// **'接触证据 · {count} 条'**
+  String epidemicShowEvidence(int count);
+
+  /// No description provided for @epidemicHideEvidence.
+  ///
+  /// In zh, this message translates to:
+  /// **'收起接触证据'**
+  String get epidemicHideEvidence;
+
+  /// No description provided for @epidemicLastSeenMinutes.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近接触 {minutes} 分钟前'**
+  String epidemicLastSeenMinutes(int minutes);
+
+  /// No description provided for @epidemicContactNetworkAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'传播链'**
+  String get epidemicContactNetworkAction;
+
+  /// No description provided for @epidemicActionIsolateVet.
+  ///
+  /// In zh, this message translates to:
+  /// **'隔离并通知兽医'**
+  String get epidemicActionIsolateVet;
+
+  /// No description provided for @epidemicActionImmediateCheck.
+  ///
+  /// In zh, this message translates to:
+  /// **'立即检查'**
+  String get epidemicActionImmediateCheck;
+
+  /// No description provided for @epidemicActionMarkObservation.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记观察'**
+  String get epidemicActionMarkObservation;
+
+  /// No description provided for @epidemicActionContinueTracing.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续追踪'**
+  String get epidemicActionContinueTracing;
+
+  /// No description provided for @epidemicActionArchive.
+  ///
+  /// In zh, this message translates to:
+  /// **'归档备查'**
+  String get epidemicActionArchive;
+
+  /// No description provided for @epidemicRecordTriageTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'接触记录分诊'**
+  String get epidemicRecordTriageTitle;
+
+  /// No description provided for @epidemicRiskSortHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'按风险分数排序'**
+  String get epidemicRiskSortHint;
+
+  /// No description provided for @epidemicWindowHours.
+  ///
+  /// In zh, this message translates to:
+  /// **'{hours}h'**
+  String epidemicWindowHours(int hours);
+
+  /// No description provided for @epidemicWindowAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部'**
+  String get epidemicWindowAll;
+
+  /// No description provided for @epidemicDistance.
+  ///
+  /// In zh, this message translates to:
+  /// **'距离'**
+  String get epidemicDistance;
+
+  /// No description provided for @epidemicDuration.
+  ///
+  /// In zh, this message translates to:
+  /// **'持续'**
+  String get epidemicDuration;
+
+  /// No description provided for @epidemicDispositionByLivestock.
+  ///
+  /// In zh, this message translates to:
+  /// **'按牛只处置'**
+  String get epidemicDispositionByLivestock;
+
+  /// No description provided for @epidemicFirstLayer.
+  ///
+  /// In zh, this message translates to:
+  /// **'第一层接触'**
+  String get epidemicFirstLayer;
+
+  /// No description provided for @epidemicTapNodeHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'点击节点查看详情'**
+  String get epidemicTapNodeHint;
+
+  /// No description provided for @epidemicHighRiskPaths.
+  ///
+  /// In zh, this message translates to:
+  /// **'高风险路径'**
+  String get epidemicHighRiskPaths;
+
+  /// No description provided for @epidemicSpreadHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'用于判断扩散方向'**
+  String get epidemicSpreadHint;
+
+  /// No description provided for @epidemicCumulativeRisk.
+  ///
+  /// In zh, this message translates to:
+  /// **'累计风险'**
+  String get epidemicCumulativeRisk;
+
+  /// No description provided for @epidemicFactorFresh.
+  ///
+  /// In zh, this message translates to:
+  /// **'24小时内'**
+  String get epidemicFactorFresh;
+
+  /// No description provided for @epidemicFactorRecent.
+  ///
+  /// In zh, this message translates to:
+  /// **'48小时内'**
+  String get epidemicFactorRecent;
+
+  /// No description provided for @epidemicFactorNear.
+  ///
+  /// In zh, this message translates to:
+  /// **'近距离'**
+  String get epidemicFactorNear;
+
+  /// No description provided for @epidemicFactorModerateDistance.
+  ///
+  /// In zh, this message translates to:
+  /// **'中等距离'**
+  String get epidemicFactorModerateDistance;
+
+  /// No description provided for @epidemicFactorLongDuration.
+  ///
+  /// In zh, this message translates to:
+  /// **'接触久'**
+  String get epidemicFactorLongDuration;
+
+  /// No description provided for @epidemicFactorMediumDuration.
+  ///
+  /// In zh, this message translates to:
+  /// **'中等时长'**
+  String get epidemicFactorMediumDuration;
+
+  /// No description provided for @epidemicReasonDirectSource.
+  ///
+  /// In zh, this message translates to:
+  /// **'直接接触源头'**
+  String get epidemicReasonDirectSource;
+
+  /// No description provided for @epidemicReasonPathExposure.
+  ///
+  /// In zh, this message translates to:
+  /// **'存在路径暴露'**
+  String get epidemicReasonPathExposure;
+
+  /// No description provided for @epidemicReasonHealthAbnormal.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康异常'**
+  String get epidemicReasonHealthAbnormal;
+
+  /// No description provided for @epidemicFilter.
+  ///
+  /// In zh, this message translates to:
+  /// **'筛选'**
+  String get epidemicFilter;
+
+  /// No description provided for @epidemicEmergencyReport.
+  ///
+  /// In zh, this message translates to:
+  /// **'生成应急报告'**
+  String get epidemicEmergencyReport;
+
+  /// No description provided for @epidemicInvestigationReport.
+  ///
+  /// In zh, this message translates to:
+  /// **'生成调查报告'**
+  String get epidemicInvestigationReport;
+
   /// No description provided for @livestockBreed.
   ///
   /// In zh, this message translates to:
@@ -11195,11 +11537,11 @@ abstract class AppLocalizations {
   /// **'牧场一切平稳'**
   String get heroTitleCalm;
 
-  /// No description provided for @heroTitleAttention.
+  /// No description provided for @heroTitleNeedsAttention.
   ///
   /// In zh, this message translates to:
-  /// **'{n} 只需要关注'**
-  String heroTitleAttention(int n);
+  /// **'牧场需要关注'**
+  String get heroTitleNeedsAttention;
 
   /// No description provided for @heroDatePattern.
   ///
@@ -11252,8 +11594,92 @@ abstract class AppLocalizations {
   /// No description provided for @heroSub.
   ///
   /// In zh, this message translates to:
-  /// **'{healthy}/{total} 只健康 · {fences} 个围栏需要巡查'**
-  String heroSub(int healthy, int total, int fences);
+  /// **'{healthy}/{total} 只健康'**
+  String heroSub(int healthy, int total);
+
+  /// No description provided for @heroAttentionHealth.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 只健康严重'**
+  String heroAttentionHealth(int count);
+
+  /// No description provided for @heroAttentionOutside.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 头越栏'**
+  String heroAttentionOutside(int count);
+
+  /// No description provided for @heroAttentionAlerts.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 条严重告警'**
+  String heroAttentionAlerts(int count);
+
+  /// No description provided for @ranchOutsideFenceTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'越栏牲畜'**
+  String get ranchOutsideFenceTitle;
+
+  /// No description provided for @ranchOutsideFenceHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'点击查看个体详情'**
+  String get ranchOutsideFenceHint;
+
+  /// No description provided for @ranchOutsideFenceStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'越出所有活动围栏'**
+  String get ranchOutsideFenceStatus;
+
+  /// No description provided for @ranchOutsideFenceView.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看围栏状态'**
+  String get ranchOutsideFenceView;
+
+  /// No description provided for @ranchSevereAlertTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'严重告警'**
+  String get ranchSevereAlertTitle;
+
+  /// No description provided for @ranchSevereAlertHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'点击查看告警详情'**
+  String get ranchSevereAlertHint;
+
+  /// No description provided for @ranchSevereAlertCenter.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看告警中心'**
+  String get ranchSevereAlertCenter;
+
+  /// No description provided for @ranchCriticalLivestockTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康严重牲畜'**
+  String get ranchCriticalLivestockTitle;
+
+  /// No description provided for @ranchCriticalLivestockHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'点击查看个体详情'**
+  String get ranchCriticalLivestockHint;
+
+  /// No description provided for @ranchCriticalLivestockEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无明细'**
+  String get ranchCriticalLivestockEmpty;
+
+  /// No description provided for @ranchCriticalAlertHistory.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看健康告警记录'**
+  String get ranchCriticalAlertHistory;
 
   /// No description provided for @heroRingLabel.
   ///
