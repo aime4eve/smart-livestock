@@ -1,68 +1,68 @@
-# Livestock Signal Sync Architecture — Plan v2
+# 牲畜信号同步架构 Plan v2
 
-| Field | Value |
+| 字段 | 内容 |
 |---|---|
-| Date | 2026-09-27 |
-| Status | **Draft pending user approval; coding must not start** |
-| Supersedes | Conversation-only plan dated 2026-09-26 |
-| Review response | [`2026-09-27-livestock-signal-sync-plan-review-response.md`](../reviews/2026-09-27-livestock-signal-sync-plan-review-response.md) |
-| Primary surfaces | Livestock Management, Ranch Map |
-| Live data | Position, rumen temperature, rumen motility, health, AI, fence, device, alerts |
+| 日期 | 2026-09-27 |
+| 状态 | **草案，等待用户批准；未批准前不得编码** |
+| 取代 | 2026-09-26 会话内版牲畜信号同步计划 |
+| 评审回执 | [`2026-09-27-livestock-signal-sync-plan-review-response.md`](../reviews/2026-09-27-livestock-signal-sync-plan-review-response.md) |
+| 首批页面 | 牲畜管理、牧场地图 |
+| 实时数据 | 位置、瘤胃温度、瘤胃蠕动次数、健康、AI、围栏、设备、告警 |
 
-## 1. Summary
+## 1. 摘要
 
-Build one authoritative frontend signal synchronization architecture instead of adding page-specific timers. The backend exposes livestock-level and map-level Signal APIs. The frontend owns a Riverpod Signal Sync Center that subscribes to scoped deltas and merges position, rumen metrics, health, AI, fence, device, and alert signals into one store.
+本方案建立一套统一的前端信号同步架构，而不是继续给单个页面增加 Timer。后端提供牲畜列表信号接口和牧场地图信号接口，把位置、瘤胃指标、健康、AI、围栏、设备、告警聚合为稳定契约；前端建立 Riverpod Signal Sync Center，所有相关页面只从 Signal Store 读取状态。
 
-The architecture is delivered in four reviewable stages:
+交付拆成四个可评审阶段：
 
-| Stage | Purpose | Branch |
+| 阶段 | 目标 | 分支 |
 |---|---|---|
-| 1a | Backend revisions, snapshots, Signal APIs, integration tests | `nix/livestock-signal-sync-p1a` |
-| 1b | Flutter Signal Store, Livestock Management, Ranch Map, old-source cleanup | `nix/livestock-signal-sync-p1b` |
-| 2 | Transactional Outbox and reliable event capture | `nix/livestock-signal-sync-p2` |
-| 3 | Flutter Web SSE spike, SSE transport, polling fallback | `nix/livestock-signal-sync-p3` |
+| 1a | 后端版本号、快照表、Signal API 和集成测试 | `nix/livestock-signal-sync-p1a` |
+| 1b | Flutter Signal Store、牲畜管理、牧场地图和旧数据源清理 | `nix/livestock-signal-sync-p1b` |
+| 2 | 事务 Outbox 和可靠状态事件 | `nix/livestock-signal-sync-p2` |
+| 3 | Flutter Web SSE spike、SSE 传输和轮询兜底 | `nix/livestock-signal-sync-p3` |
 
-Each implementation stage starts in its own worktree from the latest `master`. A stage may begin only after the previous stage is approved and merged or explicitly rebased by the user.
+每个实施阶段都使用独立 worktree，从最新 `master` 创建。上一阶段获得批准并合并，或由用户明确同意 rebase 后，下一阶段才能开始。
 
-## 2. Architecture Decisions
+## 2. 架构决策
 
-1. **Do not introduce Spring Cloud.** The current monolith can expose a signal projection and use its existing RocketMQ infrastructure.
-2. **Do not use WebHook to notify browsers.** WebHook/MQ is acceptable only from external platforms to the backend.
-3. **The Signal API is authoritative for page rendering.** SSE events only say “something changed”; the frontend fetches authoritative data from Signal APIs.
-4. **The backend computes freshness.** The frontend never infers offline state or stale location solely from wall-clock time.
-5. **No synthetic positions.** Missing positions remain missing.
-6. **Phase 1 polling is a valid product fallback**, not a throwaway prototype. Phase 3 only changes transport.
+1. **不引入 Spring Cloud。** 当前单体可以承载信号投影，事件广播继续复用现有 RocketMQ 基础设施。
+2. **不用 WebHook 通知浏览器。** WebHook/MQ 只能作为外部平台到后端的接入方式。
+3. **Signal API 是页面渲染的权威数据源。** SSE 只通知“哪些实体变化了”，前端收到通知后继续调用 Signal API 拉取权威状态。
+4. **freshness 由后端计算。** 前端不得根据本机时间推断设备离线或位置过期。
+5. **不伪造位置。** 没有定位的牲畜必须显示“无定位”，不能使用旧坐标、零坐标或估算坐标。
+6. **Phase 1 轮询是正式兜底能力。** Phase 3 只替换传输层，不推翻状态模型。
 
-## 3. Authoritative Data Ownership
+## 3. 数据权威归属
 
-| Signal | Authoritative source for Signal API | Transition note |
+| 信号 | Signal API 权威来源 | 过渡说明 |
 |---|---|---|
-| Current position | `livestock_location_snapshots` | `livestock.last_latitude/last_longitude/last_position_at` remains a legacy projection in Phase 1. Do not drop it until old map paths are retired. |
-| Rumen temperature | `health_snapshots.current_temp` plus new recorded-at/source columns | Existing `temperature_logs` remains history. |
-| Rumen motility | `health_snapshots.current_motility` plus new recorded-at/source columns | API exposes normalized `TIMES_PER_MINUTE`, never a raw cumulative counter. |
-| Rule/AI health status | ACTIVE alerts plus `health_snapshots` | ACTIVE alerts win for severity, snapshots fill metric state. |
-| AI observation/alert | Latest `anomaly_scores` plus ACTIVE `AI_ANOMALY`/temperature-family alert | Score alone is `OBSERVE`; active alert is `ALERT`. |
-| Fence state | ACTIVE fence alerts plus server-side containment check | Frontend containment fallback is removed. |
-| Fence geometry | `fences.vertices` | Geometry changes bump a dedicated revision. |
-| Device state | Device runtime plus ACTIVE device alerts | Frontend does not derive offline state. |
-| Alert summary | `alerts` and `alert_read_status` | Counts are per current user. |
+| 当前位置 | `livestock_location_snapshots` | `livestock.last_latitude/last_longitude/last_position_at` 在 Phase 1 保留为旧投影，待旧地图路径退役后再删除。 |
+| 瘤胃温度 | `health_snapshots.current_temp` 及新增 recorded-at/source 列 | `temperature_logs` 继续作为历史明细。 |
+| 瘤胃蠕动 | `health_snapshots.current_motility` 及新增 recorded-at/source 列 | API 输出归一化后的 `TIMES_PER_MINUTE`，不输出底层累计计数。 |
+| 规则/AI 健康状态 | ACTIVE 告警和 `health_snapshots` | ACTIVE 告警决定严重度，快照补充当前指标。 |
+| AI 观察/告警 | 最新 `anomaly_scores` 和 ACTIVE AI 相关告警 | 分数未开单是 `OBSERVE`，已开单是 `ALERT`。 |
+| 围栏状态 | ACTIVE 围栏告警加后端包含性判断 | 前端多边形包含性 fallback 删除。 |
+| 围栏几何 | `fences.vertices` | geometry 变化使用独立 revision。 |
+| 设备状态 | 设备 runtime 和 ACTIVE 设备告警 | 前端不推断 offline。 |
+| 告警摘要 | `alerts` 和 `alert_read_status` | 未读数按当前用户计算。 |
 
-## 4. Phase 1a — Backend Foundation
+## 4. Phase 1a：后端基础
 
-### 4.1 Migrations
+### 4.1 迁移版本
 
-Use these currently unused IDs:
+使用当前尚未占用的版本号：
 
 ```text
 V20260927090000__create_signal_sync_tables.sql
 V20260927091000__create_signal_event_outbox.sql
 ```
 
-The Outbox migration is designed in this document but created only in Phase 2.
+Outbox 的表结构在本计划中定稿，但迁移文件在 Phase 2 才创建。
 
-### 4.2 Revision and location tables
+### 4.2 版本表和位置快照
 
-`farm_signal_revisions` has three counters:
+`farm_signal_revisions` 使用三个计数器：
 
 ```sql
 CREATE TABLE farm_signal_revisions (
@@ -78,7 +78,11 @@ SELECT id FROM farms
 ON CONFLICT (farm_id) DO NOTHING;
 ```
 
-`livestock_location_snapshots` stores only the current non-manual location:
+`statusRevision` 覆盖健康、瘤胃指标、AI、围栏状态、设备、告警和牲畜资料变化。
+`positionRevision` 单独覆盖最新位置变化。
+`fenceGeometryRevision` 单独覆盖围栏几何变化，避免 geometry 大 payload 与普通状态同步耦合。
+
+`livestock_location_snapshots` 只保存当前有效位置：
 
 ```sql
 CREATE TABLE livestock_location_snapshots (
@@ -106,13 +110,19 @@ CREATE INDEX idx_location_snapshot_farm_livestock
     ON livestock_location_snapshots (farm_id, livestock_id);
 ```
 
-Position rows are valid only when latitude is between `-90..90`, longitude is between `-180..180`, and the fix is not `(0,0)`.
+位置写入必须满足：
 
-### 4.3 GPS backfill
+- `latitude` 在 `-90..90`。
+- `longitude` 在 `-180..180`。
+- 不接受 `(0,0)`。
+- 不接受比当前快照更旧的 `recordedAt`。
+- 坐标和时间都未变化时不递增 `positionRevision`。
 
-Backfill through the current active installation only. A historical GPS row is assigned to the animal currently installed on that device only if the fix occurred after that installation began. This avoids assigning an old position from a previous animal.
+### 4.3 GPS 存量回填
 
-Use this semantic SQL:
+`gps_logs` 没有 `livestock_id/farm_id`，必须通过当前 active installation 解析归属。为避免把设备历史安装期间的旧定位分配给当前牲畜，只回填当前安装开始之后的有效定位。
+
+语义 SQL：
 
 ```sql
 WITH active_installations AS (
@@ -155,11 +165,11 @@ SELECT
 FROM latest_valid_positions;
 ```
 
-The migration must pass on a clean database and on a database containing the current dev/test shape.
+迁移必须在全新库和当前 dev/test 形状的存量库上都通过。
 
-### 4.4 Health metric columns
+### 4.4 瘤胃指标列
 
-Extend `health_snapshots`:
+扩展 `health_snapshots`：
 
 ```sql
 ALTER TABLE health_snapshots
@@ -169,11 +179,11 @@ ALTER TABLE health_snapshots
     ADD COLUMN IF NOT EXISTS current_motility_source VARCHAR(32);
 ```
 
-Backfill each metric from the latest matching telemetry row. If the raw source cannot be mapped to one of the five source values, store `NULL`; do not invent `DEVICE` or `UNKNOWN` database values.
+从最新 `temperature_logs` 和 `rumen_motility_logs` 回填 recorded-at/source。若原始 source 无法映射到五个合法枚举，则保存 `NULL`；API 对外也返回 `null`。不得引入 `DEVICE` 或 `UNKNOWN` 作为存储值。
 
-### 4.5 Signal module
+### 4.5 后端模块
 
-Create a ranch-side signal module:
+新增 ranch 侧 signal 模块：
 
 ```text
 ranch/interfaces/SignalController.java
@@ -186,19 +196,19 @@ ranch/infrastructure/signal/SignalRevisionJpaRepository.java
 ranch/infrastructure/signal/SignalLocationSnapshotJpaRepository.java
 ```
 
-Cross-context reads are adapted through narrow ports rather than importing another context’s repository directly.
+跨上下文读取必须通过窄端口适配器，不得直接反向依赖其他上下文内部 repository。
 
-### 4.6 Signal APIs
+### 4.6 API 契约
 
-#### Livestock list signal
+#### 4.6.1 牲畜列表信号
 
 ```http
 GET /api/v1/farms/{farmId}/signals/livestock?livestockIds=1,2,3&cursor=128
 ```
 
-`cursor` is `statusRevision`.
+`cursor` 是 `statusRevision`。
 
-Response:
+响应示例：
 
 ```json
 {
@@ -257,15 +267,19 @@ Response:
 }
 ```
 
-#### Map signal
+#### 4.6.2 牧场地图信号
 
 ```http
 GET /api/v1/farms/{farmId}/signals/map?cursor=128:96:7&includeGeometry=false
 ```
 
-`cursor` is `statusRevision:positionRevision:fenceGeometryRevision`.
+`cursor` 是：
 
-The response contains:
+```text
+statusRevision:positionRevision:fenceGeometryRevision
+```
+
+响应必须包含：
 
 ```json
 {
@@ -284,47 +298,47 @@ The response contains:
 }
 ```
 
-Rules:
+规则：
 
-* `includeGeometry=true` returns complete active fence geometry.
-* `fenceGeometryChanged=true` tells the client to immediately fetch a full map snapshot.
-* `positionUpdates` contains only rows whose `position_revision` is greater than the cursor’s position revision.
-* `livestockSignals` contains current status for requested active livestock when status changed.
-* No field is returned for soft-deleted livestock.
+- `includeGeometry=true` 返回完整 active fence geometry。
+- `fenceGeometryChanged=true` 时，前端立即重新拉取完整地图快照。
+- `positionUpdates` 只包含 `position_revision` 大于 cursor 中位置版本的牲畜。
+- `statusChanged=true` 时返回当前请求范围内 active livestock 的状态和瘤胃指标。
+- 软删除牲畜不出现在响应中。
 
-### 4.7 API limits and errors
+### 4.7 请求限制与错误
 
-| Input | Behavior |
+| 输入 | 行为 |
 |---|---|
-| Missing token | `401` |
-| Farm not owned by tenant/user | `403` |
-| Missing/empty `livestockIds` | `400 VALIDATION_ERROR` |
-| More than 200 livestock IDs | `400 VALIDATION_ERROR` |
-| Duplicate livestock IDs | Deduplicate before validation and query |
-| Deleted livestock ID | Ignore; do not return an item and do not fail |
-| Malformed cursor | `400 VALIDATION_ERROR` |
-| Cursor component greater than current | `409 SIGNAL_CURSOR_INVALID` |
-| Cursor older than replay window | `410 SIGNAL_CURSOR_TOO_OLD` with `resyncRequired=true` |
-| Map farm has more than 1,000 active livestock | `400 SIGNAL_MAP_TOO_LARGE` in v1 |
+| 未认证 | `401` |
+| farm 不属于当前 tenant/user | `403` |
+| `livestockIds` 缺失或为空 | `400 VALIDATION_ERROR` |
+| `livestockIds` 超过 200 个 | `400 VALIDATION_ERROR` |
+| 重复 livestock ID | 校验前去重 |
+| 已删除牲畜 ID | 忽略，不报错，也不返回该项 |
+| cursor 格式错误 | `400 VALIDATION_ERROR` |
+| cursor 任一段大于当前值 | `409 SIGNAL_CURSOR_INVALID` |
+| cursor 落后超过 replay window | `410 SIGNAL_CURSOR_TOO_OLD`，并返回 `resyncRequired=true` |
+| map 牧场 active livestock 超过 1000 | v1 返回 `400 SIGNAL_MAP_TOO_LARGE`，不做隐式降级 |
 
-Replay window:
+replay window：
 
 ```text
 SIGNAL_CURSOR_REPLAY_LIMIT=1000 revisions
 SIGNAL_CURSOR_MAX_AGE=24h
 ```
 
-### 4.8 Status revision write paths
+### 4.8 statusRevision 写路径清单
 
-Introduce one transactional entry point:
+后端先提供同一个事务内入口：
 
 ```java
-SignalRevisionService.bumpStatus(farmId, SignalChangeSource source)
-SignalRevisionService.bumpPosition(farmId, SignalChangeSource source)
-SignalRevisionService.bumpFenceGeometry(farmId, SignalChangeSource source)
+SignalRevisionService.bumpStatus(farmId, SignalChangeSource source);
+SignalRevisionService.bumpPosition(farmId, SignalChangeSource source);
+SignalRevisionService.bumpFenceGeometry(farmId, SignalChangeSource source);
 ```
 
-Each method performs an atomic update:
+计数器必须使用原子 SQL，例如：
 
 ```sql
 INSERT INTO farm_signal_revisions (farm_id, status_revision)
@@ -335,35 +349,35 @@ SET status_revision = farm_signal_revisions.status_revision + 1,
 RETURNING status_revision;
 ```
 
-The same pattern applies to position and geometry counters. There is no read-then-write.
+position 和 geometry 使用相同模式。禁止先查后写。
 
-Every path below must call the revision service inside its existing write transaction. Phase 2 replaces the direct call with a change recorder that writes revision and Outbox atomically.
+以下路径都必须在既有业务事务内调用 revision 服务。Phase 2 将调用点升级为“revision + Outbox”的同一个 change recorder。
 
-| Change source | Entry point / transaction | Revision |
+| 变化源 | 事务入口 | revision |
 |---|---|---|
-| Alert create/read/dismiss/auto-resolve | `AlertApplicationService.createAlert`, `markRead`, `batchRead`, `dismiss`, `autoResolve`, `autoResolveByLivestockAndType`, legacy delegates | status |
-| Device telemetry alert | `TelemetryIngestionService.detectDeviceAlerts` | status |
-| Device offline alert | `DeviceOfflineAlertScheduler` create/resolve path | status |
-| Fence alert / location | `GpsLogEventConsumer.onMessage` | status + position when the fix is accepted |
-| Fence CRUD/geometry | `FenceApplicationService.createFence`, `updateFence`, `forceUpdateFence`, `deleteFence` | status; geometry only when vertices/active state change |
-| Health telemetry snapshot | `HealthApplicationService.processTelemetry` / `refreshSnapshot` | status when current temp, motility, metric timestamp, metric source, or status changes |
-| Health alert bridge | `HealthAlertBridgeService.syncAlertsWithSnapshot` | status |
-| AI assessment | `HealthAnomalyService.assess` (`REQUIRES_NEW`) | status |
-| Stale health reconcile | `StaleHealthAlertReconciler.reconcileFarm` | status |
-| Epidemic marking | `HealthApplicationService.markDiseased`, `unmarkDiseased` | status |
-| Livestock CRUD | `LivestockApplicationService.createLivestock`, `updateLivestock`, `deleteLivestock` | status |
-| Legacy direct position update | `LivestockApplicationService.updatePosition` | status + position |
-| Installation | `InstallationApplicationService.install`, `remove`, `removeById` | status; clear/reproject affected location snapshot |
-| Device runtime/status | `TelemetryIngestionService.ingest`, `DeviceApplicationService.activateDevice`, `updateDevice`, `decommissionDevice`, `deleteDevice`, DeviceHub sync paths | status |
-| Farm creation | `FarmApplicationService.createFarm` | initialize all counters at zero |
+| 告警创建、已读、忽略、自动解除 | `AlertApplicationService.createAlert`、`markRead`、`batchRead`、`dismiss`、`autoResolve`、`autoResolveByLivestockAndType` 及 legacy 委托方法 | status |
+| 设备遥测告警 | `TelemetryIngestionService.detectDeviceAlerts` | status |
+| 设备离线告警 | `DeviceOfflineAlertScheduler` 创建/解除路径 | status |
+| 围栏告警/位置 | `GpsLogEventConsumer.onMessage` | 接受新定位时 status + position |
+| 围栏 CRUD/geometry | `FenceApplicationService.createFence`、`updateFence`、`forceUpdateFence`、`deleteFence` | status；vertices 或 active 状态变化时再 bump geometry |
+| 健康遥测快照 | `HealthApplicationService.processTelemetry` / `refreshSnapshot` | 温度、蠕动、指标时间、source 或状态变化时 status |
+| 健康告警桥接 | `HealthAlertBridgeService.syncAlertsWithSnapshot` | status |
+| AI 评估 | `HealthAnomalyService.assess`（`REQUIRES_NEW`） | status |
+| 过期健康 reconcile | `StaleHealthAlertReconciler.reconcileFarm` | status |
+| 疫情标记 | `HealthApplicationService.markDiseased`、`unmarkDiseased` | status |
+| 牲畜 CRUD | `LivestockApplicationService.createLivestock`、`updateLivestock`、`deleteLivestock` | status |
+| legacy 直接位置更新 | `LivestockApplicationService.updatePosition` | status + position |
+| 安装/解绑 | `InstallationApplicationService.install`、`remove`、`removeById` | status；同时重算或清理受影响位置快照 |
+| 设备 runtime/status | `TelemetryIngestionService.ingest`、`DeviceApplicationService.activateDevice`、`updateDevice`、`decommissionDevice`、`deleteDevice`、DeviceHub 同步路径 | status |
+| 牧场创建 | `FarmApplicationService.createFarm` | 初始化三个 revision 为 0 |
 
-Each row requires at least one integration test asserting that the relevant revision increases and a second assertion that an unchanged/idempotent operation does not produce a new API payload.
+每一行至少要有一个集成测试断言 revision 递增；同时要验证幂等操作或无变化操作不产生新的 `changed=true` payload。
 
-### 4.9 GPS projection transaction boundary
+### 4.9 GPS 快照事务边界
 
-`GpsLogApplicationService.logGps()` remains the only writer for `gps_logs`.
+`GpsLogApplicationService.logGps()` 继续是 `gps_logs` 唯一写入口。
 
-The Signal projection is not in that database transaction. It is projected in `GpsLogEventConsumer.onMessage()` after resolving active installation and livestock:
+Signal 位置投影不在 `gps_logs` 写事务内，而是在 RocketMQ consumer 事务中完成：
 
 ```text
 TelemetryIngestionService.ingest()
@@ -375,49 +389,49 @@ GpsIngestionTaskScheduler / Processor
   -> RocketMQ gps-log-updated
 
 GpsLogEventConsumer.onMessage()
-  -> resolve active installation and livestock
-  -> project livestock_location_snapshots
+  -> 解析 active installation 和 livestock
+  -> 写 livestock_location_snapshots
   -> bump positionRevision
-  -> update livestock.last_* legacy projection
-  -> fence detection / alerts
+  -> 更新 livestock.last_* 旧投影
+  -> 围栏判定/告警
 ```
 
-Order inside the consumer is mandatory:
+consumer 内部顺序固定：
 
-1. Reject `MANUAL_IMPORT` for live current-position projection.
-2. Resolve active installation and live livestock.
-3. Validate coordinates and `recordedAt`.
-4. Ignore fixes older than the current snapshot.
-5. Project the new snapshot and bump `positionRevision`.
-6. Continue fence detection, including the no-fence path.
+1. `MANUAL_IMPORT` 不参与 live 当前位置投影，直接返回。
+2. 解析 active installation 和 live livestock。
+3. 校验坐标和 `recordedAt`。
+4. 忽略比当前快照旧的 fix。
+5. 写新位置快照并 bump `positionRevision`。
+6. 继续围栏判定；牧场没有围栏时也必须已经完成位置投影。
 
-Normal-latency target from `gps_logs` commit to Signal API visibility is under 1 second. This is eventual consistency, not the same database transaction. Phase 2’s Outbox makes the notification durable inside the projection transaction.
+正常链路目标：`gps_logs` commit 到 Signal API 可见的额外延迟小于 1 秒。这是最终一致，不是同一个数据库事务。Phase 2 使用 Outbox 把投影事务内的变更通知持久化。
 
-### 4.10 Freshness
+### 4.10 freshness
 
-Location:
+位置：
 
-| Value | Rule |
+| 值 | 规则 |
 |---|---|
 | `FRESH` | `ageSeconds <= 120` |
 | `DELAYED` | `120 < ageSeconds <= 600` |
 | `STALE` | `ageSeconds > 600` |
-| `MISSING` | No snapshot |
+| `MISSING` | 无快照 |
 
-Rumen metrics:
+瘤胃指标：
 
-| Value | Rule |
+| 值 | 规则 |
 |---|---|
 | `FRESH` | `ageSeconds <= 1800` |
 | `DELAYED` | `1800 < ageSeconds <= 3600` |
 | `STALE` | `ageSeconds > 3600` |
-| `MISSING` | No valid snapshot/value |
+| `MISSING` | 无有效快照或值 |
 
-`ageSeconds` is calculated with `Duration.between(recordedAt, Instant.now())`. Do not call `toUtc()` or reinterpret third-party local timestamps.
+`ageSeconds` 一律使用 `Duration.between(recordedAt, Instant.now())` 计算。不要调用 `toUtc()`，也不要重解释第三方时间。
 
-Metric status mapping:
+指标状态映射：
 
-| Raw snapshot | API status |
+| 快照状态 | API status |
 |---|---|
 | Temperature `NORMAL` | `NORMAL` |
 | Temperature `ELEVATED` | `WATCH` |
@@ -427,9 +441,9 @@ Metric status mapping:
 | Motility `LOW` | `WATCH` |
 | Motility `ABNORMAL` | `CRITICAL` |
 
-## 5. Phase 1a Tests
+## 5. Phase 1a 测试
 
-### Backend test gates
+后端命令：
 
 ```bash
 ./gradlew compileJava
@@ -440,29 +454,29 @@ Metric status mapping:
   --tests 'com.smartlivestock.integration.GpsAlertFlowTest'
 ```
 
-Required scenarios:
+必须覆盖：
 
-1. Clean-database Flyway run succeeds.
-2. Existing-database migration and backfill succeed.
-3. Signal API returns 401/403/400/409/410 for the error matrix.
-4. GPS backfill ignores manual import, invalid coordinates, `(0,0)`, and fixes predating current installation.
-5. GPS projection updates no-fence farms.
-6. GPS projection rejects stale fixes and preserves the newer snapshot.
-7. Position freshness is calculated server-side.
-8. Rumen temperature and motility are returned with value, unit, status, timestamp, source, and freshness.
-9. Rumen metric changes bump statusRevision; unchanged metrics do not produce a changed payload.
-10. AI score below alert threshold yields `OBSERVE`; active AI alert yields `ALERT`.
-11. Device offline and low battery yield `FAULT/OFFLINE`.
-12. Fence containment and ACTIVE fence alerts produce the same status priority server-side.
-13. Unread counts are isolated by user.
-14. Cursor replay, invalid cursor, and ahead-cursor behavior match the error matrix.
-15. Every revision write path has a revision assertion.
+1. 全新库 Flyway 成功。
+2. 当前 dev/test 形状的存量库迁移和回填成功。
+3. Signal API 覆盖 401/403/400/409/410 错误矩阵。
+4. GPS 回填忽略 `MANUAL_IMPORT`、非法坐标、`(0,0)` 和当前安装之前的 fix。
+5. GPS 投影在无围栏牧场仍然更新位置。
+6. 旧 fix 不会覆盖较新位置快照。
+7. 位置 freshness 由后端计算。
+8. 瘤胃温度和蠕动返回 value、unit、status、timestamp、source、freshness。
+9. 瘤胃指标变化 bump statusRevision；无变化不产生 `changed=true`。
+10. AI 分数低于告警阈值返回 `OBSERVE`；ACTIVE AI 告警返回 `ALERT`。
+11. 设备离线和低电量返回 `FAULT/OFFLINE`。
+12. 后端围栏包含性判断与 ACTIVE 围栏告警优先级稳定。
+13. unread count 按当前用户隔离。
+14. cursor replay、非法 cursor、超前 cursor 符合错误矩阵。
+15. 每条 revision 写路径都有递增断言。
 
-## 6. Phase 1b — Frontend Foundation
+## 6. Phase 1b：前端基础
 
 ### 6.1 Signal Sync Center
 
-Create:
+新增：
 
 ```text
 lib/core/sync/signal_models.dart
@@ -473,20 +487,20 @@ lib/core/sync/signal_sync_controller.dart
 lib/core/sync/signal_poller.dart
 ```
 
-`SignalSyncController` extends `FarmScopedNotifier` and calls `watchActiveFarmId()` before reading state. It must be reset on login, logout, and active farm change.
+`SignalSyncController` 继承 `FarmScopedNotifier`，读取状态前先调用 `watchActiveFarmId()`。登录、登出、active farm 变化时必须 reset。
 
-Polling policy:
+轮询策略：
 
 ```text
-livestock page: GET /signals/livestock every 3 seconds
-ranch map:      GET /signals/map every 3 seconds
-failure:        retain old state, set stale=true
-background:     pause polling
-foreground:     refresh immediately
-no subscriber:  stop polling
+牲畜管理：每 3 秒 GET /signals/livestock
+牧场地图：每 3 秒 GET /signals/map
+失败：保留旧 state，标记 stale=true
+后台：暂停轮询
+回前台：立即刷新
+无订阅者：停止轮询
 ```
 
-Selectors:
+Selectors：
 
 ```dart
 livestockSignalsProvider(Set<String> livestockIds)
@@ -497,26 +511,26 @@ ranchMapGeometryProvider
 signalTransportStatusProvider
 ```
 
-### 6.2 Livestock Management UI
+### 6.2 牲畜管理 UI
 
-Each card shows independently typed signals:
+每张牲畜卡展示独立信号，优先级：
 
-1. CRITICAL health alert.
-2. Fence breach.
-3. Device fault/offline.
-4. WARNING health alert.
-5. AI observe.
-6. Normal.
+1. CRITICAL 健康告警。
+2. Fence breach。
+3. Device fault/offline。
+4. WARNING 健康告警。
+5. AI observe。
+6. 正常。
 
-Rumen temperature and motility are compact metric chips. They must not displace the primary severity signals. Missing metrics show “暂无数据 / No data”; delayed and stale metrics use explicit styles.
+瘤胃温度和蠕动次数使用紧凑 metric chip，不能挤压主要严重度信号。缺失指标显示“暂无数据”；delayed 和 stale 必须有明确样式。
 
-Shared component:
+共享组件：
 
 ```text
 lib/features/livestock/presentation/widgets/livestock_signal_summary.dart
 ```
 
-Stable keys:
+稳定测试 Key：
 
 ```text
 livestock-signal-{id}-health
@@ -527,31 +541,31 @@ livestock-signal-{id}-rumen-temp
 livestock-signal-{id}-rumen-motility
 ```
 
-### 6.3 Ranch Map UI
+### 6.3 牧场地图 UI
 
-Marker positions come only from `ranchMapPositionsProvider`.
-Marker colors and inspector data come only from `ranchMapSignalsProvider`.
-Fence geometry comes from the Signal map endpoint.
+- marker position 只来自 `ranchMapPositionsProvider`。
+- marker color 和点击面板状态只来自 `ranchMapSignalsProvider`。
+- fence geometry 来自 Signal map endpoint。
 
-Remove:
+Phase 1b 删除：
 
-* Ranch page’s 30-second Timer.
-* Frontend fence-containment status fallback.
-* `MapApiRepository.loadOverview()` usage.
+- Ranch page 的 30 秒 Timer。
+- 前端围栏包含性状态 fallback。
+- `MapApiRepository.loadOverview()` 使用路径。
 
-During Phase 1b, `/ranch-overview` may continue to feed sheet lists, but it must no longer determine map marker position or fence status.
+Phase 1b 过渡期，`/ranch-overview` 可以继续给底部面板列表供数，但不得再决定地图 marker position 或 fence status。
 
-No-position and stale-position states:
+位置状态：
 
-| State | UI |
+| 状态 | UI |
 |---|---|
-| Missing | “无定位 / No position”; no marker coordinate |
-| Delayed | marker remains visible with subdued delay treatment |
-| Stale | reduced opacity and explicit stale treatment |
+| Missing | “无定位 / No position”，不渲染坐标 |
+| Delayed | marker 继续显示，但使用弱化 delay 提示 |
+| Stale | 降低透明度，并明确显示 stale |
 
 ### 6.4 i18n
 
-Add synchronized keys to `app_zh.arb` and `app_en.arb`:
+`app_zh.arb` 和 `app_en.arb` 同步新增：
 
 ```text
 livestockSignalHealthNormal
@@ -574,9 +588,9 @@ mapSignalDelayedPosition
 mapSignalStalePosition
 ```
 
-No UI string may be hardcoded.
+禁止硬编码中英文文案。
 
-### 6.5 Frontend tests
+### 6.5 前端测试
 
 ```bash
 flutter gen-l10n
@@ -584,38 +598,38 @@ flutter analyze
 flutter test test/core/sync test/features/livestock test/features/ranch
 ```
 
-Required widget/controller scenarios:
+必须覆盖：
 
-1. Model parsing rejects malformed cursor and preserves nullable metrics.
-2. Repository sends correct cursor and request parameters.
-3. Polling failure retains old store state and marks stale.
-4. Farm switch clears store and rebuilds scope.
-5. Logout stops polling and clears data.
-6. Position-only updates move a marker without full-list churn.
-7. Rumen metric-only updates refresh cards and inspector.
-8. Signal badge priority and `+N` behavior are stable.
-9. Map marker colors match Signal Store, not RanchOverview.
-10. Old Timer/fallback code is absent.
-11. Desktop and mobile layouts have no text overflow or marker overlap.
+1. model 解析错误 cursor，并保留 nullable metrics。
+2. repository 发送正确 cursor 和参数。
+3. 轮询失败保留旧 state 并标记 stale。
+4. 切换牧场清空 store 并重建 scope。
+5. 登出停止轮询并清空数据。
+6. position-only update 移动 marker，不造成整页列表 churn。
+7. 瘤胃 metric-only update 刷新卡片和 inspector。
+8. Signal badge 优先级和 `+N` 稳定。
+9. marker color 只受 Signal Store 影响。
+10. 旧 Timer 和旧 fallback 代码消失。
+11. 桌面和移动宽度无文本溢出、无 marker 遮挡。
 
-## 7. Measured Latency Contract
+## 7. 延迟口径
 
-Phase 1 uses a 3-second poll, not 5 seconds, to leave backend/render budget.
+Phase 1 使用 3 秒轮询，而不是 5 秒，给后端和渲染留预算。
 
-| Segment | Target |
+| 段 | 目标 |
 |---|---|
-| Business state committed -> Signal API readable | P95 ≤ 1s |
-| Signal API readable -> frontend store committed | P95 ≤ 2s on 3s polling |
-| Store committed -> visible widget update | P95 ≤ 500ms |
-| End-to-end local/dev update | P95 ≤ 5s; P99 ≤ 7s |
+| 业务状态 commit -> Signal API 可读 | P95 ≤ 1s |
+| Signal API 可读 -> frontend store commit | 3 秒轮询下 P95 ≤ 2s |
+| store commit -> widget 可见更新 | P95 ≤ 500ms |
+| 本地/dev 端到端 | P95 ≤ 5s；P99 ≤ 7s |
 
-“最多 5 秒” is not advertised as an unconditional network-independent maximum in Phase 1. Phase 3 SSE is required for the product’s hard real-time target.
+Phase 1 不对外宣传“无条件最多 5 秒”。产品上的硬性 5 秒目标由 Phase 3 SSE 承接。
 
-Automated latency validation: persist a known change through API/test fixture, then poll the rendered test widget key until it changes. Run 20 samples and assert P95 ≤ 5s. Network failures are excluded but reported.
+自动化验证：通过 API/fixture 写入已知变化，然后轮询测试 widget key，直到可见状态变化。采集 20 个样本，断言 P95 ≤ 5s。网络失败样本剔除但必须报告。
 
-## 8. Phase 2 — Transactional Outbox
+## 8. Phase 2：事务 Outbox
 
-Create `V20260927091000__create_signal_event_outbox.sql`:
+创建 `V20260927091000__create_signal_event_outbox.sql`：
 
 ```sql
 CREATE TABLE signal_event_outbox (
@@ -641,7 +655,7 @@ CREATE INDEX idx_signal_event_outbox_farm
     ON signal_event_outbox (farm_id, id DESC);
 ```
 
-Event types:
+事件类型：
 
 ```text
 LIVESTOCK_POSITION_CHANGED
@@ -656,58 +670,58 @@ INSTALLATION_CHANGED
 LIVESTOCK_CHANGED
 ```
 
-The Outbox payload identifies the changed entity only; it does not become authoritative page state.
+Outbox payload 只标识“哪个牧场、哪个实体变化了”，不能作为页面权威状态重建数据。
 
-The dispatcher uses `FOR UPDATE SKIP LOCKED`, exponential retry, and a `FAILED` terminal state. Position and rumen updates may be coalesced per livestock, but the authoritative snapshot is never reconstructed from Outbox payloads.
+dispatcher 必须使用 `FOR UPDATE SKIP LOCKED`、指数退避和 `FAILED` 终态。位置和瘤胃更新可以按牲畜合并，但权威状态必须从 Signal API 读取。
 
-Phase 2 gates:
+Phase 2 完成条件：
 
-1. Revision and Outbox write atomically.
-2. Dispatcher retry/terminal behavior is tested.
-3. Concurrent dispatch does not duplicate events.
-4. Every Phase 1a revision path emits the correct event.
-5. GPS projection remains eventual consistency after `gps_logs`, but revision and Outbox are atomic within the consumer transaction.
+1. revision 和 Outbox 同事务写入。
+2. dispatcher 的重试、退避、终态有测试。
+3. 并发 dispatch 不重复消费。
+4. Phase 1a 的每条 revision 路径都发出正确事件。
+5. GPS 投影与 `gps_logs` 仍是最终一致；但 consumer 事务内的 revision 和 Outbox 保持原子。
 
-## 9. Phase 3 — SSE Spike and Transport
+## 9. Phase 3：SSE spike 与传输层
 
-### 9.1 Spike before implementation
+### 9.1 先做 Flutter Web spike
 
-Create a disposable Flutter Web spike using `package:web` browser `EventSource`; do not use `dart:html`.
+用 `package:web` 的浏览器 `EventSource` 做 spike，不使用 `dart:html`。
 
-The spike must prove:
+spike 必须证明：
 
-1. One-time ticket in the URL connects successfully.
-2. Signal events and heartbeat comments are received.
-3. Browser reconnect supplies `Last-Event-ID`.
-4. Expired ticket returns a recoverable client state.
-5. Chrome, Safari, Flutter Web debug, and Flutter Web release all work.
-6. No WASM-incompatible API is introduced.
+1. one-time ticket 能建立连接。
+2. signal event 和 heartbeat comment 都能接收。
+3. 浏览器重连携带 `Last-Event-ID`。
+4. 过期 ticket 能转成可恢复的客户端状态。
+5. Chrome、Safari、Flutter Web debug 和 release 都可用。
+6. 不引入 WASM 不兼容 API。
 
-If the spike fails, Phase 3 remains in secure 2-second polling until a new transport design is approved.
+如果 spike 失败，Phase 3 保留安全的 2 秒 polling，直到新的传输方案获得批准。
 
-### 9.2 Backend stream
+### 9.2 后端 stream
 
 ```http
 POST /api/v1/farms/{farmId}/signals/stream-ticket
 GET /api/v1/farms/{farmId}/signals/stream?ticket=...&cursor=...
 ```
 
-Ticket rules:
+ticket：
 
-* One-time use.
-* 30-second lifetime.
-* Bound to user, tenant, and farm.
-* Cleanup on expiry/use.
+- one-time。
+- 30 秒有效。
+- 绑定 user、tenant、farm。
+- 使用或过期后清理。
 
-Stream rules:
+stream：
 
-* `text/event-stream`.
-* 20-second heartbeat.
-* `Last-Event-ID` replay or explicit `reconnect`.
-* Per-user and per-farm connection caps.
-* Logout/farm switch closes old streams.
+- `text/event-stream`。
+- 每 20 秒 heartbeat。
+- 支持 `Last-Event-ID` replay，或明确返回 `reconnect`。
+- 对 user/farm 设置连接上限。
+- 登出或切换牧场关闭旧 stream。
 
-Event:
+event 示例：
 
 ```text
 id: 128:96:7
@@ -715,52 +729,51 @@ event: signal-changed
 data: {"farmId":1,"livestockIds":[14,15],"fenceIds":[3],"statusRevision":128,"positionRevision":96,"fenceGeometryRevision":7}
 ```
 
-Coalescing:
+合并策略：
 
 ```text
-minimum merge window: 1s
-maximum notification delay: 5s
+最小合并窗口：1 秒
+最大通知延迟：5 秒
 ```
 
-### 9.3 Frontend transport
+### 9.3 前端传输
 
 ```text
-default: SSE
-SSE failure: 3-second delta polling
-extended failure: retain old data and show stale
-farm switch/logout: close stream and reset scope
-foreground: reconcile once, then restore preferred transport
+默认：SSE
+SSE 失败：3 秒 delta polling
+持续失败：保留旧数据并显示 stale
+切牧场/登出：关闭 stream 并 reset scope
+回前台：先对账一次，再恢复 SSE 或 polling
 ```
 
-Phase 3 gates:
+Phase 3 完成条件：
 
-1. SSE updates map position within the measured 5-second product target.
-2. SSE updates rumen metrics in both pages.
-3. Polling fallback activates without losing old state.
-4. SSE recovery stops polling.
-5. Multi-tab updates work.
-6. High-frequency GPS does not create a request storm.
+1. SSE 能满足位置和瘤胃指标的 5 秒产品目标。
+2. SSE 失败自动切换 polling。
+3. SSE 恢复后停止 polling。
+4. 多标签页同步。
+5. 高频 GPS 不会造成请求风暴。
 
-## 10. Rollout
+## 10. 发布流程
 
-1. Merge Phase 1a after clean-database and integration tests pass.
-2. Deploy backend to dev.
-3. Smoke Signal APIs with seed accounts.
-4. Merge Phase 1b after analyze/tests/browser checks pass.
-5. Build and deploy Flutter Web to dev.
-6. Verify Livestock Management and Ranch Map against dev data.
-7. Complete integration testing before preparing a PR.
-8. Phase 2 and Phase 3 require separate user approval and separate worktrees.
+1. Phase 1a 通过全新库迁移和集成测试后合并。
+2. 部署后端到 dev。
+3. 使用种子账号 smoke Signal API。
+4. Phase 1b 通过 analyze、测试和浏览器检查后合并。
+5. 构建并部署 Flutter Web 到 dev。
+6. 在 dev 数据上验证牲畜管理和牧场地图。
+7. 完成集成测试后准备 PR 收口。
+8. Phase 2 和 Phase 3 必须分别获得用户批准，并使用独立 worktree。
 
-## 11. Non-Goals
+## 11. 非目标
 
-* No Spring Cloud introduction.
-* No browser WebHook.
-* No new alert persistence schema in Phase 1.
-* No real-time chart streaming in Phase 1; detail pages continue using their existing APIs.
-* No dropping `livestock.last_*` in Phase 1.
-* No farms larger than 1,000 active livestock on the v1 map endpoint; they receive an explicit unsupported error until viewport batching is designed.
+* 不引入 Spring Cloud。
+* 不使用浏览器 WebHook。
+* Phase 1 不新增告警持久化 schema。
+* Phase 1 不做实时曲线流；详情页继续使用现有 API。
+* Phase 1 不删除 `livestock.last_*`。
+* v1 map endpoint 不支持超过 1000 头 active livestock 的牧场；超出时显式报错，待视口分批方案另行设计。
 
-## 12. Approval Boundary
+## 12. 批准边界
 
-This document is a planning deliverable only. Implementation, worktree creation for 1a, migrations, APIs, frontend changes, deployment, and commits require explicit user approval of Plan v2.
+本文档只是规划交付物。实施 1a、创建实施 worktree、迁移、API、前端、部署和提交，都必须在用户明确批准 Plan v2 后进行。
