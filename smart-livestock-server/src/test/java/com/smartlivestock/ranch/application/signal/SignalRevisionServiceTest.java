@@ -76,4 +76,14 @@ class SignalRevisionServiceTest {
         assertThatThrownBy(() -> service.validateListCursor(revision, 8L))
                 .isInstanceOf(SignalCursorTooOldException.class);
     }
+
+    @Test
+    void allZeroMapCursorIsAlwaysInitialFullSync() {
+        SignalRevisionService.FarmSignalRevision revision = new SignalRevisionService.FarmSignalRevision(
+                1L, 5_000L, 6_000L, 7_000L, Instant.now()
+        );
+
+        assertThat(service.validateMapCursor(revision, "0:0:0"))
+                .isEqualTo(new SignalRevisionService.MapCursor(0, 0, 0));
+    }
 }

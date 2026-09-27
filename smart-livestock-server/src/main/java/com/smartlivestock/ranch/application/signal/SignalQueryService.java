@@ -422,13 +422,12 @@ public class SignalQueryService {
 
     private HealthMetricSignal metricSignal(
             BigDecimal rawValue, String unit, String status, Instant recordedAt, String source) {
-        if (rawValue == null) {
+        // A value without a backend-verified time cannot safely be shown as current.
+        if (rawValue == null || recordedAt == null) {
             return new HealthMetricSignal(null, unit, "MISSING", null, null, "MISSING", null);
         }
-        long age = recordedAt == null
-                ? -1
-                : Math.max(0, Duration.between(recordedAt, Instant.now()).getSeconds());
-        String freshness = recordedAt == null ? "MISSING" : metricFreshness(age);
+        long age = Math.max(0, Duration.between(recordedAt, Instant.now()).getSeconds());
+        String freshness = metricFreshness(age);
         return new HealthMetricSignal(
                 rawValue.doubleValue(),
                 unit,

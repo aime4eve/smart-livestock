@@ -67,6 +67,17 @@ public class RanchOverviewApplicationService {
 
         // 1. Livestock with health + GPS
         List<Livestock> livestockList = livestockRepository.findByFarmId(farmId);
+        Set<Long> trackedLivestockIds = ioTQueryPort
+                .findActiveDevicesByLivestockIds(livestockList.stream().map(Livestock::getId).toList())
+                .entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().stream()
+                        .anyMatch(device -> "TRACKER".equals(device.deviceType())))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+        List<Livestock> trackedLivestock = livestockList.stream()
+                .filter(livestock -> trackedLivestockIds.contains(livestock.getId()))
+                .toList();
 
         // 2. Fences
         List<Fence> fences = fenceRepository.findByFarmId(farmId);
@@ -79,7 +90,7 @@ public class RanchOverviewApplicationService {
                         f.getColor(),
                         f.getVertices(),
                         0.0,
-                        fenceLivestockCounter.countInFence(livestockList, f),
+                        fenceLivestockCounter.countInFence(trackedLivestock, f),
                         f.getVersion()
                 ))
                 .toList();
@@ -104,7 +115,7 @@ public class RanchOverviewApplicationService {
                 .map(Alert::getLivestockId)
                 .collect(Collectors.toSet());
 
-        List<LivestockMarker> markers = livestockList.stream()
+        List<LivestockMarker> markers = trackedLivestock.stream()
                 .filter(l -> l.getLastLatitude() != null && l.getLastLongitude() != null)
                 .map(l -> {
                     var health = healthMap.get(l.getId());
@@ -170,7 +181,13 @@ public class RanchOverviewApplicationService {
 
         // 6. Location breakdown: inFenceRate + no-GPS / outside-fence counts.
         // total = inside any active fence + outside + no GPS fix.
-        LocationBreakdown breakdown = calculateLocationBreakdown(livestockList, fences);
+        LocationBreakdown trackerBreakdown = calculateLocationBreakdown(trackedLivestock, fences);
+        int untrackedCount = livestockList.size() - trackedLivestock.size();
+        LocationBreakdown breakdown = new LocationBreakdown(
+                trackerBreakdown.inFenceRate(),
+                trackerBreakdown.noGpsCount() + untrackedCount,
+                trackerBreakdown.outsideFenceCount()
+        );
 
         OverallStats overallStats = new OverallStats(
                 healthOverview.totalLivestock(),

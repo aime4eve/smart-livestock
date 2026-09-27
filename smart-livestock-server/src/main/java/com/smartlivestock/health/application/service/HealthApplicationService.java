@@ -512,8 +512,11 @@ public class HealthApplicationService {
         Set<Long> livestockIds = livestockList.stream()
                 .map(LivestockInfo::id).collect(Collectors.toSet());
         Set<Long> abnormalIds = snapshots.stream()
-                .filter(s -> (s.getTempStatus() == TempStatus.FEVER || s.getTempStatus() == TempStatus.CRITICAL)
-                        || s.getMotilityStatus() == MotilityStatus.ABNORMAL)
+                .filter(s -> (s.getTempStatus() == TempStatus.ELEVATED
+                        || s.getTempStatus() == TempStatus.FEVER
+                        || s.getTempStatus() == TempStatus.CRITICAL)
+                        || (s.getMotilityStatus() == MotilityStatus.LOW
+                        || s.getMotilityStatus() == MotilityStatus.ABNORMAL))
                 .map(HealthSnapshot::getLivestockId)
                 .filter(livestockIds::contains)
                 .collect(Collectors.toSet());
