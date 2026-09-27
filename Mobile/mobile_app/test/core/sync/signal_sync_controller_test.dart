@@ -22,6 +22,7 @@ class _FakeSessionController extends SessionController {
 class _FakeSignalRepository implements SignalRepository {
   int mapCalls = 0;
   int livestockCalls = 0;
+  int statusRevision = 1;
 
   @override
   Future<LivestockSignalResponse> fetchLivestockSignals({
@@ -32,7 +33,7 @@ class _FakeSignalRepository implements SignalRepository {
     livestockCalls++;
     return LivestockSignalResponse(
       farmId: farmId,
-      statusRevision: 1,
+      statusRevision: statusRevision,
       changed: cursor == '0',
       items: const [],
     );
@@ -52,12 +53,12 @@ class _FakeSignalRepository implements SignalRepository {
         code: 'SIGNAL_CURSOR_TOO_OLD',
       );
     }
-    return const MapSignalResponse(
+    return MapSignalResponse(
       farmId: '1',
-      statusRevision: 1,
+      statusRevision: statusRevision,
       positionRevision: 1,
       fenceGeometryRevision: 1,
-      cursor: '1:1:1',
+      cursor: '$statusRevision:1:1',
       changed: true,
       statusChanged: true,
       positionChanged: true,
@@ -154,6 +155,31 @@ void main() {
 
     await tester.pump(const Duration(milliseconds: 150));
     expect(repository.mapCalls, greaterThanOrEqualTo(3));
+  });
+
+  testWidgets('livestock refresh publishes status cursor to listeners', (
+    tester,
+  ) async {
+    final repository = _FakeSignalRepository();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sessionControllerProvider.overrideWith(_FakeSessionController.new),
+          signalRepositoryProvider.overrideWithValue(repository),
+        ],
+        child: _SubscriptionProbe(onSubscribed: (_) {}),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 150));
+
+    repository.statusRevision = 2;
+    await tester.pump(const Duration(seconds: 3));
+
+    expect(
+      containerOf(tester).read(signalSyncControllerProvider).cursor,
+      '2:1:1',
+    );
   });
 }
 

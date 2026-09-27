@@ -19,6 +19,7 @@ class SignalSyncScope extends ConsumerStatefulWidget {
 class _SignalSyncScopeState extends ConsumerState<SignalSyncScope>
     with WidgetsBindingObserver {
   Object? _subscription;
+  SignalSyncController? _controller;
 
   @override
   void initState() {
@@ -56,6 +57,7 @@ class _SignalSyncScopeState extends ConsumerState<SignalSyncScope>
 
   void _subscribe() {
     final controller = ref.read(signalSyncControllerProvider.notifier);
+    _controller = controller;
     _subscription = widget.mode == SignalSyncMode.map
         ? controller.subscribeMap()
         : controller.subscribeLivestock();
@@ -63,8 +65,9 @@ class _SignalSyncScopeState extends ConsumerState<SignalSyncScope>
   }
 
   void _unsubscribe() {
-    if (_subscription == null) return;
-    ref.read(signalSyncControllerProvider.notifier).unsubscribe(_subscription!);
+    final subscription = _subscription;
+    if (subscription == null) return;
+    _controller?.unsubscribe(subscription);
     _subscription = null;
   }
 

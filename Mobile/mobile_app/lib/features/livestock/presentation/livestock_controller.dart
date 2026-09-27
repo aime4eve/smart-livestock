@@ -40,6 +40,13 @@ class LivestockListController extends FarmScopedAsyncNotifier<LivestockListData>
     state = await AsyncValue.guard(_fetch);
   }
 
+  /// Silent refresh for Signal status changes: removes deleted rows without
+  /// flashing the whole list back to a loading state.
+  Future<void> silentRefresh() async {
+    final next = await AsyncValue.guard(_fetch);
+    if (next.hasValue) state = next;
+  }
+
   Future<void> search(String keyword) async {
     _keyword = keyword;
     _page = 1;
