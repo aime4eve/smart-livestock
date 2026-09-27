@@ -13,6 +13,7 @@ import com.smartlivestock.health.domain.repository.AnomalyScoreRepository;
 import com.smartlivestock.health.domain.repository.HealthSnapshotRepository;
 import com.smartlivestock.shared.cache.RedisCacheService;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
+import com.smartlivestock.ranch.application.signal.SignalEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -135,7 +136,12 @@ public class HealthAnomalyService {
             snapshotRepo.save(snap);
             if (!java.util.Objects.equals(previousScore, scoreValue)
                     || !java.util.Objects.equals(previousType, pred.anomalyType())) {
-                signalRevisionService.bumpStatus(farmId);
+                signalRevisionService.bumpStatus(
+                        farmId,
+                        SignalEventType.AI_ASSESSMENT_COMPLETED,
+                        "AI_ASSESSMENT",
+                        livestockId
+                );
             }
         });
 

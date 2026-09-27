@@ -42,7 +42,12 @@ class SignalLocationProjectionServiceTest {
 
     @Test
     void acceptsNewerFixAndProjectsRevision() {
-        when(revisionService.bumpPosition(1L)).thenReturn(96L);
+        when(revisionService.bumpPosition(
+                1L,
+                SignalEventType.LIVESTOCK_POSITION_CHANGED,
+                "LIVESTOCK",
+                14L
+        )).thenReturn(96L);
         when(livestockRepository.findById(14L)).thenReturn(Optional.of(new Livestock()));
 
         boolean accepted = service.projectCurrentFix(
@@ -58,6 +63,12 @@ class SignalLocationProjectionServiceTest {
         verify(snapshotRepository).save(captor.capture());
         assertThat(captor.getValue().getPositionRevision()).isEqualTo(96L);
         assertThat(captor.getValue().getSource()).isEqualTo("AGENTIC_PLATFORM");
+        verify(revisionService).bumpPosition(
+                1L,
+                SignalEventType.LIVESTOCK_POSITION_CHANGED,
+                "LIVESTOCK",
+                14L
+        );
     }
 
     @Test
@@ -74,7 +85,8 @@ class SignalLocationProjectionServiceTest {
 
         assertThat(accepted).isFalse();
         verify(snapshotRepository, never()).save(any());
-        verify(revisionService, never()).bumpPosition(1L);
+        verify(revisionService, never()).bumpPosition(
+                any(Long.class), any(), any(), any(Long.class));
     }
 
     @Test

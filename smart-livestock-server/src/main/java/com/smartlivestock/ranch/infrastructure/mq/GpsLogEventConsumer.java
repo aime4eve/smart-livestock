@@ -10,6 +10,7 @@ import com.smartlivestock.ranch.domain.repository.FenceRepository;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import com.smartlivestock.ranch.domain.service.FenceBreachDetector;
 import com.smartlivestock.ranch.application.signal.SignalLocationProjectionService;
+import com.smartlivestock.ranch.application.signal.SignalEventType;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -170,14 +171,16 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
         for (Alert alert : breachAlerts) {
             alert.autoResolve();
             alertRepository.save(alert);
-            signalRevisionService.bumpStatus(farmId);
+            signalRevisionService.bumpStatus(
+                    farmId, SignalEventType.ALERT_CHANGED, "ALERT", alert.getId());
             log.info("Auto-resolved FENCE_BREACH alert [{}] for livestock [{}] - returned to safe zone",
                     alert.getId(), livestockId);
         }
         for (Alert alert : approachAlerts) {
             alert.autoResolve();
             alertRepository.save(alert);
-            signalRevisionService.bumpStatus(farmId);
+            signalRevisionService.bumpStatus(
+                    farmId, SignalEventType.ALERT_CHANGED, "ALERT", alert.getId());
             log.info("Auto-resolved FENCE_APPROACH alert [{}] for livestock [{}] - returned to safe zone",
                     alert.getId(), livestockId);
         }
@@ -213,7 +216,9 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
                 position.longitude().toPlainString()
         )));
         alertRepository.save(alert);
-        signalRevisionService.bumpStatus(livestock.getFarmId());
+        signalRevisionService.bumpStatus(
+                livestock.getFarmId(), SignalEventType.ALERT_CHANGED,
+                "ALERT", alert.getId());
         log.info("Created {} alert for livestock [{}] fence [{}]", type, livestock.getId(), fence.getId());
     }
 
@@ -229,7 +234,9 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
             if (fences.stream().anyMatch(f -> f.getId().equals(alert.getFenceId()))) {
                 alert.autoResolve();
                 alertRepository.save(alert);
-                signalRevisionService.bumpStatus(alert.getFarmId());
+                signalRevisionService.bumpStatus(
+                        alert.getFarmId(), SignalEventType.ALERT_CHANGED,
+                        "ALERT", alert.getId());
                 log.info("Auto-resolved FENCE_APPROACH [{}] - escalated to FENCE_BREACH", alert.getId());
             }
         }

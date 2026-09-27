@@ -15,6 +15,7 @@ import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.infrastructure.persistence.SpringDataAlertReadStatusRepository;
 import com.smartlivestock.ranch.infrastructure.persistence.entity.AlertReadStatusJpaEntity;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
+import com.smartlivestock.ranch.application.signal.SignalEventType;
 import com.smartlivestock.shared.cache.RedisCacheService;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -58,7 +59,8 @@ public class AlertApplicationService {
     public AlertDto createAlert(Long farmId, AlertType type, Severity severity, String message) {
         Alert alert = new Alert(farmId, null, null, type, severity, message);
         Alert saved = alertRepository.save(alert);
-        signalRevisionService.bumpStatus(farmId);
+        signalRevisionService.bumpStatus(
+                farmId, SignalEventType.ALERT_CHANGED, "ALERT", saved.getId());
         return fromLocalized(saved);
     }
 
@@ -67,7 +69,8 @@ public class AlertApplicationService {
                                 AlertType type, Severity severity, String message) {
         Alert alert = new Alert(farmId, livestockId, fenceId, type, severity, message);
         Alert saved = alertRepository.save(alert);
-        signalRevisionService.bumpStatus(farmId);
+        signalRevisionService.bumpStatus(
+                farmId, SignalEventType.ALERT_CHANGED, "ALERT", saved.getId());
         return fromLocalized(saved);
     }
 
@@ -245,7 +248,8 @@ public class AlertApplicationService {
         Alert alert = getAlertDomain(alertId); // ensure exists
         readStatusRepository.insertOnConflictDoNothing(alertId, userId);
         evictSummaryCache(alert.getFarmId(), userId);
-        signalRevisionService.bumpStatus(alert.getFarmId());
+        signalRevisionService.bumpStatus(
+                alert.getFarmId(), SignalEventType.ALERT_CHANGED, "ALERT", alert.getId());
         return getAlertWithReadStatus(alertId, userId);
     }
 
@@ -262,6 +266,12 @@ public class AlertApplicationService {
             }
         }
         affectedFarms.forEach(farmId -> evictSummaryCache(farmId, userId));
+        for (Long alertId : alertIds) {
+            alertRepository.findById(alertId)
+                    .ifPresent(alert -> signalRevisionService.recordEvent(
+                            alert.getFarmId(), SignalEventType.ALERT_CHANGED,
+                            "ALERT", alert.getId()));
+        }
         affectedFarms.forEach(signalRevisionService::bumpStatus);
         return count;
     }
@@ -274,7 +284,8 @@ public class AlertApplicationService {
         alert.dismiss(userId);
         Alert saved = alertRepository.save(alert);
         evictSummaryCache(saved.getFarmId(), userId);
-        signalRevisionService.bumpStatus(saved.getFarmId());
+        signalRevisionService.bumpStatus(
+                saved.getFarmId(), SignalEventType.ALERT_CHANGED, "ALERT", saved.getId());
         return getAlertWithReadStatus(saved.getId(), userId);
     }
 
@@ -283,7 +294,8 @@ public class AlertApplicationService {
         Alert alert = getAlertDomain(alertId);
         alert.autoResolve();
         Alert saved = alertRepository.save(alert);
-        signalRevisionService.bumpStatus(alert.getFarmId());
+        signalRevisionService.bumpStatus(
+                alert.getFarmId(), SignalEventType.ALERT_CHANGED, "ALERT", saved.getId());
         return fromLocalized(saved);
     }
 
@@ -294,7 +306,8 @@ public class AlertApplicationService {
         for (Alert alert : activeAlerts) {
             alert.autoResolve();
             alertRepository.save(alert);
-            signalRevisionService.bumpStatus(alert.getFarmId());
+            signalRevisionService.bumpStatus(
+                    alert.getFarmId(), SignalEventType.ALERT_CHANGED, "ALERT", alert.getId());
         }
     }
 

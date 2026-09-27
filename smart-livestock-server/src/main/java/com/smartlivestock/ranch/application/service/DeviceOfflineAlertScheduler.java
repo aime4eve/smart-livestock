@@ -8,6 +8,7 @@ import com.smartlivestock.ranch.domain.model.Severity;
 import com.smartlivestock.ranch.domain.port.DeviceSignalPort;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
+import com.smartlivestock.ranch.application.signal.SignalEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -52,7 +53,13 @@ public class DeviceOfflineAlertScheduler {
                     for (Alert alert : active) {
                         alert.autoResolve();
                         alertRepository.save(alert);
-                        signalRevisionService.bumpStatus(alert.getFarmId());
+                        signalRevisionService.bumpStatus(alert.getFarmId(), java.util.List.of(
+                                new SignalRevisionService.SignalEvent(
+                                        SignalEventType.ALERT_CHANGED, "ALERT", alert.getId()),
+                                new SignalRevisionService.SignalEvent(
+                                        SignalEventType.DEVICE_SIGNAL_CHANGED,
+                                        "DEVICE", signal.deviceId())
+                        ));
                         resolved++;
                     }
                 }
@@ -81,6 +88,12 @@ public class DeviceOfflineAlertScheduler {
             alert.setMessageArgs("[]");
         }
         alertRepository.save(alert);
-        signalRevisionService.bumpStatus(signal.farmId());
+        signalRevisionService.bumpStatus(signal.farmId(), java.util.List.of(
+                new SignalRevisionService.SignalEvent(
+                        SignalEventType.ALERT_CHANGED, "ALERT", alert.getId()),
+                new SignalRevisionService.SignalEvent(
+                        SignalEventType.DEVICE_SIGNAL_CHANGED,
+                        "DEVICE", signal.deviceId())
+        ));
     }
 }

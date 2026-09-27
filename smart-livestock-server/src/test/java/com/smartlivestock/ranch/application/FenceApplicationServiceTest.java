@@ -1,6 +1,8 @@
 package com.smartlivestock.ranch.application;
 
 import com.smartlivestock.ranch.domain.model.Fence;
+import com.smartlivestock.ranch.application.signal.SignalEventType;
+import com.smartlivestock.ranch.application.signal.SignalRevisionService;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.domain.repository.FenceRepository;
 import com.smartlivestock.ranch.domain.repository.FenceZoneRepository;
@@ -36,6 +38,7 @@ class FenceApplicationServiceTest {
     @Mock private FenceZoneRepository fenceZoneRepository;
     @Mock private LivestockRepository livestockRepository;
     @Mock private BufferPolygonCalculator bufferPolygonCalculator;
+    @Mock private SignalRevisionService signalRevisionService;
 
     private FenceApplicationService service;
 
@@ -44,12 +47,13 @@ class FenceApplicationServiceTest {
         service = new FenceApplicationService(
                 fenceRepository, alertRepository, fenceZoneRepository, livestockRepository,
                 bufferPolygonCalculator, new FenceLivestockCounter(),
-                org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class));
+                signalRevisionService);
     }
 
     @Test
     void deleteFence_withAlerts_deletesReadStatusAlertsZonesAndFence() {
-        when(fenceRepository.findById(FENCE_ID)).thenReturn(Optional.of(new Fence()));
+        when(fenceRepository.findById(FENCE_ID)).thenReturn(Optional.of(new Fence(
+                1L, "test", java.util.List.of(), "#FF0000")));
         when(alertRepository.deleteByFenceId(FENCE_ID)).thenReturn(664);
 
         int deleted = service.deleteFence(FENCE_ID, true);
@@ -62,6 +66,10 @@ class FenceApplicationServiceTest {
         inOrder.verify(fenceZoneRepository).deleteByFenceId(FENCE_ID);
         inOrder.verify(fenceRepository).deleteById(FENCE_ID);
         verify(alertRepository, never()).clearFenceReference(anyLong());
+        verify(signalRevisionService).bumpStatus(
+                1L, SignalEventType.FENCE_SIGNAL_CHANGED, "FENCE", FENCE_ID);
+        verify(signalRevisionService).bumpFenceGeometry(
+                1L, SignalEventType.FENCE_GEOMETRY_CHANGED, "FENCE", FENCE_ID);
     }
 
     @Test

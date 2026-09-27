@@ -80,6 +80,12 @@ class HealthAnomalyServiceTest {
         assertThat(alertCaptor.getValue().source()).isEqualTo("AI");
         assertThat(alertCaptor.getValue().alertType()).isEqualTo("AI_ANOMALY");
         assertThat(alertCaptor.getValue().severity()).isEqualTo("CRITICAL");
+        verify(signalRevisionService).bumpStatus(
+                1L,
+                com.smartlivestock.ranch.application.signal.SignalEventType.AI_ASSESSMENT_COMPLETED,
+                "AI_ASSESSMENT",
+                100L
+        );
         verify(ranchCommandPort, never()).resolveAlertsBySource(anyLong(), anyString());
         verify(redis).set(eq("ai:dedup:100"), eq("1"), any(Duration.class));
     }

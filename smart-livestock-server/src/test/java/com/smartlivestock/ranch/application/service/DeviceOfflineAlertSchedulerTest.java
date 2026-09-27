@@ -28,6 +28,7 @@ class DeviceOfflineAlertSchedulerTest {
 
     @Mock private DeviceSignalPort deviceSignalPort;
     @Mock private AlertRepository alertRepository;
+    @Mock private com.smartlivestock.ranch.application.signal.SignalRevisionService signalRevisionService;
 
     private DeviceSignalPort.DeviceSignal signal(Instant lastSeen) {
         return new DeviceSignalPort.DeviceSignal(
@@ -43,8 +44,7 @@ class DeviceOfflineAlertSchedulerTest {
         when(alertRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         new DeviceOfflineAlertScheduler(deviceSignalPort, alertRepository, new ObjectMapper(),
-                org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class)
-        ).reconcile();
+                signalRevisionService).reconcile();
 
         ArgumentCaptor<Alert> captor = ArgumentCaptor.forClass(Alert.class);
         verify(alertRepository).save(captor.capture());
@@ -52,6 +52,11 @@ class DeviceOfflineAlertSchedulerTest {
         assertThat(captor.getValue().getSeverity()).isEqualTo(Severity.WARNING);
         assertThat(captor.getValue().getFarmId()).isEqualTo(1L);
         assertThat(captor.getValue().getDeviceId()).isEqualTo(21L);
+        verify(signalRevisionService).bumpStatus(org.mockito.ArgumentMatchers.eq(1L), org.mockito.ArgumentMatchers.argThat(events ->
+                events.size() == 2
+                        && events.get(0).eventType() == com.smartlivestock.ranch.application.signal.SignalEventType.ALERT_CHANGED
+                        && events.get(1).eventType() == com.smartlivestock.ranch.application.signal.SignalEventType.DEVICE_SIGNAL_CHANGED
+        ));
     }
 
     @Test
@@ -67,11 +72,15 @@ class DeviceOfflineAlertSchedulerTest {
         when(alertRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         new DeviceOfflineAlertScheduler(deviceSignalPort, alertRepository, new ObjectMapper(),
-                org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class)
-        ).reconcile();
+                signalRevisionService).reconcile();
 
         verify(alertRepository).save(active);
         assertThat(active.getStatus()).isEqualTo(AlertStatus.AUTO_RESOLVED);
+        verify(signalRevisionService).bumpStatus(org.mockito.ArgumentMatchers.eq(1L), org.mockito.ArgumentMatchers.argThat(events ->
+                events.size() == 2
+                        && events.stream().anyMatch(event -> event.eventType()
+                                == com.smartlivestock.ranch.application.signal.SignalEventType.DEVICE_SIGNAL_CHANGED)
+        ));
     }
 
     @Test

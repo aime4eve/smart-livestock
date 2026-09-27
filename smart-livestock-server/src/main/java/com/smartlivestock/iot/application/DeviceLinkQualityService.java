@@ -9,6 +9,8 @@ import com.smartlivestock.ranch.domain.model.AlertType;
 import com.smartlivestock.ranch.domain.model.Severity;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.smartlivestock.ranch.application.signal.SignalEventType;
+import com.smartlivestock.ranch.application.signal.SignalRevisionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,6 +38,7 @@ public class DeviceLinkQualityService {
     private final DeviceTelemetryLogRepository deviceTelemetryLogRepository;
     private final AlertRepository alertRepository;
     private final ObjectMapper objectMapper;
+    private final SignalRevisionService signalRevisionService;
 
     @Value("${smartlivestock.link-quality.weak-threshold:-90}")
     private double weakThreshold;
@@ -85,6 +88,8 @@ public class DeviceLinkQualityService {
         alert.setMessageArgs(toJson(List.of(device.getDeviceCode(), gatewayId,
                 (int) Math.round(stats.avgRssi()))));
         alertRepository.save(alert);
+        signalRevisionService.bumpStatus(
+                farmId, SignalEventType.ALERT_CHANGED, "ALERT", alert.getId());
     }
 
     private void autoResolveEdgeAlert(Device device) {
@@ -93,6 +98,9 @@ public class DeviceLinkQualityService {
                 .forEach(alert -> {
                     alert.autoResolve();
                     alertRepository.save(alert);
+                    signalRevisionService.bumpStatus(
+                            alert.getFarmId(), SignalEventType.ALERT_CHANGED,
+                            "ALERT", alert.getId());
                 });
     }
 

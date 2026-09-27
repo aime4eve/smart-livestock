@@ -46,7 +46,12 @@ public class SignalLocationProjectionService {
             return false;
         }
 
-        long positionRevision = revisionService.bumpPosition(farmId);
+        long positionRevision = revisionService.bumpPosition(
+                farmId,
+                SignalEventType.LIVESTOCK_POSITION_CHANGED,
+                "LIVESTOCK",
+                livestockId
+        );
         LivestockLocationSnapshotJpaEntity entity = existing == null
                 ? new LivestockLocationSnapshotJpaEntity() : existing;
         entity.setLivestockId(livestockId);

@@ -10,6 +10,7 @@ import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import com.smartlivestock.ranch.application.command.CreateLivestockCommand;
 import com.smartlivestock.ranch.application.command.UpdateLivestockCommand;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
+import com.smartlivestock.ranch.application.signal.SignalEventType;
 import com.smartlivestock.ranch.application.signal.SignalLocationProjectionService;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -48,7 +49,9 @@ public class LivestockApplicationService {
         livestock.setBirthDate(command.birthDate());
         livestock.setWeight(command.weight());
         Livestock saved = livestockRepository.save(livestock);
-        signalRevisionService.bumpStatus(command.farmId());
+        signalRevisionService.bumpStatus(
+                command.farmId(), SignalEventType.LIVESTOCK_CHANGED,
+                "LIVESTOCK", saved.getId());
         return LivestockDto.from(saved);
     }
 
@@ -96,7 +99,9 @@ public class LivestockApplicationService {
                 Instant.now(),
                 "HTTP"
         );
-        signalRevisionService.bumpStatus(livestock.getFarmId());
+        signalRevisionService.bumpStatus(
+                livestock.getFarmId(), SignalEventType.LIVESTOCK_CHANGED,
+                "LIVESTOCK", livestock.getId());
     }
 
     @Transactional
@@ -123,7 +128,9 @@ public class LivestockApplicationService {
                 command.livestockCode() != null ? command.livestockCode() : livestock.getLivestockCode(),
                 breed, gender, command.birthDate(), command.weight());
         Livestock saved = livestockRepository.save(livestock);
-        signalRevisionService.bumpStatus(livestock.getFarmId());
+        signalRevisionService.bumpStatus(
+                livestock.getFarmId(), SignalEventType.LIVESTOCK_CHANGED,
+                "LIVESTOCK", saved.getId());
         return LivestockDto.from(saved);
     }
 
@@ -135,7 +142,9 @@ public class LivestockApplicationService {
         // Cascade: uninstall all active devices before deleting
         iotCommandPort.removeAllActiveInstallations(id);
         livestockRepository.deleteById(id);
-        signalRevisionService.bumpStatus(livestock.getFarmId());
+        signalRevisionService.bumpStatus(
+                livestock.getFarmId(), SignalEventType.LIVESTOCK_CHANGED,
+                "LIVESTOCK", livestock.getId());
     }
 
     /**
