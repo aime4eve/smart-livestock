@@ -6,13 +6,19 @@ import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 Color livestockHealthColor(String healthStatus, String primaryAlert) {
   if (healthStatus == 'NORMAL') return AppColors.success;
   return switch (primaryAlert) {
+    'RETURN_HOME' =>
+      healthStatus == 'CRITICAL' ? AppColors.danger : AppColors.warning,
     'FEVER' => AppColors.danger,
-    'DIGESTIVE' => AppColors.warning,
+    'TEMPERATURE_ABNORMAL' => AppColors.danger,
+    'DIGESTIVE' || 'DIGESTIVE_ABNORMAL' => AppColors.warning,
     'ESTRUS' => AppColors.estrus,
     'EPIDEMIC' => AppColors.info,
     _ => AppColors.danger,
   };
 }
+
+/// Dedicated channel color for a livestock that has not returned home yet.
+Color livestockPresenceColor() => AppColors.warning;
 
 /// Unified map marker for livestock showing health status (fill color)
 /// and fence status (border style) as two independent visual channels.
@@ -20,6 +26,7 @@ Color livestockHealthColor(String healthStatus, String primaryAlert) {
 /// Fill color encodes health type:
 ///   NORMAL=green, FEVER=red, DIGESTIVE=orange, ESTRUS=pink, EPIDEMIC=blue
 ///
+/// AI and return-home are small independent dots, not health fill colors.
 /// Border style encodes fence status:
 ///   SAFE=none, APPROACH=dashed dark gray, BREACH=solid black + pulse glow
 class LivestockMapMarker extends StatefulWidget {
@@ -29,6 +36,8 @@ class LivestockMapMarker extends StatefulWidget {
     required this.healthStatus,
     required this.primaryAlert,
     required this.fenceStatus,
+    required this.aiStatus,
+    required this.presenceStatus,
     this.hasHealthTicket = false,
     this.onTap,
   });
@@ -37,6 +46,8 @@ class LivestockMapMarker extends StatefulWidget {
   final String healthStatus; // NORMAL / WARNING / CRITICAL
   final String primaryAlert; // FEVER / DIGESTIVE / ESTRUS / EPIDEMIC / '' / ...
   final String fenceStatus; // SAFE / APPROACH / BREACH
+  final String aiStatus; // NONE / OBSERVE / ALERT
+  final String presenceStatus; // NORMAL / RETURN_HOME
   final bool hasHealthTicket; // NIX-245: open health ticket → red dot
   final VoidCallback? onTap;
 
@@ -84,8 +95,10 @@ class _LivestockMapMarkerState extends State<LivestockMapMarker>
   @override
   Widget build(BuildContext context) {
     final shortLabel = widget.livestockCode.replaceAll('SL-2024-', '');
-    final fillColor =
-        livestockHealthColor(widget.healthStatus, widget.primaryAlert);
+    final fillColor = livestockHealthColor(
+      widget.healthStatus,
+      widget.primaryAlert,
+    );
 
     return GestureDetector(
       onTap: widget.onTap,
@@ -99,11 +112,13 @@ class _LivestockMapMarkerState extends State<LivestockMapMarker>
               painter: _LivestockMarkerPainter(
                 fillColor: fillColor,
                 fenceStatus: widget.fenceStatus,
-                breachProgress:
-                    widget.fenceStatus == 'BREACH'
-                        ? _breachController.value
-                        : 0.0,
+                breachProgress: widget.fenceStatus == 'BREACH'
+                    ? _breachController.value
+                    : 0.0,
                 hasHealthTicket: widget.hasHealthTicket,
+                hasAiSignal:
+                    widget.aiStatus == 'ALERT' || widget.aiStatus == 'OBSERVE',
+                hasPresenceSignal: widget.presenceStatus == 'RETURN_HOME',
               ),
               child: child,
             );
@@ -135,12 +150,16 @@ class _LivestockMarkerPainter extends CustomPainter {
     required this.fenceStatus,
     required this.breachProgress,
     this.hasHealthTicket = false,
+    this.hasAiSignal = false,
+    this.hasPresenceSignal = false,
   });
 
   final Color fillColor;
   final String fenceStatus;
   final double breachProgress;
   final bool hasHealthTicket;
+  final bool hasAiSignal;
+  final bool hasPresenceSignal;
 
   static const double _baseRadius = 12.0;
 
@@ -177,6 +196,16 @@ class _LivestockMarkerPainter extends CustomPainter {
       canvas.drawCircle(dotCenter, 4.0, Paint()..color = AppColors.danger);
     }
 
+    _drawStatusDot(canvas, center, -1, 1, AppColors.aiAnomaly, hasAiSignal);
+    _drawStatusDot(
+      canvas,
+      center,
+      1,
+      1,
+      livestockPresenceColor(),
+      hasPresenceSignal,
+    );
+
     // Fence border
     if (fenceStatus == 'APPROACH') {
       _drawDashedCircle(canvas, center, _baseRadius + 2);
@@ -207,11 +236,30 @@ class _LivestockMarkerPainter extends CustomPainter {
     }
   }
 
+  void _drawStatusDot(
+    Canvas canvas,
+    Offset center,
+    double dx,
+    double dy,
+    Color color,
+    bool visible,
+  ) {
+    if (!visible) return;
+    final dotCenter = Offset(
+      center.dx + _baseRadius * 0.85 * dx,
+      center.dy + _baseRadius * 0.85 * dy,
+    );
+    canvas.drawCircle(dotCenter, 5.0, Paint()..color = Colors.white);
+    canvas.drawCircle(dotCenter, 3.5, Paint()..color = color);
+  }
+
   @override
   bool shouldRepaint(covariant _LivestockMarkerPainter old) {
     return fillColor != old.fillColor ||
         fenceStatus != old.fenceStatus ||
         breachProgress != old.breachProgress ||
-        hasHealthTicket != old.hasHealthTicket;
+        hasHealthTicket != old.hasHealthTicket ||
+        hasAiSignal != old.hasAiSignal ||
+        hasPresenceSignal != old.hasPresenceSignal;
   }
 }

@@ -5280,6 +5280,8 @@
   ,"@livestockSignalFenceApproach": {}
   ,"livestockSignalFenceBreach": "越出围栏"
   ,"@livestockSignalFenceBreach": {}
+  ,"livestockSignalPresenceReturnHome": "待归栏"
+  ,"@livestockSignalPresenceReturnHome": {}
   ,"livestockSignalDeviceOffline": "设备离线"
   ,"@livestockSignalDeviceOffline": {}
   ,"livestockSignalDeviceFault": "设备故障"

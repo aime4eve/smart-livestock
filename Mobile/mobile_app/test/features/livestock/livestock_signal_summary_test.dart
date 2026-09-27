@@ -45,6 +45,18 @@ Future<void> _pump(WidgetTester tester) async {
   await tester.pump();
 }
 
+LivestockSignal _presenceSignal() {
+  return LivestockSignal.fromJson({
+    'livestockId': 14,
+    'livestockCode': 'HKT14',
+    'revision': 2,
+    'presence': {
+      'status': 'RETURN_HOME',
+      'activeAlertTypes': ['RETURN_HOME'],
+    },
+  });
+}
+
 void main() {
   testWidgets('renders priority badges, +N, and rumen metrics', (tester) async {
     await _pump(tester);
@@ -54,8 +66,28 @@ void main() {
     expect(find.byKey(const Key('livestock-signal-device')), findsNothing);
     expect(find.byKey(const Key('livestock-signal-ai')), findsNothing);
     expect(find.byKey(const Key('livestock-signal-more')), findsOneWidget);
-    expect(find.byKey(const Key('livestock-signal-rumen-temp')), findsOneWidget);
+    expect(
+      find.byKey(const Key('livestock-signal-rumen-temp')),
+      findsOneWidget,
+    );
     expect(find.textContaining('39.4°C'), findsOneWidget);
     expect(find.textContaining('2.1'), findsOneWidget);
+  });
+
+  testWidgets('renders return home as a separate presence badge', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: LivestockSignalSummary(signal: _presenceSignal())),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byKey(const Key('livestock-signal-presence')), findsOneWidget);
+    expect(find.byKey(const Key('livestock-signal-health')), findsNothing);
+    expect(find.text('Return home'), findsOneWidget);
   });
 }

@@ -142,6 +142,27 @@ class FenceSignal {
   }
 }
 
+class PresenceSignal {
+  const PresenceSignal({
+    this.status = 'NORMAL',
+    this.activeAlertTypes = const [],
+  });
+
+  final String status;
+  final List<String> activeAlertTypes;
+
+  bool get returnHome => status == 'RETURN_HOME';
+
+  factory PresenceSignal.fromJson(Map<String, dynamic> json) {
+    return PresenceSignal(
+      status: json['status'] as String? ?? 'NORMAL',
+      activeAlertTypes:
+          (json['activeAlertTypes'] as List?)?.whereType<String>().toList() ??
+          const [],
+    );
+  }
+}
+
 class DeviceSignal {
   const DeviceSignal({
     this.status = 'NORMAL',
@@ -186,6 +207,7 @@ class LivestockSignal {
     required this.health,
     required this.ai,
     required this.fence,
+    required this.presence,
     required this.device,
     required this.alerts,
   });
@@ -196,6 +218,7 @@ class LivestockSignal {
   final HealthSignal health;
   final AiSignal ai;
   final FenceSignal fence;
+  final PresenceSignal presence;
   final DeviceSignal device;
   final AlertSummarySignal alerts;
 
@@ -220,6 +243,11 @@ class LivestockSignal {
       fence: FenceSignal.fromJson(
         json['fence'] is Map<String, dynamic>
             ? json['fence'] as Map<String, dynamic>
+            : {},
+      ),
+      presence: PresenceSignal.fromJson(
+        json['presence'] is Map<String, dynamic>
+            ? json['presence'] as Map<String, dynamic>
             : {},
       ),
       device: DeviceSignal.fromJson(

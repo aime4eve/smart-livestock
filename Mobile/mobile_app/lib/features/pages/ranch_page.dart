@@ -177,6 +177,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
         if (entry.value.fence.status != 'NORMAL')
           entry.key: entry.value.fence.status,
     };
+    final signalOutsideFenceCount = _outsideFenceLivestock(overview).length;
 
     return Stack(
       children: [
@@ -303,6 +304,8 @@ class _RanchPageState extends ConsumerState<RanchPage>
                               primaryAlert: marker.primaryAlert,
                               hasHealthTicket: marker.hasHealthTicket,
                               fenceStatus: signal.fence.status,
+                              aiStatus: signal.ai.status,
+                              presenceStatus: signal.presence.status,
                               onTap: () => _showLivestockDetail(
                                 context,
                                 marker,
@@ -335,6 +338,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
             overview,
             canManage,
             fenceStatusMap: fenceStatusMap,
+            outsideFenceCount: signalOutsideFenceCount,
           ),
         ),
         TileSourceWatermark(provider: _tileProvider),
@@ -364,6 +368,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
     RanchOverview overview,
     bool canManage, {
     required Map<String, String> fenceStatusMap,
+    required int outsideFenceCount,
   }) {
     final l10n = AppLocalizations.of(context)!;
     // Badge = UNREAD active alerts (per-user), not the raw active total —
@@ -472,7 +477,12 @@ class _RanchPageState extends ConsumerState<RanchPage>
           if (_sheetSnap > 0)
             Flexible(
               child: switch (_sheetTab) {
-                0 => _buildOverviewTab(context, overview, summary),
+                0 => _buildOverviewTab(
+                  context,
+                  overview,
+                  summary,
+                  outsideFenceCount: outsideFenceCount,
+                ),
                 1 => SingleChildScrollView(
                   child: RanchFenceTab(
                     fences: overview.fences,
@@ -526,8 +536,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
   Widget _buildOverviewTab(
     BuildContext context,
     RanchOverview overview,
-    RanchAlertSummary? summary,
-  ) {
+    RanchAlertSummary? summary, {
+    required int outsideFenceCount,
+  }) {
     // Card numbers come from the shared summary endpoint (same source as the
     // alert center); client-side grouping is only the fallback until it loads.
     final fenceTotal =
@@ -581,7 +592,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
             farmName: farmName,
             overview: overview,
             criticalCount: overview.overallStats.criticalCount,
-            outsideFenceCount: overview.overallStats.outsideFenceCount,
+            outsideFenceCount: outsideFenceCount,
             severeAlertCount: activeAlerts
                 .where((a) => a.severity == 'CRITICAL')
                 .length,
