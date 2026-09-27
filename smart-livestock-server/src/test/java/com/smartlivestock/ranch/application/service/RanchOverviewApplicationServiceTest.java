@@ -63,6 +63,17 @@ class RanchOverviewApplicationServiceTest {
         when(identityQueryPort.findFarmById(1L))
                 .thenReturn(Optional.of(new FarmInfo(1L, 1L, "Test", null, null)));
         when(ioTQueryPort.getDeviceOnlineRate(1L)).thenReturn(0.85);
+        when(ioTQueryPort.findActiveDevicesByLivestockIds(org.mockito.ArgumentMatchers.anyList()))
+                .thenAnswer(invocation -> {
+                    List<Long> livestockIds = invocation.getArgument(0);
+                    java.util.Map<Long, java.util.List<com.smartlivestock.ranch.domain.port.dto.DeviceBrief>> devices =
+                            new java.util.HashMap<>();
+                    for (Long livestockId : livestockIds) {
+                        devices.put(livestockId, List.of(new com.smartlivestock.ranch.domain.port.dto.DeviceBrief(
+                                livestockId + 100, "GPS-" + livestockId, null, "TRACKER")));
+                    }
+                    return devices;
+                });
     }
 
     private RanchOverviewResponse getOverviewForEmptyFarm() {

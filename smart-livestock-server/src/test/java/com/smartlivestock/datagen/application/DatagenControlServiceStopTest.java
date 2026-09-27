@@ -135,8 +135,8 @@ class DatagenControlServiceStopTest {
         ArgumentCaptor<List<DatagenDeviceAssignment>> assignmentsCaptor =
                 ArgumentCaptor.forClass((Class) List.class);
         verify(assignmentRepository).saveAll(assignmentsCaptor.capture());
-        assertEquals(99L, assignmentsCaptor.getValue().getFirst().getDeviceId());
-        assertTrue(assignmentsCaptor.getValue().getFirst().isActive());
+        assertEquals(99L, assignmentsCaptor.getValue().get(0).getDeviceId());
+        assertTrue(assignmentsCaptor.getValue().get(0).isActive());
         verify(auditService).record(eq("START"), eq(1L), any(), any());
     }
 

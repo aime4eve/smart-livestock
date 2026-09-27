@@ -93,11 +93,13 @@ class AlertSummaryTest {
         assertThat(summary.active().byGroup().fence()).isEqualTo(13);
         assertThat(summary.active().byGroup().health()).isEqualTo(3);
         assertThat(summary.active().byGroup().device()).isEqualTo(4);
+        assertThat(summary.active().byGroup().presence()).isZero();
 
         assertThat(summary.active().unread()).isEqualTo(3);
         assertThat(summary.active().byGroupUnread().fence()).isEqualTo(2);
         assertThat(summary.active().byGroupUnread().health()).isEqualTo(1);
         assertThat(summary.active().byGroupUnread().device()).isZero();
+        assertThat(summary.active().byGroupUnread().presence()).isZero();
 
         assertThat(summary.resolved()).isEqualTo(123);
     }

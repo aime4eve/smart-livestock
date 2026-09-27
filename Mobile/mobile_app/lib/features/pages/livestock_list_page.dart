@@ -76,7 +76,8 @@ class _LivestockListPageState extends ConsumerState<LivestockListPage> {
       final previousRevision =
           int.tryParse(previous?.cursor.split(':').first ?? '') ?? 0;
       final nextRevision = int.tryParse(next.cursor.split(':').first) ?? 0;
-      if (previous?.livestockLoaded == true && nextRevision > previousRevision) {
+      if (previous?.livestockLoaded == true &&
+          nextRevision > previousRevision) {
         ref.read(livestockListControllerProvider.notifier).silentRefresh();
       }
     });
@@ -272,6 +273,8 @@ class _LivestockListPageState extends ConsumerState<LivestockListPage> {
                                                   health: const HealthSignal(),
                                                   ai: const AiSignal(),
                                                   fence: const FenceSignal(),
+                                                  presence:
+                                                      const PresenceSignal(),
                                                   device: const DeviceSignal(),
                                                   alerts:
                                                       const AlertSummarySignal(),

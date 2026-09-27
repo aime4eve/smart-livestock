@@ -30,6 +30,10 @@ void main() {
       },
       'ai': {'status': 'ALERT', 'score': 0.82},
       'fence': {'status': 'BREACH'},
+      'presence': {
+        'status': 'RETURN_HOME',
+        'activeAlertTypes': ['RETURN_HOME'],
+      },
       'device': {'status': 'NORMAL', 'deviceCount': 1},
       'alerts': {'activeCount': 2, 'unreadCount': 1},
     });
@@ -40,7 +44,20 @@ void main() {
     expect(signal.health.metrics.rumenMotility.freshness, 'FRESH');
     expect(signal.ai.status, 'ALERT');
     expect(signal.fence.status, 'BREACH');
+    expect(signal.presence.status, 'RETURN_HOME');
+    expect(signal.presence.returnHome, isTrue);
     expect(signal.alerts.unreadCount, 1);
+  });
+
+  test('missing presence signal defaults to normal', () {
+    final signal = LivestockSignal.fromJson({
+      'livestockId': 14,
+      'livestockCode': 'HKT14',
+      'revision': 1,
+    });
+
+    expect(signal.presence.status, 'NORMAL');
+    expect(signal.presence.returnHome, isFalse);
   });
 
   test('missing metrics remain missing instead of becoming zero', () {

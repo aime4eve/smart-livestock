@@ -109,6 +109,44 @@ class SignalQueryServiceTest {
     }
 
     @Test
+    void returnHomeStaysOutOfHealthAndBecomesPresenceSignal() {
+        mockAuthorizedUser();
+        mockRevision(0L, 0L, 0L);
+
+        Livestock livestock = new Livestock();
+        livestock.setId(14L);
+        livestock.setFarmId(1L);
+        livestock.setLivestockCode("HKT14");
+        when(livestockRepository.findByFarmId(1L)).thenReturn(List.of(livestock));
+
+        AlertJpaEntity alert = org.mockito.Mockito.mock(AlertJpaEntity.class);
+        when(alert.getFarmId()).thenReturn(1L);
+        when(alert.getLivestockId()).thenReturn(14L);
+        when(alert.getFenceId()).thenReturn(null);
+        when(alert.getDeviceId()).thenReturn(null);
+        when(alert.getType()).thenReturn(com.smartlivestock.ranch.domain.model.AlertType.RETURN_HOME.name());
+        when(alert.getSeverity()).thenReturn(com.smartlivestock.ranch.domain.model.Severity.WARNING.name());
+        when(alert.getMessage()).thenReturn("Return home");
+        when(alert.getId()).thenReturn(42L);
+        when(alert.getSource()).thenReturn("AGENTIC_PLATFORM");
+        when(alertRepository.findByFarmIdAndStatus(1L, "ACTIVE")).thenReturn(List.of(alert));
+        when(alertRepository.countActiveUnreadByLivestock(1L, 9L)).thenReturn(List.of());
+        when(healthSnapshotRepository.findByFarmId(1L)).thenReturn(List.of());
+        when(fenceRepository.findByFarmId(1L)).thenReturn(List.of());
+        when(ioTQueryPort.findActiveDevicesByLivestockIds(any())).thenReturn(Map.of());
+
+        LivestockSignal signal = service.getLivestockSignals(
+                1L, List.of(14L), "0", 9L
+        ).items().get(0);
+
+        assertThat(signal.health().status()).isEqualTo("NORMAL");
+        assertThat(signal.health().activeAlertTypes()).isEmpty();
+        assertThat(signal.presence().status()).isEqualTo("RETURN_HOME");
+        assertThat(signal.presence().activeAlertTypes()).containsExactly("RETURN_HOME");
+        assertThat(signal.alerts().activeCount()).isEqualTo(1);
+    }
+
+    @Test
     void unchangedCursorDoesNotBuildMapPayload() {
         mockAuthorizedUser();
         FarmSignalRevision revision = mockRevision(5L, 6L, 7L);

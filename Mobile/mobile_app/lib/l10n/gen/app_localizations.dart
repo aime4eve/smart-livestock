@@ -12251,6 +12251,12 @@ abstract class AppLocalizations {
   /// **'越出围栏'**
   String get livestockSignalFenceBreach;
 
+  /// No description provided for @livestockSignalPresenceReturnHome.
+  ///
+  /// In zh, this message translates to:
+  /// **'待归栏'**
+  String get livestockSignalPresenceReturnHome;
+
   /// No description provided for @livestockSignalDeviceOffline.
   ///
   /// In zh, this message translates to:

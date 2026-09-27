@@ -40,6 +40,11 @@ public final class SignalDtos {
             List<String> activeAlertTypes
     ) {}
 
+    public record PresenceSignal(
+            String status,
+            List<String> activeAlertTypes
+    ) {}
+
     public record DeviceSignal(
             String status,
             List<String> faultTypes,
@@ -55,6 +60,7 @@ public final class SignalDtos {
             HealthSignal health,
             AiSignal ai,
             FenceSignal fence,
+            PresenceSignal presence,
             DeviceSignal device,
             AlertSummarySignal alerts
     ) {}

@@ -5282,6 +5282,8 @@
   ,"@livestockSignalFenceApproach": {}
   ,"livestockSignalFenceBreach": "Out of fence"
   ,"@livestockSignalFenceBreach": {}
+  ,"livestockSignalPresenceReturnHome": "Return home"
+  ,"@livestockSignalPresenceReturnHome": {}
   ,"livestockSignalDeviceOffline": "Device offline"
   ,"@livestockSignalDeviceOffline": {}
   ,"livestockSignalDeviceFault": "Device fault"

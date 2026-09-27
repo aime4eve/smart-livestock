@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * NIX-245 overview fixes: healthyRate denominator alignment (the >100% bug),
- * watch states count as healthy (user ruling), estrus high score from CURRENT
+ * watch states are unhealthy to align with Signal API, estrus high score from CURRENT
  * snapshots, per-scene active ticket counts from the same query as the alert
  * center (reconciliation source).
  */
@@ -82,7 +82,7 @@ class HealthOverviewFixesTest {
     }
 
     @Test
-    void healthyRateNeverExceedsOne_andWatchStatesCountHealthy() {
+    void healthyRateNeverExceedsOne_andWatchStatesCountUnhealthy() {
         // 4 current livestock; snapshot for #99 belongs to a removed livestock
         // (the old code counted it into the numerator → 105%).
         when(ranchQueryPort.findAllByFarmId(1L)).thenReturn(List.of(
@@ -92,14 +92,14 @@ class HealthOverviewFixesTest {
                 new LivestockInfo(20L, 1L, "D", "F", "B")));
         when(snapshotRepo.findByFarmId(1L)).thenReturn(List.of(
                 snap(4, TempStatus.FEVER, MotilityStatus.NORMAL, null),      // abnormal
-                snap(8, TempStatus.ELEVATED, MotilityStatus.NORMAL, null),   // watch → healthy (ruling)
-                snap(16, TempStatus.NORMAL, MotilityStatus.LOW, null),       // watch → healthy (ruling)
+                snap(8, TempStatus.ELEVATED, MotilityStatus.NORMAL, null),   // watch → unhealthy (Signal alignment)
+                snap(16, TempStatus.NORMAL, MotilityStatus.LOW, null),       // watch → unhealthy (Signal alignment)
                 snap(99, TempStatus.NORMAL, MotilityStatus.NORMAL, null)));  // orphan snapshot, ignored
 
         HealthOverviewResponse res = service.getOverview(1L);
 
-        // abnormal = 1 (livestock 4); healthy = 3/4 = 0.75
-        assertThat(res.stats().healthyRate()).isEqualTo(0.75);
+        // abnormal/watched = 3 (livestock 4, 8, 16); healthy = 1/4 = 0.25
+        assertThat(res.stats().healthyRate()).isEqualTo(0.25);
     }
 
     @Test
