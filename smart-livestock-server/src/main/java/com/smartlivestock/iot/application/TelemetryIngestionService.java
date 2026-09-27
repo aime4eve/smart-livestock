@@ -92,6 +92,15 @@ public class TelemetryIngestionService {
                     "设备未激活: " + device.getStatus());
         }
 
+        // The partitioned table enforces one frame per (device, report_time).
+        // Rejecting early keeps restart/backfill retries from reprocessing the
+        // same frame into health, GPS, alerts, or signal events.
+        if (deviceTelemetryLogRepository.existsByDeviceIdAndReportTime(
+                deviceId, effectiveRecordedAt)) {
+            log.debug("Skipping duplicate telemetry for device [{}] at {}", deviceId, effectiveRecordedAt);
+            return;
+        }
+
         // Resolve installation + farm context
         Long livestockId = null;
         Long farmId = null;
