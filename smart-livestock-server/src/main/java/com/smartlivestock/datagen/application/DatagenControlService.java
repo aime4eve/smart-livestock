@@ -139,8 +139,8 @@ public class DatagenControlService {
             validateDevices(farm, requested);
         }
 
-        List<DatagenDeviceAssignment> assignments =
-                assignmentRepository.findByControlId(control.getId());
+        List<DatagenDeviceAssignment> assignments = new ArrayList<>(
+                assignmentRepository.findByControlId(control.getId()));
         if (request.enabled()) {
             Map<Long, DatagenDeviceAssignment> byDevice = assignments.stream()
                     .collect(Collectors.toMap(

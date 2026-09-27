@@ -15,8 +15,13 @@ import com.smartlivestock.identity.domain.model.Farm;
 import com.smartlivestock.identity.domain.repository.AuditLogRepository;
 import com.smartlivestock.identity.domain.repository.FarmRepository;
 import com.smartlivestock.identity.domain.repository.TenantRepository;
+import com.smartlivestock.iot.domain.model.Device;
+import com.smartlivestock.iot.domain.model.DeviceStatus;
+import com.smartlivestock.iot.domain.model.DeviceType;
+import com.smartlivestock.iot.domain.model.Installation;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.domain.repository.InstallationRepository;
+import com.smartlivestock.ranch.domain.model.Livestock;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import com.smartlivestock.shared.common.ApiException;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +37,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -105,7 +111,40 @@ class DatagenControlServiceStopTest {
                 1L, new DatagenControlRequest(true, List.of())));
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void start_addsAssignmentForNewEligibleDevice() {
+        prepare(false);
+        when(assignmentRepository.findByControlId(9L)).thenReturn(List.of());
+        Device device = new Device();
+        device.setId(99L);
+        device.setDeviceType(DeviceType.TRACKER);
+        device.setStatus(DeviceStatus.ACTIVE);
+        Installation installation = new Installation(99L, 7L, null);
+        Livestock livestock = new Livestock();
+        livestock.setFarmId(1L);
+        when(deviceRepository.findById(99L)).thenReturn(Optional.of(device));
+        when(installationRepository.findActiveByDeviceId(99L))
+                .thenReturn(Optional.of(installation));
+        when(livestockRepository.findById(7L)).thenReturn(Optional.of(livestock));
+
+        DatagenControlResponse response = service.updateControl(
+                1L, new DatagenControlRequest(true, List.of(99L)));
+
+        assertTrue(response.enabled());
+        ArgumentCaptor<List<DatagenDeviceAssignment>> assignmentsCaptor =
+                ArgumentCaptor.forClass((Class) List.class);
+        verify(assignmentRepository).saveAll(assignmentsCaptor.capture());
+        assertEquals(99L, assignmentsCaptor.getValue().getFirst().getDeviceId());
+        assertTrue(assignmentsCaptor.getValue().getFirst().isActive());
+        verify(auditService).record(eq("START"), eq(1L), any(), any());
+    }
+
     private void prepare() {
+        prepare(true);
+    }
+
+    private void prepare(boolean enabled) {
         Farm farm = new Farm();
         farm.setId(1L);
         farm.setTenantId(2L);
@@ -125,7 +164,11 @@ class DatagenControlServiceStopTest {
         when(scenarioRepository.findFirstByNameOrderById("默认持续合成"))
                 .thenReturn(Optional.of(scenario));
         when(scenarioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-        when(controlRepository.ensureByFarmId(2L, 1L, 4L)).thenReturn(control());
+        DatagenFarmControl control = control();
+        if (enabled) {
+            control.enable();
+        }
+        when(controlRepository.ensureByFarmId(2L, 1L, 4L)).thenReturn(control);
     }
 
     private DatagenFarmControl control() {
@@ -134,7 +177,6 @@ class DatagenControlServiceStopTest {
         control.setTenantId(2L);
         control.setFarmId(1L);
         control.setScenarioId(4L);
-        control.enable();
         return control;
     }
 
