@@ -6820,6 +6820,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapSignalNoPosition => 'No position';
 
   @override
+  String mapSignalNoPositionLivestock(String codes) {
+    return 'No position: $codes';
+  }
+
+  @override
   String get mapSignalDelayedPosition => 'Delayed position';
 
   @override

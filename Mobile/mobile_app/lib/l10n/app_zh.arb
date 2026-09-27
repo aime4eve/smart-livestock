@@ -5324,6 +5324,12 @@
   ,"@livestockMetricStale": {}
   ,"mapSignalNoPosition": "无定位"
   ,"@mapSignalNoPosition": {}
+  ,"mapSignalNoPositionLivestock": "无定位：{codes}"
+  ,"@mapSignalNoPositionLivestock": {
+    "placeholders": {
+      "codes": {"type": "String"}
+    }
+  }
   ,"mapSignalDelayedPosition": "定位延迟"
   ,"@mapSignalDelayedPosition": {}
   ,"mapSignalStalePosition": "定位过期"
