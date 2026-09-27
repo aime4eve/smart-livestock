@@ -10,6 +10,7 @@ import com.smartlivestock.ranch.domain.model.Severity;
 import com.smartlivestock.ranch.domain.port.IoTQueryPort;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.infrastructure.persistence.SpringDataAlertReadStatusRepository;
+import com.smartlivestock.ranch.application.signal.SignalEventType;
 import com.smartlivestock.shared.cache.RedisCacheService;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -71,6 +72,8 @@ class AlertApplicationServiceTest {
         assertThat(result.type()).isEqualTo("FENCE_BREACH");
         assertThat(result.status()).isEqualTo("ACTIVE");
         assertThat(result.farmId()).isEqualTo(1L);
+        verify(signalRevisionService).bumpStatus(
+                1L, SignalEventType.ALERT_CHANGED, "ALERT", 1L);
     }
 
     @Test
@@ -84,6 +87,8 @@ class AlertApplicationServiceTest {
 
         assertThat(result.status()).isEqualTo("DISMISSED");
         assertThat(result.resolvedType()).isEqualTo("MANUAL_DISMISS");
+        verify(signalRevisionService).bumpStatus(
+                1L, SignalEventType.ALERT_CHANGED, "ALERT", 1L);
     }
 
     @Test

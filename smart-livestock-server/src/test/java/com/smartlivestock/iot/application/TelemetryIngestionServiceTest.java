@@ -48,6 +48,7 @@ class TelemetryIngestionServiceTest {
     @Mock private ApplicationEventPublisher eventPublisher;
     @Mock private GpsDataGovernanceService gpsDataGovernanceService;
     @Mock private DeviceLinkQualityService deviceLinkQualityService;
+    @Mock private com.smartlivestock.ranch.application.signal.SignalRevisionService signalRevisionService;
 
     private TelemetryIngestionService service;
 
@@ -59,7 +60,7 @@ class TelemetryIngestionServiceTest {
                 new GpsDistanceDerivationService(),
                 gpsDataGovernanceService, deviceLinkQualityService,
                 new com.fasterxml.jackson.databind.ObjectMapper(),
-                org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class));
+                signalRevisionService);
     }
 
     private Device createCapsuleDevice(Long id) {
@@ -430,6 +431,12 @@ class TelemetryIngestionServiceTest {
         verify(alertRepository).save(alertCaptor.capture());
         assertEquals("alert.device.tamper", alertCaptor.getValue().getMessageKey());
         assertTrue(alertCaptor.getValue().getMessageArgs().contains("TRK-7"));
+        verify(signalRevisionService).bumpStatus(
+                5L,
+                com.smartlivestock.ranch.application.signal.SignalEventType.ALERT_CHANGED,
+                "ALERT",
+                alertCaptor.getValue().getId()
+        );
     }
 
     @Test

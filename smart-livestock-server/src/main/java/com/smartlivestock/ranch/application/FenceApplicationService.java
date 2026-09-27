@@ -3,6 +3,7 @@ package com.smartlivestock.ranch.application;
 import com.smartlivestock.ranch.application.command.CreateFenceCommand;
 import com.smartlivestock.ranch.application.command.UpdateFenceCommand;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
+import com.smartlivestock.ranch.application.signal.SignalEventType;
 import com.smartlivestock.ranch.application.dto.FenceDto;
 import com.smartlivestock.ranch.domain.model.Fence;
 import com.smartlivestock.ranch.domain.model.GpsCoordinate;
@@ -45,8 +46,12 @@ public class FenceApplicationService {
         }
         computeBufferPolygon(fence);
         Fence saved = fenceRepository.save(fence);
-        signalRevisionService.bumpStatus(command.farmId());
-        signalRevisionService.bumpFenceGeometry(command.farmId());
+        signalRevisionService.bumpStatus(
+                command.farmId(), SignalEventType.FENCE_SIGNAL_CHANGED,
+                "FENCE", saved.getId());
+        signalRevisionService.bumpFenceGeometry(
+                command.farmId(), SignalEventType.FENCE_GEOMETRY_CHANGED,
+                "FENCE", saved.getId());
         return FenceDto.from(saved);
     }
 
@@ -85,8 +90,12 @@ public class FenceApplicationService {
         computeBufferPolygon(fence);
         try {
             Fence saved = fenceRepository.save(fence);
-            signalRevisionService.bumpStatus(fence.getFarmId());
-            signalRevisionService.bumpFenceGeometry(fence.getFarmId());
+            signalRevisionService.bumpStatus(
+                    fence.getFarmId(), SignalEventType.FENCE_SIGNAL_CHANGED,
+                    "FENCE", saved.getId());
+            signalRevisionService.bumpFenceGeometry(
+                    fence.getFarmId(), SignalEventType.FENCE_GEOMETRY_CHANGED,
+                    "FENCE", saved.getId());
             return FenceDto.from(saved);
         } catch (ObjectOptimisticLockingFailureException e) {
             throw new ApiException(ErrorCode.STATE_CONFLICT,
@@ -106,8 +115,12 @@ public class FenceApplicationService {
         computeBufferPolygon(fence);
         try {
             Fence saved = fenceRepository.save(fence);
-            signalRevisionService.bumpStatus(fence.getFarmId());
-            signalRevisionService.bumpFenceGeometry(fence.getFarmId());
+            signalRevisionService.bumpStatus(
+                    fence.getFarmId(), SignalEventType.FENCE_SIGNAL_CHANGED,
+                    "FENCE", saved.getId());
+            signalRevisionService.bumpFenceGeometry(
+                    fence.getFarmId(), SignalEventType.FENCE_GEOMETRY_CHANGED,
+                    "FENCE", saved.getId());
             return FenceDto.from(saved);
         } catch (ObjectOptimisticLockingFailureException e) {
             throw new ApiException(ErrorCode.STATE_CONFLICT,
@@ -140,8 +153,10 @@ public class FenceApplicationService {
         }
         fenceZoneRepository.deleteByFenceId(id);
         fenceRepository.deleteById(id);
-        signalRevisionService.bumpStatus(farmId);
-        signalRevisionService.bumpFenceGeometry(farmId);
+        signalRevisionService.bumpStatus(
+                farmId, SignalEventType.FENCE_SIGNAL_CHANGED, "FENCE", id);
+        signalRevisionService.bumpFenceGeometry(
+                farmId, SignalEventType.FENCE_GEOMETRY_CHANGED, "FENCE", id);
         return deletedAlerts;
     }
 

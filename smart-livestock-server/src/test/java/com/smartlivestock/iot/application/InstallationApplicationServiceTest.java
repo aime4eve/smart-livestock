@@ -11,6 +11,7 @@ import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import com.smartlivestock.iot.domain.port.RanchQueryPort;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
+import com.smartlivestock.ranch.application.signal.SignalEventType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -85,7 +86,6 @@ class InstallationApplicationServiceTest {
         existing.setId(50L);
         when(installationRepository.findActiveByLivestockIdAndDeviceType(10L, DeviceType.TRACKER))
                 .thenReturn(Optional.of(existing));
-
         var cmd = new InstallDeviceCommand(1L, 10L, 100L);
         assertThatThrownBy(() -> service.install(cmd))
                 .isInstanceOf(ApiException.class)
@@ -108,6 +108,9 @@ class InstallationApplicationServiceTest {
             i.setId(1L);
             return i;
         });
+        when(ranchQueryPort.findLivestockById(10L)).thenReturn(Optional.of(
+                new com.smartlivestock.iot.domain.port.dto.LivestockInfo(
+                        10L, 1L, "LIV-010", "FEMALE", null, null)));
 
         var cmd = new InstallDeviceCommand(1L, 10L, 100L);
         var result = service.install(cmd);
@@ -115,6 +118,8 @@ class InstallationApplicationServiceTest {
         assertThat(result.deviceId()).isEqualTo(1L);
         assertThat(result.livestockId()).isEqualTo(10L);
         assertThat(result.active()).isTrue();
+        org.mockito.Mockito.verify(signalRevisionService).bumpStatus(
+                1L, SignalEventType.INSTALLATION_CHANGED, "INSTALLATION", 1L);
     }
 
     @Test

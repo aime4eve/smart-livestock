@@ -49,6 +49,7 @@ class HealthApplicationServiceTelemetryTest {
     @Mock private HealthAnomalyService healthAnomalyService;
     @Mock private HealthAlertBridgeService healthAlertBridgeService;
     @Mock private com.smartlivestock.shared.common.MessageResolver messageResolver;
+    @Mock private com.smartlivestock.ranch.application.signal.SignalRevisionService signalRevisionService;
 
     private HealthApplicationService service;
 
@@ -61,7 +62,7 @@ class HealthApplicationServiceTelemetryTest {
                 subscriptionPort,
                 healthAnomalyService,
                 healthAlertBridgeService,
-                org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class),
+                signalRevisionService,
                feverService, digestiveService, estrusAnalysisService, epidemicService,
                 messageResolver);
 
@@ -199,6 +200,13 @@ class HealthApplicationServiceTelemetryTest {
         verify(digestiveService).assessStatus(new BigDecimal("2.00"), new BigDecimal("2.0"));
         assertEquals(MotilityStatus.NORMAL, snapshot.getMotilityStatus());
         assertEquals(new BigDecimal("2.00"), snapshot.getCurrentMotility());
+        verify(signalRevisionService).bumpStatus(
+                org.mockito.ArgumentMatchers.eq(1L),
+                org.mockito.ArgumentMatchers.argThat(events -> events.size() == 1
+                        && events.get(0).eventType()
+                                == com.smartlivestock.ranch.application.signal.SignalEventType.RUMEN_METRIC_CHANGED
+                        && events.get(0).entityId().equals(10L))
+        );
     }
 
     @Test

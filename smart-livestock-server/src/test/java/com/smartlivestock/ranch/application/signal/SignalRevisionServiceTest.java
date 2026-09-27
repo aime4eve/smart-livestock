@@ -27,12 +27,14 @@ class SignalRevisionServiceTest {
     private FarmSignalRevisionJpaRepository revisionRepository;
     @Mock
     private NamedParameterJdbcTemplate jdbcTemplate;
+    @Mock
+    private SignalEventOutboxService eventOutboxService;
 
     private SignalRevisionService service;
 
     @BeforeEach
     void setUp() {
-        service = new SignalRevisionService(revisionRepository, jdbcTemplate);
+        service = new SignalRevisionService(revisionRepository, jdbcTemplate, eventOutboxService);
     }
 
     @Test
@@ -54,6 +56,28 @@ class SignalRevisionServiceTest {
                 any(org.springframework.jdbc.core.namedparam.MapSqlParameterSource.class),
                 eq(Long.class)
         );
+    }
+
+    @Test
+    void statusAndGeometryBumpsRecordEntityChangeHints() {
+        when(revisionRepository.findById(1L)).thenReturn(Optional.empty());
+        when(revisionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(jdbcTemplate.queryForObject(
+                any(String.class),
+                any(org.springframework.jdbc.core.namedparam.MapSqlParameterSource.class),
+                eq(Long.class)
+        ))
+                .thenReturn(42L);
+
+        service.bumpStatus(1L, SignalEventType.ALERT_CHANGED, "ALERT", 20L);
+        service.bumpPosition(1L, SignalEventType.LIVESTOCK_POSITION_CHANGED, "LIVESTOCK", 21L);
+        service.bumpFenceGeometry(1L, SignalEventType.FENCE_GEOMETRY_CHANGED, "FENCE", 22L);
+
+        verify(eventOutboxService).record(1L, SignalEventType.ALERT_CHANGED, "ALERT", 20L);
+        verify(eventOutboxService).record(
+                1L, SignalEventType.LIVESTOCK_POSITION_CHANGED, "LIVESTOCK", 21L);
+        verify(eventOutboxService).record(
+                1L, SignalEventType.FENCE_GEOMETRY_CHANGED, "FENCE", 22L);
     }
 
     @Test

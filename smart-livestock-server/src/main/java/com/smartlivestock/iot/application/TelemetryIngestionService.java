@@ -21,6 +21,7 @@ import com.smartlivestock.ranch.domain.model.AlertType;
 import com.smartlivestock.ranch.domain.model.Severity;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
+import com.smartlivestock.ranch.application.signal.SignalEventType;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -394,7 +395,8 @@ public class TelemetryIngestionService {
         alert.setMessageKey(messageKey);
         alert.setMessageArgs(toJson(messageArgs));
         alertRepository.save(alert);
-        signalRevisionService.bumpStatus(farmId);
+        signalRevisionService.bumpStatus(
+                farmId, SignalEventType.ALERT_CHANGED, "ALERT", alert.getId());
     }
 
     private String toJson(List<?> args) {

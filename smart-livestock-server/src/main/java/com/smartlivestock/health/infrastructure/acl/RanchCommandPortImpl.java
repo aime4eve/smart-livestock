@@ -8,6 +8,7 @@ import com.smartlivestock.ranch.domain.model.AlertType;
 import com.smartlivestock.ranch.domain.model.Severity;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
+import com.smartlivestock.ranch.application.signal.SignalEventType;
 import org.springframework.stereotype.Component;
 
 @Component("healthRanchCommandPort")
@@ -37,7 +38,8 @@ public class RanchCommandPortImpl implements RanchCommandPort {
         alert.setMessageKey(info.messageKey());
         alert.setMessageArgs(toJson(info.messageArgs()));
       alertRepository.save(alert);
-       signalRevisionService.bumpStatus(info.farmId());
+       signalRevisionService.bumpStatus(
+               info.farmId(), SignalEventType.ALERT_CHANGED, "ALERT", alert.getId());
     }
 
     @Override
@@ -49,7 +51,8 @@ public class RanchCommandPortImpl implements RanchCommandPort {
         for (Alert alert : activeAlerts) {
             alert.autoResolve();
             alertRepository.save(alert);
-            signalRevisionService.bumpStatus(alert.getFarmId());
+            signalRevisionService.bumpStatus(
+                    alert.getFarmId(), SignalEventType.ALERT_CHANGED, "ALERT", alert.getId());
         }
     }
 
@@ -62,7 +65,8 @@ public class RanchCommandPortImpl implements RanchCommandPort {
         for (Alert alert : activeAlerts) {
             alert.autoResolve();
             alertRepository.save(alert);
-            signalRevisionService.bumpStatus(alert.getFarmId());
+            signalRevisionService.bumpStatus(
+                    alert.getFarmId(), SignalEventType.ALERT_CHANGED, "ALERT", alert.getId());
         }
     }
 
@@ -75,7 +79,8 @@ public class RanchCommandPortImpl implements RanchCommandPort {
         for (Alert alert : activeAlerts) {
             alert.autoResolve();
             alertRepository.save(alert);
-            signalRevisionService.bumpStatus(farmId);
+            signalRevisionService.bumpStatus(
+                    farmId, SignalEventType.ALERT_CHANGED, "ALERT", alert.getId());
         }
     }
 

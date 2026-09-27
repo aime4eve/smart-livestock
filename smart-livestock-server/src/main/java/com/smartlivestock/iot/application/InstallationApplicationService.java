@@ -9,6 +9,7 @@ import com.smartlivestock.iot.domain.model.Installation;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.domain.repository.InstallationRepository;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
+import com.smartlivestock.ranch.application.signal.SignalEventType;
 import com.smartlivestock.iot.domain.port.RanchQueryPort;
 import com.smartlivestock.iot.domain.port.dto.LivestockInfo;
 import com.smartlivestock.shared.common.ApiException;
@@ -49,7 +50,7 @@ public class InstallationApplicationService {
         }
        Installation installation = new Installation(command.deviceId(), command.livestockId(), command.operatorId());
         Installation saved = installationRepository.save(installation);
-        bumpLivestockStatus(command.livestockId());
+        bumpLivestockStatus(command.livestockId(), saved.getId());
         return InstallationDto.from(saved);
     }
 
@@ -71,7 +72,7 @@ public class InstallationApplicationService {
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "设备无活跃安装记录: " + deviceId));
         installation.remove();
         installationRepository.save(installation);
-        bumpLivestockStatus(installation.getLivestockId());
+        bumpLivestockStatus(installation.getLivestockId(), installation.getId());
     }
 
     @Transactional(readOnly = true)
@@ -92,7 +93,7 @@ public class InstallationApplicationService {
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "安装记录不存在: " + installationId));
         installation.remove();
         Installation saved = installationRepository.save(installation);
-        bumpLivestockStatus(installation.getLivestockId());
+        bumpLivestockStatus(installation.getLivestockId(), saved.getId());
         return InstallationDto.from(saved);
     }
 
@@ -116,9 +117,11 @@ public class InstallationApplicationService {
                 .map(InstallationDto::from);
     }
 
-    private void bumpLivestockStatus(Long livestockId) {
+    private void bumpLivestockStatus(Long livestockId, Long installationId) {
         ranchQueryPort.findLivestockById(livestockId)
                 .map(LivestockInfo::farmId)
-                .ifPresent(signalRevisionService::bumpStatus);
+                .ifPresent(farmId -> signalRevisionService.bumpStatus(
+                        farmId, SignalEventType.INSTALLATION_CHANGED,
+                        "INSTALLATION", installationId));
     }
 }

@@ -12,6 +12,7 @@ import com.smartlivestock.health.domain.model.*;
 import com.smartlivestock.health.domain.repository.*;
 import com.smartlivestock.health.domain.service.*;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
+import com.smartlivestock.ranch.application.signal.SignalEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -411,7 +412,32 @@ public class HealthApplicationService {
                         || prevTempStatus != snapshot.getTempStatus()
                         || prevMotilityStatus != snapshot.getMotilityStatus();
         if (metricChanged) {
-            signalRevisionService.bumpStatus(farmId);
+            boolean tempChanged = !Objects.equals(prevTempValue, snapshot.getCurrentTemp())
+                    || !Objects.equals(prevTempRecordedAt, snapshot.getCurrentTempRecordedAt())
+                    || !Objects.equals(prevTempSource, snapshot.getCurrentTempSource())
+                    || prevTempStatus != snapshot.getTempStatus();
+            boolean motilityChanged = !Objects.equals(prevMotilityValue, snapshot.getCurrentMotility())
+                    || !Objects.equals(prevMotilityRecordedAt, snapshot.getCurrentMotilityRecordedAt())
+                    || !Objects.equals(prevMotilitySource, snapshot.getCurrentMotilitySource())
+                    || prevMotilityStatus != snapshot.getMotilityStatus();
+            java.util.List<SignalRevisionService.SignalEvent> metricEvents =
+                    new java.util.ArrayList<>();
+            if (tempChanged) {
+                metricEvents.add(new SignalRevisionService.SignalEvent(
+                        SignalEventType.HEALTH_SIGNAL_CHANGED,
+                        "HEALTH_SNAPSHOT", livestockId));
+            }
+            if (motilityChanged) {
+                metricEvents.add(new SignalRevisionService.SignalEvent(
+                        SignalEventType.RUMEN_METRIC_CHANGED,
+                        "HEALTH_SNAPSHOT", livestockId));
+            }
+            if (metricEvents.isEmpty()) {
+                metricEvents.add(new SignalRevisionService.SignalEvent(
+                        SignalEventType.HEALTH_SIGNAL_CHANGED,
+                        "HEALTH_SNAPSHOT", livestockId));
+            }
+            signalRevisionService.bumpStatus(farmId, metricEvents);
         }
 
         // Trigger estrus scoring

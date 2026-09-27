@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -21,6 +22,7 @@ public class SignalRevisionService {
 
     private final FarmSignalRevisionJpaRepository revisionRepository;
     private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final SignalEventOutboxService eventOutboxService;
 
     @Transactional
     public FarmSignalRevision ensureFarm(Long farmId) {
@@ -47,13 +49,47 @@ public class SignalRevisionService {
     }
 
     @Transactional
+    public long bumpStatus(Long farmId, SignalEventType eventType, String entityType, Long entityId) {
+        return bumpStatus(farmId, List.of(new SignalEvent(eventType, entityType, entityId)));
+    }
+
+    @Transactional
+    public long bumpStatus(Long farmId, List<SignalEvent> events) {
+        long revision = bumpStatus(farmId);
+        events.forEach(event -> eventOutboxService.record(
+                farmId, event.eventType(), event.entityType(), event.entityId()));
+        return revision;
+    }
+
+    @Transactional
     public long bumpPosition(Long farmId) {
         return bump(farmId, "position_revision");
     }
 
     @Transactional
+    public long bumpPosition(
+            Long farmId, SignalEventType eventType, String entityType, Long entityId) {
+        long revision = bumpPosition(farmId);
+        eventOutboxService.record(farmId, eventType, entityType, entityId);
+        return revision;
+    }
+
+    @Transactional
     public long bumpFenceGeometry(Long farmId) {
         return bump(farmId, "fence_geometry_revision");
+    }
+
+    @Transactional
+    public long bumpFenceGeometry(
+            Long farmId, SignalEventType eventType, String entityType, Long entityId) {
+        long revision = bumpFenceGeometry(farmId);
+        eventOutboxService.record(farmId, eventType, entityType, entityId);
+        return revision;
+    }
+
+    @Transactional
+    public void recordEvent(Long farmId, SignalEventType eventType, String entityType, Long entityId) {
+        eventOutboxService.record(farmId, eventType, entityType, entityId);
     }
 
     public void validateListCursor(FarmSignalRevision revision, long cursor) {
@@ -129,4 +165,6 @@ public class SignalRevisionService {
     ) {}
 
     public record MapCursor(long statusRevision, long positionRevision, long fenceGeometryRevision) {}
+
+    public record SignalEvent(SignalEventType eventType, String entityType, Long entityId) {}
 }

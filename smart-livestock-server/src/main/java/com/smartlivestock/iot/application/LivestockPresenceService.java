@@ -17,6 +17,8 @@ import com.smartlivestock.ranch.domain.model.AlertStatus;
 import com.smartlivestock.ranch.domain.model.AlertType;
 import com.smartlivestock.ranch.domain.model.Severity;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
+import com.smartlivestock.ranch.application.signal.SignalEventType;
+import com.smartlivestock.ranch.application.signal.SignalRevisionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,6 +58,7 @@ public class LivestockPresenceService {
     private final LivestockRoamRepository livestockRoamRepository;
     private final AlertRepository alertRepository;
     private final ObjectMapper objectMapper;
+    private final SignalRevisionService signalRevisionService;
 
     @Value("${smartlivestock.presence.return-home.threshold-m:200}")
     private double returnHomeThresholdM;
@@ -244,6 +247,8 @@ public class LivestockPresenceService {
         alert.setMessageKey(messageKey);
         alert.setMessageArgs(toJson(List.of(device.deviceCode(), meters)));
         alertRepository.save(alert);
+        signalRevisionService.bumpStatus(
+                device.farmId(), SignalEventType.ALERT_CHANGED, "ALERT", alert.getId());
     }
 
     private void resolveScenarioAlert(Long deviceId, AlertType type) {
@@ -251,6 +256,9 @@ public class LivestockPresenceService {
                 .forEach(alert -> {
                     alert.autoResolve();
                     alertRepository.save(alert);
+                    signalRevisionService.bumpStatus(
+                            alert.getFarmId(), SignalEventType.ALERT_CHANGED,
+                            "ALERT", alert.getId());
                 });
     }
 

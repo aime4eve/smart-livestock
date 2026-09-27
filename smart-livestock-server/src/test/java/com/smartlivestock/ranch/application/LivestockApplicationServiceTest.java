@@ -8,6 +8,7 @@ import com.smartlivestock.ranch.domain.port.IoTQueryPort;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import com.smartlivestock.ranch.application.signal.SignalLocationProjectionService;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
+import com.smartlivestock.ranch.application.signal.SignalEventType;
 import com.smartlivestock.ranch.domain.port.IoTCommandPort;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -73,6 +74,8 @@ class LivestockApplicationServiceTest {
         assertThat(result.breed()).isEqualTo("ANGUS");
         assertThat(result.gender()).isEqualTo("MALE");
         assertThat(result.weight()).isEqualByComparingTo(new BigDecimal("450.5"));
+        verify(signalRevisionService).bumpStatus(
+                1L, SignalEventType.LIVESTOCK_CHANGED, "LIVESTOCK", 10L);
     }
 
     @Test
@@ -165,6 +168,8 @@ class LivestockApplicationServiceTest {
         assertThat(result.breed()).isEqualTo("WAGYU");
         assertThat(result.gender()).isEqualTo("FEMALE");
         assertThat(result.weight()).isEqualByComparingTo(new BigDecimal("500"));
+        verify(signalRevisionService).bumpStatus(
+                1L, SignalEventType.LIVESTOCK_CHANGED, "LIVESTOCK", 10L);
     }
 
     @Test
@@ -199,5 +204,7 @@ class LivestockApplicationServiceTest {
         service.deleteLivestock(10L);
         verify(iotCommandPort).removeAllActiveInstallations(10L);
         verify(livestockRepository).deleteById(10L);
+        verify(signalRevisionService).bumpStatus(
+                1L, SignalEventType.LIVESTOCK_CHANGED, "LIVESTOCK", 10L);
     }
 }
