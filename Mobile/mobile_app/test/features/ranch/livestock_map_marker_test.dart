@@ -34,11 +34,18 @@ void main() {
     });
 
     test('abnormal with unknown alert type returns danger', () {
-      expect(livestockHealthColor('WARNING', 'SOMETHING_ELSE'), AppColors.danger);
+      expect(
+        livestockHealthColor('WARNING', 'SOMETHING_ELSE'),
+        AppColors.danger,
+      );
     });
 
     test('abnormal with empty alert returns danger', () {
       expect(livestockHealthColor('CRITICAL', ''), AppColors.danger);
+    });
+
+    test('return home does not turn a normal marker red', () {
+      expect(livestockHealthColor('NORMAL', 'RETURN_HOME'), AppColors.success);
     });
   });
 
@@ -52,6 +59,8 @@ void main() {
               healthStatus: 'NORMAL',
               primaryAlert: '',
               fenceStatus: 'SAFE',
+              aiStatus: 'NONE',
+              presenceStatus: 'NORMAL',
             ),
           ),
         ),
@@ -68,6 +77,8 @@ void main() {
               healthStatus: 'NORMAL',
               primaryAlert: '',
               fenceStatus: 'SAFE',
+              aiStatus: 'OBSERVE',
+              presenceStatus: 'RETURN_HOME',
             ),
           ),
         ),

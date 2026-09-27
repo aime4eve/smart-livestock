@@ -41,22 +41,28 @@ class RanchAlertSummary {
 
   /// Total unread across all type groups (ranch bottom-tab badge).
   int get unreadTotal =>
-      byGroupUnread.fence + byGroupUnread.health + byGroupUnread.device;
+      byGroupUnread.fence +
+      byGroupUnread.health +
+      byGroupUnread.device +
+      byGroupUnread.presence;
 }
 
 /// fence = FENCE_BREACH+FENCE_APPROACH+ZONE_APPROACH,
 /// health = TEMPERATURE_ABNORMAL+DIGESTIVE_ABNORMAL+ESTRUS+EPIDEMIC+AI_ANOMALY,
 /// device = DEVICE_TAMPER+DEVICE_LOW_BATTERY.
+/// presence = RETURN_HOME+OUTLIER.
 class GroupCounts {
   const GroupCounts({
     this.fence = 0,
     this.health = 0,
     this.device = 0,
+    this.presence = 0,
   });
 
   final int fence;
   final int health;
   final int device;
+  final int presence;
 
   factory GroupCounts.fromJson(dynamic raw) {
     if (raw is! Map<String, dynamic>) {
@@ -66,6 +72,7 @@ class GroupCounts {
       fence: raw['fence'] as int? ?? 0,
       health: raw['health'] as int? ?? 0,
       device: raw['device'] as int? ?? 0,
+      presence: raw['presence'] as int? ?? 0,
     );
   }
 }

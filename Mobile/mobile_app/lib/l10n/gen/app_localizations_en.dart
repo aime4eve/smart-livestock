@@ -6770,6 +6770,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get livestockSignalFenceBreach => 'Out of fence';
 
   @override
+  String get livestockSignalPresenceReturnHome => 'Return home';
+
+  @override
   String get livestockSignalDeviceOffline => 'Device offline';
 
   @override

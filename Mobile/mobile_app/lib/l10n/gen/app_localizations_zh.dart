@@ -6614,6 +6614,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get livestockSignalFenceBreach => '越出围栏';
 
   @override
+  String get livestockSignalPresenceReturnHome => '待归栏';
+
+  @override
   String get livestockSignalDeviceOffline => '设备离线';
 
   @override

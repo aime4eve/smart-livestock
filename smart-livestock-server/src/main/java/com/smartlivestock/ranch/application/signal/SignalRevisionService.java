@@ -61,6 +61,10 @@ public class SignalRevisionService {
     }
 
     public MapCursor validateMapCursor(FarmSignalRevision revision, String cursor) {
+        // Zero is always an initial full sync, even when replay windows have overflowed.
+        if (cursor != null && cursor.trim().equals("0:0:0")) {
+            return new MapCursor(0, 0, 0);
+        }
         String[] parts = cursor == null || cursor.isBlank() ? new String[0] : cursor.split(":");
         if (parts.length != 3) {
             throw new SignalCursorInvalidException(

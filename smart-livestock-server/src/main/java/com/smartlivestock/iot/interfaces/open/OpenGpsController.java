@@ -42,7 +42,8 @@ public class OpenGpsController {
 
         List<GpsLogDto> latestLogs = installationApplicationService.findAllActive().stream()
                 .map(inst -> gpsLogApplicationService.getByDevice(inst.deviceId()).stream()
-                        .reduce((first, second) -> second)
+                        // getByDevice returns newest-first; take the first row.
+                        .findFirst()
                         .orElse(null))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());

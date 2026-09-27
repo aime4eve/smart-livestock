@@ -42,6 +42,7 @@ public class AlertApplicationService {
     private static final Set<String> GROUP_HEALTH = Set.of(
             "TEMPERATURE_ABNORMAL", "DIGESTIVE_ABNORMAL", "ESTRUS", "EPIDEMIC", "AI_ANOMALY");
     private static final Set<String> GROUP_DEVICE = Set.of("DEVICE_TAMPER", "DEVICE_LOW_BATTERY", "DEVICE_OFFLINE");
+    private static final Set<String> GROUP_PRESENCE = Set.of("RETURN_HOME", "OUTLIER");
 
     private final AlertRepository alertRepository;
     private final SpringDataAlertReadStatusRepository readStatusRepository;
@@ -197,7 +198,8 @@ public class AlertApplicationService {
         return new TypeGroupCounts(
                 sumGroup(byType, GROUP_FENCE),
                 sumGroup(byType, GROUP_HEALTH),
-                sumGroup(byType, GROUP_DEVICE));
+                sumGroup(byType, GROUP_DEVICE),
+                sumGroup(byType, GROUP_PRESENCE));
     }
 
     private int sumGroup(Map<String, Long> byType, Set<String> group) {

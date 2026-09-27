@@ -124,6 +124,17 @@ class _LivestockSignalSummaryState extends State<LivestockSignalSummary> {
         ),
       );
     }
+    if (signal.presence.returnHome) {
+      widgets.add(
+        _SignalBadge(
+          key: const Key('livestock-signal-presence'),
+          label: l10n.livestockSignalPresenceReturnHome,
+          icon: Icons.home_outlined,
+          color: AppColors.infoStrong,
+          background: AppColors.infoSoft,
+        ),
+      );
+    }
     if (signal.device.status == 'OFFLINE') {
       widgets.add(
         _SignalBadge(

@@ -270,9 +270,18 @@ public class SignalQueryService {
                 .map(alert -> alert.getType().name())
                 .distinct()
                 .toList();
-        boolean critical = activeAlerts.stream()
+        // RETURN_HOME is a presence signal, not a clinical health condition.
+        List<Alert> healthAlerts = activeAlerts.stream()
+                .filter(alert -> alert.getType()
+                        != com.smartlivestock.ranch.domain.model.AlertType.RETURN_HOME)
+                .toList();
+        List<String> healthAlertTypes = healthAlerts.stream()
+                .map(alert -> alert.getType().name())
+                .distinct()
+                .toList();
+        boolean critical = healthAlerts.stream()
                 .anyMatch(alert -> alert.getSeverity() == Severity.CRITICAL);
-        boolean warning = activeAlerts.stream()
+        boolean warning = healthAlerts.stream()
                 .anyMatch(alert -> alert.getSeverity() == Severity.WARNING);
 
         HealthMetricSignal temp = metricSignal(
@@ -338,15 +347,19 @@ public class SignalQueryService {
                 revision,
                 new HealthSignal(
                         healthStatus,
-                        activeTypes,
+                        healthAlertTypes,
                         new com.smartlivestock.ranch.application.signal.SignalDtos.HealthMetricsSignal(temp, motility)
                 ),
                 ai,
                 new FenceSignal(fenceStatus, activeTypes.stream()
                         .filter(type -> type.equals("FENCE_BREACH")
                                 || type.equals("FENCE_APPROACH")
-                                || type.equals("ZONE_APPROACH"))
+                        || type.equals("ZONE_APPROACH"))
                         .toList()),
+                new com.smartlivestock.ranch.application.signal.SignalDtos.PresenceSignal(
+                        activeTypes.contains("RETURN_HOME") ? "RETURN_HOME" : "NORMAL",
+                        activeTypes.stream().filter(type -> type.equals("RETURN_HOME")).toList()
+                ),
                 device,
                 new AlertSummarySignal(activeAlerts.size(), unreadCount)
         );
@@ -409,13 +422,12 @@ public class SignalQueryService {
 
     private HealthMetricSignal metricSignal(
             BigDecimal rawValue, String unit, String status, Instant recordedAt, String source) {
-        if (rawValue == null) {
+        // A value without a backend-verified time cannot safely be shown as current.
+        if (rawValue == null || recordedAt == null) {
             return new HealthMetricSignal(null, unit, "MISSING", null, null, "MISSING", null);
         }
-        long age = recordedAt == null
-                ? -1
-                : Math.max(0, Duration.between(recordedAt, Instant.now()).getSeconds());
-        String freshness = recordedAt == null ? "MISSING" : metricFreshness(age);
+        long age = Math.max(0, Duration.between(recordedAt, Instant.now()).getSeconds());
+        String freshness = metricFreshness(age);
         return new HealthMetricSignal(
                 rawValue.doubleValue(),
                 unit,
