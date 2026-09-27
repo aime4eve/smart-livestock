@@ -5266,5 +5266,69 @@
   ,"@workbenchAiRanking": {}
   ,"workbenchClose": "关闭"
   ,"@workbenchClose": {}
+  ,"livestockSignalHealthNormal": "健康"
+  ,"@livestockSignalHealthNormal": {}
+  ,"livestockSignalHealthWatch": "关注"
+  ,"@livestockSignalHealthWatch": {}
+  ,"livestockSignalHealthCritical": "异常"
+  ,"@livestockSignalHealthCritical": {}
+  ,"livestockSignalAiObserve": "AI 观察"
+  ,"@livestockSignalAiObserve": {}
+  ,"livestockSignalAiAlert": "AI 异常"
+  ,"@livestockSignalAiAlert": {}
+  ,"livestockSignalFenceApproach": "接近围栏"
+  ,"@livestockSignalFenceApproach": {}
+  ,"livestockSignalFenceBreach": "越出围栏"
+  ,"@livestockSignalFenceBreach": {}
+  ,"livestockSignalDeviceOffline": "设备离线"
+  ,"@livestockSignalDeviceOffline": {}
+  ,"livestockSignalDeviceFault": "设备故障"
+  ,"@livestockSignalDeviceFault": {}
+  ,"livestockSignalMoreCount": "+{count}"
+  ,"@livestockSignalMoreCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
+  ,"livestockMetricRumenTemperature": "瘤胃温度"
+  ,"@livestockMetricRumenTemperature": {}
+  ,"livestockMetricTemperatureValue": "{value}°C"
+  ,"@livestockMetricTemperatureValue": {
+    "placeholders": {
+      "value": {
+        "type": "double",
+        "format": "decimalPattern"
+      }
+    }
+  }
+  ,"livestockMetricRumenMotility": "蠕动次数"
+  ,"@livestockMetricRumenMotility": {}
+  ,"livestockMetricMotilityValue": "{value} 次/分"
+  ,"@livestockMetricMotilityValue": {
+    "placeholders": {
+      "value": {
+        "type": "double",
+        "format": "decimalPattern"
+      }
+    }
+  }
+  ,"livestockMetricNoData": "暂无数据"
+  ,"@livestockMetricNoData": {}
+  ,"livestockMetricDelayed": "数据延迟"
+  ,"@livestockMetricDelayed": {}
+  ,"livestockMetricStale": "数据过期"
+  ,"@livestockMetricStale": {}
+  ,"mapSignalNoPosition": "无定位"
+  ,"@mapSignalNoPosition": {}
+  ,"mapSignalDelayedPosition": "定位延迟"
+  ,"@mapSignalDelayedPosition": {}
+  ,"mapSignalStalePosition": "定位过期"
+  ,"@mapSignalStalePosition": {}
+  ,"signalSyncStale": "实时信号同步中断，正在自动恢复"
+  ,"@signalSyncStale": {}
+  ,"signalSyncRetry": "立即重试"
+  ,"@signalSyncRetry": {}
 
 }

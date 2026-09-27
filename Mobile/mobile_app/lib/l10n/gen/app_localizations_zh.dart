@@ -6591,4 +6591,84 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get workbenchClose => '关闭';
+
+  @override
+  String get livestockSignalHealthNormal => '健康';
+
+  @override
+  String get livestockSignalHealthWatch => '关注';
+
+  @override
+  String get livestockSignalHealthCritical => '异常';
+
+  @override
+  String get livestockSignalAiObserve => 'AI 观察';
+
+  @override
+  String get livestockSignalAiAlert => 'AI 异常';
+
+  @override
+  String get livestockSignalFenceApproach => '接近围栏';
+
+  @override
+  String get livestockSignalFenceBreach => '越出围栏';
+
+  @override
+  String get livestockSignalDeviceOffline => '设备离线';
+
+  @override
+  String get livestockSignalDeviceFault => '设备故障';
+
+  @override
+  String livestockSignalMoreCount(int count) {
+    return '+$count';
+  }
+
+  @override
+  String get livestockMetricRumenTemperature => '瘤胃温度';
+
+  @override
+  String livestockMetricTemperatureValue(double value) {
+    final intl.NumberFormat valueNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String valueString = valueNumberFormat.format(value);
+
+    return '$valueString°C';
+  }
+
+  @override
+  String get livestockMetricRumenMotility => '蠕动次数';
+
+  @override
+  String livestockMetricMotilityValue(double value) {
+    final intl.NumberFormat valueNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String valueString = valueNumberFormat.format(value);
+
+    return '$valueString 次/分';
+  }
+
+  @override
+  String get livestockMetricNoData => '暂无数据';
+
+  @override
+  String get livestockMetricDelayed => '数据延迟';
+
+  @override
+  String get livestockMetricStale => '数据过期';
+
+  @override
+  String get mapSignalNoPosition => '无定位';
+
+  @override
+  String get mapSignalDelayedPosition => '定位延迟';
+
+  @override
+  String get mapSignalStalePosition => '定位过期';
+
+  @override
+  String get signalSyncStale => '实时信号同步中断，正在自动恢复';
+
+  @override
+  String get signalSyncRetry => '立即重试';
 }

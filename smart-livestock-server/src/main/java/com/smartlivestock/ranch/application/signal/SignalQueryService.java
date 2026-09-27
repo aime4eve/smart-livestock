@@ -84,11 +84,6 @@ public class SignalQueryService {
         } catch (SignalCursorInvalidException e) {
             throw new com.smartlivestock.shared.common.ApiException(
                     com.smartlivestock.shared.common.ErrorCode.SIGNAL_CURSOR_INVALID, e.getMessage());
-        } catch (SignalCursorTooOldException e) {
-            throw new com.smartlivestock.shared.common.ApiException(
-                    com.smartlivestock.shared.common.ErrorCode.SIGNAL_CURSOR_TOO_OLD,
-                    e.getMessage() + "; resyncRequired=true"
-            );
         }
     }
 
@@ -177,11 +172,6 @@ public class SignalQueryService {
         } catch (IllegalArgumentException e) {
             throw new com.smartlivestock.shared.common.ApiException(
                     com.smartlivestock.shared.common.ErrorCode.VALIDATION_ERROR, e.getMessage());
-        } catch (SignalCursorTooOldException e) {
-            throw new com.smartlivestock.shared.common.ApiException(
-                    com.smartlivestock.shared.common.ErrorCode.SIGNAL_CURSOR_TOO_OLD,
-                    e.getMessage() + "; resyncRequired=true"
-            );
         } catch (SignalMapTooLargeException e) {
             throw new com.smartlivestock.shared.common.ApiException(
                     com.smartlivestock.shared.common.ErrorCode.SIGNAL_MAP_TOO_LARGE, e.getMessage());
@@ -391,6 +381,10 @@ public class SignalQueryService {
                                     || types.contains("ZONE_APPROACH") ? "APPROACH" : "NORMAL",
                             types,
                             count,
+                            fence.isActive(),
+                            fence.getColor(),
+                            fence.getFenceType(),
+                            fence.getVersion(),
                             includeGeometry ? fence.getVertices().stream()
                                     .map(point -> List.of(point.latitude(), point.longitude()))
                                     .toList() : null

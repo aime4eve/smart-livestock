@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -13,7 +14,10 @@ import 'package:hkt_livestock_agentic/core/map/tile_source_watermark.dart';
 import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 import 'package:hkt_livestock_agentic/core/map/farm_map_center.dart';
 import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
-import 'package:hkt_livestock_agentic/features/fence/domain/fence_polygon_contains.dart';
+import 'package:hkt_livestock_agentic/core/sync/signal_scope.dart';
+import 'package:hkt_livestock_agentic/core/sync/signal_status_banner.dart';
+import 'package:hkt_livestock_agentic/core/sync/signal_sync_controller.dart';
+import 'package:hkt_livestock_agentic/core/sync/signal_models.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
@@ -57,7 +61,8 @@ class _RanchPageState extends ConsumerState<RanchPage>
 
   int _sheetSnap = 1; // 0=peek(tabs only), 1=half(40%), 2=full(85%)
   late final AnimationController _breathingController;
-  Timer? _refreshTimer;
+  Timer? _freshnessTicker;
+  DateTime _freshnessNow = DateTime.now();
 
   @override
   void initState() {
@@ -67,11 +72,8 @@ class _RanchPageState extends ConsumerState<RanchPage>
       duration: const Duration(milliseconds: 1500),
     );
     _initTileProvider();
-    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (context.mounted) {
-        ref.read(ranchControllerProvider.notifier).silentRefresh();
-        ref.read(alertSummaryControllerProvider.notifier).silentRefresh();
-      }
+    _freshnessTicker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _freshnessNow = DateTime.now());
     });
   }
 
@@ -87,8 +89,8 @@ class _RanchPageState extends ConsumerState<RanchPage>
 
   @override
   void dispose() {
-    _refreshTimer?.cancel();
     _tileProvider?.dispose();
+    _freshnessTicker?.cancel();
     _breathingController.dispose();
     _mapController.dispose();
     super.dispose();
@@ -101,6 +103,12 @@ class _RanchPageState extends ConsumerState<RanchPage>
     final farmName = ref.watch(farmSwitcherControllerProvider).activeFarmName;
     final activeFarmId = ref.watch(farmSwitcherControllerProvider).activeFarmId;
     final role = ref.watch(sessionControllerProvider).role;
+    ref.listen(signalSyncControllerProvider, (previous, next) {
+      if (!next.mapLoaded) return;
+      if (previous?.cursor == next.cursor) return;
+      ref.read(ranchControllerProvider.notifier).silentRefresh();
+      ref.read(alertSummaryControllerProvider.notifier).silentRefresh();
+    });
 
     return Scaffold(
       key: const Key('page-ranch'),
@@ -111,11 +119,14 @@ class _RanchPageState extends ConsumerState<RanchPage>
           SizedBox(width: AppSpacing.sm),
         ],
       ),
-      body: asyncData.when(
-        data: (overview) =>
-            _buildMapWithSheet(context, overview, role, activeFarmId),
-        loading: () => _buildSkeletonMap(context),
-        error: (e, _) => _buildError(context, e.toString()),
+      body: SignalSyncScope(
+        mode: SignalSyncMode.map,
+        child: asyncData.when(
+          data: (overview) =>
+              _buildMapWithSheet(context, overview, role, activeFarmId),
+          loading: () => _buildSkeletonMap(context),
+          error: (e, _) => _buildError(context, e.toString()),
+        ),
       ),
     );
   }
@@ -127,11 +138,19 @@ class _RanchPageState extends ConsumerState<RanchPage>
     String? activeFarmId,
   ) {
     final canManage = role != null && RolePermission.canEditFence(role);
+    final signalState = ref.watch(signalSyncControllerProvider);
+    final signalPositions = ref.watch(ranchMapPositionsProvider);
+    final signalByLivestock = ref.watch(ranchMapSignalsProvider);
+    final signalFences = ref
+        .watch(ranchMapGeometryProvider)
+        .values
+        .map(_signalFenceToRanchFence)
+        .toList();
     // Transform decision follows the tiles actually serving the farm area:
     // 高德 online → GCJ-02, local offline/server OSM tiles → none.
     final refPoint =
-        overview.fences.isNotEmpty && overview.fences.first.points.isNotEmpty
-        ? overview.fences.first.points.first
+        signalFences.isNotEmpty && signalFences.first.points.isNotEmpty
+        ? signalFences.first.points.first
         : overview.livestockMarkers.isNotEmpty
         ? overview.livestockMarkers.first.toLatLng()
         : null;
@@ -151,41 +170,13 @@ class _RanchPageState extends ConsumerState<RanchPage>
       }
     }
 
-    // Build fence status map per livestock (from active fence alerts)
-    final fenceStatusMap = <String, String>{};
-    for (final alert in overview.alerts) {
-      if (alert.status != 'ACTIVE' || alert.livestockId == null) continue;
-      final type = alert.type;
-      final existing = fenceStatusMap[alert.livestockId!];
-      if (type == 'FENCE_BREACH') {
-        fenceStatusMap[alert.livestockId!] = 'BREACH';
-      } else if ((type == 'FENCE_APPROACH' || type == 'ZONE_APPROACH') &&
-          existing != 'BREACH') {
-        fenceStatusMap[alert.livestockId!] = 'APPROACH';
-      }
-    }
-
-    // Supplement fence status from GPS containment check (for livestock without alert-derived status)
-    final fenceRings = overview.fences.where((f) => f.points.length >= 3).map((
-      f,
-    ) {
-      final pts = shouldTransform
-          ? CoordTransform.wgs84ToGcj02All(f.points)
-          : f.points;
-      return pts;
-    }).toList();
-    for (final m in overview.livestockMarkers) {
-      if (fenceStatusMap.containsKey(m.livestockId)) continue;
-      final pos = shouldTransform
-          ? CoordTransform.wgs84ToGcj02(m.toLatLng())
-          : m.toLatLng();
-      final insideAnyFence = fenceRings.any(
-        (ring) => fencePolygonContainsLatLng(pos, ring),
-      );
-      if (!insideAnyFence && fenceRings.isNotEmpty) {
-        fenceStatusMap[m.livestockId] = 'BREACH';
-      }
-    }
+    // Fence status is authoritative in Signal Store; overview alerts remain
+    // only for the transition-period bottom-sheet lists.
+    final fenceStatusMap = {
+      for (final entry in signalByLivestock.entries)
+        if (entry.value.fence.status != 'NORMAL')
+          entry.key: entry.value.fence.status,
+    };
 
     return Stack(
       children: [
@@ -207,7 +198,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
             if (_selectedFenceId == null)
               PolygonLayer(
                 polygons: [
-                  for (final fence in overview.fences)
+                  for (final fence in signalFences)
                     Polygon(
                       points: shouldTransform
                           ? CoordTransform.wgs84ToGcj02All(fence.points)
@@ -223,7 +214,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                 animation: _breathingController,
                 builder: (context, _) => PolygonLayer(
                   polygons: [
-                    for (final fence in overview.fences)
+                    for (final fence in signalFences)
                       Polygon(
                         points: shouldTransform
                             ? CoordTransform.wgs84ToGcj02All(fence.points)
@@ -244,14 +235,14 @@ class _RanchPageState extends ConsumerState<RanchPage>
                 ),
               ),
             FenceBufferLayer(
-              fences: overview.fences,
+              fences: signalFences,
               bufferDistance: 50,
               shouldTransform: shouldTransform,
             ),
             MarkerLayer(
               markers: [
                 // Fence name labels
-                for (final fence in overview.fences)
+                for (final fence in signalFences)
                   if (fence.points.isNotEmpty)
                     Marker(
                       point: _fenceCenter(
@@ -267,27 +258,71 @@ class _RanchPageState extends ConsumerState<RanchPage>
                         selected: fence.id == _selectedFenceId,
                       ),
                     ),
-                // Livestock markers (unified)
-                for (final m in overview.livestockMarkers)
-                  Marker(
-                    point: shouldTransform
-                        ? CoordTransform.wgs84ToGcj02(m.toLatLng())
-                        : m.toLatLng(),
-                    width: 32,
-                    height: 32,
-                    child: LivestockMapMarker(
-                      key: Key('livestock-${m.livestockId}'),
-                      livestockCode: m.livestockCode,
-                      healthStatus: m.healthStatus,
-                      primaryAlert: m.primaryAlert,
-                      hasHealthTicket: m.hasHealthTicket,
-                      fenceStatus: fenceStatusMap[m.livestockId] ?? 'SAFE',
-                      onTap: () => _showLivestockDetail(context, m, overview),
-                    ),
-                  ),
+                // Livestock markers are owned by Signal Store in Phase 1b.
+                if (signalState.mapLoaded)
+                  for (final entry in signalPositions.entries)
+                    ...() {
+                      final position = entry.value;
+                      final signal = signalByLivestock[entry.key];
+                      if (signal == null || position.freshness == 'MISSING') {
+                        return const <Marker>[];
+                      }
+                      final marker = RanchLivestockMarker(
+                        livestockId: signal.livestockId,
+                        livestockCode: signal.livestockCode,
+                        latitude: position.latitude,
+                        longitude: position.longitude,
+                        healthStatus: signal.health.status,
+                        primaryAlert:
+                            signal.health.activeAlertTypes.firstOrNull ?? '',
+                        hasHealthTicket:
+                            signal.hasHealthAlert ||
+                            signal.ai.status == 'ALERT',
+                      );
+                      final effectiveFreshness = position.effectiveFreshness(
+                        _freshnessNow,
+                      );
+                      final opacity = effectiveFreshness == 'STALE'
+                          ? 0.45
+                          : effectiveFreshness == 'DELAYED'
+                          ? 0.75
+                          : 1.0;
+                      return [
+                        Marker(
+                          point: shouldTransform
+                              ? CoordTransform.wgs84ToGcj02(marker.toLatLng())
+                              : marker.toLatLng(),
+                          width: 32,
+                          height: 32,
+                          child: Opacity(
+                            opacity: opacity,
+                            child: LivestockMapMarker(
+                              key: Key('livestock-${marker.livestockId}'),
+                              livestockCode: marker.livestockCode,
+                              healthStatus: marker.healthStatus,
+                              primaryAlert: marker.primaryAlert,
+                              hasHealthTicket: marker.hasHealthTicket,
+                              fenceStatus: signal.fence.status,
+                              onTap: () => _showLivestockDetail(
+                                context,
+                                marker,
+                                overview,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ];
+                    }(),
               ],
             ),
           ],
+        ), // end FlutterMap Stack
+
+        const Positioned(
+          left: 0,
+          right: 0,
+          top: 0,
+          child: SignalSyncStatusBanner(),
         ),
 
         // Bottom sheet with segmented tabs (overview / fence / alerts)
@@ -605,22 +640,25 @@ class _RanchPageState extends ConsumerState<RanchPage>
       if (outsideFenceCount > 0) l10n.heroAttentionOutside(outsideFenceCount),
       if (severeAlertCount > 0) l10n.heroAttentionAlerts(severeAlertCount),
     ];
-    final isCalm = rate >= 0.95 &&
+    final isCalm =
+        rate >= 0.95 &&
         criticalCount == 0 &&
         outsideFenceCount == 0 &&
         severeAlertCount == 0;
     final title = isCalm
         ? l10n.heroTitleCalm
         : attentionLabels.length == 1
-            ? attentionLabels.single
-            : l10n.heroTitleNeedsAttention;
+        ? attentionLabels.single
+        : l10n.heroTitleNeedsAttention;
     final online = stats?.deviceOnlineRate ?? 0;
     final criticalLivestock = overview.livestockMarkers
         .where((marker) => marker.healthStatus == 'CRITICAL')
         .toList();
     final outsideFenceLivestock = _outsideFenceLivestock(overview);
     final severeAlerts = overview.alerts
-        .where((alert) => alert.status == 'ACTIVE' && alert.severity == 'CRITICAL')
+        .where(
+          (alert) => alert.status == 'ACTIVE' && alert.severity == 'CRITICAL',
+        )
         .toList();
 
     return Container(
@@ -748,11 +786,8 @@ class _RanchPageState extends ConsumerState<RanchPage>
                     label: l10n.heroAttentionAlerts(severeAlertCount),
                     icon: Icons.warning_amber_rounded,
                     color: AppColors.danger,
-                    onTap: () => _showSevereAlertSheet(
-                      context,
-                      overview,
-                      severeAlerts,
-                    ),
+                    onTap: () =>
+                        _showSevereAlertSheet(context, overview, severeAlerts),
                   ),
               ],
             ),
@@ -929,21 +964,47 @@ class _RanchPageState extends ConsumerState<RanchPage>
   }
 
   List<RanchLivestockMarker> _outsideFenceLivestock(RanchOverview overview) {
-    final activeFences = overview.fences
-        .where((fence) => fence.active && fence.points.length >= 3)
-        .toList();
-    if (activeFences.isEmpty) return const [];
+    final signalState = ref.watch(signalSyncControllerProvider);
+    if (!signalState.mapLoaded) return const [];
 
-    return overview.livestockMarkers
-        .where(
-          (marker) => !activeFences.any(
-            (fence) => fencePolygonContainsLatLng(
-              marker.toLatLng(),
-              fence.points,
-            ),
-          ),
-        )
+    return signalState.positions.values
+        .where((position) => position.freshness != SignalFreshness.missing)
+        .map((position) {
+          final signal = signalState.livestockSignal(position.livestockId);
+          if (signal == null || signal.fence.status != 'BREACH') return null;
+          return RanchLivestockMarker(
+            livestockId: signal.livestockId,
+            livestockCode: signal.livestockCode,
+            latitude: position.latitude,
+            longitude: position.longitude,
+            healthStatus: signal.health.status,
+            primaryAlert: signal.health.activeAlertTypes.firstOrNull ?? '',
+            hasHealthTicket:
+                signal.hasHealthAlert || signal.ai.status == 'ALERT',
+          );
+        })
+        .whereType<RanchLivestockMarker>()
         .toList();
+  }
+
+  RanchFenceData _signalFenceToRanchFence(MapFenceSignal fence) {
+    final rawColor = fence.color.replaceFirst('#', '');
+    final normalizedColor = rawColor.length == 6 ? 'FF$rawColor' : rawColor;
+    final colorValue = int.tryParse(normalizedColor, radix: 16) ?? 0xFF4C9A5F;
+    return RanchFenceData(
+      id: fence.fenceId,
+      name: fence.name,
+      active: fence.active,
+      type: fence.fenceType,
+      colorValue: colorValue,
+      points: fence.geometry
+          .where((point) => point.length >= 2)
+          .map((point) => LatLng(point[0], point[1]))
+          .toList(),
+      areaHectares: 0,
+      livestockCount: fence.livestockCount,
+      version: fence.version,
+    );
   }
 
   void _showAttentionDetailSheet(
@@ -996,8 +1057,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
                   padding: const EdgeInsets.fromLTRB(14, 0, 14, 6),
                   child: Text(
                     itemCount == 0
-                        ? AppLocalizations.of(sheetContext)!
-                            .ranchCriticalLivestockEmpty
+                        ? AppLocalizations.of(
+                            sheetContext,
+                          )!.ranchCriticalLivestockEmpty
                         : hint,
                     style: const TextStyle(
                       fontSize: 10,
@@ -1046,13 +1108,12 @@ class _RanchPageState extends ConsumerState<RanchPage>
       title: l10n.ranchOutsideFenceTitle,
       hint: l10n.ranchOutsideFenceHint,
       itemCount: livestock.length,
-      itemBuilder: (sheetContext, index) =>
-          _outsideFenceLivestockRow(
-            context,
-            overview,
-            livestock[index],
-            sheetContext,
-          ),
+      itemBuilder: (sheetContext, index) => _outsideFenceLivestockRow(
+        context,
+        overview,
+        livestock[index],
+        sheetContext,
+      ),
       actionLabel: l10n.ranchOutsideFenceView,
       onAction: () => setState(() {
         _sheetTab = 1;
@@ -1229,11 +1290,14 @@ class _RanchPageState extends ConsumerState<RanchPage>
       alert: AlertItem(
         id: alert.id,
         title: alert.message,
-        subtitle: _criticalAlertLabel(alert.type, AppLocalizations.of(context)!) ?? alert.type,
+        subtitle:
+            _criticalAlertLabel(alert.type, AppLocalizations.of(context)!) ??
+            alert.type,
         priority: alert.severity,
         type: alert.type,
         stage: alert.status,
-        livestockCode: overview.livestockMarkers
+        livestockCode:
+            overview.livestockMarkers
                 .where((marker) => marker.livestockId == alert.livestockId)
                 .firstOrNull
                 ?.livestockCode ??
