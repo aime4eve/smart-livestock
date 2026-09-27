@@ -270,6 +270,7 @@ class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
     }
     state = state.copyWith(
       livestockSignals: signals,
+      cursor: _cursor,
       livestockLoaded: true,
       stale: false,
       clearError: true,
