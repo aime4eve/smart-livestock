@@ -440,6 +440,25 @@ class TelemetryIngestionServiceTest {
     }
 
     @Test
+    void ingest_duplicateDeviceAndTime_skipsAllProcessing() {
+        Device device = createCapsuleDevice(151L);
+        when(deviceRepository.findById(151L)).thenReturn(Optional.of(device));
+        when(deviceTelemetryLogRepository.existsByDeviceIdAndReportTime(
+                151L, Instant.parse("2026-09-27T16:40:00Z"))).thenReturn(true);
+
+        service.ingest(
+                151L,
+                Map.of("gastricMotility", 252785L),
+                Instant.parse("2026-09-27T16:40:00Z"),
+                TelemetrySource.DATAGEN
+        );
+
+        verify(deviceTelemetryLogRepository, never()).save(any());
+        verify(eventPublisher, never()).publishEvent(any());
+        verify(gpsIngestionTaskRepository, never()).enqueue(any());
+    }
+
+    @Test
     void ingest_thingsBoardDeviceFault_triggersDeviceAlert() {
         Device device = createTrackerDevice(7L);
         device.setDeviceCode("TRK-TB");
