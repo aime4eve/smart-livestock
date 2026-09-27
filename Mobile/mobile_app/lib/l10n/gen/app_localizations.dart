@@ -12328,6 +12328,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'定位过期'**
   String get mapSignalStalePosition;
+
+  /// No description provided for @signalSyncStale.
+  ///
+  /// In zh, this message translates to:
+  /// **'实时信号同步中断，正在自动恢复'**
+  String get signalSyncStale;
+
+  /// No description provided for @signalSyncRetry.
+  ///
+  /// In zh, this message translates to:
+  /// **'立即重试'**
+  String get signalSyncRetry;
 }
 
 class _AppLocalizationsDelegate

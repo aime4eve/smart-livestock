@@ -24,6 +24,15 @@ class HealthMetricSignal {
   final String freshness;
   final String? source;
 
+  String effectiveFreshness([DateTime? now]) {
+    if (recordedAt == null) return SignalFreshness.missing;
+    final nowValue = now ?? DateTime.now();
+    final ageSeconds = nowValue.difference(recordedAt!).inSeconds;
+    if (ageSeconds <= 1800) return SignalFreshness.fresh;
+    if (ageSeconds <= 3600) return SignalFreshness.delayed;
+    return SignalFreshness.stale;
+  }
+
   static HealthMetricSignal missing(String unit) =>
       HealthMetricSignal(unit: unit);
 
@@ -248,6 +257,14 @@ class PositionSignal {
   final String freshness;
   final String source;
 
+  String effectiveFreshness([DateTime? now]) {
+    final nowValue = now ?? DateTime.now();
+    final ageSeconds = nowValue.difference(recordedAt).inSeconds;
+    if (ageSeconds <= 120) return SignalFreshness.fresh;
+    if (ageSeconds <= 600) return SignalFreshness.delayed;
+    return SignalFreshness.stale;
+  }
+
   factory PositionSignal.fromJson(Map<String, dynamic> json) {
     return PositionSignal(
       livestockId: (json['livestockId'] ?? '').toString(),
@@ -270,6 +287,10 @@ class MapFenceSignal {
     required this.status,
     required this.activeAlertTypes,
     required this.livestockCount,
+    required this.active,
+    required this.color,
+    required this.fenceType,
+    required this.version,
     required this.geometry,
   });
 
@@ -279,6 +300,10 @@ class MapFenceSignal {
   final String status;
   final List<String> activeAlertTypes;
   final int livestockCount;
+  final bool active;
+  final String color;
+  final String fenceType;
+  final int version;
   final List<List<double>> geometry;
 
   factory MapFenceSignal.fromJson(Map<String, dynamic> json) {
@@ -292,6 +317,10 @@ class MapFenceSignal {
           (json['activeAlertTypes'] as List?)?.whereType<String>().toList() ??
           const [],
       livestockCount: json['livestockCount'] as int? ?? 0,
+      active: json['active'] as bool? ?? true,
+      color: json['color'] as String? ?? '#FF4C9A5F',
+      fenceType: json['fenceType'] as String? ?? 'POLYGON',
+      version: json['version'] as int? ?? 1,
       geometry:
           rawGeometry
               ?.whereType<List>()

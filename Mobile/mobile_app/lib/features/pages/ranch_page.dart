@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -13,8 +15,9 @@ import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 import 'package:hkt_livestock_agentic/core/map/farm_map_center.dart';
 import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
 import 'package:hkt_livestock_agentic/core/sync/signal_scope.dart';
+import 'package:hkt_livestock_agentic/core/sync/signal_status_banner.dart';
 import 'package:hkt_livestock_agentic/core/sync/signal_sync_controller.dart';
-import 'package:hkt_livestock_agentic/features/fence/domain/fence_polygon_contains.dart';
+import 'package:hkt_livestock_agentic/core/sync/signal_models.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
@@ -58,6 +61,8 @@ class _RanchPageState extends ConsumerState<RanchPage>
 
   int _sheetSnap = 1; // 0=peek(tabs only), 1=half(40%), 2=full(85%)
   late final AnimationController _breathingController;
+  Timer? _freshnessTicker;
+  DateTime _freshnessNow = DateTime.now();
 
   @override
   void initState() {
@@ -67,6 +72,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
       duration: const Duration(milliseconds: 1500),
     );
     _initTileProvider();
+    _freshnessTicker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _freshnessNow = DateTime.now());
+    });
   }
 
   Future<void> _initTileProvider() async {
@@ -82,6 +90,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
   @override
   void dispose() {
     _tileProvider?.dispose();
+    _freshnessTicker?.cancel();
     _breathingController.dispose();
     _mapController.dispose();
     super.dispose();
@@ -132,11 +141,16 @@ class _RanchPageState extends ConsumerState<RanchPage>
     final signalState = ref.watch(signalSyncControllerProvider);
     final signalPositions = ref.watch(ranchMapPositionsProvider);
     final signalByLivestock = ref.watch(ranchMapSignalsProvider);
+    final signalFences = ref
+        .watch(ranchMapGeometryProvider)
+        .values
+        .map(_signalFenceToRanchFence)
+        .toList();
     // Transform decision follows the tiles actually serving the farm area:
     // 高德 online → GCJ-02, local offline/server OSM tiles → none.
     final refPoint =
-        overview.fences.isNotEmpty && overview.fences.first.points.isNotEmpty
-        ? overview.fences.first.points.first
+        signalFences.isNotEmpty && signalFences.first.points.isNotEmpty
+        ? signalFences.first.points.first
         : overview.livestockMarkers.isNotEmpty
         ? overview.livestockMarkers.first.toLatLng()
         : null;
@@ -156,19 +170,13 @@ class _RanchPageState extends ConsumerState<RanchPage>
       }
     }
 
-    // Build fence status map per livestock (from active fence alerts)
-    final fenceStatusMap = <String, String>{};
-    for (final alert in overview.alerts) {
-      if (alert.status != 'ACTIVE' || alert.livestockId == null) continue;
-      final type = alert.type;
-      final existing = fenceStatusMap[alert.livestockId!];
-      if (type == 'FENCE_BREACH') {
-        fenceStatusMap[alert.livestockId!] = 'BREACH';
-      } else if ((type == 'FENCE_APPROACH' || type == 'ZONE_APPROACH') &&
-          existing != 'BREACH') {
-        fenceStatusMap[alert.livestockId!] = 'APPROACH';
-      }
-    }
+    // Fence status is authoritative in Signal Store; overview alerts remain
+    // only for the transition-period bottom-sheet lists.
+    final fenceStatusMap = {
+      for (final entry in signalByLivestock.entries)
+        if (entry.value.fence.status != 'NORMAL')
+          entry.key: entry.value.fence.status,
+    };
 
     return Stack(
       children: [
@@ -190,7 +198,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
             if (_selectedFenceId == null)
               PolygonLayer(
                 polygons: [
-                  for (final fence in overview.fences)
+                  for (final fence in signalFences)
                     Polygon(
                       points: shouldTransform
                           ? CoordTransform.wgs84ToGcj02All(fence.points)
@@ -206,7 +214,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                 animation: _breathingController,
                 builder: (context, _) => PolygonLayer(
                   polygons: [
-                    for (final fence in overview.fences)
+                    for (final fence in signalFences)
                       Polygon(
                         points: shouldTransform
                             ? CoordTransform.wgs84ToGcj02All(fence.points)
@@ -227,14 +235,14 @@ class _RanchPageState extends ConsumerState<RanchPage>
                 ),
               ),
             FenceBufferLayer(
-              fences: overview.fences,
+              fences: signalFences,
               bufferDistance: 50,
               shouldTransform: shouldTransform,
             ),
             MarkerLayer(
               markers: [
                 // Fence name labels
-                for (final fence in overview.fences)
+                for (final fence in signalFences)
                   if (fence.points.isNotEmpty)
                     Marker(
                       point: _fenceCenter(
@@ -271,9 +279,12 @@ class _RanchPageState extends ConsumerState<RanchPage>
                             signal.hasHealthAlert ||
                             signal.ai.status == 'ALERT',
                       );
-                      final opacity = position.freshness == 'STALE'
+                      final effectiveFreshness = position.effectiveFreshness(
+                        _freshnessNow,
+                      );
+                      final opacity = effectiveFreshness == 'STALE'
                           ? 0.45
-                          : position.freshness == 'DELAYED'
+                          : effectiveFreshness == 'DELAYED'
                           ? 0.75
                           : 1.0;
                       return [
@@ -305,6 +316,13 @@ class _RanchPageState extends ConsumerState<RanchPage>
               ],
             ),
           ],
+        ), // end FlutterMap Stack
+
+        const Positioned(
+          left: 0,
+          right: 0,
+          top: 0,
+          child: SignalSyncStatusBanner(),
         ),
 
         // Bottom sheet with segmented tabs (overview / fence / alerts)
@@ -946,19 +964,47 @@ class _RanchPageState extends ConsumerState<RanchPage>
   }
 
   List<RanchLivestockMarker> _outsideFenceLivestock(RanchOverview overview) {
-    final activeFences = overview.fences
-        .where((fence) => fence.active && fence.points.length >= 3)
-        .toList();
-    if (activeFences.isEmpty) return const [];
+    final signalState = ref.watch(signalSyncControllerProvider);
+    if (!signalState.mapLoaded) return const [];
 
-    return overview.livestockMarkers
-        .where(
-          (marker) => !activeFences.any(
-            (fence) =>
-                fencePolygonContainsLatLng(marker.toLatLng(), fence.points),
-          ),
-        )
+    return signalState.positions.values
+        .where((position) => position.freshness != SignalFreshness.missing)
+        .map((position) {
+          final signal = signalState.livestockSignal(position.livestockId);
+          if (signal == null || signal.fence.status != 'BREACH') return null;
+          return RanchLivestockMarker(
+            livestockId: signal.livestockId,
+            livestockCode: signal.livestockCode,
+            latitude: position.latitude,
+            longitude: position.longitude,
+            healthStatus: signal.health.status,
+            primaryAlert: signal.health.activeAlertTypes.firstOrNull ?? '',
+            hasHealthTicket:
+                signal.hasHealthAlert || signal.ai.status == 'ALERT',
+          );
+        })
+        .whereType<RanchLivestockMarker>()
         .toList();
+  }
+
+  RanchFenceData _signalFenceToRanchFence(MapFenceSignal fence) {
+    final rawColor = fence.color.replaceFirst('#', '');
+    final normalizedColor = rawColor.length == 6 ? 'FF$rawColor' : rawColor;
+    final colorValue = int.tryParse(normalizedColor, radix: 16) ?? 0xFF4C9A5F;
+    return RanchFenceData(
+      id: fence.fenceId,
+      name: fence.name,
+      active: fence.active,
+      type: fence.fenceType,
+      colorValue: colorValue,
+      points: fence.geometry
+          .where((point) => point.length >= 2)
+          .map((point) => LatLng(point[0], point[1]))
+          .toList(),
+      areaHectares: 0,
+      livestockCount: fence.livestockCount,
+      version: fence.version,
+    );
   }
 
   void _showAttentionDetailSheet(

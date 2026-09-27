@@ -29,9 +29,9 @@ public class SignalRevisionService {
 
         FarmSignalRevisionJpaEntity entity = new FarmSignalRevisionJpaEntity();
         entity.setFarmId(farmId);
-        entity.setStatusRevision(0L);
-        entity.setPositionRevision(0L);
-        entity.setFenceGeometryRevision(0L);
+        entity.setStatusRevision(1L);
+        entity.setPositionRevision(1L);
+        entity.setFenceGeometryRevision(1L);
         entity.setUpdatedAt(Instant.now());
         return toRevision(revisionRepository.save(entity));
     }

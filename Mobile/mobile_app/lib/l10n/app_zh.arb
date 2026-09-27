@@ -5326,5 +5326,9 @@
   ,"@mapSignalDelayedPosition": {}
   ,"mapSignalStalePosition": "定位过期"
   ,"@mapSignalStalePosition": {}
+  ,"signalSyncStale": "实时信号同步中断，正在自动恢复"
+  ,"@signalSyncStale": {}
+  ,"signalSyncRetry": "立即重试"
+  ,"@signalSyncRetry": {}
 
 }

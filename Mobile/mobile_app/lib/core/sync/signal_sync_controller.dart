@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
 import 'package:hkt_livestock_agentic/core/api/farm_scoped_controller.dart';
 import 'package:hkt_livestock_agentic/core/sync/signal_models.dart';
 import 'package:hkt_livestock_agentic/core/sync/signal_repository.dart';
@@ -16,10 +17,15 @@ class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
   String? _farmId;
   String _cursor = '0:0:0';
   final Set<Object> _subscriptions = {};
-  bool _livestockSubscribed = false;
-  bool _mapSubscribed = false;
+  final Map<Object, _SignalSubscriptionMode> _subscriptionModes = {};
   List<String> _livestockIds = const [];
   bool _disposed = false;
+
+  bool get _livestockSubscribed =>
+      _subscriptionModes.containsValue(_SignalSubscriptionMode.livestock);
+
+  bool get _mapSubscribed =>
+      _subscriptionModes.containsValue(_SignalSubscriptionMode.map);
 
   @override
   SignalSyncState build() {
@@ -31,8 +37,7 @@ class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
     if (!session.isLoggedIn || farmId == null || farmId.isEmpty) {
       _stopTimer();
       _subscriptions.clear();
-      _livestockSubscribed = false;
-      _mapSubscribed = false;
+      _subscriptionModes.clear();
       _livestockIds = const [];
       return const SignalSyncState().clear(null);
     }
@@ -49,18 +54,18 @@ class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
   }
 
   Object subscribeLivestock() {
-    final token = Object();
+    final token = _SignalSubscriptionToken(_SignalSubscriptionMode.livestock);
     _subscriptions.add(token);
-    _livestockSubscribed = true;
+    _subscriptionModes[token] = _SignalSubscriptionMode.livestock;
     _ensureTimer();
     _scheduleRefresh();
     return token;
   }
 
   Object subscribeMap() {
-    final token = Object();
+    final token = _SignalSubscriptionToken(_SignalSubscriptionMode.map);
     _subscriptions.add(token);
-    _mapSubscribed = true;
+    _subscriptionModes[token] = _SignalSubscriptionMode.map;
     _ensureTimer();
     _scheduleRefresh();
     return token;
@@ -68,11 +73,11 @@ class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
 
   void unsubscribe(Object token) {
     _subscriptions.remove(token);
-    if (_subscriptions.isEmpty) {
-      _livestockSubscribed = false;
-      _mapSubscribed = false;
-      _stopTimer();
+    if (token is _SignalSubscriptionToken) {
+      _subscriptionModes.remove(token);
     }
+    if (_subscriptions.isEmpty) _subscriptionModes.clear();
+    if (_subscriptions.isEmpty) _stopTimer();
   }
 
   void setLivestockPage(List<String> livestockIds) {
@@ -157,6 +162,20 @@ class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
         _applyLivestock(response);
       }
       if (!_disposed && state.stale) state = state.copyWith(stale: false);
+    } on ApiException catch (e) {
+      if (e.code == 'SIGNAL_CURSOR_TOO_OLD') {
+        _cursor = '0:0:0';
+        _stopTimer();
+        state = SignalSyncState(
+          farmId: farmId,
+          cursor: _cursor,
+          stale: true,
+          error: e,
+        );
+        _scheduleRefresh();
+        return;
+      }
+      if (!_disposed) state = state.copyWith(stale: true, error: e);
     } catch (e) {
       if (!_disposed) state = state.copyWith(stale: true, error: e);
     } finally {
@@ -172,13 +191,52 @@ class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
     for (final position in response.positionUpdates) {
       positions[position.livestockId] = position;
     }
-    final signals = Map<String, LivestockSignal>.from(state.livestockSignals);
-    for (final signal in response.livestockSignals) {
-      signals[signal.livestockId] = signal;
+
+    var signals = state.livestockSignals;
+    if (response.statusChanged) {
+      signals = {
+        for (final signal in response.livestockSignals)
+          signal.livestockId: signal,
+      };
+      positions.removeWhere(
+        (livestockId, _) => !signals.containsKey(livestockId),
+      );
+    } else {
+      signals = Map<String, LivestockSignal>.from(signals);
+      for (final signal in response.livestockSignals) {
+        signals[signal.livestockId] = signal;
+      }
     }
-    final fences = response.fences.isEmpty
-        ? state.fences
-        : {for (final fence in response.fences) fence.fenceId: fence};
+
+    final parts = _cursor.split(':');
+    final previousGeometryRevision = int.tryParse(parts[2]) ?? 0;
+    final fullGeometry =
+        previousGeometryRevision == 0 || response.fenceGeometryChanged;
+    final responseFences = {
+      for (final fence in response.fences) fence.fenceId: fence,
+    };
+    final fences = fullGeometry
+        ? responseFences
+        : () {
+            final merged = Map<String, MapFenceSignal>.from(state.fences);
+            for (final entry in responseFences.entries) {
+              final cached = state.fences[entry.key];
+              merged[entry.key] = MapFenceSignal(
+                fenceId: entry.value.fenceId,
+                name: entry.value.name,
+                revision: entry.value.revision,
+                status: entry.value.status,
+                activeAlertTypes: entry.value.activeAlertTypes,
+                livestockCount: entry.value.livestockCount,
+                active: entry.value.active,
+                color: entry.value.color,
+                fenceType: entry.value.fenceType,
+                version: entry.value.version,
+                geometry: cached?.geometry ?? entry.value.geometry,
+              );
+            }
+            return merged;
+          }();
 
     _cursor = response.cursor;
     state = state.copyWith(
@@ -198,6 +256,13 @@ class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
     for (final signal in response.items) {
       signals[signal.livestockId] = signal;
     }
+    if (response.changed) {
+      signals.removeWhere(
+        (livestockId, _) =>
+            _livestockIds.contains(livestockId) &&
+            !response.items.any((signal) => signal.livestockId == livestockId),
+      );
+    }
     final parts = _cursor.split(':');
     final statusRevision = int.tryParse(parts.first) ?? 0;
     if (response.statusRevision > statusRevision) {
@@ -210,6 +275,15 @@ class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
       clearError: true,
     );
   }
+}
+
+enum _SignalSubscriptionMode { livestock, map }
+
+class _SignalSubscriptionToken {
+  _SignalSubscriptionToken(this.mode);
+
+  final _SignalSubscriptionMode mode;
+  final Object id = Object();
 }
 
 final signalSyncControllerProvider =

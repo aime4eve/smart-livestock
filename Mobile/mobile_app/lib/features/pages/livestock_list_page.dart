@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/core/l10n/enum_labels.dart';
 import 'package:hkt_livestock_agentic/core/sync/signal_models.dart';
+import 'package:hkt_livestock_agentic/core/sync/signal_status_banner.dart';
 import 'package:hkt_livestock_agentic/core/sync/signal_scope.dart';
 import 'package:hkt_livestock_agentic/core/sync/signal_sync_controller.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
@@ -87,6 +88,7 @@ class _LivestockListPageState extends ConsumerState<LivestockListPage> {
         mode: SignalSyncMode.livestock,
         child: Column(
           children: [
+            const SignalSyncStatusBanner(),
             // Search bar
             Padding(
               padding: const EdgeInsets.fromLTRB(

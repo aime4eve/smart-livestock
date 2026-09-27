@@ -6821,4 +6821,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mapSignalStalePosition => 'Stale position';
+
+  @override
+  String get signalSyncStale =>
+      'Live signal sync is interrupted; recovering automatically';
+
+  @override
+  String get signalSyncRetry => 'Retry now';
 }

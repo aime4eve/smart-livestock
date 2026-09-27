@@ -2,14 +2,14 @@
 
 CREATE TABLE farm_signal_revisions (
     farm_id BIGINT PRIMARY KEY REFERENCES farms(id) ON DELETE CASCADE,
-    status_revision BIGINT NOT NULL DEFAULT 0,
-    position_revision BIGINT NOT NULL DEFAULT 0,
-    fence_geometry_revision BIGINT NOT NULL DEFAULT 0,
+    status_revision BIGINT NOT NULL DEFAULT 1,
+    position_revision BIGINT NOT NULL DEFAULT 1,
+    fence_geometry_revision BIGINT NOT NULL DEFAULT 1,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-INSERT INTO farm_signal_revisions (farm_id)
-SELECT id FROM farms
+INSERT INTO farm_signal_revisions (farm_id, status_revision, position_revision, fence_geometry_revision)
+SELECT id, 1, 1, 1 FROM farms
 ON CONFLICT (farm_id) DO NOTHING;
 
 CREATE TABLE livestock_location_snapshots (
@@ -72,7 +72,7 @@ INSERT INTO livestock_location_snapshots (
 )
 SELECT
     livestock_id, farm_id, device_id, latitude, longitude,
-    accuracy, recorded_at, source, 0
+    accuracy, recorded_at, source, 1
 FROM latest_valid_positions;
 
 ALTER TABLE health_snapshots

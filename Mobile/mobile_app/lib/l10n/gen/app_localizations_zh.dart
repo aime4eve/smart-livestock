@@ -6665,4 +6665,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get mapSignalStalePosition => '定位过期';
+
+  @override
+  String get signalSyncStale => '实时信号同步中断，正在自动恢复';
+
+  @override
+  String get signalSyncRetry => '立即重试';
 }

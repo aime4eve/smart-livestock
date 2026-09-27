@@ -1,17 +1,42 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hkt_livestock_agentic/core/sync/signal_models.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
-class LivestockSignalSummary extends StatelessWidget {
+class LivestockSignalSummary extends StatefulWidget {
   const LivestockSignalSummary({super.key, required this.signal});
 
   final LivestockSignal signal;
 
   @override
+  State<LivestockSignalSummary> createState() => _LivestockSignalSummaryState();
+}
+
+class _LivestockSignalSummaryState extends State<LivestockSignalSummary> {
+  Timer? _freshnessTimer;
+  DateTime _now = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _freshnessTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _now = DateTime.now());
+    });
+  }
+
+  @override
+  void dispose() {
+    _freshnessTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final signal = widget.signal;
     final l10n = AppLocalizations.of(context)!;
-    final badges = _badges(l10n);
+    final badges = _badges(l10n, signal);
     final visibleBadges = badges.take(2).toList();
     final hiddenCount = badges.length - visibleBadges.length;
 
@@ -45,15 +70,17 @@ class LivestockSignalSummary extends StatelessWidget {
                 key: const Key('livestock-signal-rumen-temp'),
                 icon: Icons.thermostat,
                 label: l10n.livestockMetricRumenTemperature,
-                value: _temperatureValue(l10n),
-                freshness: signal.health.metrics.rumenTemperature.freshness,
+                value: _temperatureValue(l10n, signal),
+                freshness: signal.health.metrics.rumenTemperature
+                    .effectiveFreshness(_now),
               ),
               _MetricChip(
                 key: const Key('livestock-signal-rumen-motility'),
                 icon: Icons.monitor_heart_outlined,
                 label: l10n.livestockMetricRumenMotility,
-                value: _motilityValue(l10n),
-                freshness: signal.health.metrics.rumenMotility.freshness,
+                value: _motilityValue(l10n, signal),
+                freshness: signal.health.metrics.rumenMotility
+                    .effectiveFreshness(_now),
               ),
             ],
           ),
@@ -62,7 +89,7 @@ class LivestockSignalSummary extends StatelessWidget {
     );
   }
 
-  List<Widget> _badges(AppLocalizations l10n) {
+  List<Widget> _badges(AppLocalizations l10n, LivestockSignal signal) {
     final widgets = <Widget>[];
     final health = signal.health.status;
     if (health == 'CRITICAL') {
@@ -164,13 +191,13 @@ class LivestockSignalSummary extends StatelessWidget {
     return widgets;
   }
 
-  String? _temperatureValue(AppLocalizations l10n) {
+  String? _temperatureValue(AppLocalizations l10n, LivestockSignal signal) {
     final value = signal.health.metrics.rumenTemperature.value;
     if (value == null) return null;
     return l10n.livestockMetricTemperatureValue(value);
   }
 
-  String? _motilityValue(AppLocalizations l10n) {
+  String? _motilityValue(AppLocalizations l10n, LivestockSignal signal) {
     final value = signal.health.metrics.rumenMotility.value;
     if (value == null) return null;
     return l10n.livestockMetricMotilityValue(value);

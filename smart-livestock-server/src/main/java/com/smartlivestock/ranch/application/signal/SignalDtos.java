@@ -73,6 +73,10 @@ public final class SignalDtos {
             String status,
             List<String> activeAlertTypes,
             int livestockCount,
+            boolean active,
+            String color,
+            String fenceType,
+            int version,
             List<List<BigDecimal>> geometry
     ) {}
 
