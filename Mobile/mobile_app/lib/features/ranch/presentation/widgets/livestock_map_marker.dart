@@ -20,6 +20,16 @@ Color livestockHealthColor(String healthStatus, String primaryAlert) {
 /// Dedicated channel color for a livestock that has not returned home yet.
 Color livestockPresenceColor() => AppColors.warning;
 
+/// Position freshness is a separate marker channel: recent markers stay
+/// opaque, delayed markers are dimmed, and stale markers are weakest.
+double livestockPositionOpacity(String freshness) {
+  return switch (freshness) {
+    'STALE' => 0.45,
+    'DELAYED' => 0.75,
+    _ => 1.0,
+  };
+}
+
 /// Unified map marker for livestock showing health status (fill color)
 /// and fence status (border style) as two independent visual channels.
 ///

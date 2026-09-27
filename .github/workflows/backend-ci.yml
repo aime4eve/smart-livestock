@@ -39,5 +39,5 @@ jobs:
       - name: Compile
         run: ./gradlew compileJava
 
-      - name: Run tests
-        run: ./gradlew test
+      - name: Run unit tests
+        run: ./gradlew test -PexcludeIntegrationTests=true

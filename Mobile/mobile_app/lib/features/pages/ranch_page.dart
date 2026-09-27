@@ -289,11 +289,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
                       final effectiveFreshness = position.effectiveFreshness(
                         _freshnessNow,
                       );
-                      final opacity = effectiveFreshness == 'STALE'
-                          ? 0.45
-                          : effectiveFreshness == 'DELAYED'
-                          ? 0.75
-                          : 1.0;
+                      final opacity = livestockPositionOpacity(
+                        effectiveFreshness,
+                      );
                       return [
                         Marker(
                           point: shouldTransform
@@ -346,6 +344,8 @@ class _RanchPageState extends ConsumerState<RanchPage>
             fenceStatusMap: fenceStatusMap,
             outsideFenceCount: signalOutsideFenceCount,
             noPositionCodes: signalNoPositionCodes,
+            signalFences: signalFences,
+            signalLivestockTotal: signalByLivestock.length,
           ),
         ),
         TileSourceWatermark(provider: _tileProvider),
@@ -377,6 +377,8 @@ class _RanchPageState extends ConsumerState<RanchPage>
     required Map<String, String> fenceStatusMap,
     required int outsideFenceCount,
     required List<String> noPositionCodes,
+    required List<RanchFenceData> signalFences,
+    required int signalLivestockTotal,
   }) {
     final l10n = AppLocalizations.of(context)!;
     // Badge = UNREAD active alerts (per-user), not the raw active total —
@@ -493,12 +495,12 @@ class _RanchPageState extends ConsumerState<RanchPage>
                 ),
                 1 => SingleChildScrollView(
                   child: RanchFenceTab(
-                    fences: overview.fences,
+                    fences: signalFences,
                     alerts: overview.alerts,
                     noGpsCount: noPositionCodes.length,
                     outsideFenceCount: outsideFenceCount,
                     noPositionCodes: noPositionCodes,
-                    totalLivestock: overview.overallStats.totalLivestock,
+                    totalLivestock: signalLivestockTotal,
                     fenceUnread: summary?.byGroupUnread.fence ?? 0,
                     fenceStatusMap: fenceStatusMap,
                     livestockMarkers: overview.livestockMarkers,
@@ -508,7 +510,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                       setState(() {
                         _selectedFenceId = id.isEmpty ? null : id;
                         if (id.isNotEmpty) {
-                          final fence = overview.fences
+                          final fence = signalFences
                               .where((f) => f.id == id)
                               .firstOrNull;
                           if (fence != null) {
@@ -1015,7 +1017,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
       id: fence.fenceId,
       name: fence.name,
       active: fence.active,
-      type: fence.fenceType,
+      type: 'POLYGON',
       colorValue: colorValue,
       points: fence.geometry
           .where((point) => point.length >= 2)

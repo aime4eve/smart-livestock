@@ -9,6 +9,8 @@ import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.domain.repository.InstallationRepository;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
+import com.smartlivestock.iot.domain.port.RanchQueryPort;
+import com.smartlivestock.ranch.application.signal.SignalRevisionService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,6 +32,12 @@ class InstallationApplicationServiceTest {
 
     @Mock
     private DeviceRepository deviceRepository;
+
+    @Mock
+    private RanchQueryPort ranchQueryPort;
+
+    @Mock
+    private SignalRevisionService signalRevisionService;
 
     @InjectMocks
     private InstallationApplicationService service;

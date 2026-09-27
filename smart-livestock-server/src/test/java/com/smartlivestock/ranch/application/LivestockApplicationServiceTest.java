@@ -6,6 +6,8 @@ import com.smartlivestock.ranch.domain.model.Livestock;
 import com.smartlivestock.ranch.domain.port.HealthQueryPort;
 import com.smartlivestock.ranch.domain.port.IoTQueryPort;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
+import com.smartlivestock.ranch.application.signal.SignalLocationProjectionService;
+import com.smartlivestock.ranch.application.signal.SignalRevisionService;
 import com.smartlivestock.ranch.domain.port.IoTCommandPort;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -40,6 +42,12 @@ class LivestockApplicationServiceTest {
 
     @Mock
     private IoTCommandPort iotCommandPort;
+
+    @Mock
+    private SignalRevisionService signalRevisionService;
+
+    @Mock
+    private SignalLocationProjectionService signalLocationProjectionService;
 
     @InjectMocks
     private LivestockApplicationService service;

@@ -50,6 +50,13 @@ void main() {
   });
 
   group('LivestockMapMarker widget', () {
+    test('position freshness controls marker opacity', () {
+      expect(livestockPositionOpacity('FRESH'), 1.0);
+      expect(livestockPositionOpacity('DELAYED'), 0.75);
+      expect(livestockPositionOpacity('STALE'), 0.45);
+      expect(livestockPositionOpacity('MISSING'), 1.0);
+    });
+
     testWidgets('renders livestock code label', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
