@@ -57,7 +57,12 @@ public class JpaDatagenFarmControlRepositoryImpl implements DatagenFarmControlRe
                 .setParameter("farmId", farmId)
                 .setParameter("scenarioId", scenarioId)
                 .executeUpdate();
-        return lockByFarmId(farmId).orElseThrow();
+        DatagenFarmControl control = lockByFarmId(farmId).orElseThrow();
+        if (!scenarioId.equals(control.getScenarioId())) {
+            control.setScenarioId(scenarioId);
+            return save(control);
+        }
+        return control;
     }
 
     @Override
