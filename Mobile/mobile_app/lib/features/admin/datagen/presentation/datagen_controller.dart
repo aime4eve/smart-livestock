@@ -148,12 +148,22 @@ class DatagenController extends Notifier<DatagenConsoleState> {
     final farmId = state.selectedFarmId;
     if (console == null || farmId == null) return;
     final enabled = !console.enabled;
+    final eligibleDeviceIds = console.devices
+        .where((device) => device.eligible)
+        .map((device) => device.deviceId)
+        .toSet();
     if (enabled && state.selectedDeviceIds.isEmpty) {
+      if (eligibleDeviceIds.isEmpty) {
+        state = state.copyWith(
+          error: 'error.datagen.devicesRequired',
+          clearError: true,
+        );
+        return;
+      }
       state = state.copyWith(
-        error: 'error.datagen.devicesRequired',
+        selectedDeviceIds: eligibleDeviceIds,
         clearError: true,
       );
-      return;
     }
 
     state = state.copyWith(isSwitching: true, clearError: true);

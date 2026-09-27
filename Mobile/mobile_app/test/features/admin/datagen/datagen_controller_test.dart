@@ -152,7 +152,7 @@ void main() {
     expect(state.error, isNull);
   });
 
-  test('starting with no selected device is rejected', () async {
+  test('starting with no selected device defaults to eligible devices', () async {
     final fake = _FakeRepository();
     final container = ProviderContainer(
       overrides: [datagenApiRepositoryProvider.overrideWithValue(fake)],
@@ -164,10 +164,9 @@ void main() {
 
     await controller.toggleRun();
 
-    expect(container.read(datagenControllerProvider).error,
-        'error.datagen.devicesRequired');
-    expect(fake.enabledRequested, isFalse);
-    expect(fake.savedDeviceIds, isNull);
+    expect(fake.enabledRequested, isTrue);
+    expect(fake.savedDeviceIds, [5]);
+    expect(container.read(datagenControllerProvider).console?.enabled, true);
   });
 
   test('saving devices updates control request and console', () async {
