@@ -145,6 +145,7 @@ public class GlobalExceptionHandler {
             case SIGNAL_CURSOR_INVALID -> HttpStatus.CONFLICT;
             case SIGNAL_CURSOR_TOO_OLD -> HttpStatus.GONE;
             case SIGNAL_MAP_TOO_LARGE -> HttpStatus.BAD_REQUEST;
+            case SIGNAL_STREAM_TICKET_INVALID -> HttpStatus.UNAUTHORIZED;
             case AGENTIC_PLATFORM_DEVICE_NOT_MAPPED -> HttpStatus.CONFLICT;
             case AGENTIC_PLATFORM_SERVICE_UNAVAILABLE -> HttpStatus.SERVICE_UNAVAILABLE;
             case AGENTIC_PLATFORM_REGISTRATION_FAILED -> HttpStatus.BAD_GATEWAY;

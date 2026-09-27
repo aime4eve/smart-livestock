@@ -6,7 +6,49 @@ import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/sync/signal_repository.dart';
+import 'package:hkt_livestock_agentic/core/sync/signal_transport.dart';
 import 'package:hkt_livestock_agentic/core/sync/signal_sync_controller.dart';
+
+class _FakeTransport implements SignalRealtimeTransport {
+  _FakeTransport({this.fail = false, this.supported = false});
+
+  final bool fail;
+  @override
+  final bool supported;
+  final List<String> startedCursors = [];
+  int closeCount = 0;
+  bool connected = false;
+  void Function(SignalSseMessage message)? messageHandler;
+
+  @override
+  bool get isActive => connected;
+
+  @override
+  void start({
+    required String farmId,
+    required String cursor,
+    required void Function(SignalSseMessage message) onMessage,
+  }) {
+    startedCursors.add(cursor);
+    messageHandler = onMessage;
+    Future<void>.microtask(() {
+      if (fail) {
+        onMessage(const SignalSseMessage(SignalSseControl.failed));
+      } else {
+        connected = true;
+        onMessage(const SignalSseMessage(SignalSseControl.connected));
+        onMessage(const SignalSseMessage(SignalSseControl.changed));
+      }
+    });
+  }
+
+  @override
+  void close() {
+    closeCount++;
+    connected = false;
+    messageHandler = null;
+  }
+}
 
 class _FakeSessionController extends SessionController {
   @override
@@ -112,6 +154,7 @@ void main() {
         overrides: [
           sessionControllerProvider.overrideWith(_FakeSessionController.new),
           signalRepositoryProvider.overrideWithValue(repository),
+          signalTransportProvider.overrideWithValue(_FakeTransport()),
         ],
         child: _SubscriptionProbe(
           onSubscribed: (map) {
@@ -143,6 +186,7 @@ void main() {
         overrides: [
           sessionControllerProvider.overrideWith(_FakeSessionController.new),
           signalRepositoryProvider.overrideWithValue(repository),
+          signalTransportProvider.overrideWithValue(_FakeTransport()),
         ],
         child: _SubscriptionProbe(onSubscribed: (_) {}),
       ),
@@ -167,6 +211,7 @@ void main() {
         overrides: [
           sessionControllerProvider.overrideWith(_FakeSessionController.new),
           signalRepositoryProvider.overrideWithValue(repository),
+          signalTransportProvider.overrideWithValue(_FakeTransport()),
         ],
         child: _SubscriptionProbe(onSubscribed: (_) {}),
       ),
@@ -180,6 +225,66 @@ void main() {
       containerOf(tester).read(signalSyncControllerProvider).cursor,
       '2:1:1',
     );
+  });
+
+  testWidgets('connected SSE stops polling and events refresh once', (
+    tester,
+  ) async {
+    final repository = _FakeSignalRepository();
+    final transport = _FakeTransport(supported: true);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sessionControllerProvider.overrideWith(_FakeSessionController.new),
+          signalRepositoryProvider.overrideWithValue(repository),
+          signalTransportProvider.overrideWithValue(transport),
+        ],
+        child: _SubscriptionProbe(onSubscribed: (_) {}),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 150));
+
+    expect(transport.startedCursors, isNotEmpty);
+    expect(transport.closeCount, 0);
+    expect(
+      containerOf(tester).read(signalTransportStatusProvider),
+      'sse',
+    );
+
+    final mapCallsAfterEvent = repository.mapCalls;
+    await tester.pump(const Duration(seconds: 3));
+    expect(repository.mapCalls, mapCallsAfterEvent);
+  });
+
+  testWidgets('SSE failure falls back to three-second polling', (
+    tester,
+  ) async {
+    final repository = _FakeSignalRepository();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sessionControllerProvider.overrideWith(_FakeSessionController.new),
+          signalRepositoryProvider.overrideWithValue(repository),
+          signalTransportProvider.overrideWithValue(
+            _FakeTransport(fail: true, supported: true),
+          ),
+        ],
+        child: _SubscriptionProbe(onSubscribed: (_) {}),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 150));
+    expect(
+      containerOf(tester).read(signalTransportStatusProvider),
+      'polling',
+    );
+
+    final mapCallsBeforeWindow = repository.mapCalls;
+    await tester.pump(const Duration(seconds: 3));
+    expect(repository.mapCalls, greaterThan(mapCallsBeforeWindow));
   });
 }
 

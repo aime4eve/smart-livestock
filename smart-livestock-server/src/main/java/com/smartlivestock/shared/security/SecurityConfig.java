@@ -45,6 +45,11 @@ public class SecurityConfig {
                         .requestMatchers(
                                 HttpMethod.POST, "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/logout"
                         ).permitAll()
+                        // SSE is authorized by a signed-in ticket exchange; EventSource
+                        // cannot send the Authorization header on its reconnect.
+                        .requestMatchers(
+                                HttpMethod.GET, "/api/v1/farms/*/signals/stream"
+                        ).permitAll()
                         .requestMatchers(
                                 "/health"
                         ).permitAll()

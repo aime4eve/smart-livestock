@@ -1,4 +1,5 @@
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/sync/signal_transport.dart';
 import 'package:hkt_livestock_agentic/core/sync/signal_models.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -134,4 +135,8 @@ class SignalRepository {
 
 final signalRepositoryProvider = Provider<SignalRepository>(
   (_) => const SignalRepository(),
+);
+
+final signalTransportProvider = Provider<SignalRealtimeTransport>(
+  (_) => createSignalTransport(),
 );
