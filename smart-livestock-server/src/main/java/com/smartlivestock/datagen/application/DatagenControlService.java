@@ -131,33 +131,43 @@ public class DatagenControlService {
 
         List<Long> requested = request.deviceIds() == null
                 ? List.of() : request.deviceIds().stream().distinct().toList();
-        if (request.enabled() && requested.isEmpty()) {
-            throw new ApiException(ErrorCode.VALIDATION_ERROR,
-                    "error.datagen.devicesRequired");
+        if (request.enabled()) {
+            if (requested.isEmpty()) {
+                throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                        "error.datagen.devicesRequired");
+            }
+            validateDevices(farm, requested);
         }
-        validateDevices(farm, requested);
 
         List<DatagenDeviceAssignment> assignments =
                 assignmentRepository.findByControlId(control.getId());
-        Map<Long, DatagenDeviceAssignment> byDevice = assignments.stream()
-                .collect(Collectors.toMap(
-                        DatagenDeviceAssignment::getDeviceId, assignment -> assignment));
-        Set<Long> requestedSet = new HashSet<>(requested);
-        for (Long deviceId : requestedSet) {
-            DatagenDeviceAssignment assignment = byDevice.get(deviceId);
-            if (assignment == null) {
-                assignment = new DatagenDeviceAssignment();
-                assignment.setControlId(control.getId());
-                assignment.setDeviceId(deviceId);
-                assignment.setFirstAssignedAt(Instant.now());
-                byDevice.put(deviceId, assignment);
-                assignments.add(assignment);
+        if (request.enabled()) {
+            Map<Long, DatagenDeviceAssignment> byDevice = assignments.stream()
+                    .collect(Collectors.toMap(
+                            DatagenDeviceAssignment::getDeviceId, assignment -> assignment));
+            Set<Long> requestedSet = new HashSet<>(requested);
+            for (Long deviceId : requestedSet) {
+                DatagenDeviceAssignment assignment = byDevice.get(deviceId);
+                if (assignment == null) {
+                    assignment = new DatagenDeviceAssignment();
+                    assignment.setControlId(control.getId());
+                    assignment.setDeviceId(deviceId);
+                    assignment.setFirstAssignedAt(Instant.now());
+                    byDevice.put(deviceId, assignment);
+                    assignments.add(assignment);
+                }
+                assignment.activate();
             }
-            assignment.activate();
-        }
-        for (DatagenDeviceAssignment assignment : assignments) {
-            if (!requestedSet.contains(assignment.getDeviceId()) && assignment.isActive()) {
-                assignment.deactivate(Instant.now());
+            for (DatagenDeviceAssignment assignment : assignments) {
+                if (!requestedSet.contains(assignment.getDeviceId()) && assignment.isActive()) {
+                    assignment.deactivate(Instant.now());
+                }
+            }
+        } else {
+            for (DatagenDeviceAssignment assignment : assignments) {
+                if (assignment.isActive()) {
+                    assignment.deactivate(Instant.now());
+                }
             }
         }
 
@@ -165,7 +175,7 @@ public class DatagenControlService {
         if (request.enabled()) {
             ensureScenarioRunnable(scenario);
             control.enable();
-            synthesisService.clearDeviceSchedules(requestedSet);
+            synthesisService.clearDeviceSchedules(requested);
         } else {
             control.disable();
         }
