@@ -73,10 +73,10 @@ class SignalStreamNotificationServiceTest {
         assertThat(scheduledCommands).hasSize(1);
 
         clock.advance(Duration.ofSeconds(1));
-        scheduledCommands.getFirst().run();
+        scheduledCommands.get(0).run();
 
         assertThat(broadcasts).hasSize(1);
-        SignalStreamNotification notification = broadcasts.getFirst();
+        SignalStreamNotification notification = broadcasts.get(0);
         assertThat(notification.livestockIds()).containsExactly(14L, 15L);
         assertThat(notification.fenceIds()).containsExactly(7L);
         assertThat(notification.statusRevision()).isEqualTo(12L);
