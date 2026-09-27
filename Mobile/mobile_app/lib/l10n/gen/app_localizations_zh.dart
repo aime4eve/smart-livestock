@@ -6664,6 +6664,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get mapSignalNoPosition => '无定位';
 
   @override
+  String mapSignalNoPositionLivestock(String codes) {
+    return '无定位：$codes';
+  }
+
+  @override
   String get mapSignalDelayedPosition => '定位延迟';
 
   @override

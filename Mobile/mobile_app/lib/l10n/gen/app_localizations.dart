@@ -12323,6 +12323,12 @@ abstract class AppLocalizations {
   /// **'无定位'**
   String get mapSignalNoPosition;
 
+  /// No description provided for @mapSignalNoPositionLivestock.
+  ///
+  /// In zh, this message translates to:
+  /// **'无定位：{codes}'**
+  String mapSignalNoPositionLivestock(String codes);
+
   /// No description provided for @mapSignalDelayedPosition.
   ///
   /// In zh, this message translates to:

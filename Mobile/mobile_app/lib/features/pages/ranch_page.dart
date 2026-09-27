@@ -178,6 +178,12 @@ class _RanchPageState extends ConsumerState<RanchPage>
           entry.key: entry.value.fence.status,
     };
     final signalOutsideFenceCount = _outsideFenceLivestock(overview).length;
+    final signalNoPositionCodes = [
+      for (final entry in signalByLivestock.entries)
+        if (signalPositions[entry.key] == null ||
+            signalPositions[entry.key]!.freshness == SignalFreshness.missing)
+          entry.value.livestockCode,
+    ]..sort();
 
     return Stack(
       children: [
@@ -339,6 +345,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
             canManage,
             fenceStatusMap: fenceStatusMap,
             outsideFenceCount: signalOutsideFenceCount,
+            noPositionCodes: signalNoPositionCodes,
           ),
         ),
         TileSourceWatermark(provider: _tileProvider),
@@ -369,6 +376,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
     bool canManage, {
     required Map<String, String> fenceStatusMap,
     required int outsideFenceCount,
+    required List<String> noPositionCodes,
   }) {
     final l10n = AppLocalizations.of(context)!;
     // Badge = UNREAD active alerts (per-user), not the raw active total —
@@ -487,8 +495,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
                   child: RanchFenceTab(
                     fences: overview.fences,
                     alerts: overview.alerts,
-                    noGpsCount: overview.overallStats.noGpsCount,
-                    outsideFenceCount: overview.overallStats.outsideFenceCount,
+                    noGpsCount: noPositionCodes.length,
+                    outsideFenceCount: outsideFenceCount,
+                    noPositionCodes: noPositionCodes,
                     totalLivestock: overview.overallStats.totalLivestock,
                     fenceUnread: summary?.byGroupUnread.fence ?? 0,
                     fenceStatusMap: fenceStatusMap,

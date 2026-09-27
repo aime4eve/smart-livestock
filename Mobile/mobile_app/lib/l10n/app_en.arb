@@ -5326,6 +5326,12 @@
   ,"@livestockMetricStale": {}
   ,"mapSignalNoPosition": "No position"
   ,"@mapSignalNoPosition": {}
+  ,"mapSignalNoPositionLivestock": "No position: {codes}"
+  ,"@mapSignalNoPositionLivestock": {
+    "placeholders": {
+      "codes": {"type": "String"}
+    }
+  }
   ,"mapSignalDelayedPosition": "Delayed position"
   ,"@mapSignalDelayedPosition": {}
   ,"mapSignalStalePosition": "Stale position"

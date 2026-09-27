@@ -25,6 +25,7 @@ class RanchFenceTab extends ConsumerStatefulWidget {
     required this.alerts,
     required this.noGpsCount,
     required this.outsideFenceCount,
+    required this.noPositionCodes,
     required this.totalLivestock,
     required this.fenceUnread,
     required this.fenceStatusMap,
@@ -42,6 +43,10 @@ class RanchFenceTab extends ConsumerStatefulWidget {
   /// overview total: total = inside + outside + no GPS.
   final int noGpsCount;
   final int outsideFenceCount;
+
+  /// Signal-authoritative livestock without a current position. Their codes
+  /// are shown instead of rendering markers at fabricated coordinates.
+  final List<String> noPositionCodes;
 
   /// Total livestock on the farm (livestock summary tile).
   final int totalLivestock;
@@ -148,10 +153,12 @@ class _RanchFenceTabState extends ConsumerState<RanchFenceTab>
                     c2: _tileGreen2,
                     label: l10n.fenceTileLivestock,
                     big: '${widget.totalLivestock}',
-                    sub: widget.noGpsCount > 0
-                        ? l10n.fenceTileLivestockSubGps(widget.noGpsCount)
+                    sub: widget.noPositionCodes.isNotEmpty
+                        ? l10n.fenceTileLivestockSubGps(
+                            widget.noPositionCodes.length,
+                          )
                         : l10n.fenceTileLivestockSubOk,
-                    subColor: widget.noGpsCount > 0
+                    subColor: widget.noPositionCodes.isNotEmpty
                         ? AppColors.textSecondary
                         : AppColors.success,
                   ),
@@ -259,6 +266,32 @@ class _RanchFenceTabState extends ConsumerState<RanchFenceTab>
                     fontSize: 9,
                     fontWeight: FontWeight.w600,
                     color: AppColors.warning.withValues(alpha: 0.95),
+                  ),
+                ),
+              ),
+            ),
+          if (widget.noPositionCodes.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.xs),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppColors.info.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(9),
+                  border: Border.all(
+                    color: AppColors.info.withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Text(
+                  l10n.mapSignalNoPositionLivestock(
+                    widget.noPositionCodes.take(8).join('、'),
+                  ),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.info,
                   ),
                 ),
               ),
