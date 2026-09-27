@@ -12,6 +12,7 @@ import com.smartlivestock.health.domain.port.dto.AlertInfo;
 import com.smartlivestock.health.domain.repository.AnomalyScoreRepository;
 import com.smartlivestock.health.domain.repository.HealthSnapshotRepository;
 import com.smartlivestock.shared.cache.RedisCacheService;
+import com.smartlivestock.ranch.application.signal.SignalRevisionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,6 +47,7 @@ public class HealthAnomalyService {
     private final RanchQueryPort ranchQueryPort;
     private final RedisCacheService redis;
     private final ObjectMapper objectMapper;
+    private final SignalRevisionService signalRevisionService;
 
     @Value("${ai.alert.threshold:0.7}")
     private double alertThreshold;
@@ -125,10 +127,16 @@ public class HealthAnomalyService {
         // 4. Mirror current AI state onto health_snapshots (also when back to
         // normal, otherwise the overview keeps counting recovered livestock)
         snapshotRepo.findByLivestockId(livestockId).ifPresent(snap -> {
+            java.math.BigDecimal previousScore = snap.getAiAnomalyScore();
+            String previousType = snap.getAiAnomalyType();
             snap.setAiAnomalyScore(scoreValue);
             snap.setAiAnomalyType(pred.anomalyType());
             snap.setAiAssessedAt(now);
             snapshotRepo.save(snap);
+            if (!java.util.Objects.equals(previousScore, scoreValue)
+                    || !java.util.Objects.equals(previousType, pred.anomalyType())) {
+                signalRevisionService.bumpStatus(farmId);
+            }
         });
 
         // 5. AI alert lifecycle: create once per type, auto-resolve with hysteresis

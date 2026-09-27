@@ -11,6 +11,7 @@ import com.smartlivestock.iot.domain.model.DeviceType;
 import com.smartlivestock.health.domain.model.*;
 import com.smartlivestock.health.domain.repository.*;
 import com.smartlivestock.health.domain.service.*;
+import com.smartlivestock.ranch.application.signal.SignalRevisionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -40,6 +41,7 @@ public class HealthApplicationService {
     private final HealthSubscriptionPort subscriptionPort;
     private final HealthAnomalyService healthAnomalyService;
     private final HealthAlertBridgeService healthAlertBridgeService;
+    private final SignalRevisionService signalRevisionService;
 
     private final FeverAnalysisService feverService;
     private final DigestiveAnalysisService digestiveService;
@@ -181,7 +183,7 @@ public class HealthApplicationService {
         }
 
         refreshSnapshot(livestockId, farmId, deviceType.name(), temperature,
-                motilityFrequency, effectiveSource);
+                motilityFrequency, recordedAt, effectiveSource);
 
         // AI anomaly assessment no longer runs here — HealthAnomalyScheduler
         // polls recently active livestock instead (see 2026-06-30 incident:
@@ -334,7 +336,7 @@ public class HealthApplicationService {
 
     private void refreshSnapshot(Long livestockId, Long farmId, String telemetryType,
                                  BigDecimal latestTemp, BigDecimal latestMotilityFrequency,
-                                 String source) {
+                                 Instant motilityRecordedAt, String source) {
         if (livestockId == null || farmId == null) {
             return;
         }
@@ -351,6 +353,12 @@ public class HealthApplicationService {
         TempStatus prevTempStatus = snapshot.getTempStatus();
         MotilityStatus prevMotilityStatus = snapshot.getMotilityStatus();
         Integer prevEstrusScore = snapshot.getEstrusScore();
+        BigDecimal prevTempValue = snapshot.getCurrentTemp();
+        Instant prevTempRecordedAt = snapshot.getCurrentTempRecordedAt();
+        String prevTempSource = snapshot.getCurrentTempSource();
+        BigDecimal prevMotilityValue = snapshot.getCurrentMotility();
+        Instant prevMotilityRecordedAt = snapshot.getCurrentMotilityRecordedAt();
+        String prevMotilitySource = snapshot.getCurrentMotilitySource();
 
         // Update temperature status — implausible readings (detached/defective
         // capsule, e.g. ambient 27°C) are excluded so they cannot corrupt the
@@ -364,6 +372,8 @@ public class HealthApplicationService {
             if (latestPlausible != null) {
                 snapshot.setCurrentTemp(latestPlausible.getTemperature());
                 snapshot.setTempStatus(feverService.assessStatus(latestPlausible, plausibleTemps));
+                snapshot.setCurrentTempRecordedAt(latestPlausible.getRecordedAt());
+                snapshot.setCurrentTempSource(source);
             }
             // No plausible reading: keep the existing temp status and value.
         }
@@ -371,6 +381,8 @@ public class HealthApplicationService {
         // Update motility status
         if ("CAPSULE".equals(telemetryType) && latestMotilityFrequency != null) {
             snapshot.setCurrentMotility(latestMotilityFrequency);
+            snapshot.setCurrentMotilityRecordedAt(motilityRecordedAt);
+            snapshot.setCurrentMotilitySource(source);
 
             MotilityStatus motilityStatus = digestiveService.assessStatus(
                     latestMotilityFrequency, snapshot.getMotilityBaseline());
@@ -388,6 +400,19 @@ public class HealthApplicationService {
 
         snapshot.setLastAssessedAt(Instant.now());
         snapshotRepo.save(snapshot);
+
+        boolean metricChanged =
+                !Objects.equals(prevTempValue, snapshot.getCurrentTemp())
+                        || !Objects.equals(prevTempRecordedAt, snapshot.getCurrentTempRecordedAt())
+                        || !Objects.equals(prevTempSource, snapshot.getCurrentTempSource())
+                        || !Objects.equals(prevMotilityValue, snapshot.getCurrentMotility())
+                        || !Objects.equals(prevMotilityRecordedAt, snapshot.getCurrentMotilityRecordedAt())
+                        || !Objects.equals(prevMotilitySource, snapshot.getCurrentMotilitySource())
+                        || prevTempStatus != snapshot.getTempStatus()
+                        || prevMotilityStatus != snapshot.getMotilityStatus();
+        if (metricChanged) {
+            signalRevisionService.bumpStatus(farmId);
+        }
 
         // Trigger estrus scoring
         triggerEstrusScoring(livestockId, farmId, source);

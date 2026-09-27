@@ -42,7 +42,8 @@ class FenceVersionTest {
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.FenceZoneRepository.class),
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.LivestockRepository.class),
                 new BufferPolygonCalculator(),
-                new com.smartlivestock.ranch.domain.service.FenceLivestockCounter());
+                new com.smartlivestock.ranch.domain.service.FenceLivestockCounter(),
+                org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class));
         FenceDto result = svc.updateFence(1L, new UpdateFenceCommand("up", TRIANGLE, "#00F", 2));
         assertEquals(2, result.version());
     }
@@ -58,7 +59,8 @@ class FenceVersionTest {
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.FenceZoneRepository.class),
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.LivestockRepository.class),
                 new BufferPolygonCalculator(),
-                new com.smartlivestock.ranch.domain.service.FenceLivestockCounter());
+                new com.smartlivestock.ranch.domain.service.FenceLivestockCounter(),
+                org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class));
         assertThrows(ApiException.class,
             () -> svc.updateFence(1L, new UpdateFenceCommand("up", TRIANGLE, "#00F", 3)));
     }
@@ -75,7 +77,8 @@ class FenceVersionTest {
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.FenceZoneRepository.class),
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.repository.LivestockRepository.class),
                 new BufferPolygonCalculator(),
-                new com.smartlivestock.ranch.domain.service.FenceLivestockCounter());
+                new com.smartlivestock.ranch.domain.service.FenceLivestockCounter(),
+                org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class));
         FenceDto result = svc.updateFence(1L, new UpdateFenceCommand("up", TRIANGLE, "#00F", null));
         assertEquals(5, result.version());
     }

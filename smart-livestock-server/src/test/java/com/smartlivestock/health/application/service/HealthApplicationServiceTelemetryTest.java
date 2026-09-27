@@ -61,6 +61,7 @@ class HealthApplicationServiceTelemetryTest {
                 subscriptionPort,
                 healthAnomalyService,
                 healthAlertBridgeService,
+                org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class),
                feverService, digestiveService, estrusAnalysisService, epidemicService,
                 messageResolver);
 

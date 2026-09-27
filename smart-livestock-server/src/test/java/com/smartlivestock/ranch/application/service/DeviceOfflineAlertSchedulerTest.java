@@ -42,7 +42,9 @@ class DeviceOfflineAlertSchedulerTest {
                 21L, AlertType.DEVICE_OFFLINE, AlertStatus.ACTIVE)).thenReturn(List.of());
         when(alertRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        new DeviceOfflineAlertScheduler(deviceSignalPort, alertRepository, new ObjectMapper()).reconcile();
+        new DeviceOfflineAlertScheduler(deviceSignalPort, alertRepository, new ObjectMapper(),
+                org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class)
+        ).reconcile();
 
         ArgumentCaptor<Alert> captor = ArgumentCaptor.forClass(Alert.class);
         verify(alertRepository).save(captor.capture());
@@ -64,7 +66,9 @@ class DeviceOfflineAlertSchedulerTest {
                 21L, AlertType.DEVICE_OFFLINE, AlertStatus.ACTIVE)).thenReturn(List.of(active));
         when(alertRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        new DeviceOfflineAlertScheduler(deviceSignalPort, alertRepository, new ObjectMapper()).reconcile();
+        new DeviceOfflineAlertScheduler(deviceSignalPort, alertRepository, new ObjectMapper(),
+                org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class)
+        ).reconcile();
 
         verify(alertRepository).save(active);
         assertThat(active.getStatus()).isEqualTo(AlertStatus.AUTO_RESOLVED);
@@ -79,7 +83,9 @@ class DeviceOfflineAlertSchedulerTest {
         when(alertRepository.findByDeviceIdAndTypeAndStatus(
                 21L, AlertType.DEVICE_OFFLINE, AlertStatus.ACTIVE)).thenReturn(List.of(active));
 
-        new DeviceOfflineAlertScheduler(deviceSignalPort, alertRepository, new ObjectMapper()).reconcile();
+        new DeviceOfflineAlertScheduler(deviceSignalPort, alertRepository, new ObjectMapper(),
+                org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class)
+        ).reconcile();
 
         verify(alertRepository, never()).save(any());
     }

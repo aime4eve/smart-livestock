@@ -58,7 +58,8 @@ class TelemetryIngestionServiceTest {
                 ranchQueryPort, gpsIngestionTaskRepository, alertRepository, eventPublisher,
                 new GpsDistanceDerivationService(),
                 gpsDataGovernanceService, deviceLinkQualityService,
-                new com.fasterxml.jackson.databind.ObjectMapper());
+                new com.fasterxml.jackson.databind.ObjectMapper(),
+                org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class));
     }
 
     private Device createCapsuleDevice(Long id) {

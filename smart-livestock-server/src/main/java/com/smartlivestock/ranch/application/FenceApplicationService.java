@@ -2,6 +2,7 @@ package com.smartlivestock.ranch.application;
 
 import com.smartlivestock.ranch.application.command.CreateFenceCommand;
 import com.smartlivestock.ranch.application.command.UpdateFenceCommand;
+import com.smartlivestock.ranch.application.signal.SignalRevisionService;
 import com.smartlivestock.ranch.application.dto.FenceDto;
 import com.smartlivestock.ranch.domain.model.Fence;
 import com.smartlivestock.ranch.domain.model.GpsCoordinate;
@@ -33,6 +34,7 @@ public class FenceApplicationService {
     private final LivestockRepository livestockRepository;
     private final BufferPolygonCalculator bufferPolygonCalculator;
     private final FenceLivestockCounter fenceLivestockCounter;
+    private final SignalRevisionService signalRevisionService;
 
     @Transactional
     public FenceDto createFence(CreateFenceCommand command) {
@@ -43,6 +45,8 @@ public class FenceApplicationService {
         }
         computeBufferPolygon(fence);
         Fence saved = fenceRepository.save(fence);
+        signalRevisionService.bumpStatus(command.farmId());
+        signalRevisionService.bumpFenceGeometry(command.farmId());
         return FenceDto.from(saved);
     }
 
@@ -81,6 +85,8 @@ public class FenceApplicationService {
         computeBufferPolygon(fence);
         try {
             Fence saved = fenceRepository.save(fence);
+            signalRevisionService.bumpStatus(fence.getFarmId());
+            signalRevisionService.bumpFenceGeometry(fence.getFarmId());
             return FenceDto.from(saved);
         } catch (ObjectOptimisticLockingFailureException e) {
             throw new ApiException(ErrorCode.STATE_CONFLICT,
@@ -100,6 +106,8 @@ public class FenceApplicationService {
         computeBufferPolygon(fence);
         try {
             Fence saved = fenceRepository.save(fence);
+            signalRevisionService.bumpStatus(fence.getFarmId());
+            signalRevisionService.bumpFenceGeometry(fence.getFarmId());
             return FenceDto.from(saved);
         } catch (ObjectOptimisticLockingFailureException e) {
             throw new ApiException(ErrorCode.STATE_CONFLICT,
@@ -121,6 +129,8 @@ public class FenceApplicationService {
         if (fenceRepository.findById(id).isEmpty()) {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "围栏不存在: " + id);
         }
+        Fence fence = fenceRepository.findById(id).orElseThrow();
+        Long farmId = fence.getFarmId();
         int deletedAlerts = 0;
         if (deleteAlerts) {
             alertRepository.deleteReadStatusByFenceId(id);
@@ -130,6 +140,8 @@ public class FenceApplicationService {
         }
         fenceZoneRepository.deleteByFenceId(id);
         fenceRepository.deleteById(id);
+        signalRevisionService.bumpStatus(farmId);
+        signalRevisionService.bumpFenceGeometry(farmId);
         return deletedAlerts;
     }
 

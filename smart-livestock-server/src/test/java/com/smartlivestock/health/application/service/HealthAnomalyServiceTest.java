@@ -39,13 +39,15 @@ class HealthAnomalyServiceTest {
     @Mock private RanchQueryPort ranchQueryPort;
     @Mock private RedisCacheService redis;
     @Spy private ObjectMapper objectMapper = new ObjectMapper();
+    @Mock private com.smartlivestock.ranch.application.signal.SignalRevisionService signalRevisionService;
 
     private HealthAnomalyService service;
 
     @BeforeEach
     void setUp() {
         service = new HealthAnomalyService(anomalyScoreClient, anomalyScoreRepo,
-                snapshotRepo, ranchCommandPort, ranchQueryPort, redis, objectMapper);
+                snapshotRepo, ranchCommandPort, ranchQueryPort, redis, objectMapper,
+                signalRevisionService);
         ReflectionTestUtils.setField(service, "alertThreshold", 0.7);
         ReflectionTestUtils.setField(service, "resolveThreshold", 0.5);
         ReflectionTestUtils.setField(service, "dedupTtlMinutes", 60);

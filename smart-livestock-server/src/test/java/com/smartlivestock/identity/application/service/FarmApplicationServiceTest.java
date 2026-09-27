@@ -41,7 +41,8 @@ class FarmApplicationServiceTest {
     void setUp() {
         service = new FarmApplicationService(
                 farmRepository, persistenceContext, tenantRepository, userRepository,
-                assignmentRepository, ranchCommandPort
+                assignmentRepository, ranchCommandPort,
+                org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class)
         );
     }
 

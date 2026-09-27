@@ -46,6 +46,12 @@ public class Livestock extends AggregateRoot {
        this.lastPositionAt = Instant.now();
    }
 
+   public void updatePosition(BigDecimal latitude, BigDecimal longitude, Instant positionAt) {
+       this.lastLatitude = latitude;
+       this.lastLongitude = longitude;
+       this.lastPositionAt = positionAt != null ? positionAt : Instant.now();
+   }
+
     /**
      * Update editable livestock info fields.
      */

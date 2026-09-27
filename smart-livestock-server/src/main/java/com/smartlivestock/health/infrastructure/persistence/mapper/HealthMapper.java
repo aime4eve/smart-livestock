@@ -148,6 +148,10 @@ public final class HealthMapper {
         d.setEstrusScore(e.getEstrusScore());
         d.setActivityStatus(ActivityStatus.valueOf(e.getActivityStatus()));
         d.setLastAssessedAt(e.getLastAssessedAt());
+        d.setCurrentTempRecordedAt(e.getCurrentTempRecordedAt());
+        d.setCurrentTempSource(e.getCurrentTempSource());
+        d.setCurrentMotilityRecordedAt(e.getCurrentMotilityRecordedAt());
+        d.setCurrentMotilitySource(e.getCurrentMotilitySource());
         d.setCreatedAt(e.getCreatedAt());
         d.setUpdatedAt(e.getUpdatedAt());
         d.setAiAnomalyScore(e.getAiAnomalyScore());
@@ -170,6 +174,10 @@ public final class HealthMapper {
         e.setEstrusScore(d.getEstrusScore());
         e.setActivityStatus(d.getActivityStatus().name());
         e.setLastAssessedAt(d.getLastAssessedAt());
+        e.setCurrentTempRecordedAt(d.getCurrentTempRecordedAt());
+        e.setCurrentTempSource(d.getCurrentTempSource());
+        e.setCurrentMotilityRecordedAt(d.getCurrentMotilityRecordedAt());
+        e.setCurrentMotilitySource(d.getCurrentMotilitySource());
         e.setCreatedAt(d.getCreatedAt());
         e.setUpdatedAt(d.getUpdatedAt());
         e.setAiAnomalyScore(d.getAiAnomalyScore());

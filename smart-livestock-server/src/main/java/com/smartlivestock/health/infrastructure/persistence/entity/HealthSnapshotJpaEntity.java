@@ -44,6 +44,14 @@ public class HealthSnapshotJpaEntity {
 
     @Column(name = "last_assessed_at")
     private Instant lastAssessedAt;
+    @Column(name = "current_temp_recorded_at")
+    private Instant currentTempRecordedAt;
+    @Column(name = "current_temp_source", length = 32)
+    private String currentTempSource;
+    @Column(name = "current_motility_recorded_at")
+    private Instant currentMotilityRecordedAt;
+    @Column(name = "current_motility_source", length = 32)
+    private String currentMotilitySource;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -90,6 +98,14 @@ public class HealthSnapshotJpaEntity {
     public void setActivityStatus(String activityStatus) { this.activityStatus = activityStatus; }
     public Instant getLastAssessedAt() { return lastAssessedAt; }
     public void setLastAssessedAt(Instant lastAssessedAt) { this.lastAssessedAt = lastAssessedAt; }
+    public Instant getCurrentTempRecordedAt() { return currentTempRecordedAt; }
+    public void setCurrentTempRecordedAt(Instant currentTempRecordedAt) { this.currentTempRecordedAt = currentTempRecordedAt; }
+    public String getCurrentTempSource() { return currentTempSource; }
+    public void setCurrentTempSource(String currentTempSource) { this.currentTempSource = currentTempSource; }
+    public Instant getCurrentMotilityRecordedAt() { return currentMotilityRecordedAt; }
+    public void setCurrentMotilityRecordedAt(Instant currentMotilityRecordedAt) { this.currentMotilityRecordedAt = currentMotilityRecordedAt; }
+    public String getCurrentMotilitySource() { return currentMotilitySource; }
+    public void setCurrentMotilitySource(String currentMotilitySource) { this.currentMotilitySource = currentMotilitySource; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }

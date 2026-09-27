@@ -11,6 +11,7 @@ import java.util.Optional;
 
 public interface SpringDataUserFarmAssignmentRepository extends JpaRepository<UserFarmAssignmentJpaEntity, Long> {
     boolean existsByUserIdAndFarmId(Long userId, Long farmId);
+    boolean existsByUserIdAndFarmIdAndStatus(Long userId, Long farmId, String status);
     Optional<UserFarmAssignmentJpaEntity> findByUserIdAndFarmId(Long userId, Long farmId);
 
     @Modifying

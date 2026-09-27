@@ -45,6 +45,8 @@ class AlertApplicationServiceTest {
     private RedisCacheService redisCacheService;
     @Mock
     private ObjectMapper objectMapper;
+    @Mock
+    private com.smartlivestock.ranch.application.signal.SignalRevisionService signalRevisionService;
 
     @InjectMocks
     private AlertApplicationService service;

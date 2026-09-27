@@ -7,6 +7,7 @@ import com.smartlivestock.ranch.domain.model.AlertType;
 import com.smartlivestock.ranch.domain.model.Severity;
 import com.smartlivestock.ranch.domain.port.DeviceSignalPort;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
+import com.smartlivestock.ranch.application.signal.SignalRevisionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -31,6 +32,7 @@ public class DeviceOfflineAlertScheduler {
     private final DeviceSignalPort deviceSignalPort;
     private final AlertRepository alertRepository;
     private final ObjectMapper objectMapper;
+    private final SignalRevisionService signalRevisionService;
 
     @Scheduled(fixedDelayString = "${alerts.device-offline.poll-ms:600000}")
     @Transactional
@@ -50,6 +52,7 @@ public class DeviceOfflineAlertScheduler {
                     for (Alert alert : active) {
                         alert.autoResolve();
                         alertRepository.save(alert);
+                        signalRevisionService.bumpStatus(alert.getFarmId());
                         resolved++;
                     }
                 }
@@ -78,5 +81,6 @@ public class DeviceOfflineAlertScheduler {
             alert.setMessageArgs("[]");
         }
         alertRepository.save(alert);
+        signalRevisionService.bumpStatus(signal.farmId());
     }
 }

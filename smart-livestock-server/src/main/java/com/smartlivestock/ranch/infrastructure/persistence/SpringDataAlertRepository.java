@@ -17,6 +17,7 @@ public interface SpringDataAlertRepository extends JpaRepository<AlertJpaEntity,
     List<AlertJpaEntity> findByLivestockIdAndStatusAndSource(Long livestockId, String status, String source);
     List<AlertJpaEntity> findByFarmIdAndTypeInAndStatus(Long farmId, Collection<String> types, String status);
     List<AlertJpaEntity> findByFarmIdAndTypeAndStatus(Long farmId, String type, String status);
+    List<AlertJpaEntity> findByFarmIdAndStatus(Long farmId, String status);
     List<AlertJpaEntity> findByFarmIdAndTypeInAndStatusInAndResolvedAtGreaterThanEqual(
             Long farmId, Collection<String> types, Collection<String> statuses, java.time.Instant resolvedAt);
 
@@ -33,6 +34,28 @@ public interface SpringDataAlertRepository extends JpaRepository<AlertJpaEntity,
         String getType();
         long getCnt();
     }
+
+    interface LivestockActiveCountProjection {
+        Long getLivestockId();
+        long getCnt();
+    }
+
+    interface LivestockUnreadCountProjection {
+        Long getLivestockId();
+        long getCnt();
+    }
+
+    @Query("SELECT a.livestockId AS livestockId, COUNT(a) AS cnt FROM AlertJpaEntity a "
+            + "WHERE a.farmId = :farmId AND a.status = 'ACTIVE' AND a.livestockId IS NOT NULL "
+            + "GROUP BY a.livestockId")
+    List<LivestockActiveCountProjection> countActiveByLivestock(@Param("farmId") Long farmId);
+
+    @Query("SELECT a.livestockId AS livestockId, COUNT(a) AS cnt FROM AlertJpaEntity a "
+            + "WHERE a.farmId = :farmId AND a.status = 'ACTIVE' AND a.livestockId IS NOT NULL AND a.id NOT IN "
+            + "(SELECT ars.alertId FROM AlertReadStatusJpaEntity ars WHERE ars.userId = :userId) "
+            + "GROUP BY a.livestockId")
+    List<LivestockUnreadCountProjection> countActiveUnreadByLivestock(
+            @Param("farmId") Long farmId, @Param("userId") Long userId);
 
     @Query("SELECT a.status AS status, a.severity AS severity, a.type AS type, COUNT(a) AS cnt "
             + "FROM AlertJpaEntity a WHERE a.farmId = :farmId AND a.type IN :types "

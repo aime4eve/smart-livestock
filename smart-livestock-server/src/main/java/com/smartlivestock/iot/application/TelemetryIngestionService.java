@@ -20,6 +20,7 @@ import com.smartlivestock.ranch.domain.model.AlertStatus;
 import com.smartlivestock.ranch.domain.model.AlertType;
 import com.smartlivestock.ranch.domain.model.Severity;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
+import com.smartlivestock.ranch.application.signal.SignalRevisionService;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -65,6 +66,7 @@ public class TelemetryIngestionService {
     private final GpsDataGovernanceService gpsDataGovernanceService;
     private final DeviceLinkQualityService deviceLinkQualityService;
     private final ObjectMapper objectMapper;
+    private final SignalRevisionService signalRevisionService;
 
     /**
      * Ingest telemetry data from any source (Phase 3 unified entry point).
@@ -392,6 +394,7 @@ public class TelemetryIngestionService {
         alert.setMessageKey(messageKey);
         alert.setMessageArgs(toJson(messageArgs));
         alertRepository.save(alert);
+        signalRevisionService.bumpStatus(farmId);
     }
 
     private String toJson(List<?> args) {

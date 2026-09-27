@@ -7,6 +7,7 @@ import com.smartlivestock.ranch.domain.model.Alert;
 import com.smartlivestock.ranch.domain.model.AlertType;
 import com.smartlivestock.ranch.domain.model.Severity;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
+import com.smartlivestock.ranch.application.signal.SignalRevisionService;
 import org.springframework.stereotype.Component;
 
 @Component("healthRanchCommandPort")
@@ -14,10 +15,13 @@ public class RanchCommandPortImpl implements RanchCommandPort {
 
     private final AlertRepository alertRepository;
     private final ObjectMapper objectMapper;
+    private final SignalRevisionService signalRevisionService;
 
-    public RanchCommandPortImpl(AlertRepository alertRepository, ObjectMapper objectMapper) {
+    public RanchCommandPortImpl(AlertRepository alertRepository, ObjectMapper objectMapper,
+                                SignalRevisionService signalRevisionService) {
         this.alertRepository = alertRepository;
         this.objectMapper = objectMapper;
+        this.signalRevisionService = signalRevisionService;
     }
 
     @Override
@@ -32,7 +36,8 @@ public class RanchCommandPortImpl implements RanchCommandPort {
         alert.setSource(info.source());
         alert.setMessageKey(info.messageKey());
         alert.setMessageArgs(toJson(info.messageArgs()));
-       alertRepository.save(alert);
+      alertRepository.save(alert);
+       signalRevisionService.bumpStatus(info.farmId());
     }
 
     @Override
@@ -44,6 +49,7 @@ public class RanchCommandPortImpl implements RanchCommandPort {
         for (Alert alert : activeAlerts) {
             alert.autoResolve();
             alertRepository.save(alert);
+            signalRevisionService.bumpStatus(alert.getFarmId());
         }
     }
 
@@ -56,6 +62,7 @@ public class RanchCommandPortImpl implements RanchCommandPort {
         for (Alert alert : activeAlerts) {
             alert.autoResolve();
             alertRepository.save(alert);
+            signalRevisionService.bumpStatus(alert.getFarmId());
         }
     }
 
@@ -68,6 +75,7 @@ public class RanchCommandPortImpl implements RanchCommandPort {
         for (Alert alert : activeAlerts) {
             alert.autoResolve();
             alertRepository.save(alert);
+            signalRevisionService.bumpStatus(farmId);
         }
     }
 

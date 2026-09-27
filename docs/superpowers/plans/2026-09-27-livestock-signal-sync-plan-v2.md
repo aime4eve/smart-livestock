@@ -321,6 +321,8 @@ statusRevision:positionRevision:fenceGeometryRevision
 | cursor 落后超过 replay window | `410 SIGNAL_CURSOR_TOO_OLD`，并返回 `resyncRequired=true` |
 | map 牧场 active livestock 超过 1000 | v1 返回 `400 SIGNAL_MAP_TOO_LARGE`，不做隐式降级 |
 
+cursor 全零（`0` 或 `0:0:0`）表示初始全量同步：即使当前 revision 仍为 0，也必须返回当前可见牲畜的状态、位置和围栏信号。后续客户端必须保存响应中的非零 cursor；全零不得作为“常规无变化 cursor”复用。
+
 replay window：
 
 ```text
