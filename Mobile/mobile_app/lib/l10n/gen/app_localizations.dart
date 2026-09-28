@@ -10667,6 +10667,24 @@ abstract class AppLocalizations {
   /// **'获取登记信息失败，请稍后重试或联系厂商'**
   String get loginEnrollmentFailed;
 
+  /// No description provided for @loginDownloadAppLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'手机 App：'**
+  String get loginDownloadAppLabel;
+
+  /// No description provided for @loginDownloadAndroid.
+  ///
+  /// In zh, this message translates to:
+  /// **'Android APK'**
+  String get loginDownloadAndroid;
+
+  /// No description provided for @loginDownloadIos.
+  ///
+  /// In zh, this message translates to:
+  /// **'iOS IPA'**
+  String get loginDownloadIos;
+
   /// No description provided for @qrScanTitle.
   ///
   /// In zh, this message translates to:

@@ -1,3 +1,8 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,10 +11,12 @@ import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/l10n/locale_controller.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/auth/app_download_launcher.dart';
 import 'package:hkt_livestock_agentic/features/auth/data/deployment_info.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
+import 'package:http/http.dart' as http;
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -28,6 +35,36 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitting = false;
+
+  /// Version of the downloadable packages (from /downloads/versions.json),
+  /// null while unavailable — the caption stays hidden then, links keep working.
+  String? _packageVersion;
+
+  @override
+  void initState() {
+    super.initState();
+    if (kIsWeb) _loadPackageVersion();
+  }
+
+  /// Best-effort fetch of the download manifest; any failure leaves the
+  /// caption hidden. Never blocks login.
+  Future<void> _loadPackageVersion() async {
+    try {
+      final uri =
+          Uri.parse('${Uri.base.origin}/downloads/versions.json');
+      final res = await http.get(uri).timeout(const Duration(seconds: 5));
+      if (res.statusCode != 200) return;
+      final version =
+          (jsonDecode(res.body) as Map<String, dynamic>)['version']
+                  ?.toString() ??
+              '';
+      if (mounted && version.isNotEmpty) {
+        setState(() => _packageVersion = version);
+      }
+    } catch (_) {
+      // Manifest is optional decoration — silent degrade.
+    }
+  }
 
   @override
   void dispose() {
@@ -231,6 +268,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                         ),
                       ),
+                      // Compact app-download row (prototype 方案B): web only —
+                      // native users already have the app installed.
+                      if (kIsWeb) ...[
+                        const SizedBox(height: AppSpacing.sm),
+                        _AppDownloadRow(version: _packageVersion),
+                      ],
                     ],
                   ),
                 ),
@@ -400,6 +443,94 @@ class _LanguageToggle extends ConsumerWidget {
       onPressed: () =>
           ref.read(localeControllerProvider.notifier).setLocale(target),
       child: Text(label, style: const TextStyle(fontSize: 13)),
+    );
+  }
+}
+
+/// Compact single-line download entry under the login card (prototype
+/// docs/prototypes/2026-09-28-login-app-download-prototype.html, 方案B).
+/// Packages are served by nginx from /downloads/ on every environment;
+/// the link pointing at the device's own platform gets a heavier weight.
+class _AppDownloadRow extends StatelessWidget {
+  const _AppDownloadRow({required this.version});
+
+  final String? version;
+
+  static const _apkPath = '/downloads/hkt-livestock-latest.apk';
+  static const _ipaPath = '/downloads/hkt-livestock-latest.ipa';
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final captionStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.outline,
+        );
+    final origin = Uri.base.origin;
+
+    return Wrap(
+      key: const Key('login-download-row'),
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: AppSpacing.xs,
+      runSpacing: AppSpacing.xs,
+      children: [
+        Text(
+          l10n.loginDownloadAppLabel,
+          style: Theme.of(context)
+              .textTheme
+              .bodySmall
+              ?.copyWith(color: AppColors.textSecondary),
+        ),
+        _DownloadLink(
+          key: const Key('download-android'),
+          label: l10n.loginDownloadAndroid,
+          icon: Icons.android_outlined,
+          url: '$origin$_apkPath',
+          emphasized: defaultTargetPlatform == TargetPlatform.android,
+        ),
+        Text('·', style: captionStyle),
+        _DownloadLink(
+          key: const Key('download-ios'),
+          label: l10n.loginDownloadIos,
+          icon: Icons.phone_iphone,
+          url: '$origin$_ipaPath',
+          emphasized: defaultTargetPlatform == TargetPlatform.iOS,
+        ),
+        if (version != null) Text('v$version', style: captionStyle),
+      ],
+    );
+  }
+}
+
+class _DownloadLink extends StatelessWidget {
+  const _DownloadLink({
+    super.key,
+    required this.label,
+    required this.icon,
+    required this.url,
+    required this.emphasized,
+  });
+
+  final String label;
+  final IconData icon;
+  final String url;
+  final bool emphasized;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton.icon(
+      onPressed: () => launchAppDownload(url),
+      icon: Icon(icon, size: 16),
+      label: Text(label),
+      style: TextButton.styleFrom(
+        foregroundColor: AppColors.primary,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+        minimumSize: const Size(0, 32),
+        textStyle: TextStyle(
+          fontSize: 13,
+          fontWeight: emphasized ? FontWeight.w800 : FontWeight.w600,
+        ),
+      ),
     );
   }
 }
