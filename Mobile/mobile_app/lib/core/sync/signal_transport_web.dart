@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:js_interop';
 
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
@@ -113,12 +114,19 @@ class PlatformSignalTransport implements SignalRealtimeTransport {
   }
 
   SignalSseMessage _message(SignalSseControl control, web.Event event) {
-    final messageEvent = event as web.MessageEvent;
-    final raw = messageEvent.data?.dartify();
-    final data = raw == null
-        ? null
-        : Map<String, dynamic>.from(raw as Map<Object?, Object?>);
-    return SignalSseMessage(control, data: data);
+    try {
+      final messageEvent = event as web.MessageEvent;
+      final raw = messageEvent.data?.dartify();
+      final Object? decoded = raw is String ? jsonDecode(raw) : raw;
+      final data = decoded is Map
+          ? Map<String, dynamic>.from(decoded)
+          : null;
+      return SignalSseMessage(control, data: data);
+    } catch (_) {
+      // Changed events only ask Signal Store to reconcile; a malformed hint
+      // must not become an unhandled browser callback and break polling.
+      return SignalSseMessage(control);
+    }
   }
 
   @override

@@ -6,6 +6,7 @@ import com.smartlivestock.ranch.domain.model.AlertType;
 import com.smartlivestock.ranch.domain.model.Severity;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.infrastructure.persistence.mapper.AlertMapper;
+import com.smartlivestock.ranch.infrastructure.persistence.entity.AlertJpaEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,15 +26,19 @@ public class JpaAlertRepositoryImpl implements AlertRepository {
 
     @Override
     public Alert save(Alert alert) {
+        AlertJpaEntity saved;
         if (alert.getId() != null) {
-            return springDataRepo.findById(alert.getId())
+            saved = springDataRepo.findById(alert.getId())
                     .map(existing -> {
                         AlertMapper.updateEntity(existing, alert);
-                        return AlertMapper.toDomain(springDataRepo.save(existing));
+                        return springDataRepo.save(existing);
                     })
-                    .orElseGet(() -> AlertMapper.toDomain(springDataRepo.save(AlertMapper.toJpaEntity(alert))));
+                    .orElseGet(() -> springDataRepo.save(AlertMapper.toJpaEntity(alert)));
+        } else {
+            saved = springDataRepo.save(AlertMapper.toJpaEntity(alert));
         }
-        return AlertMapper.toDomain(springDataRepo.save(AlertMapper.toJpaEntity(alert)));
+        alert.setId(saved.getId());
+        return AlertMapper.toDomain(saved);
     }
 
     @Override

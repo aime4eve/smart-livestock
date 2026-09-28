@@ -173,6 +173,9 @@ class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
     switch (message.control) {
       case SignalSseControl.connected:
         _stopTimer();
+        // Opening SSE must not cancel an initial delta fetch already waiting
+        // for its debounce; otherwise a fast open can leave the map empty.
+        _scheduleRefresh();
         state = state.copyWith(
           transport: SignalTransportKind.sse,
           stale: false,
