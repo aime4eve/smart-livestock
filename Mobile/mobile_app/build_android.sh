@@ -11,9 +11,11 @@ cd "$(dirname "$0")"
 
 # --- Sync version with backend (smart-livestock-server) ---
 # majorVersion: from build.gradle "def majorVersion = ... ?: 'X.Y.Z'"
-# buildNumber:  from build.number file (auto-incremented by backend bootJar)
+# releaseNumber: from release.number (user-facing version shared by web/APK/IPA,
+# advanced only by scripts/release.sh; build.number stays the internal
+# per-deploy build counter auto-incremented by the backend bootJar)
 SERVER_DIR="../../smart-livestock-server"
-BUILD_NUMBER_FILE="${SERVER_DIR}/build.number"
+BUILD_NUMBER_FILE="${SERVER_DIR}/release.number"
 BUILD_GRADLE="${SERVER_DIR}/build.gradle"
 
 if [ ! -f "$BUILD_NUMBER_FILE" ] || [ ! -f "$BUILD_GRADLE" ]; then

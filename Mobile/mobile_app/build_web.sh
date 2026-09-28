@@ -9,10 +9,13 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-# App version shown on the login screen: <majorVersion>-b<build.number>,
-# single source of truth shared with the backend and mobile build scripts.
+# App version shown on the login screen: <majorVersion>-b<release.number>.
+# release.number is the user-facing version shared by web, APK and IPA so the
+# site, the download row and the installed app always show the same number;
+# it only advances via scripts/release.sh. (build.number stays internal,
+# auto-incremented per deploy for backend log correlation.)
 SERVER_DIR="../../smart-livestock-server"
-BUILD_NUMBER=$(tr -d '[:space:]' < "${SERVER_DIR}/build.number")
+BUILD_NUMBER=$(tr -d '[:space:]' < "${SERVER_DIR}/release.number")
 MAJOR_VERSION=$(grep "def majorVersion" "${SERVER_DIR}/build.gradle" | sed "s/.*?: *'//; s/'.*//")
 APP_VERSION="${MAJOR_VERSION}-b${BUILD_NUMBER}"
 
