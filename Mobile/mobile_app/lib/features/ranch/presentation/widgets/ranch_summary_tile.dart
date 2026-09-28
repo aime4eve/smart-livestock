@@ -53,7 +53,11 @@ class RanchSummaryTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
+      // StackFit.expand forces the decorated container to fill the tile:
+      // with the default loose fit it shrinks to the text column width and
+      // the gradient/border only paints over the left half of the tile.
       child: Stack(
+        fit: StackFit.expand,
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
