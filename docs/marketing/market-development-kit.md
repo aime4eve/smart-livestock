@@ -1,6 +1,6 @@
 # SmartLivestock 市场拓展工具包（内部）
 
-> 版本：v1.2（2026-09-23，NIX-245 USD 按头定价）
+> 版本：v1.3（2026-09-28，统一信号刷新、跨资产告警与疫病处置更新）
 > 读者：内部销售、渠道与市场人员｜Market Development Kit
 > **与 `docs/training/01-presales-overseas-playbook.md` 的分工**：01 售前实战手册管**流程与话术细节**（询盘分级、邮件模板、需求问卷、回访节奏、CRM 记录、升级单格式）；本包管**市场定位与转化资产**（客群画像、切入策略、档位与定价建议、竞争差异、FAQ 与电梯陈述）。谈流程查 01，谈定位与商业策略查本包。
 > 价格为 NIX-245 正式报价体系（USD、不含 VAT；硬件 $65/台客户自购 + 订阅按头/月），商务折扣以合同为准；本文档为内部资料，不直接外发客户。
@@ -98,7 +98,10 @@
 | 部署形态 | 云端托管 + 地端离线授权（ONPREM） | 地端完全离线、授权绑定主机、数据不出场——数据驻留敏感客户的决定性选项 |
 | 商业模式 | 设备 $65/台买断归客户 + 订阅按头/月（首年免费 365 天试点） | 前置投入低且资产归客户；对比竞品"硬件摊入订阅的 5 年租赁锁定"模式，5 年 TCO 约为其 85% |
 | 设备防拆 | 防拆位随遥测上报，非法拆卸即时触发 CRITICAL 告警 | 项圈被非法摘除立即知晓，配合围栏越界构建防丢防线 |
-| 健康数据实时性 | 健康页 30 秒自动刷新 + 数据更新时间标注 | 牧工打开页面停留即见最新采集数据，不需要手动下拉、不需要培训"记得刷新" |
+| 统一实时状态 | 位置、瘤胃指标、健康、AI、围栏、设备、告警共用 Signal 通道；SSE 推送 + 3 秒增量轮询兜底 | 关键状态变化不用等人工下拉；弱网或推送异常时自动退回轮询，旧数据会明确标注滞后，客户不会误把过期数据当最新状态 |
+| 跨资产告警闭环 | 告警按牲畜、牛群、围栏、设备聚合，用"立即处置 / 现场巡检 / 持续观察 / 今日已处理"组织 | 牧场第一眼看到的是下一步动作，而不是分散在不同模块的技术告警；牧工和老板的处置顺序天然对齐 |
+| 疫病应急处置 | 接触事件、牛只风险和传播链进入处置 / 记录 / 链路三视图；按处置等级给出建议动作与时限 | 疫情发生时回答"先隔离 / 检查哪头牛"，减少平铺记录里人工推断的时间；分级是处置紧迫度，不宣称确诊 |
+| 手机 App 获取 | Web 登录页提供 APK / IPA 下载入口，部署包内置版本清单 | 试点现场少一轮"文件从哪里拿"的沟通；iOS 仍按指定验证 / 试点分发，正式上架渠道不现场承诺 |
 | 设备绑定管理 | 千台级设备按编号 / 序列号搜索绑定，牲畜详情页一键解绑 | 大牧场设备换绑、转售不再依赖运营后台操作，牧场主自助完成 |
 | 多时区本地化 | 时间与统计按客户时区显示（中英双语），底图按地区自动适配（中国高德 / 海外 OSM） | 海外项目的语言、时区、地图基础适配已内建，不再是"定制开发"项 |
 
@@ -119,6 +122,7 @@
 | 9 | **牧场网络信号差怎么办？** | LoRaWAN 免蜂窝覆盖（宣传口径 5–10 公里半径）、设备数据多级容错、App 离线全功能作业。仍需现场勘测网关位置与覆盖（01 手册硬件售前检查清单）。 |
 | 10 | **牧工不会用智能手机 / 不愿意用** | 牧工端界面只聚焦地图、告警、确认三个动作；处理与归档由牧场主完成；培训按角色拆分（01 手册 Demo 结构）。 |
 | 11 | **海外用时区 / 语言 / 地图对得上吗？** | 界面中英双语；所有时间与日 / 小时统计按客户所在时区显示；地图底图按地区自动适配（中国高德，海外 OSM），海外牧场开箱即用。小语种翻译与当地底图细节按项目技术评估（不当场承诺）。 |
+| 12 | **手机 App 怎么安装？** | 打开 Web 登录页，页面下方提供 Android APK 与 iOS IPA 下载入口。Android 可按项目环境直接下载安装；iOS 当前仍是开发签名 / 指定试点分发，有证书窗口约束，不承诺 App Store 上架节奏。批量交付方式按合同与实施计划确认。 |
 
 ---
 
@@ -141,11 +145,11 @@
 
 ### 7.1 中文 30 秒版
 
-> SmartLivestock 智慧畜牧把 GPS 项圈、瘤胃胶囊这些设备数据变成牧场里"看得见、管得住"的行动：牲畜在地图上可见，越界自动告警，牧工确认、老板闭环，健康数据自动刷新、辅助早发现早处理。设备 **$65 一台买断、归您所有**，配套软件**首年免费**（365 天全功能试点），之后订阅按头计费、规模越大越便宜。数据敏感的客户可以选择**地端独立部署**——完全离线、授权绑定主机、数据不出场。下一步我们约 30 分钟，确认您的畜种、规模和网络条件，再决定怎么设计试点。
+> SmartLivestock 智慧畜牧把 GPS 项圈、瘤胃胶囊这些设备数据变成牧场里"看得见、管得住"的行动：牲畜在地图上可见，状态变化自动刷新；告警按"先做什么"排序，牧工确认、老板闭环；健康和疫病数据辅助早发现、早隔离、早处理。设备 **$65 一台买断、归您所有**，配套软件**首年免费**（365 天全功能试点），之后订阅按头计费、规模越大越便宜。数据敏感的客户可以选择**地端独立部署**——完全离线、授权绑定主机、数据不出场。下一步我们约 30 分钟，确认您的畜种、规模和网络条件，再决定怎么设计试点。
 
 ### 7.2 英文 30 秒版
 
-> SmartLivestock turns GPS tracker and rumen capsule data into faster action on the farm: animals are visible on a map, geofence breaches raise alerts, workers acknowledge and owners close the loop, and health analytics support earlier decisions — with health pages auto-refreshing so the latest readings are always on screen. Devices are a **one-time $65 purchase and stay yours**; the software is **free for the first year** (365-day full-capability pilot), then a per-head monthly subscription that gets cheaper as your herd grows. The app is bilingual and timezone-localized with map baselines matched to your region. For strict data-residency needs, the platform ships as an **on-premises deployment** with fully offline licensing, so data never leaves your farm. Let's schedule 30 minutes to confirm your herd profile, scale, and connectivity, and design a pilot together.
+> SmartLivestock turns GPS tracker and rumen capsule data into faster action on the farm: animals are visible on a map, status changes refresh through one signal service, geofence and health alerts are grouped by the next action, and workers and owners close the loop. Epidemic tracing turns contact evidence into a prioritized disposition queue. Devices are a **one-time $65 purchase and stay yours**; the software is **free for the first year** (365-day full-capability pilot), then a per-head monthly subscription that gets cheaper as your herd grows. The app is bilingual and timezone-localized with map baselines matched to your region. For strict data-residency needs, the platform ships as an **on-premises deployment** with fully offline licensing, so data never leaves your farm. Let's schedule 30 minutes to confirm your herd profile, scale, and connectivity, and design a pilot together.
 
 ### 7.3 三个必留钩子（每次陈述后必须落到下一步）
 

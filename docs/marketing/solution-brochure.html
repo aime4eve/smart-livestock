@@ -633,8 +633,9 @@
         <ul>
           <li data-i18n="sol.step3.i1">多租户 SaaS 架构</li>
           <li data-i18n="sol.step3.i2">实时地图监控</li>
-          <li data-i18n="sol.step3.i3">告警即时推送</li>
-          <li data-i18n="sol.step3.i4">数据分析报表</li>
+          <li data-i18n="sol.step3.i3">统一信号同步</li>
+          <li data-i18n="sol.step3.i4">跨资产告警闭环</li>
+          <li data-i18n="sol.step3.i5">数据分析报表</li>
         </ul>
       </div>
     </div>
@@ -654,12 +655,12 @@
       <div class="cap-card reveal reveal-delay-2">
         <div class="cap-card-icon">&#128737;</div>
         <h3 data-i18n="cap2.title">电子围栏告警</h3>
-        <p data-i18n="cap2.desc">手绘多边形或模板快速创建虚拟围栏，越界实时推送告警。支持分时段策略与围栏区域细分管理。</p>
+        <p data-i18n="cap2.desc">手绘多边形或模板快速创建虚拟围栏，越界实时推送告警。围栏、健康、疫病和设备告警统一进入跨资产工作台闭环。</p>
       </div>
       <div class="cap-card reveal reveal-delay-3">
         <div class="cap-card-icon">&#10084;</div>
         <h3 data-i18n="cap3.title">AI 健康监测</h3>
-        <p data-i18n="cap3.desc">发热、消化、发情、疫病四大分析引擎，覆盖牲畜全生命周期。健康页每 30 秒自动刷新，数据更新时间一目了然；瘤胃温度基线偏离 72h 趋势预警。</p>
+        <p data-i18n="cap3.desc">发热、消化、发情、疫病四大分析引擎，覆盖牲畜全生命周期。位置与健康状态由统一 Signal 通道秒级感知；疫病接触链按处置等级排出先处理顺序。</p>
       </div>
       <div class="cap-card reveal reveal-delay-1">
         <div class="cap-card-icon">&#128202;</div>
@@ -669,12 +670,12 @@
       <div class="cap-card reveal reveal-delay-2">
         <div class="cap-card-icon">&#128295;</div>
         <h3 data-i18n="cap5.title">设备全生命周期管理</h3>
-        <p data-i18n="cap5.desc">追踪器、瘤胃胶囊、耳标统一管理。电量、信号、在线状态实时监控，异常主动告警。批量入网与安装追溯；千台级设备搜索绑定，牲畜详情页一键解绑。</p>
+        <p data-i18n="cap5.desc">追踪器、瘤胃胶囊、耳标统一管理。电量、信号、在线状态实时监控；设备离线自动开单、恢复自动消解。批量入网与安装追溯；千台级设备搜索绑定，牲畜详情页一键解绑。</p>
       </div>
       <div class="cap-card reveal reveal-delay-3">
         <div class="cap-card-icon">&#128190;</div>
-        <h3 data-i18n="cap6.title">离线全功能作业</h3>
-        <p data-i18n="cap6.desc">无网络环境下完整运行：离线地图瓦片、离线围栏数据、离线牲畜缓存。网络恢复后自动同步，牧场深处也不中断。</p>
+        <h3 data-i18n="cap6.title">离线与弱网作业</h3>
+        <p data-i18n="cap6.desc">无网络环境下完整运行：离线地图瓦片、离线围栏数据、离线牲畜缓存。推送异常时自动退回增量轮询，网络恢复后自动同步，牧场深处也不中断。</p>
       </div>
     </div>
   </section>
@@ -700,8 +701,8 @@
       <div class="arch-layer arch-layer-api">
         <span class="arch-layer-label" data-i18n="arch.layer.api">API 层</span>
         <div class="arch-layer-items">
-          <span data-i18n="arch.api.controller">REST Controller × 63</span>
-          <span data-i18n="arch.api.endpoint">API 端点 × 286</span>
+          <span data-i18n="arch.api.controller">REST Controller × 74</span>
+          <span data-i18n="arch.api.endpoint">API 端点 × 387</span>
           <span data-i18n="arch.api.tenant">多租户拦截</span>
           <span data-i18n="arch.api.quota">配额门控</span>
           <span data-i18n="arch.api.rate">限流</span>
@@ -709,13 +710,14 @@
       </div>
       <div class="arch-arrow" data-i18n="arch.arrow.mq">▼ RocketMQ 事件总线 ▼</div>
       <div class="arch-layer arch-layer-contexts">
-        <span class="arch-layer-label" data-i18n="arch.layer.contexts">业务领域（9 个）</span>
+        <span class="arch-layer-label" data-i18n="arch.layer.contexts">业务领域（10 个）</span>
         <div class="arch-ctx-grid">
           <span>Identity<span data-i18n="arch.ctx.id">身份租户</span></span>
           <span>Ranch<span data-i18n="arch.ctx.ranch">牧场围栏</span></span>
           <span>IoT<span data-i18n="arch.ctx.iot">设备遥测</span></span>
           <span>Health<span data-i18n="arch.ctx.health">AI健康</span></span>
           <span>Commerce<span data-i18n="arch.ctx.commerce">商业计费</span></span>
+          <span>Licensing<span data-i18n="arch.ctx.licensing">授权订阅</span></span>
           <span>Analytics<span data-i18n="arch.ctx.analytics">统计分析</span></span>
           <span>Datagen<span data-i18n="arch.ctx.datagen">数据合成</span></span>
           <span>Platform<span data-i18n="arch.ctx.platform">调度台</span></span>
@@ -757,11 +759,11 @@
     <div class="arch-highlights">
       <div class="arch-hl-item reveal">
         <strong data-i18n="arch.hl1.title">DDD 洋葱架构</strong>
-        <span data-i18n="arch.hl1.desc">9 个业务领域独立演进，ACL 防腐层隔离，单体内完成解耦，未来拆分微服务零代码改动</span>
+        <span data-i18n="arch.hl1.desc">10 个业务领域独立演进，ACL 防腐层隔离，单体内完成解耦，未来拆分微服务零代码改动</span>
       </div>
       <div class="arch-hl-item reveal">
         <strong data-i18n="arch.hl2.title">事件驱动</strong>
-        <span data-i18n="arch.hl2.desc">RocketMQ 16 个 Topic 覆盖全业务场景，跨上下文零直接依赖，优雅降级保证可用性</span>
+        <span data-i18n="arch.hl2.desc">RocketMQ 17 个 Topic 覆盖全业务场景，跨上下文零直接依赖，优雅降级保证可用性</span>
       </div>
       <div class="arch-hl-item reveal">
         <strong data-i18n="arch.hl3.title">多租户 SaaS 原生</strong>
@@ -1058,30 +1060,31 @@
         'sol.step3': '云平台管理',
         'sol.step3.i1': '多租户 SaaS 架构',
         'sol.step3.i2': '实时地图监控',
-        'sol.step3.i3': '告警即时推送',
-        'sol.step3.i4': '数据分析报表',
+        'sol.step3.i3': '统一信号同步',
+        'sol.step3.i4': '跨资产告警闭环',
+        'sol.step3.i5': '数据分析报表',
         /* Capabilities */
         'cap.title': '六大核心能力',
         'cap.subtitle': '覆盖牲畜管理全场景，从定位到健康一站式解决',
         'cap1.title': '实时定位追踪',
         'cap1.desc': 'GPS + LoRaWAN 双模定位，全球覆盖。历史轨迹回放与热力图分析，位置一目了然；底图按地区自动适配（中国高德 / 海外 OSM）。',
         'cap2.title': '电子围栏告警',
-        'cap2.desc': '手绘多边形或模板快速创建虚拟围栏，越界实时推送告警。支持分时段策略与围栏区域细分管理。',
+        'cap2.desc': '手绘多边形或模板快速创建虚拟围栏，越界实时推送告警。围栏、健康、疫病和设备告警统一进入跨资产工作台闭环。',
         'cap3.title': 'AI 健康监测',
-        'cap3.desc': '发热、消化、发情、疫病四大分析引擎，覆盖牲畜全生命周期。健康页每 30 秒自动刷新，数据更新时间一目了然；瘤胃温度基线偏离 72h 趋势预警。',
+        'cap3.desc': '发热、消化、发情、疫病四大分析引擎，覆盖牲畜全生命周期。位置与健康状态由统一 Signal 通道秒级感知；疫病接触链按处置等级排出先处理顺序。',
         'cap4.title': '无监督异常检测',
         'cap4.desc': 'STL 节律剥离 + CUSUM 突变检测，体温、蠕动、活动三维联合分析。规则引擎与 AI 双轨并行，误报率大幅降低。',
         'cap5.title': '设备全生命周期管理',
-        'cap5.desc': '追踪器、瘤胃胶囊、耳标统一管理。电量、信号、在线状态实时监控，异常主动告警。批量入网与安装追溯；千台级设备搜索绑定，牲畜详情页一键解绑。',
-        'cap6.title': '离线全功能作业',
-        'cap6.desc': '无网络环境下完整运行：离线地图瓦片、离线围栏数据、离线牲畜缓存。网络恢复后自动同步，牧场深处也不中断。',
+        'cap5.desc': '追踪器、瘤胃胶囊、耳标统一管理。电量、信号、在线状态实时监控；设备离线自动开单、恢复自动消解。批量入网与安装追溯；千台级设备搜索绑定，牲畜详情页一键解绑。',
+        'cap6.title': '离线与弱网作业',
+        'cap6.desc': '无网络环境下完整运行：离线地图瓦片、离线围栏数据、离线牲畜缓存。推送异常时自动退回增量轮询，网络恢复后自动同步，牧场深处也不中断。',
         /* Architecture */
         'arch.title': '企业级技术架构',
         'arch.subtitle': 'DDD 领域驱动 + 事件驱动 + AI 原生，支撑规模化运营',
         'arch.client.portal': '开发者门户',
         'arch.layer.client': '接入层',
         'arch.layer.api': 'API 层',
-        'arch.layer.contexts': '业务领域（9 个）',
+        'arch.layer.contexts': '业务领域（10 个）',
         'arch.layer.infra': '基础设施',
         'arch.infra.hw': '硬件',
         'arch.infra.hw.node1': 'LoRaWAN 网关',
@@ -1099,6 +1102,7 @@
         'arch.ctx.iot': '设备遥测',
         'arch.ctx.health': 'AI健康',
         'arch.ctx.commerce': '商业计费',
+        'arch.ctx.licensing': '授权订阅',
         'arch.ctx.analytics': '统计分析',
         'arch.ctx.datagen': '数据合成',
         'arch.ctx.platform': '调度台',
@@ -1107,9 +1111,9 @@
         'arch.arrow.mq': '▼ RocketMQ 事件总线 ▼',
         'arch.arrow.infra': '▼ 基础设施 + AI 平台 ▼',
         'arch.hl1.title': 'DDD 洋葱架构',
-        'arch.hl1.desc': '9 个业务领域独立演进，ACL 防腐层隔离，单体内完成解耦，未来拆分微服务零代码改动',
+        'arch.hl1.desc': '10 个业务领域独立演进，ACL 防腐层隔离，单体内完成解耦，未来拆分微服务零代码改动',
         'arch.hl2.title': '事件驱动',
-        'arch.hl2.desc': 'RocketMQ 16 个 Topic 覆盖全业务场景，跨上下文零直接依赖，优雅降级保证可用性',
+        'arch.hl2.desc': 'RocketMQ 17 个 Topic 覆盖全业务场景，跨上下文零直接依赖，优雅降级保证可用性',
         'arch.hl3.title': '多租户 SaaS 原生',
         'arch.hl3.desc': 'JWT → ThreadLocal → DB 层三级隔离，请求级自动过滤。支持 partner / farm / api 三级租户类型',
         'arch.hl4.title': 'AI 原生健康引擎',
@@ -1218,8 +1222,8 @@
         /* Footer */
         'footer': '© 2026 SmartLivestock. 智慧畜牧，数据驱动的精准养殖。',
         /* API layer items (architecture diagram) */
-        'arch.api.controller': 'REST Controller × 63',
-        'arch.api.endpoint': 'API 端点 × 286',
+        'arch.api.controller': 'REST Controller × 74',
+        'arch.api.endpoint': 'API 端点 × 387',
         'arch.api.tenant': '多租户拦截',
         'arch.api.quota': '配额门控',
         'arch.api.rate': '限流',
@@ -1265,28 +1269,29 @@
         'sol.step3': 'Cloud Platform',
         'sol.step3.i1': 'Multi-Tenant SaaS Architecture',
         'sol.step3.i2': 'Real-Time Map Monitoring',
-        'sol.step3.i3': 'Instant Alert Push',
-        'sol.step3.i4': 'Data Analytics & Reports',
+        'sol.step3.i3': 'Unified Signal Sync',
+        'sol.step3.i4': 'Cross-Asset Alert Workflow',
+        'sol.step3.i5': 'Data Analytics & Reports',
         'cap.title': 'Six Core Capabilities',
         'cap.subtitle': 'Covering the full spectrum of livestock management, from tracking to health — all in one platform',
         'cap1.title': 'Real-Time GPS Tracking',
         'cap1.desc': 'GPS + LoRaWAN dual-mode positioning with global coverage. Historical trajectory playback and heatmap analysis; map baselines adapt automatically by region (AMap in China, OSM elsewhere).',
         'cap2.title': 'Virtual Fence Alerts',
-        'cap2.desc': 'Create virtual fences via freehand polygons or templates. Real-time breach alerts with time-based policies and zone segmentation.',
+        'cap2.desc': 'Create virtual fences via freehand polygons or templates. Real-time breach alerts flow with health, epidemic, and device alerts into one cross-asset workflow.',
         'cap3.title': 'AI Health Monitoring',
-        'cap3.desc': 'Four analysis engines — fever, digestion, estrus, and epidemic — covering the full livestock lifecycle. Health pages auto-refresh every 30 seconds with visible data freshness. 72h rumen temperature baseline deviation alerts.',
+        'cap3.desc': 'Four analysis engines — fever, digestion, estrus, and epidemic — covering the full livestock lifecycle. Location and health changes are sensed through one unified Signal channel; epidemic contact chains are ranked by disposition priority.',
         'cap4.title': 'Unsupervised Anomaly Detection',
         'cap4.desc': 'STL seasonal decomposition + CUSUM change detection with 3D joint analysis of temperature, motility, and activity. Rule engine and AI run in parallel for low false positives.',
         'cap5.title': 'Device Lifecycle Management',
-        'cap5.desc': 'Unified management of trackers, rumen capsules, and ear tags. Real-time battery, signal, and online status monitoring with proactive alerts. Batch onboarding with installation traceability, keyword-search binding for farms with 1,000+ devices, and one-tap unbinding from the livestock page.',
-        'cap6.title': 'Full Offline Operation',
-        'cap6.desc': 'Complete functionality without network: offline map tiles, offline fence data, offline livestock cache. Automatic sync when connectivity returns — no interruptions in remote pastures.',
+        'cap5.desc': 'Unified management of trackers, rumen capsules, and ear tags. Real-time battery, signal, and online status monitoring; offline devices raise tickets automatically and tickets resolve on recovery. Batch onboarding with installation traceability, keyword-search binding for farms with 1,000+ devices, and one-tap unbinding from the livestock page.',
+        'cap6.title': 'Offline & Weak-Network Operation',
+        'cap6.desc': 'Complete functionality without network: offline map tiles, offline fence data, offline livestock cache. Sync falls back to incremental polling when push is unavailable, then resumes automatically when connectivity returns.',
         'arch.title': 'Enterprise-Grade Architecture',
         'arch.subtitle': 'DDD + Event-Driven + AI-Native, built for scale',
         'arch.client.portal': 'Developer Portal',
         'arch.layer.client': 'Access Layer',
         'arch.layer.api': 'API Layer',
-        'arch.layer.contexts': 'Business Domains (9)',
+        'arch.layer.contexts': 'Business Domains (10)',
         'arch.layer.infra': 'Infrastructure',
         'arch.infra.hw': 'Hardware',
         'arch.infra.hw.node1': 'LoRaWAN Gateway',
@@ -1304,6 +1309,7 @@
         'arch.ctx.iot': 'IoT & Telemetry',
         'arch.ctx.health': 'AI Health',
         'arch.ctx.commerce': 'Commerce',
+        'arch.ctx.licensing': 'Licensing',
         'arch.ctx.analytics': 'Analytics',
         'arch.ctx.datagen': 'Data Synthesis',
         'arch.ctx.platform': 'Platform',
@@ -1311,15 +1317,15 @@
         'arch.arrow.auth': '▼ JWT Dual Token + API Key Authentication ▼',
         'arch.arrow.mq': '▼ RocketMQ Event Bus ▼',
         'arch.arrow.infra': '▼ Infrastructure + AI Platform ▼',
-        'arch.api.controller': 'REST Controller × 63',
-        'arch.api.endpoint': 'API Endpoints × 286',
+        'arch.api.controller': 'REST Controller × 74',
+        'arch.api.endpoint': 'API Endpoints × 387',
         'arch.api.tenant': 'Multi-Tenant',
         'arch.api.quota': 'Quota Gate',
         'arch.api.rate': 'Rate Limit',
         'arch.hl1.title': 'DDD Onion Architecture',
-        'arch.hl1.desc': '9 business domains evolve independently with ACL isolation. Decoupled within a monolith — zero code changes when splitting into microservices.',
+        'arch.hl1.desc': '10 business domains evolve independently with ACL isolation. Decoupled within a monolith — zero code changes when splitting into microservices.',
         'arch.hl2.title': 'Event-Driven',
-        'arch.hl2.desc': '16 RocketMQ topics cover all business scenarios. Zero direct cross-context dependencies with graceful degradation.',
+        'arch.hl2.desc': '17 RocketMQ topics cover all business scenarios. Zero direct cross-context dependencies with graceful degradation.',
         'arch.hl3.title': 'Multi-Tenant SaaS Native',
         'arch.hl3.desc': 'JWT → ThreadLocal → DB-layer three-tier isolation with request-level automatic filtering. Supports partner / farm / api tenant types.',
         'arch.hl4.title': 'AI-Native Health Engine',
