@@ -1,4 +1,5 @@
 import 'package:hkt_livestock_agentic/core/sync/signal_models.dart';
+import 'package:hkt_livestock_agentic/core/sync/signal_transport.dart';
 
 class SignalSyncState {
   const SignalSyncState({
@@ -12,6 +13,7 @@ class SignalSyncState {
     this.refreshing = false,
     this.stale = false,
     this.paused = false,
+    this.transport = SignalTransportKind.polling,
     this.error,
   });
 
@@ -25,6 +27,7 @@ class SignalSyncState {
   final bool refreshing;
   final bool stale;
   final bool paused;
+  final SignalTransportKind transport;
   final Object? error;
 
   bool get hasFarm => farmId != null && farmId!.isNotEmpty;
@@ -46,6 +49,7 @@ class SignalSyncState {
     bool? refreshing,
     bool? stale,
     bool? paused,
+    SignalTransportKind? transport,
     Object? error,
     bool clearError = false,
   }) {
@@ -60,6 +64,7 @@ class SignalSyncState {
       refreshing: refreshing ?? this.refreshing,
       stale: stale ?? this.stale,
       paused: paused ?? this.paused,
+      transport: transport ?? this.transport,
       error: clearError ? null : error ?? this.error,
     );
   }

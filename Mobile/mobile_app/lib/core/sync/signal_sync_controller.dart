@@ -6,6 +6,7 @@ import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
 import 'package:hkt_livestock_agentic/core/api/farm_scoped_controller.dart';
 import 'package:hkt_livestock_agentic/core/sync/signal_models.dart';
 import 'package:hkt_livestock_agentic/core/sync/signal_repository.dart';
+import 'package:hkt_livestock_agentic/core/sync/signal_transport.dart';
 import 'package:hkt_livestock_agentic/core/sync/signal_store.dart';
 
 class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
@@ -13,6 +14,9 @@ class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
 
   Timer? _timer;
   Timer? _refreshDebounce;
+  SignalRealtimeTransport? _transport;
+  String? _transportFarmId;
+  bool _transportStarting = false;
   bool _refreshing = false;
   String? _farmId;
   String _cursor = '0:0:0';
@@ -32,10 +36,12 @@ class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
     final session = ref.watch(sessionControllerProvider);
     final farmId = session.activeFarmId;
     final farmChanged = _farmId != farmId;
+    _transport ??= ref.read(signalTransportProvider);
     _farmId = farmId;
 
     if (!session.isLoggedIn || farmId == null || farmId.isEmpty) {
       _stopTimer();
+      _closeTransport();
       _subscriptions.clear();
       _subscriptionModes.clear();
       _livestockIds = const [];
@@ -46,8 +52,10 @@ class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
     ref.onDispose(() {
       _disposed = true;
       _stopTimer();
+      _closeTransport();
     });
     _ensureTimer();
+    _ensureTransport();
     return state.hasFarm && state.farmId == farmId
         ? state
         : const SignalSyncState().clear(farmId);
@@ -58,6 +66,7 @@ class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
     _subscriptions.add(token);
     _subscriptionModes[token] = _SignalSubscriptionMode.livestock;
     _ensureTimer();
+    _ensureTransport();
     _scheduleRefresh();
     return token;
   }
@@ -67,6 +76,7 @@ class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
     _subscriptions.add(token);
     _subscriptionModes[token] = _SignalSubscriptionMode.map;
     _ensureTimer();
+    _ensureTransport();
     _scheduleRefresh();
     return token;
   }
@@ -77,7 +87,10 @@ class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
       _subscriptionModes.remove(token);
     }
     if (_subscriptions.isEmpty) _subscriptionModes.clear();
-    if (_subscriptions.isEmpty) _stopTimer();
+    if (_subscriptions.isEmpty) {
+      _stopTimer();
+      _closeTransport();
+    }
   }
 
   void setLivestockPage(List<String> livestockIds) {
@@ -96,16 +109,21 @@ class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
 
   void pause() {
     if (!state.paused) state = state.copyWith(paused: true);
+    _closeTransport();
+    _stopTimer();
   }
 
   void resume() {
     if (!state.paused) return;
     state = state.copyWith(paused: false, clearError: true);
     refreshNow();
+    _ensureTimer();
+    _ensureTransport();
   }
 
   void _resetForFarm(String farmId) {
     _stopTimer();
+    _closeTransport();
     _cursor = '0:0:0';
     _livestockIds = const [];
     state = const SignalSyncState().clear(farmId);
@@ -121,6 +139,76 @@ class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
     _timer = null;
     _refreshDebounce?.cancel();
     _refreshDebounce = null;
+  }
+
+  void _ensureTransport() {
+    final farmId = _farmId;
+    if (!_canStartTransport(farmId)) return;
+    if (_transport?.isActive == true && _transportFarmId == farmId) return;
+    if (_transportStarting) return;
+
+    _transportStarting = true;
+    final requestCursor = _cursor;
+    _transport!.start(
+      farmId: farmId!,
+      cursor: requestCursor,
+      onMessage: _handleTransportMessage,
+    );
+    _transportStarting = false;
+    _transportFarmId = farmId;
+  }
+
+  bool _canStartTransport(String? farmId) {
+    return farmId != null &&
+        farmId.isNotEmpty &&
+        _subscriptions.isNotEmpty &&
+        !_disposed &&
+        !state.paused &&
+        _transport != null &&
+        _transport!.supported;
+  }
+
+  void _handleTransportMessage(SignalSseMessage message) {
+    if (_disposed) return;
+    switch (message.control) {
+      case SignalSseControl.connected:
+        _stopTimer();
+        // Opening SSE must not cancel an initial delta fetch already waiting
+        // for its debounce; otherwise a fast open can leave the map empty.
+        _scheduleRefresh();
+        state = state.copyWith(
+          transport: SignalTransportKind.sse,
+          stale: false,
+          clearError: true,
+        );
+      case SignalSseControl.changed:
+        _scheduleRefresh();
+      case SignalSseControl.reconnect:
+        _transport?.close();
+        _transportFarmId = null;
+        _cursor = '0:0:0';
+        _ensureTimer();
+        _scheduleRefresh();
+        state = state.copyWith(
+          cursor: _cursor,
+          transport: SignalTransportKind.polling,
+        );
+      case SignalSseControl.interrupted:
+        break;
+      case SignalSseControl.failed:
+        _transport?.close();
+        _transportFarmId = null;
+        if (_subscriptions.isNotEmpty) _ensureTimer();
+        state = state.copyWith(transport: SignalTransportKind.polling);
+    }
+  }
+
+  void _closeTransport() {
+    if (_transport?.isActive == true || _transportFarmId != null) {
+      _transport?.close();
+    }
+    _transportFarmId = null;
+    _transportStarting = false;
   }
 
   void _scheduleRefresh() {
@@ -327,7 +415,11 @@ final ranchMapGeometryProvider = Provider<Map<String, MapFenceSignal>>((ref) {
 
 final signalTransportStatusProvider = Provider<String>((ref) {
   final state = ref.watch(signalSyncControllerProvider);
+  final transport = switch (state.transport) {
+    SignalTransportKind.sse => 'sse',
+    SignalTransportKind.polling => 'polling',
+  };
   if (state.stale) return 'stale';
   if (state.refreshing) return 'refreshing';
-  return state.paused ? 'paused' : 'polling';
+  return state.paused ? 'paused' : transport;
 });
