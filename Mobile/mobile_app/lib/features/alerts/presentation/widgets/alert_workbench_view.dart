@@ -163,13 +163,19 @@ class AlertWorkbenchView extends StatelessWidget {
         foreground: AppColors.textPrimary,
       ),
     ];
-    return GridView.count(
-      crossAxisCount: 4,
+    return GridView(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 7,
-      crossAxisSpacing: 7,
-      childAspectRatio: 1.3,
+      // Fixed bucket height: a width-derived aspect ratio made the buckets
+      // stretch to ~260dp tall on desktop while phones show ~71dp. 71dp is
+      // the phone height (content needs ~68dp), so both form factors now
+      // render identical buckets.
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        mainAxisSpacing: 7,
+        crossAxisSpacing: 7,
+        mainAxisExtent: 71,
+      ),
       children: [
         for (final spec in definitions)
           Material(
