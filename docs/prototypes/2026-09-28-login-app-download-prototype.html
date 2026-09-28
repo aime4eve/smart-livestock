@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录页手机 App 下载入口 — HTML 原型（2026-09-28）</title>
+<style>
+  /* === Design Tokens（对齐 core/theme/app_colors.dart / app_spacing.dart） === */
+  :root {
+    --color-primary:       #2F6B3B;
+    --color-primary-dark:  #244F2D;
+    --color-primary-soft:  #E3F0E4;
+    --color-accent:        #8BA95A;
+    --color-surface:       #F8F6F0;
+    --color-white:         #FFFFFF;
+    --color-text-primary:  #263126;
+    --color-text-secondary:#617061;
+    --color-success:       #4C9A5F;
+    --color-success-soft:  #E3F0E4;
+    --color-warning:       #D28A2D;
+    --color-warning-soft:  #F7ECDC;
+    --color-danger:        #C2564B;
+    --color-danger-soft:   #F6E4E2;
+    --color-info:          #4A7F9D;
+    --color-info-soft:     #E2EDF3;
+    --color-border:        #D7D2C6;
+
+    /* 下载区新增令牌 */
+    --dl-ios:              #263126;   /* Apple 近黑 */
+    --dl-ios-soft:         #F0EFEB;   /* Apple 高亮底 */
+
+    --space-xs: 4px;  --space-sm: 8px;  --space-md: 16px;
+    --space-lg: 24px; --space-xl: 32px;
+
+    --radius-md: 12px; --radius-sm: 8px;
+    --shadow-card: 0 2px 10px rgba(38,49,38,.08);
+    --font-size-body: 14px; --font-size-title: 22px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(180deg, #E8F2E5, var(--color-surface));
+    color: var(--color-text-primary);
+    min-height: 100vh;
+  }
+
+  /* === 原型控制条（评审用，非产品 UI） === */
+  .proto-bar {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--color-white);
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--space-sm) var(--space-lg);
+    display: flex; flex-wrap: wrap; gap: var(--space-sm);
+    align-items: center; font-size: 13px;
+  }
+  .proto-bar .group { display: flex; gap: 6px; align-items: center; margin-right: var(--space-lg); }
+  .proto-bar .label { color: var(--color-text-secondary); margin-right: 4px; }
+  .proto-btn {
+    border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+    background: var(--color-white); color: var(--color-text-primary);
+    padding: 4px 10px; cursor: pointer; font-size: 13px;
+  }
+  .proto-btn.active { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-white); }
+
+  /* === 登录页复刻 === */
+  .login-wrap {
+    max-width: 420px; margin: 0 auto;
+    padding: var(--space-xl);
+  }
+  .lang-row { display: flex; justify-content: flex-end; margin-bottom: var(--space-sm); }
+  .lang-toggle {
+    background: none; border: none; color: var(--color-primary);
+    font-size: 13px; cursor: pointer;
+  }
+  .card {
+    background: var(--color-white);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+  }
+  .card h1 { font-size: var(--font-size-title); font-weight: 700; margin-bottom: var(--space-sm); }
+  .card h2 { font-size: 16px; font-weight: 600; margin-bottom: var(--space-md); }
+  .card .desc { font-size: var(--font-size-body); color: var(--color-text-secondary); margin-bottom: var(--space-md); line-height: 1.6; }
+
+  .ver { font-size: 12px; color: var(--color-text-secondary); font-weight: 400; }
+
+  /* Hosted 模式 chip（复刻 HighfiStatusChip） */
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600;
+    color: var(--color-success);
+    background: var(--color-success-soft);
+    border-radius: 999px; padding: 4px 12px;
+  }
+  .chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-success); }
+
+  /* 表单 */
+  .field { margin-bottom: var(--space-md); }
+  .field label { display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .field .input {
+    display: flex; align-items: center; gap: 8px;
+    border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+    padding: 10px 12px; font-size: var(--font-size-body);
+    color: var(--color-text-secondary); background: var(--color-white);
+  }
+  .btn-primary {
+    width: 100%; border: none; border-radius: var(--radius-sm);
+    background: var(--color-primary); color: var(--color-white);
+    font-size: var(--font-size-body); font-weight: 600;
+    padding: 12px; cursor: pointer; margin-top: var(--space-sm);
+  }
+
+  /* === 方案 A：独立下载卡片 === */
+  .dl-buttons { display: flex; gap: var(--space-md); }
+  .dl-btn {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px;
+    border-radius: var(--radius-sm); padding: 12px 10px;
+    cursor: pointer; position: relative;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .dl-btn:active { transform: scale(.98); }
+  .dl-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
+  .dl-btn .t { text-align: left; line-height: 1.3; }
+  .dl-btn .t .l1 { font-size: 14px; font-weight: 600; }
+  .dl-btn .t .l2 { font-size: 11px; opacity: .75; }
+
+  .dl-btn.android { background: var(--color-primary); color: var(--color-white); border: 1px solid var(--color-primary); }
+  .dl-btn.android.ghost { background: var(--color-white); color: var(--color-primary); }
+  .dl-btn.ios { background: var(--color-white); color: var(--dl-ios); border: 1px solid var(--color-border); }
+  .dl-btn.ios.filled { background: var(--dl-ios); color: var(--color-white); border-color: var(--dl-ios); }
+
+  /* 平台感知："当前设备"角标 */
+  .dl-btn .me-tag {
+    position: absolute; top: -8px; right: 8px;
+    font-size: 10px; font-weight: 600; line-height: 1;
+    padding: 3px 8px; border-radius: 999px;
+    background: var(--color-warning); color: var(--color-white);
+  }
+  .dl-btn { margin-top: var(--space-sm); }
+  .dl-buttons { margin-top: 0; }
+
+  .dl-caption {
+    margin-top: var(--space-md); font-size: 12px;
+    color: var(--color-text-secondary); text-align: center;
+  }
+  .dl-hint {
+    margin-top: var(--space-sm); font-size: 12px; line-height: 1.6;
+    color: var(--color-text-secondary);
+    background: var(--color-surface);
+    border: 1px dashed var(--color-border); border-radius: var(--radius-sm);
+    padding: 8px 10px;
+  }
+  .dl-hint b { color: var(--color-text-primary); }
+
+  /* === 方案 B：紧凑单行 === */
+  .dl-compact {
+    display: flex; align-items: center; justify-content: center;
+    flex-wrap: wrap; gap: 6px;
+    font-size: 13px; color: var(--color-text-secondary);
+    padding: var(--space-sm) 0 var(--space-lg);
+  }
+  .dl-compact a {
+    display: inline-flex; align-items: center; gap: 5px;
+    color: var(--color-primary); font-weight: 600; text-decoration: none;
+    border-bottom: 1px dashed var(--color-accent); padding-bottom: 1px;
+  }
+  .dl-compact a svg { width: 15px; height: 15px; }
+  .dl-compact .sep { color: var(--color-border); }
+  .dl-compact .ver { font-size: 12px; }
+
+  /* 平台状态驱动的显隐（JS 切换 data-plat） */
+  body[data-plat="android"] .hint-desktop,
+  body[data-plat="iphone"]  .hint-desktop { display: none; }
+  body[data-plat="desktop"] .hint-android,
+  body[data-plat="iphone"]  .hint-android,
+  body[data-plat="desktop"] .hint-iphone,
+  body[data-plat="android"] .hint-iphone { display: none; }
+  .me-tag { display: none; }
+  body[data-plat="android"] .dl-btn.android .me-tag,
+  body[data-plat="iphone"]  .dl-btn.ios .me-tag { display: block; }
+
+  .proto-note {
+    max-width: 420px; margin: 0 auto;
+    padding: 0 var(--space-xl) var(--space-xl);
+    font-size: 12px; color: var(--color-text-secondary); line-height: 1.7;
+  }
+</style>
+</head>
+<body data-plat="desktop" data-variant="a">
+
+<!-- 原型控制条：评审交互用，非产品 UI -->
+<div class="proto-bar">
+  <div class="group">
+    <span class="label">打开设备</span>
+    <button class="proto-btn active" onclick="setPlat('desktop', this)">💻 桌面浏览器</button>
+    <button class="proto-btn" onclick="setPlat('android', this)">🤖 Android 手机</button>
+    <button class="proto-btn" onclick="setPlat('iphone', this)">📱 iPhone</button>
+  </div>
+  <div class="group">
+    <span class="label">布局方案</span>
+    <button class="proto-btn active" onclick="setVariant('a', this)">A · 独立下载卡片（推荐）</button>
+    <button class="proto-btn" onclick="setVariant('b', this)">B · 紧凑单行</button>
+  </div>
+</div>
+
+<div class="login-wrap">
+  <!-- 语言切换 -->
+  <div class="lang-row"><button class="lang-toggle">EN</button></div>
+
+  <!-- Hero 卡 -->
+  <div class="card">
+    <h1>智慧畜牧 <span class="ver">v3.0-b749</span></h1>
+    <div class="desc">牧场数字化管理平台 — 登录后管理牲畜、设备与告警。</div>
+    <span class="chip"><span class="dot"></span>Hosted 云端托管</span>
+  </div>
+
+  <!-- 登录表单卡 -->
+  <div class="card">
+    <h2>账号登录</h2>
+    <div class="field">
+      <label>手机号</label>
+      <div class="input">📱 138****0000</div>
+    </div>
+    <div class="field">
+      <label>密码</label>
+      <div class="input">🔒 ••••••••</div>
+    </div>
+    <button class="btn-primary">登 录</button>
+  </div>
+
+  <!-- ★ 新增：方案 A 独立下载卡片 -->
+  <div class="card" id="variant-a">
+    <h2>手机 App 下载</h2>
+    <div class="desc" style="margin-bottom:0">在手机上安装 App 使用完整功能，本页在手机浏览器可直接下载。</div>
+
+    <div class="dl-buttons">
+      <!-- Android -->
+      <div class="dl-btn android" id="btn-android">
+        <span class="me-tag">当前设备</span>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24a11.43 11.43 0 00-8.94 0L5.65 5.67c-.19-.29-.58-.38-.87-.2-.28.18-.37.54-.22.83L6.4 9.48A10.81 10.81 0 001 18h22a10.81 10.81 0 00-5.4-8.52zM7 15.25a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5zm10 0a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5z"/></svg>
+        <span class="t">
+          <span class="l1">Android 下载</span><br>
+          <span class="l2">APK · 48.2 MB</span>
+        </span>
+      </div>
+      <!-- iOS -->
+      <div class="dl-btn ios" id="btn-ios">
+        <span class="me-tag">当前设备</span>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.365 1.43c0 1.14-.46 2.2-1.21 3.02-.8.88-2.12 1.56-3.19 1.48-.14-1.1.44-2.27 1.17-3.05.8-.86 2.2-1.5 3.23-1.45zm4.44 16.63c-.6 1.38-.9 2-1.68 3.22-1.09 1.7-2.63 3.82-4.54 3.83-1.7.02-2.13-1.11-4.44-1.09-2.3.01-2.79 1.11-4.49 1.09-1.9-.02-3.36-1.93-4.45-3.62C-1.9 16.5-2.2 10.28.98 7.02c1.2-1.22 2.9-1.93 4.5-1.93 1.9 0 3.06 1.12 4.62 1.12 1.51 0 2.47-1.12 4.61-1.12 1.44 0 2.98.79 4.07 2.14-3.58 1.96-3 7.07 2.02 8.83z"/></svg>
+        <span class="t">
+          <span class="l1">iOS 下载</span><br>
+          <span class="l2">IPA · 46.8 MB</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="dl-caption">当前版本 v3.0-b749 · 更新于 2026-09-28</div>
+
+    <div class="dl-hint hint-desktop">
+      💡 手机扫描或用手机浏览器打开本页即可下载；<b>Android</b> 安装时允许"未知来源"，<b>iPhone</b> 首次安装后需 信任开发者证书。
+    </div>
+    <div class="dl-hint hint-android" style="display:none">
+      ✅ 已识别为 Android 设备：点击"<b>Android 下载</b>"后，在通知栏完成安装；如提示"未知来源"，允许本次安装即可。
+    </div>
+    <div class="dl-hint hint-iphone" style="display:none">
+      ✅ 已识别为 iPhone：请使用 <b>Safari</b> 打开本页下载；安装后到 <b>设置 → 通用 → VPN与设备管理</b> 信任开发者，即可打开 App。
+    </div>
+  </div>
+
+  <!-- ★ 新增：方案 B 紧凑单行（切换查看） -->
+  <div class="dl-compact" id="variant-b" style="display:none">
+    手机 App：
+    <a href="#"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24a11.43 11.43 0 00-8.94 0L5.65 5.67c-.19-.29-.58-.38-.87-.2-.28.18-.37.54-.22.83L6.4 9.48A10.81 10.81 0 001 18h22a10.81 10.81 0 00-5.4-8.52zM7 15.25a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5zm10 0a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5z"/></svg>Android APK</a>
+    <span class="sep">·</span>
+    <a href="#"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.365 1.43c0 1.14-.46 2.2-1.21 3.02-.8.88-2.12 1.56-3.19 1.48-.14-1.1.44-2.27 1.17-3.05.8-.86 2.2-1.5 3.23-1.45zm4.44 16.63c-.6 1.38-.9 2-1.68 3.22-1.09 1.7-2.63 3.82-4.54 3.83-1.7.02-2.13-1.11-4.44-1.09-2.3.01-2.79 1.11-4.49 1.09-1.9-.02-3.36-1.93-4.45-3.62C-1.9 16.5-2.2 10.28.98 7.02c1.2-1.22 2.9-1.93 4.5-1.93 1.9 0 3.06 1.12 4.62 1.12 1.51 0 2.47-1.12 4.61-1.12 1.44 0 2.98.79 4.07 2.14-3.58 1.96-3 7.07 2.02 8.83z"/></svg>iOS IPA</a>
+    <span class="ver">v3.0-b749</span>
+  </div>
+</div>
+
+<div class="proto-note">
+  说明：版本号 / 文件大小 / 更新时间来自 <code>downloads/versions.json</code>（部署时随安装包一起发布），加载失败时整行隐藏、按钮仍可用（与 deployment-info 同款降级策略）。下载地址固定为 <code>/downloads/hkt-livestock-latest.apk / .ipa</code>，另存带版本号副本作历史归档。
+</div>
+
+<script>
+  function setPlat(p, btn) {
+    document.body.dataset.plat = p;
+    document.querySelectorAll('.proto-bar .group')[0].querySelectorAll('.proto-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // 平台感知主次：当前平台按钮实心强调，另一平台描边弱化
+    const a = document.getElementById('btn-android'), i = document.getElementById('btn-ios');
+    a.classList.remove('ghost'); i.classList.remove('filled');
+    if (p === 'android') i.classList.add('ghost');
+    if (p === 'iphone')  a.classList.add('ghost');
+    document.querySelectorAll('.hint-desktop').forEach(e => e.style.display = p === 'desktop' ? '' : 'none');
+    document.querySelectorAll('.hint-android').forEach(e => e.style.display = p === 'android' ? '' : 'none');
+    document.querySelectorAll('.hint-iphone').forEach(e => e.style.display = p === 'iphone' ? '' : 'none');
+  }
+  function setVariant(v, btn) {
+    document.body.dataset.variant = v;
+    document.querySelectorAll('.proto-bar .group')[1].querySelectorAll('.proto-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('variant-a').style.display = v === 'a' ? '' : 'none';
+    document.getElementById('variant-b').style.display = v === 'b' ? '' : 'none';
+  }
+</script>
+</body>
+</html>

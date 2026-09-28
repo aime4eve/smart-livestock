@@ -5862,6 +5862,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not fetch the registration info — try again later or contact the vendor';
 
   @override
+  String get loginDownloadAppLabel => 'Mobile app:';
+
+  @override
+  String get loginDownloadAndroid => 'Android APK';
+
+  @override
+  String get loginDownloadIos => 'iOS IPA';
+
+  @override
   String get qrScanTitle => 'Scan Device QR Code';
 
   @override

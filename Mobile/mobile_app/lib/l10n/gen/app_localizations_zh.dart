@@ -5727,6 +5727,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get loginEnrollmentFailed => '获取登记信息失败，请稍后重试或联系厂商';
 
   @override
+  String get loginDownloadAppLabel => '手机 App：';
+
+  @override
+  String get loginDownloadAndroid => 'Android APK';
+
+  @override
+  String get loginDownloadIos => 'iOS IPA';
+
+  @override
   String get qrScanTitle => '扫描设备二维码';
 
   @override

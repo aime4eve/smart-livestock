@@ -29,4 +29,15 @@ echo "==> Copying build output to $FRONTEND_DIR ..."
 rm -rf "$FRONTEND_DIR"
 mkdir -p "$FRONTEND_DIR/"
 cp -a build/web/. "$FRONTEND_DIR/"
+
+# Ship staged download packages (APK/IPA + versions.json) so the login-page
+# download links resolve on every environment. Canonical copies live in
+# ../downloads — regenerate with scripts/update-downloads.sh.
+DOWNLOADS_SRC="${SERVER_DIR}/downloads"
+if [ -d "$DOWNLOADS_SRC" ]; then
+  mkdir -p "$FRONTEND_DIR/downloads"
+  cp -a "$DOWNLOADS_SRC/." "$FRONTEND_DIR/downloads/"
+  echo "==> Staged download packages into $FRONTEND_DIR/downloads"
+fi
+
 echo "==> Frontend deployed to $FRONTEND_DIR"
