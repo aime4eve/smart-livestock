@@ -6693,7 +6693,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get epidemicNoSourceTitle => '暂无标记的疑似源头';
 
   @override
-  String get epidemicNoSourceBody => '当前牧场还没有确认染病的牲畜。标记患病牲畜后，将自动生成接触追踪与处置工作台。';
+  String get epidemicNoSourceBodyV2 =>
+      '当前牧场还没有确认染病的牲畜。从围栏页选择牛只，在详情页即可标记疑似患病，系统将自动生成接触追踪与处置建议。';
+
+  @override
+  String get epidemicGoPickLivestock => '去选择病牛';
+
+  @override
+  String get markDiseasedFromAlarm => '来自告警';
+
+  @override
+  String get alertsMarkAsSource => '标记为源头';
 
   @override
   String get markDiseasedTitle => '标记疑似患病源头';

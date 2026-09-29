@@ -22,6 +22,7 @@ class AlertWorkbenchView extends StatelessWidget {
     this.selectedAlertIds = const {},
     this.onToggleSelection,
     this.source,
+    this.onMarkSource,
   });
 
   final AlertWorkbenchData data;
@@ -38,6 +39,11 @@ class AlertWorkbenchView extends StatelessWidget {
   final Set<String> selectedAlertIds;
   final ValueChanged<String>? onToggleSelection;
   final String? source;
+
+  /// "Mark as source" quick action for EPIDEMIC items bound to a livestock
+  /// (epidemic spec §5.2 entry ③, prototype P5). Pass null to hide the
+  /// trigger — hosts pass null for non-manager roles.
+  final ValueChanged<WorkbenchItem>? onMarkSource;
 
   @override
   Widget build(BuildContext context) {
@@ -518,6 +524,22 @@ class AlertWorkbenchView extends StatelessWidget {
                               ),
                           ],
                         ),
+                        // Mark-as-source quick action (prototype P5): a small
+                        // danger-solid button, hidden in batch mode and for
+                        // non-EPIDEMIC / non-livestock items.
+                        if (onMarkSource != null &&
+                            item.canMarkDiseasedSource &&
+                            !batchMode) ...[
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: _MarkSourceButton(
+                              key: Key('alert-mark-source-${item.id}'),
+                              label: l10n.alertsMarkAsSource,
+                              onTap: () => onMarkSource!(item),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -719,6 +741,47 @@ class _TileSpec {
   final int unread;
   final Color foreground;
   final LinearGradient? background;
+}
+
+/// Small danger-solid "mark as source" button (prototype P5 .btn.small:
+/// height 30, padding 0 12, 11px/w700 white on danger, radius-sm).
+class _MarkSourceButton extends StatelessWidget {
+  const _MarkSourceButton({
+    super.key,
+    required this.label,
+    required this.onTap,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.danger,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onTap,
+        child: SizedBox(
+          height: 30,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Center(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 Future<void> showAiRankingSheet(

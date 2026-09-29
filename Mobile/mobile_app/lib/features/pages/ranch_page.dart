@@ -32,6 +32,7 @@ import 'package:hkt_livestock_agentic/features/alerts/data/alerts_api_repository
 import 'package:hkt_livestock_agentic/features/alerts/domain/alert_workbench.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/alert_workbench_controller.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_workbench_detail_sheet.dart';
+import 'package:hkt_livestock_agentic/features/epidemic/presentation/widgets/mark_diseased_alert_entry.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_detail_sheet.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_workbench_view.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/trajectory_sheet.dart';
@@ -1919,6 +1920,13 @@ class _RanchPageState extends ConsumerState<RanchPage>
     final asyncData = farmId == null
         ? const AsyncLoading<AlertWorkbenchData>()
         : ref.watch(ranchAlertWorkbenchProvider(farmId));
+    // Mark-as-source is manager-only (spec §5.4): pass null to hide the
+    // trigger for other roles.
+    final markSourceHandler = isEpidemicManagerRole(
+      ref.watch(sessionControllerProvider).role,
+    )
+        ? _markDiseasedFromAlert
+        : null;
     return asyncData.when(
       data: (data) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -1939,6 +1947,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
           onLoadMore: () async {},
           onRanking: () => showAiRankingSheet(context, data.items),
           compact: true,
+          onMarkSource: markSourceHandler,
         ),
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -1964,6 +1973,17 @@ class _RanchPageState extends ConsumerState<RanchPage>
           ],
         ),
       ),
+    );
+  }
+
+  /// Mark-as-source handler for EPIDEMIC alert entries on the ranch alerts
+  /// tab (spec §5.2 ③): shared helper runs the manager/subscription fork.
+  Future<void> _markDiseasedFromAlert(WorkbenchItem item) {
+    return showMarkDiseasedFromAlarm(
+      context,
+      ref,
+      livestockId: item.asset.id,
+      livestockCode: item.asset.name,
     );
   }
 
@@ -2002,6 +2022,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
         detail.asset.id,
         livestockCode: detail.asset.name,
       ),
+      onMarkSource: isEpidemicManagerRole(role)
+          ? _markDiseasedFromAlert
+          : null,
     );
   }
 

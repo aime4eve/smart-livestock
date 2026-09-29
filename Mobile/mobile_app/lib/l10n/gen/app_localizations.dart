@@ -12377,11 +12377,29 @@ abstract class AppLocalizations {
   /// **'暂无标记的疑似源头'**
   String get epidemicNoSourceTitle;
 
-  /// No description provided for @epidemicNoSourceBody.
+  /// No description provided for @epidemicNoSourceBodyV2.
   ///
   /// In zh, this message translates to:
-  /// **'当前牧场还没有确认染病的牲畜。标记患病牲畜后，将自动生成接触追踪与处置工作台。'**
-  String get epidemicNoSourceBody;
+  /// **'当前牧场还没有确认染病的牲畜。从围栏页选择牛只，在详情页即可标记疑似患病，系统将自动生成接触追踪与处置建议。'**
+  String get epidemicNoSourceBodyV2;
+
+  /// No description provided for @epidemicGoPickLivestock.
+  ///
+  /// In zh, this message translates to:
+  /// **'去选择病牛'**
+  String get epidemicGoPickLivestock;
+
+  /// No description provided for @markDiseasedFromAlarm.
+  ///
+  /// In zh, this message translates to:
+  /// **'来自告警'**
+  String get markDiseasedFromAlarm;
+
+  /// No description provided for @alertsMarkAsSource.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记为源头'**
+  String get alertsMarkAsSource;
 
   /// No description provided for @markDiseasedTitle.
   ///

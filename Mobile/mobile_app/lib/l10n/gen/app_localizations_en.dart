@@ -6850,8 +6850,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get epidemicNoSourceTitle => 'No suspected source marked';
 
   @override
-  String get epidemicNoSourceBody =>
-      'No diseased livestock has been confirmed on this ranch yet. Contact tracing and the disposition workbench appear once one is marked.';
+  String get epidemicNoSourceBodyV2 =>
+      'None confirmed diseased yet. Pick an animal from the fence tab and mark it suspected on its detail page; tracing and dispositions generate automatically.';
+
+  @override
+  String get epidemicGoPickLivestock => 'Pick a diseased animal';
+
+  @override
+  String get markDiseasedFromAlarm => 'from alert';
+
+  @override
+  String get alertsMarkAsSource => 'Mark as source';
 
   @override
   String get markDiseasedTitle => 'Mark suspected source';

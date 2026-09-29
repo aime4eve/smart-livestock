@@ -10,6 +10,7 @@ import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
 import 'package:hkt_livestock_agentic/features/epidemic/presentation/epidemic_controller.dart';
+import 'package:hkt_livestock_agentic/features/epidemic/presentation/widgets/epidemic_upsell_sheet.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
@@ -224,25 +225,30 @@ class _ErrorState extends StatelessWidget {
   }
 }
 
-/// Expected empty state: no diseased livestock has been marked on this ranch,
-/// so there is no suspected source and no contact graph to show yet.
-class _NoSourceState extends StatelessWidget {
+/// Expected empty state (prototype P4): no diseased livestock has been marked
+/// on this ranch, so there is no suspected source and no contact graph yet.
+/// The body copy walks the real marking path and the primary button jumps to
+/// the livestock list where an animal can be picked (its detail page carries
+/// the mark entry). Retry stays for genuine network failures — the same
+/// 404-vs-error fork above decides which state renders.
+class _NoSourceState extends ConsumerWidget {
   const _NoSourceState({required this.onRetry});
   final VoidCallback onRetry;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        // Prototype P4: empty column padded 0 36.
+        padding: const EdgeInsets.symmetric(horizontal: 36),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               Icons.pets_outlined,
               size: 40,
-              color: AppColors.textSecondary.withValues(alpha: 0.6),
+              color: AppColors.textSecondary.withValues(alpha: 0.55),
             ),
             const SizedBox(height: 12),
             Text(
@@ -252,19 +258,88 @@ class _NoSourceState extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              l10n.epidemicNoSourceBody,
+              l10n.epidemicNoSourceBodyV2,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 10,
+                height: 1.7,
                 color: AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 16),
-            OutlinedButton(onPressed: onRetry, child: Text(l10n.commonRetry)),
+            // Primary: ranch green (NOT danger) per prototype P4, intrinsic
+            // width (padding 0 22), height 36, radius-sm.
+            Material(
+              key: const Key('epidemic-go-pick-livestock'),
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(8),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () => _onPickTapped(context, ref),
+                child: SizedBox(
+                  height: 36,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 22),
+                    child: Center(
+                      child: Text(
+                        l10n.epidemicGoPickLivestock,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Retry: neutral (surface-muted bg / secondary text), height 32.
+            Material(
+              color: AppColors.surfaceMuted,
+              borderRadius: BorderRadius.circular(8),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: onRetry,
+                child: SizedBox(
+                  height: 32,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 22),
+                    child: Center(
+                      child: Text(
+                        l10n.commonRetry,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  void _onPickTapped(BuildContext context, WidgetRef ref) {
+    final tier =
+        ref.read(subscriptionControllerProvider).value?.tier ??
+        SubscriptionTier.basic;
+    if (!checkTierAccess(tier, FeatureFlags.epidemicAlert)) {
+      // Free tier: guide to Premium instead of navigating (prototype P6).
+      EpidemicUpsellSheet.show(context);
+      return;
+    }
+    // The ranch fence tab is not an addressable route (RanchPage ignores
+    // ?tab=), so jump to the livestock list — the established "pick an
+    // animal, land on its detail page" route (same target as the alert
+    // workbench herd action).
+    context.go(AppRoute.livestockList.path);
   }
 }
 

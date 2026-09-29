@@ -5349,8 +5349,14 @@
 
   ,"epidemicNoSourceTitle": "No suspected source marked"
   ,"@epidemicNoSourceTitle": {}
-  ,"epidemicNoSourceBody": "No diseased livestock has been confirmed on this ranch yet. Contact tracing and the disposition workbench appear once one is marked."
-  ,"@epidemicNoSourceBody": {}
+  ,"epidemicNoSourceBodyV2": "None confirmed diseased yet. Pick an animal from the fence tab and mark it suspected on its detail page; tracing and dispositions generate automatically."
+  ,"@epidemicNoSourceBodyV2": {}
+  ,"epidemicGoPickLivestock": "Pick a diseased animal"
+  ,"@epidemicGoPickLivestock": {}
+  ,"markDiseasedFromAlarm": "from alert"
+  ,"@markDiseasedFromAlarm": {}
+  ,"alertsMarkAsSource": "Mark as source"
+  ,"@alertsMarkAsSource": {}
 
   ,"markDiseasedTitle": "Mark suspected source"
   ,"@markDiseasedTitle": {}
