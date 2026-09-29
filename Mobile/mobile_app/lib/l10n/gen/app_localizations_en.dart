@@ -6895,4 +6895,68 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get markDiseasedFailedTryAgain => 'Marking failed, please retry';
+
+  @override
+  String get markDiseasedEntryButton => '🦠 Mark suspected diseased';
+
+  @override
+  String get unmarkDiseasedButton => 'Remove disease mark';
+
+  @override
+  String get viewWorkbenchButton => 'Open Epidemic Prevention';
+
+  @override
+  String markedSourceDuration(String duration) {
+    return 'Marked $duration ago';
+  }
+
+  @override
+  String markedSourceContacts(int count) {
+    return '$count contacts · see the Epidemic Prevention workbench';
+  }
+
+  @override
+  String get unmarkConfirmTitle => 'Remove disease mark?';
+
+  @override
+  String unmarkConfirmBody(String livestockCode) {
+    return 'All unfinished dispositions with $livestockCode as their source will be cancelled too.';
+  }
+
+  @override
+  String get unmarkKeep => 'Keep mark';
+
+  @override
+  String get unmarkConfirm => 'Confirm removal';
+
+  @override
+  String get unmarkDone => 'Disease mark removed';
+
+  @override
+  String get upsellTitle => 'Epidemic Prevention requires Premium';
+
+  @override
+  String get upsellBody =>
+      'Marking suspected disease, contact tracing and four-tier disposition are Premium features (epidemic_alert).';
+
+  @override
+  String get upsellLater => 'Not now';
+
+  @override
+  String get upsellLearnMore => 'Learn about Premium';
+
+  @override
+  String durationMinutesShort(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String durationHoursShort(int hours) {
+    return '$hours h';
+  }
+
+  @override
+  String durationDaysShort(int days) {
+    return '$days d';
+  }
 }

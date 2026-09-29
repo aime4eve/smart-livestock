@@ -12460,6 +12460,108 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'标记失败，请重试'**
   String get markDiseasedFailedTryAgain;
+
+  /// No description provided for @markDiseasedEntryButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'🦠 标记疑似患病'**
+  String get markDiseasedEntryButton;
+
+  /// No description provided for @unmarkDiseasedButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消染病标记'**
+  String get unmarkDiseasedButton;
+
+  /// No description provided for @viewWorkbenchButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看疫病防控'**
+  String get viewWorkbenchButton;
+
+  /// No description provided for @markedSourceDuration.
+  ///
+  /// In zh, this message translates to:
+  /// **'已标记 {duration}'**
+  String markedSourceDuration(String duration);
+
+  /// No description provided for @markedSourceContacts.
+  ///
+  /// In zh, this message translates to:
+  /// **'接触 {count} 头 · 见「疫病防控」工作台'**
+  String markedSourceContacts(int count);
+
+  /// No description provided for @unmarkConfirmTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消染病标记？'**
+  String get unmarkConfirmTitle;
+
+  /// No description provided for @unmarkConfirmBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'将同时取消 {livestockCode} 作为源头的全部未完成处置单。'**
+  String unmarkConfirmBody(String livestockCode);
+
+  /// No description provided for @unmarkKeep.
+  ///
+  /// In zh, this message translates to:
+  /// **'保留标记'**
+  String get unmarkKeep;
+
+  /// No description provided for @unmarkConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认取消'**
+  String get unmarkConfirm;
+
+  /// No description provided for @unmarkDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'已取消染病标记'**
+  String get unmarkDone;
+
+  /// No description provided for @upsellTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'疫病防控需要 Premium'**
+  String get upsellTitle;
+
+  /// No description provided for @upsellBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记疑似患病、接触追踪与四级处置属于 Premium 功能（epidemic_alert）。'**
+  String get upsellBody;
+
+  /// No description provided for @upsellLater.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂不升级'**
+  String get upsellLater;
+
+  /// No description provided for @upsellLearnMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'了解 Premium'**
+  String get upsellLearnMore;
+
+  /// No description provided for @durationMinutesShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'{minutes} 分钟'**
+  String durationMinutesShort(int minutes);
+
+  /// No description provided for @durationHoursShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'{hours} 小时'**
+  String durationHoursShort(int hours);
+
+  /// No description provided for @durationDaysShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'{days} 天'**
+  String durationDaysShort(int days);
 }
 
 class _AppLocalizationsDelegate

@@ -5381,4 +5381,63 @@
   ,"markDiseasedFailedTryAgain": "标记失败，请重试"
   ,"@markDiseasedFailedTryAgain": {}
 
+  ,"markDiseasedEntryButton": "🦠 标记疑似患病"
+  ,"@markDiseasedEntryButton": {}
+  ,"unmarkDiseasedButton": "取消染病标记"
+  ,"@unmarkDiseasedButton": {}
+  ,"viewWorkbenchButton": "查看疫病防控"
+  ,"@viewWorkbenchButton": {}
+  ,"markedSourceDuration": "已标记 {duration}"
+  ,"@markedSourceDuration": {
+    "placeholders": {
+      "duration": {"type": "String"}
+    }
+  }
+  ,"markedSourceContacts": "接触 {count} 头 · 见「疫病防控」工作台"
+  ,"@markedSourceContacts": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  }
+  ,"unmarkConfirmTitle": "取消染病标记？"
+  ,"@unmarkConfirmTitle": {}
+  ,"unmarkConfirmBody": "将同时取消 {livestockCode} 作为源头的全部未完成处置单。"
+  ,"@unmarkConfirmBody": {
+    "placeholders": {
+      "livestockCode": {"type": "String"}
+    }
+  }
+  ,"unmarkKeep": "保留标记"
+  ,"@unmarkKeep": {}
+  ,"unmarkConfirm": "确认取消"
+  ,"@unmarkConfirm": {}
+  ,"unmarkDone": "已取消染病标记"
+  ,"@unmarkDone": {}
+  ,"upsellTitle": "疫病防控需要 Premium"
+  ,"@upsellTitle": {}
+  ,"upsellBody": "标记疑似患病、接触追踪与四级处置属于 Premium 功能（epidemic_alert）。"
+  ,"@upsellBody": {}
+  ,"upsellLater": "暂不升级"
+  ,"@upsellLater": {}
+  ,"upsellLearnMore": "了解 Premium"
+  ,"@upsellLearnMore": {}
+  ,"durationMinutesShort": "{minutes} 分钟"
+  ,"@durationMinutesShort": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  }
+  ,"durationHoursShort": "{hours} 小时"
+  ,"@durationHoursShort": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  }
+  ,"durationDaysShort": "{days} 天"
+  ,"@durationDaysShort": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  }
+
 }

@@ -25,13 +25,26 @@ public record LivestockDto(
         BigDecimal bodyTemp,
         String activityLevel,
         String ruminationFreq,
-        List<DeviceBrief> devices
+        List<DeviceBrief> devices,
+        MarkedSource markedSource
 ) {
     public LivestockDto {
         if (devices == null) {
             devices = List.of();
         }
     }
+
+    /**
+     * Nullable epidemic state for the detail page's mark-diseased entry
+     * (plan Task 6): null = not marked, non-null = this livestock is a
+     * marked suspected source with the given disease, stamp and claimed
+     * contact count.
+     */
+    public record MarkedSource(
+            String diseaseType,
+            Instant markedAt,
+            int contactCount
+    ) {}
 
     public static LivestockDto from(Livestock livestock) {
         return new LivestockDto(
@@ -47,7 +60,8 @@ public record LivestockDto(
                 livestock.getLastLongitude(),
                 livestock.getLastPositionAt(),
                 null, null, null,
-                List.of()
+                List.of(),
+                null
         );
     }
 
@@ -84,7 +98,8 @@ public record LivestockDto(
                 livestock.getLastLongitude(),
                 livestock.getLastPositionAt(),
                 bodyTemp, activityLevel, ruminationFreq,
-                List.of()
+                List.of(),
+                null
         );
     }
 
@@ -96,7 +111,23 @@ public record LivestockDto(
                 id, farmId, livestockCode, breed, gender, birthDate, weight,
                 healthStatus, lastLatitude, lastLongitude, lastPositionAt,
                 bodyTemp, activityLevel, ruminationFreq,
-                devices != null ? devices : List.of()
+                devices != null ? devices : List.of(),
+                markedSource
+        );
+    }
+
+    /**
+     * Create a copy of the given DTO with the epidemic mark state populated.
+     */
+    public LivestockDto withMarkedSource(HealthQueryPort.MarkedSourceState state) {
+        return new LivestockDto(
+                id, farmId, livestockCode, breed, gender, birthDate, weight,
+                healthStatus, lastLatitude, lastLongitude, lastPositionAt,
+                bodyTemp, activityLevel, ruminationFreq,
+                devices,
+                state != null
+                        ? new MarkedSource(state.diseaseType(), state.markedAt(), state.contactCount())
+                        : null
         );
     }
 }

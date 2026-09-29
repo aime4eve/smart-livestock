@@ -96,6 +96,21 @@ class LivestockInfo {
   final double lng;
 }
 
+class MarkedSourceInfo {
+  const MarkedSourceInfo({
+    required this.diseaseType,
+    required this.markedAt,
+    required this.contactCount,
+  });
+
+  /// Disease preset text submitted at mark time (backend stores verbatim).
+  final String diseaseType;
+  /// When the latest outbound row was stamped (backend `markedAt`, UTC).
+  final DateTime markedAt;
+  /// Marked outbound contact rows = animals claimed by this epidemic source.
+  final int contactCount;
+}
+
 class LivestockDetail {
   const LivestockDetail({
     required this.livestockCode,
@@ -110,6 +125,7 @@ class LivestockDetail {
     required this.activityLevel,
     required this.ruminationFreq,
     required this.lastLocation,
+    this.markedSource,
     this.lastPositionAt,
     this.gender,
     this.birthDate,
@@ -127,6 +143,9 @@ class LivestockDetail {
   final String activityLevel;
   final String ruminationFreq;
   final String lastLocation;
+  /// Epidemic mark state for the detail-page mark-diseased entry
+  /// (plan Task 6); null = not marked.
+  final MarkedSourceInfo? markedSource;
   /// When the last GPS fix was recorded (backend `lastPositionAt`, UTC).
   final DateTime? lastPositionAt;
   final String? gender;

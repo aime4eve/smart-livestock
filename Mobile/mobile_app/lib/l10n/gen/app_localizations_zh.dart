@@ -6735,4 +6735,67 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get markDiseasedFailedTryAgain => '标记失败，请重试';
+
+  @override
+  String get markDiseasedEntryButton => '🦠 标记疑似患病';
+
+  @override
+  String get unmarkDiseasedButton => '取消染病标记';
+
+  @override
+  String get viewWorkbenchButton => '查看疫病防控';
+
+  @override
+  String markedSourceDuration(String duration) {
+    return '已标记 $duration';
+  }
+
+  @override
+  String markedSourceContacts(int count) {
+    return '接触 $count 头 · 见「疫病防控」工作台';
+  }
+
+  @override
+  String get unmarkConfirmTitle => '取消染病标记？';
+
+  @override
+  String unmarkConfirmBody(String livestockCode) {
+    return '将同时取消 $livestockCode 作为源头的全部未完成处置单。';
+  }
+
+  @override
+  String get unmarkKeep => '保留标记';
+
+  @override
+  String get unmarkConfirm => '确认取消';
+
+  @override
+  String get unmarkDone => '已取消染病标记';
+
+  @override
+  String get upsellTitle => '疫病防控需要 Premium';
+
+  @override
+  String get upsellBody => '标记疑似患病、接触追踪与四级处置属于 Premium 功能（epidemic_alert）。';
+
+  @override
+  String get upsellLater => '暂不升级';
+
+  @override
+  String get upsellLearnMore => '了解 Premium';
+
+  @override
+  String durationMinutesShort(int minutes) {
+    return '$minutes 分钟';
+  }
+
+  @override
+  String durationHoursShort(int hours) {
+    return '$hours 小时';
+  }
+
+  @override
+  String durationDaysShort(int days) {
+    return '$days 天';
+  }
 }

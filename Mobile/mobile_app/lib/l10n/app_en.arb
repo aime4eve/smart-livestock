@@ -5383,4 +5383,63 @@
   ,"markDiseasedFailedTryAgain": "Marking failed, please retry"
   ,"@markDiseasedFailedTryAgain": {}
 
+  ,"markDiseasedEntryButton": "🦠 Mark suspected diseased"
+  ,"@markDiseasedEntryButton": {}
+  ,"unmarkDiseasedButton": "Remove disease mark"
+  ,"@unmarkDiseasedButton": {}
+  ,"viewWorkbenchButton": "Open Epidemic Prevention"
+  ,"@viewWorkbenchButton": {}
+  ,"markedSourceDuration": "Marked {duration} ago"
+  ,"@markedSourceDuration": {
+    "placeholders": {
+      "duration": {"type": "String"}
+    }
+  }
+  ,"markedSourceContacts": "{count} contacts · see the Epidemic Prevention workbench"
+  ,"@markedSourceContacts": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  }
+  ,"unmarkConfirmTitle": "Remove disease mark?"
+  ,"@unmarkConfirmTitle": {}
+  ,"unmarkConfirmBody": "All unfinished dispositions with {livestockCode} as their source will be cancelled too."
+  ,"@unmarkConfirmBody": {
+    "placeholders": {
+      "livestockCode": {"type": "String"}
+    }
+  }
+  ,"unmarkKeep": "Keep mark"
+  ,"@unmarkKeep": {}
+  ,"unmarkConfirm": "Confirm removal"
+  ,"@unmarkConfirm": {}
+  ,"unmarkDone": "Disease mark removed"
+  ,"@unmarkDone": {}
+  ,"upsellTitle": "Epidemic Prevention requires Premium"
+  ,"@upsellTitle": {}
+  ,"upsellBody": "Marking suspected disease, contact tracing and four-tier disposition are Premium features (epidemic_alert)."
+  ,"@upsellBody": {}
+  ,"upsellLater": "Not now"
+  ,"@upsellLater": {}
+  ,"upsellLearnMore": "Learn about Premium"
+  ,"@upsellLearnMore": {}
+  ,"durationMinutesShort": "{minutes} min"
+  ,"@durationMinutesShort": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  }
+  ,"durationHoursShort": "{hours} h"
+  ,"@durationHoursShort": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  }
+  ,"durationDaysShort": "{days} d"
+  ,"@durationDaysShort": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  }
+
 }
