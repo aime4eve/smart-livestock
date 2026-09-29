@@ -64,7 +64,8 @@ class HealthApplicationServiceTelemetryTest {
                 healthAlertBridgeService,
                 signalRevisionService,
                feverService, digestiveService, estrusAnalysisService, epidemicService,
-                messageResolver);
+                messageResolver,
+                org.mockito.Mockito.mock(ContactAnalysisService.class));
 
         // refreshSnapshot calls ensureSnapshotExists then findByLivestockId.
         doNothing().when(snapshotRepo).ensureSnapshotExists(anyLong(), anyLong());

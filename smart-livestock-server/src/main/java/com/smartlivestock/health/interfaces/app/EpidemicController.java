@@ -21,6 +21,11 @@ public class EpidemicController {
     private final HealthApplicationService healthService;
     private final EpidemicWorkbenchService workbenchService;
 
+    /** Warning code surfaced when the instant analysis found no GPS data in
+     *  the window (spec §4.2): HTTP stays 200, the client shows a no-GPS
+     *  toast instead of the "N contacts" one. */
+    private static final String WARNING_NO_GPS_WINDOW = "error.epidemicNoGpsWindow";
+
     @GetMapping("/epidemic/workbench")
     public ResponseEntity<ApiResponse<EpidemicWorkbenchResponse>> workbench(
             @PathVariable Long farmId,
@@ -69,10 +74,12 @@ public class EpidemicController {
     }
 
     @PostMapping("/epidemic/mark")
-    public ResponseEntity<ApiResponse<Void>> markDiseased(
+    public ResponseEntity<ApiResponse<MarkDiseaseResponse>> markDiseased(
             @PathVariable Long farmId, @RequestBody MarkDiseaseRequest request) {
-        healthService.markDiseased(farmId, request.livestockId(), request.diseaseType());
-        return ResponseEntity.ok(ApiResponse.ok(null));
+        HealthApplicationService.MarkDiseasedResult result = healthService.markDiseased(
+                farmId, request.livestockId(), request.diseaseType(), request.windowHours());
+        String warning = result.contactsGenerated() == 0 ? WARNING_NO_GPS_WINDOW : null;
+        return ResponseEntity.ok(ApiResponse.ok(new MarkDiseaseResponse(result.contactsGenerated(), warning)));
     }
 
     @DeleteMapping("/epidemic/mark/{livestockId}")

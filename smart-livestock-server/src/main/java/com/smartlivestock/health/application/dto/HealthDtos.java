@@ -251,7 +251,18 @@ public final class HealthDtos {
     ) {}
 
     public record MarkDiseaseRequest(
-            Long livestockId, String diseaseType
+            Long livestockId, String diseaseType, Integer windowHours
+    ) {}
+
+    /**
+     * Mark-diseased response (spec §4.2/§4.3): how many contact rows the
+     * instant analysis track generated or refreshed, plus a machine-readable
+     * warning code when no GPS trajectory existed in the window
+     * ({@code error.epidemicNoGpsWindow}); HTTP stays 200 either way.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record MarkDiseaseResponse(
+            int contactsGenerated, String warning
     ) {}
 
     // ── Epidemic workbench (three-view contact tracing) ─────────

@@ -37,7 +37,9 @@ import java.util.TreeMap;
  * Upsert semantics: only rows with {@code marked_at IS NULL} are written;
  * marked rows keep their epidemic semantics untouched. The pair direction is
  * normalized (smaller livestockId = from) so re-analysis refreshes the same
- * row instead of stacking duplicates.
+ * row instead of stacking duplicates; rows flipped by the mark-diseased flow
+ * (from = marked source) are matched on their unordered pair so they are
+ * skipped while marked and re-normalized once unmarked.
  */
 @Slf4j
 @Service
@@ -241,11 +243,18 @@ public class ContactAnalysisService {
             return 0;
         }
 
-        // Pair key -> existing row. First row wins on (unexpected) legacy
-        // duplicates; marked duplicates are simply never written.
+        // Pair key -> existing row, indexed in BOTH directions. The kernel
+        // normalizes pool rows to min(id)=from, but the mark-diseased flow
+        // flips rows it claims so that from = marked source (which may hold
+        // the larger id). Indexing both directions lets a later re-analysis
+        // (this scheduler track or another mark) still find that flipped row
+        // for the same unordered pair: marked rows are skipped (no duplicate
+        // insert), unmarked flipped rows are reused and re-normalized.
+        // First row wins on (unexpected) legacy duplicates.
         Map<String, ContactTrace> existingByPair = new LinkedHashMap<>();
         for (ContactTrace trace : contactTraceRepo.findByFarmIdOrderByLastContactAtDesc(farmId)) {
             existingByPair.putIfAbsent(pairKey(trace.getFromLivestockId(), trace.getToLivestockId()), trace);
+            existingByPair.putIfAbsent(pairKey(trace.getToLivestockId(), trace.getFromLivestockId()), trace);
         }
 
         int written = 0;

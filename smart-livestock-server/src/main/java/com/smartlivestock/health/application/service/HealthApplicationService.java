@@ -15,6 +15,7 @@ import com.smartlivestock.ranch.application.signal.SignalRevisionService;
 import com.smartlivestock.ranch.application.signal.SignalEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +50,15 @@ public class HealthApplicationService {
     private final EstrusAnalysisService estrusAnalysisService;
     private final EpidemicAnalysisService epidemicService;
     private final com.smartlivestock.shared.common.MessageResolver messageResolver;
+    private final ContactAnalysisService contactAnalysisService;
+
+    /**
+     * Default window of the instant (mark-diseased) analysis track; mirrors
+     * {@code health.contact.analysis-window-hours} used by the resident
+     * scheduler track so both tracks share the same default scope.
+     */
+    @Value("${health.contact.analysis-window-hours:72}")
+    private int analysisWindowHours;
 
     private static final BigDecimal DEFAULT_BASELINE_TEMP = new BigDecimal("38.5");
     /** Matches DigestiveAnalysisService.DEFAULT_BASELINE; the DB column default stays 3.0. */
@@ -950,17 +960,64 @@ public class HealthApplicationService {
     }
 
     /**
-     * Mark a livestock as diseased source.
+     * Mark a livestock as diseased source — instant track of the dual-track
+     * epidemic design (spec §4.1/§4.3, 2026-09-29). Two phases:
+     * <ol>
+     *   <li>re-run the shared contact kernel over the analysis window so
+     *       unmarked rows reflect the latest GPS trajectories (the nightly
+     *       scheduler may not have picked up today's contacts yet);</li>
+     *   <li>claim every contact row the target participates in as epidemic
+     *       source by stamping {@code diseaseType}/{@code markedAt}.</li>
+     * </ol>
+     * Direction boundary: the kernel normalizes pair rows to min(id)=from, so
+     * when the marked target holds the larger id its rows sit as to=target and
+     * the workbench (see {@code EpidemicWorkbenchService#latestMarkedSource})
+     * would resolve the partner as source. Rows claimed here are therefore
+     * flipped so that from=target on every marked row — the "from of a marked
+     * row IS the source" contract stays intact and the workbench
+     * deterministically resolves the marked livestock without any change on
+     * its side. The kernel matches pairs on their unordered key, so flipped
+     * rows are not duplicated by later re-analysis.
+     *
+     * @param windowHours optional caller window; {@code null} or <= 0 falls
+     *                    back to the configured default, values are clamped
+     *                    to 1..720 hours
+     * @return how many contact rows phase 1 generated or refreshed
      */
     @Transactional
-    public void markDiseased(Long farmId, Long livestockId, String diseaseType) {
-        List<ContactTrace> existing = contactTraceRepo.findByFromLivestockIdOrderByLastContactAtDesc(livestockId);
+    public MarkDiseasedResult markDiseased(Long farmId, Long livestockId, String diseaseType, Integer windowHours) {
+        int effectiveWindow = resolveWindowHours(windowHours);
+        Instant cutoff = Instant.now().minus(Duration.ofHours(effectiveWindow));
+        int contactsGenerated = contactAnalysisService.analyzeAndStore(farmId, livestockId, cutoff);
+
         Instant now = Instant.now();
-        for (ContactTrace trace : existing) {
+        for (ContactTrace trace : contactTraceRepo.findByFarmIdAndLivestockParticipation(farmId, livestockId)) {
+            if (!livestockId.equals(trace.getFromLivestockId())) {
+                // Target holds the larger id: flip the normalized pool row so
+                // the marked row carries from=target (source direction).
+                trace.setToLivestockId(trace.getFromLivestockId());
+                trace.setFromLivestockId(livestockId);
+            }
             trace.setDiseaseType(diseaseType);
             trace.setMarkedAt(now);
             contactTraceRepo.save(trace);
         }
+        return new MarkDiseasedResult(contactsGenerated);
+    }
+
+    /** Result of the two-phase mark; see {@link #markDiseased}. */
+    public record MarkDiseasedResult(int contactsGenerated) {}
+
+    /**
+     * Window resolution for the instant analysis track: absent or non-positive
+     * requests fall back to the configured default, explicit values are
+     * clamped to 1..720 hours.
+     */
+    private int resolveWindowHours(Integer windowHours) {
+        if (windowHours == null || windowHours <= 0) {
+            return Math.max(1, (int) analysisWindowHours);
+        }
+        return Math.min(windowHours, 720);
     }
 
     /**
@@ -976,27 +1033,20 @@ public class HealthApplicationService {
         }
     }
 
+    // Contact risk scoring delegates to the shared kernel (ContactRiskScoring)
+    // so the contact network view, the analysis tracks and the workbench all
+    // apply the identical V31 scale. Signatures kept for the callers above.
+
     private int calculateTimeScore(long hoursAgo) {
-        if (hoursAgo <= 24) return 40;
-        if (hoursAgo <= 48) return 25;
-        return 12;
+        return ContactRiskScoring.timeScore(hoursAgo);
     }
 
     private int calculateDistanceScore(BigDecimal proximityMeters) {
-        if (proximityMeters == null) return 5;
-        double dist = proximityMeters.doubleValue();
-        if (dist < 5) return 35;
-        if (dist < 15) return 25;
-        if (dist < 30) return 15;
-        return 5;
+        return ContactRiskScoring.distanceScore(proximityMeters);
     }
 
     private int calculateDurationScore(Integer durationMinutes) {
-        if (durationMinutes == null) return 3;
-        if (durationMinutes > 30) return 25;
-        if (durationMinutes > 15) return 18;
-        if (durationMinutes > 5) return 10;
-        return 3;
+        return ContactRiskScoring.durationScore(durationMinutes);
     }
 
     // ── Epidemic ────────────────────────────────────────────────

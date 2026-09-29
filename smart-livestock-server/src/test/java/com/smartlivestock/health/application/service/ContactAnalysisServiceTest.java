@@ -222,6 +222,63 @@ class ContactAnalysisServiceTest {
         assertThat(rowsFor(11L, 33L)).isEmpty();
     }
 
+    @Test
+    @DisplayName("markDiseased 翻转后的已标记行：重分析不重复插入且疫情语义保留")
+    void flippedMarkedRowIsNotDuplicatedByReAnalysis() {
+        track(11L, 0, 10);
+        track(22L, 10, 6);
+        herd(11L, 22L);
+        assertThat(service.analyzeAndStore(FARM_ID, null, base.minusSeconds(60))).isEqualTo(1);
+        ContactTrace poolRow = rowsFor(11L, 22L).get(0);
+        Long rowId = poolRow.getId();
+
+        // Simulate the mark-diseased claim of the LARGER id (22): the row is
+        // flipped so from = marked source, then stamped with epidemic fields.
+        poolRow.setFromLivestockId(22L);
+        poolRow.setToLivestockId(11L);
+        poolRow.setDiseaseType("牛结核疑似");
+        poolRow.setMarkedAt(Instant.now());
+
+        int written = service.analyzeAndStore(FARM_ID, null, base.minusSeconds(60));
+
+        assertThat(written).isZero();                       // marked row skipped, no duplicate
+        assertThat(contactTraceRepo.rows).hasSize(1);
+        ContactTrace row = contactTraceRepo.rows.get(0);
+        assertThat(row.getId()).isEqualTo(rowId);
+        assertThat(row.getFromLivestockId()).isEqualTo(22L); // flip + marking untouched
+        assertThat(row.getToLivestockId()).isEqualTo(11L);
+        assertThat(row.getDiseaseType()).isEqualTo("牛结核疑似");
+        assertThat(row.getMarkedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("未标记的翻转行：重分析复用同一行并归一回 min(id)=from 方向")
+    void unmarkedFlippedRowIsReusedAndRenormalized() {
+        track(11L, 0, 10);
+        track(22L, 10, 6);
+        herd(11L, 22L);
+        assertThat(service.analyzeAndStore(FARM_ID, null, base.minusSeconds(60))).isEqualTo(1);
+        ContactTrace poolRow = rowsFor(11L, 22L).get(0);
+        Long rowId = poolRow.getId();
+
+        // Simulate the post-unmark state: marking cleared but the mark-time
+        // flip was left behind (from = 22, the larger id).
+        poolRow.setFromLivestockId(22L);
+        poolRow.setToLivestockId(11L);
+        poolRow.setDiseaseType(null);
+        poolRow.setMarkedAt(null);
+
+        int written = service.analyzeAndStore(FARM_ID, null, base.minusSeconds(60));
+
+        assertThat(written).isEqualTo(1);                   // refreshed, not inserted
+        assertThat(contactTraceRepo.rows).hasSize(1);
+        ContactTrace row = contactTraceRepo.rows.get(0);
+        assertThat(row.getId()).isEqualTo(rowId);           // same row reused
+        assertThat(row.getFromLivestockId()).isEqualTo(11L); // direction re-normalized
+        assertThat(row.getToLivestockId()).isEqualTo(22L);
+        assertThat(row.getContactDurationMinutes()).isEqualTo(6);
+    }
+
     // ── Fakes ────────────────────────────────────────────────────────
 
     /** Minimal in-memory stand-in mirroring JPA save/merge semantics. */
@@ -242,6 +299,15 @@ class ContactAnalysisServiceTest {
         public List<ContactTrace> findByFromLivestockIdOrderByLastContactAtDesc(Long fromLivestockId) {
             return rows.stream()
                     .filter(r -> fromLivestockId.equals(r.getFromLivestockId()))
+                    .toList();
+        }
+
+        @Override
+        public List<ContactTrace> findByFarmIdAndLivestockParticipation(Long farmId, Long livestockId) {
+            return rows.stream()
+                    .filter(r -> farmId.equals(r.getFarmId()))
+                    .filter(r -> livestockId.equals(r.getFromLivestockId())
+                            || livestockId.equals(r.getToLivestockId()))
                     .toList();
         }
 
