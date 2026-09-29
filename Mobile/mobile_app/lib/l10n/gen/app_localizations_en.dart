@@ -6845,4 +6845,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signalSyncRetry => 'Retry now';
+
+  @override
+  String get epidemicNoSourceTitle => 'No suspected source marked';
+
+  @override
+  String get epidemicNoSourceBody =>
+      'No diseased livestock has been confirmed on this ranch yet. Contact tracing and the disposition workbench appear once one is marked.';
 }

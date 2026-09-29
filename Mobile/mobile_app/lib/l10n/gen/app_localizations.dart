@@ -12370,6 +12370,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'立即重试'**
   String get signalSyncRetry;
+
+  /// No description provided for @epidemicNoSourceTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无标记的疑似源头'**
+  String get epidemicNoSourceTitle;
+
+  /// No description provided for @epidemicNoSourceBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前牧场还没有确认染病的牲畜。标记患病牲畜后，将自动生成接触追踪与处置工作台。'**
+  String get epidemicNoSourceBody;
 }
 
 class _AppLocalizationsDelegate

@@ -5347,4 +5347,9 @@
   ,"signalSyncRetry": "Retry now"
   ,"@signalSyncRetry": {}
 
+  ,"epidemicNoSourceTitle": "No suspected source marked"
+  ,"@epidemicNoSourceTitle": {}
+  ,"epidemicNoSourceBody": "No diseased livestock has been confirmed on this ranch yet. Contact tracing and the disposition workbench appear once one is marked."
+  ,"@epidemicNoSourceBody": {}
+
 }

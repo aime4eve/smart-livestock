@@ -6688,4 +6688,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get signalSyncRetry => '立即重试';
+
+  @override
+  String get epidemicNoSourceTitle => '暂无标记的疑似源头';
+
+  @override
+  String get epidemicNoSourceBody => '当前牧场还没有确认染病的牲畜。标记患病牲畜后，将自动生成接触追踪与处置工作台。';
 }
