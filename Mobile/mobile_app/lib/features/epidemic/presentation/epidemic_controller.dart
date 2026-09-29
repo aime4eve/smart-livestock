@@ -97,9 +97,12 @@ class EpidemicContactController extends AsyncNotifier<ContactNetworkResponse> {
     );
   }
 
-  Future<void> markDiseased(String diseaseType) async {
-    await ref.read(epidemicRepositoryProvider).markDiseased(livestockId, diseaseType);
+  Future<MarkDiseasedResult> markDiseased(String diseaseType) async {
+    final result = await ref
+        .read(epidemicRepositoryProvider)
+        .markDiseased(livestockId, diseaseType);
     await refresh();
+    return result;
   }
 
   Future<void> unmarkDiseased() async {

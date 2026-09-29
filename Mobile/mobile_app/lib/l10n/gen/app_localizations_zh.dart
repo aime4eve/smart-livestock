@@ -6694,4 +6694,45 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get epidemicNoSourceBody => '当前牧场还没有确认染病的牲畜。标记患病牲畜后，将自动生成接触追踪与处置工作台。';
+
+  @override
+  String get markDiseasedTitle => '标记疑似患病源头';
+
+  @override
+  String get markDiseasedDiseaseLabel => '病种（单选）';
+
+  @override
+  String get markDiseasedFootMouth => '口蹄疫疑似';
+
+  @override
+  String get markDiseasedTuberculosis => '牛结核疑似';
+
+  @override
+  String get markDiseasedBrucellosis => '布病疑似';
+
+  @override
+  String get markDiseasedDiarrhea => '腹泻类疾病';
+
+  @override
+  String get markDiseasedOther => '其他';
+
+  @override
+  String get markDiseasedOtherHint => '请输入病种名称（必填）';
+
+  @override
+  String get markDiseasedHint => '标记后将立即分析该牛近 72 小时的接触轨迹，生成接触追踪与处置建议。';
+
+  @override
+  String get markDiseasedConfirm => '确认标记';
+
+  @override
+  String markDiseasedDone(int contacts) {
+    return '已标记，接触分析完成（$contacts 次接触）';
+  }
+
+  @override
+  String get markDiseasedNoGps => '已标记，但近 72 小时无定位轨迹，接触网络为空';
+
+  @override
+  String get markDiseasedFailedTryAgain => '标记失败，请重试';
 }

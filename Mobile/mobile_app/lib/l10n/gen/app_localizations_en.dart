@@ -6852,4 +6852,47 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get epidemicNoSourceBody =>
       'No diseased livestock has been confirmed on this ranch yet. Contact tracing and the disposition workbench appear once one is marked.';
+
+  @override
+  String get markDiseasedTitle => 'Mark suspected source';
+
+  @override
+  String get markDiseasedDiseaseLabel => 'Disease (single choice)';
+
+  @override
+  String get markDiseasedFootMouth => 'Suspected FMD';
+
+  @override
+  String get markDiseasedTuberculosis => 'Suspected bovine tuberculosis';
+
+  @override
+  String get markDiseasedBrucellosis => 'Suspected brucellosis';
+
+  @override
+  String get markDiseasedDiarrhea => 'Diarrheal disease';
+
+  @override
+  String get markDiseasedOther => 'Other';
+
+  @override
+  String get markDiseasedOtherHint => 'Enter disease name (required)';
+
+  @override
+  String get markDiseasedHint =>
+      'Marking will immediately analyze this animal\'s contacts over the last 72 hours and generate tracing and disposition advice.';
+
+  @override
+  String get markDiseasedConfirm => 'Confirm mark';
+
+  @override
+  String markDiseasedDone(int contacts) {
+    return 'Marked. Contact analysis finished ($contacts contacts)';
+  }
+
+  @override
+  String get markDiseasedNoGps =>
+      'Marked, but no GPS fixes in the last 72 hours; contact network is empty';
+
+  @override
+  String get markDiseasedFailedTryAgain => 'Marking failed, please retry';
 }

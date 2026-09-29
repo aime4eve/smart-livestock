@@ -5350,4 +5350,35 @@
   ,"epidemicNoSourceBody": "当前牧场还没有确认染病的牲畜。标记患病牲畜后，将自动生成接触追踪与处置工作台。"
   ,"@epidemicNoSourceBody": {}
 
+  ,"markDiseasedTitle": "标记疑似患病源头"
+  ,"@markDiseasedTitle": {}
+  ,"markDiseasedDiseaseLabel": "病种（单选）"
+  ,"@markDiseasedDiseaseLabel": {}
+  ,"markDiseasedFootMouth": "口蹄疫疑似"
+  ,"@markDiseasedFootMouth": {}
+  ,"markDiseasedTuberculosis": "牛结核疑似"
+  ,"@markDiseasedTuberculosis": {}
+  ,"markDiseasedBrucellosis": "布病疑似"
+  ,"@markDiseasedBrucellosis": {}
+  ,"markDiseasedDiarrhea": "腹泻类疾病"
+  ,"@markDiseasedDiarrhea": {}
+  ,"markDiseasedOther": "其他"
+  ,"@markDiseasedOther": {}
+  ,"markDiseasedOtherHint": "请输入病种名称（必填）"
+  ,"@markDiseasedOtherHint": {}
+  ,"markDiseasedHint": "标记后将立即分析该牛近 72 小时的接触轨迹，生成接触追踪与处置建议。"
+  ,"@markDiseasedHint": {}
+  ,"markDiseasedConfirm": "确认标记"
+  ,"@markDiseasedConfirm": {}
+  ,"markDiseasedDone": "已标记，接触分析完成（{contacts} 次接触）"
+  ,"@markDiseasedDone": {
+    "placeholders": {
+      "contacts": {"type": "int"}
+    }
+  }
+  ,"markDiseasedNoGps": "已标记，但近 72 小时无定位轨迹，接触网络为空"
+  ,"@markDiseasedNoGps": {}
+  ,"markDiseasedFailedTryAgain": "标记失败，请重试"
+  ,"@markDiseasedFailedTryAgain": {}
+
 }

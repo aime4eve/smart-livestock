@@ -12382,6 +12382,84 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'当前牧场还没有确认染病的牲畜。标记患病牲畜后，将自动生成接触追踪与处置工作台。'**
   String get epidemicNoSourceBody;
+
+  /// No description provided for @markDiseasedTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记疑似患病源头'**
+  String get markDiseasedTitle;
+
+  /// No description provided for @markDiseasedDiseaseLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'病种（单选）'**
+  String get markDiseasedDiseaseLabel;
+
+  /// No description provided for @markDiseasedFootMouth.
+  ///
+  /// In zh, this message translates to:
+  /// **'口蹄疫疑似'**
+  String get markDiseasedFootMouth;
+
+  /// No description provided for @markDiseasedTuberculosis.
+  ///
+  /// In zh, this message translates to:
+  /// **'牛结核疑似'**
+  String get markDiseasedTuberculosis;
+
+  /// No description provided for @markDiseasedBrucellosis.
+  ///
+  /// In zh, this message translates to:
+  /// **'布病疑似'**
+  String get markDiseasedBrucellosis;
+
+  /// No description provided for @markDiseasedDiarrhea.
+  ///
+  /// In zh, this message translates to:
+  /// **'腹泻类疾病'**
+  String get markDiseasedDiarrhea;
+
+  /// No description provided for @markDiseasedOther.
+  ///
+  /// In zh, this message translates to:
+  /// **'其他'**
+  String get markDiseasedOther;
+
+  /// No description provided for @markDiseasedOtherHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入病种名称（必填）'**
+  String get markDiseasedOtherHint;
+
+  /// No description provided for @markDiseasedHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记后将立即分析该牛近 72 小时的接触轨迹，生成接触追踪与处置建议。'**
+  String get markDiseasedHint;
+
+  /// No description provided for @markDiseasedConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认标记'**
+  String get markDiseasedConfirm;
+
+  /// No description provided for @markDiseasedDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'已标记，接触分析完成（{contacts} 次接触）'**
+  String markDiseasedDone(int contacts);
+
+  /// No description provided for @markDiseasedNoGps.
+  ///
+  /// In zh, this message translates to:
+  /// **'已标记，但近 72 小时无定位轨迹，接触网络为空'**
+  String get markDiseasedNoGps;
+
+  /// No description provided for @markDiseasedFailedTryAgain.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记失败，请重试'**
+  String get markDiseasedFailedTryAgain;
 }
 
 class _AppLocalizationsDelegate

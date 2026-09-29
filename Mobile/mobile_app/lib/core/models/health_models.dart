@@ -882,3 +882,24 @@ class ContactNetworkResponse {
     );
   }
 }
+
+/// Response of POST /epidemic/mark (mark-diseased instant-analysis track):
+/// how many contact rows the run generated or refreshed, plus a
+/// machine-readable warning code (`error.epidemicNoGpsWindow`) when no GPS
+/// trajectory existed in the window — HTTP stays 200 either way; the client
+/// swaps the "N contacts" toast for a no-GPS one.
+class MarkDiseasedResult {
+  const MarkDiseasedResult({
+    required this.contactsGenerated,
+    this.warning,
+  });
+  final int contactsGenerated;
+  final String? warning;
+
+  factory MarkDiseasedResult.fromJson(Map<String, dynamic> m) {
+    return MarkDiseasedResult(
+      contactsGenerated: (m['contactsGenerated'] as num?)?.toInt() ?? 0,
+      warning: m['warning'] as String?,
+    );
+  }
+}

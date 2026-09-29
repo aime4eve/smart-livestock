@@ -57,11 +57,19 @@ class EpidemicApiRepository implements EpidemicRepository {
   }
 
   @override
-  Future<void> markDiseased(String livestockId, String diseaseType) async {
-    await ApiClient.instance.farmPost(
+  Future<MarkDiseasedResult> markDiseased(String livestockId, String diseaseType,
+      {int? windowHours}) async {
+    final data = await ApiClient.instance.farmPost(
       '/health/epidemic/mark',
-      body: {'livestockId': livestockId, 'diseaseType': diseaseType},
+      body: {
+        'livestockId': livestockId,
+        'diseaseType': diseaseType,
+        // Optional analysis window (server clamps to 1-720h); omitted by
+        // default so the backend applies its configured 72h window.
+        if (windowHours != null) 'windowHours': windowHours,
+      },
     );
+    return MarkDiseasedResult.fromJson(data);
   }
 
   @override

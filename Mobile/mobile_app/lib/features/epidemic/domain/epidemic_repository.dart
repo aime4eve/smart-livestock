@@ -15,6 +15,10 @@ abstract class EpidemicRepository {
     int? eventId,
   });
   Future<void> completeDisposition(int dispositionId);
-  Future<void> markDiseased(String livestockId, String diseaseType);
+  Future<MarkDiseasedResult> markDiseased(
+    String livestockId,
+    String diseaseType, {
+    int? windowHours,
+  });
   Future<void> unmarkDiseased(String livestockId);
 }
