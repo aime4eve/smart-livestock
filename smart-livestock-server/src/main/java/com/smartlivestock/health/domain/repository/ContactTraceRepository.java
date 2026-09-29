@@ -16,5 +16,12 @@ public interface ContactTraceRepository {
      */
     List<ContactTrace> findByFarmIdAndLivestockParticipation(Long farmId, Long livestockId);
 
+    /**
+     * Whether the farm has at least one contact row already marked as a
+     * disease source ({@code markedAt} set). Feeds the overview scene card's
+     * unmarked-source hint without loading the full trace list.
+     */
+    boolean existsMarkedSourceByFarmId(Long farmId);
+
     ContactTrace save(ContactTrace trace);
 }

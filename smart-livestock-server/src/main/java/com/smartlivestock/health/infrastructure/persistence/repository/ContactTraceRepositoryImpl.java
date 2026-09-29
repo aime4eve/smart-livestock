@@ -34,6 +34,11 @@ public class ContactTraceRepositoryImpl implements ContactTraceRepository {
     }
 
     @Override
+    public boolean existsMarkedSourceByFarmId(Long farmId) {
+        return jpaRepo.existsByFarmIdAndMarkedAtIsNotNull(farmId);
+    }
+
+    @Override
     public ContactTrace save(ContactTrace trace) {
         return HealthMapper.toDomain(jpaRepo.save(HealthMapper.toJpa(trace)));
     }

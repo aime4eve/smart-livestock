@@ -332,6 +332,13 @@ class HealthApplicationServiceMarkDiseasedTest {
         }
 
         @Override
+        public boolean existsMarkedSourceByFarmId(Long farmId) {
+            return rows.stream()
+                    .filter(r -> farmId.equals(r.getFarmId()))
+                    .anyMatch(r -> r.getMarkedAt() != null);
+        }
+
+        @Override
         public ContactTrace save(ContactTrace trace) {
             if (trace.getId() == null) {
                 trace.setId(seq++);

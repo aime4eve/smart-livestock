@@ -6423,6 +6423,14 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String sceneEpidemicFootNoSource(String rate) {
+    return '7 日异常率 $rate% · ';
+  }
+
+  @override
+  String get sceneEpidemicFootNoSourceTag => '未标记源头';
+
+  @override
   String aiSummaryWatching(int n) {
     return '$n 只持续观察';
   }

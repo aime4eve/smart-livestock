@@ -11885,6 +11885,18 @@ abstract class AppLocalizations {
   /// **'7 日异常率 {rate}%，已超警戒线'**
   String sceneEpidemicFootAbove(String rate);
 
+  /// No description provided for @sceneEpidemicFootNoSource.
+  ///
+  /// In zh, this message translates to:
+  /// **'7 日异常率 {rate}% · '**
+  String sceneEpidemicFootNoSource(String rate);
+
+  /// No description provided for @sceneEpidemicFootNoSourceTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'未标记源头'**
+  String get sceneEpidemicFootNoSourceTag;
+
   /// No description provided for @aiSummaryWatching.
   ///
   /// In zh, this message translates to:

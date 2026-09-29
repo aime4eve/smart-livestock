@@ -630,7 +630,8 @@ public class HealthApplicationService {
                 new SceneSummaryFever(feverAbnormal, feverCritical, feverElevated, feverTickets),
                 new SceneSummaryDigestive(digestiveAbnormal, digestiveWatch, digestiveTickets),
                 new SceneSummaryEstrus(estrusHigh, breedingAdvice, estrusTickets),
-                new SceneSummaryEpidemic(riskLevel, metrics.abnormalRate().doubleValue(), epidemicTickets),
+                new SceneSummaryEpidemic(riskLevel, metrics.abnormalRate().doubleValue(), epidemicTickets,
+                        contactTraceRepo.existsMarkedSourceByFarmId(farmId)),
                 new SceneSummaryAi(aiAnomalyCount, aiHighScoreCount,
                         Math.round(aiAvgScore * 1000.0) / 1000.0, aiTickets));
 

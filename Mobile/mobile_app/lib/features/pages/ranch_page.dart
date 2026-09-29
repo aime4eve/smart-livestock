@@ -1749,8 +1749,23 @@ class _RanchPageState extends ConsumerState<RanchPage>
                 ? pill(AppColors.warning, l10n.pillRate(epiRate))
                 : pill(AppColors.success, l10n.pillSteady),
             foot: epiOver
-                ? l10n.sceneEpidemicFootAbove(epiRate)
+                ? (scene.epidemic.hasMarkedSource
+                    ? l10n.sceneEpidemicFootAbove(epiRate)
+                    : l10n.sceneEpidemicFootNoSource(epiRate))
                 : l10n.sceneEpidemicFootBelow(epiRate),
+            // P7: epiOver with no marked source appends a danger bold tail
+            // segment via the same two-span foot the fever card uses.
+            footBold: epiOver && !scene.epidemic.hasMarkedSource
+                ? TextSpan(
+                    text: l10n.sceneEpidemicFootNoSourceTag,
+                    style: const TextStyle(
+                      fontSize: 9,
+                      height: 1.3,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.danger,
+                    ),
+                  )
+                : null,
             onTap: () => context.push(AppRoute.twinEpidemic.path),
           ),
         ),

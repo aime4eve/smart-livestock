@@ -11,6 +11,8 @@ public interface ContactTraceJpaRepository extends JpaRepository<ContactTraceJpa
     List<ContactTraceJpaEntity> findByFarmIdOrderByLastContactAtDesc(Long farmId);
     List<ContactTraceJpaEntity> findByFromLivestockIdOrderByLastContactAtDesc(Long fromLivestockId);
 
+    boolean existsByFarmIdAndMarkedAtIsNotNull(Long farmId);
+
     @Query("select t from ContactTraceJpaEntity t where t.farmId = :farmId"
             + " and (t.fromLivestockId = :livestockId or t.toLivestockId = :livestockId)"
             + " order by t.lastContactAt desc")

@@ -82,6 +82,8 @@ class HealthOverviewResponse {
               status: m['epidemic']['status'] as String? ?? 'Normal',
               abnormalRate: (m['epidemic']['abnormalRate'] as num?)?.toDouble() ?? 0.0,
               activeAlertCount: m['epidemic']['activeAlertCount'] as int? ?? 0,
+              // Tolerate older payloads without the field (treated as unmarked).
+              hasMarkedSource: m['epidemic']['hasMarkedSource'] as bool? ?? false,
             )
           : const SceneSummaryEpidemic(status: 'Normal', abnormalRate: 0.0),
       ai: m['ai'] != null

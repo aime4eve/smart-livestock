@@ -6574,6 +6574,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String sceneEpidemicFootNoSource(String rate) {
+    return '7-day rate $rate% · ';
+  }
+
+  @override
+  String get sceneEpidemicFootNoSourceTag => 'no source marked';
+
+  @override
   String aiSummaryWatching(int n) {
     return '$n under watch';
   }
