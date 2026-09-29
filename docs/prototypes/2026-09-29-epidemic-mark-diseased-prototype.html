@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>疫病·标记患病入口 高保真原型 · 2026-09-29</title>
+<style>
+  /* ── 设计令牌（沿用项目统一令牌，prototype-to-flutter-fidelity 解析源）── */
+  :root {
+    --color-primary:       #2F6B3B;
+    --color-primary-dark:  #244F2D;
+    --color-primary-soft:  #E3F0E4;
+    --color-accent:        #8BA95A;
+    --color-surface:       #F8F6F0;
+    --color-surface-alt:   #FFFFFF;
+    --color-surface-muted: #F2F0EA;
+    --color-text-primary:  #263126;
+    --color-text-secondary:#617061;
+    --color-success:       #4C9A5F;
+    --color-success-soft:  #E3F0E4;
+    --color-warning:       #D28A2D;
+    --color-warning-soft:  #F7ECDC;
+    --color-danger:        #C2564B;
+    --color-danger-soft:   #F6E4E2;
+    --color-info:          #4A7F9D;
+    --color-info-soft:     #E2EDF3;
+    --color-border:        #D7D2C6;
+
+    /* 本原型新增令牌 */
+    --mark-chip-active-bg:  #F6E4E2;         /* 病种选中底 = danger-soft */
+    --mark-chip-active-bd:  #C2564B;         /* 病种选中描边 = danger */
+
+    --space-xs: 4px;  --space-sm: 8px;  --space-md: 16px;
+    --space-lg: 24px; --space-xl: 32px;
+
+    --radius-lg: 16px; --radius-md: 12px; --radius-sm: 8px;
+    --radius-pill: 999px;
+    --shadow-card: 0 2px 10px rgba(38,49,38,.08);
+    --shadow-sheet: 0 -4px 24px rgba(38,49,38,.14);
+
+    --font-title: 700 15px/1.3 -apple-system,'PingFang SC',sans-serif;
+    --font-body:  400 12px/1.5 -apple-system,'PingFang SC',sans-serif;
+    --font-cap:   400 10px/1.4 -apple-system,'PingFang SC',sans-serif;
+  }
+
+  body { margin:0; padding:32px 40px 64px; background:#E9E6DE;
+         font-family:-apple-system,'PingFang SC',sans-serif; }
+  h1 { font-size:20px; color:var(--color-text-primary); margin:0 0 6px; }
+  .sub { font-size:12px; color:var(--color-text-secondary); margin:0 0 28px; }
+  .board { display:flex; gap:36px; overflow-x:auto; align-items:flex-start; padding-bottom:24px; }
+  .col { display:flex; flex-direction:column; gap:10px; }
+  .col-label { font-size:12px; font-weight:700; color:var(--color-primary-dark); }
+
+  /* 手机框架 390×844 */
+  .phone { width:390px; height:844px; background:var(--color-surface);
+           border-radius:28px; border:10px solid #263126; overflow:hidden;
+           position:relative; flex-shrink:0; box-shadow:0 8px 30px rgba(38,49,38,.18); }
+  .statusbar { height:34px; display:flex; justify-content:space-between; align-items:center;
+               padding:0 18px; font-size:11px; color:var(--color-text-primary); }
+  .appbar { background:var(--color-primary); color:#fff; padding:10px 16px 12px;
+            display:flex; align-items:center; gap:10px; }
+  .appbar .back { font-size:18px; }
+  .appbar .t { font-size:15px; font-weight:700; flex:1; }
+  .appbar .r { font-size:11px; opacity:.9; }
+  .body { padding:12px 14px; }
+
+  .card { background:var(--color-surface-alt); border:1px solid var(--color-border);
+          border-radius:var(--radius-md); padding:14px; box-shadow:var(--shadow-card);
+          margin-bottom:10px; }
+  .row { display:flex; align-items:center; gap:10px; }
+  .avatar { width:42px; height:42px; border-radius:10px; background:var(--color-primary-soft);
+            color:var(--color-primary-dark); display:flex; align-items:center;
+            justify-content:center; font-size:18px; font-weight:700; }
+  .code { font-size:14px; font-weight:700; color:var(--color-text-primary); }
+  .meta { font-size:10px; color:var(--color-text-secondary); margin-top:2px; }
+  .pill { font-size:9px; font-weight:700; padding:3px 8px; border-radius:var(--radius-pill); }
+  .pill.ok    { background:var(--color-success-soft); color:var(--color-success); }
+  .pill.warn  { background:var(--color-warning-soft); color:var(--color-warning); }
+  .pill.danger{ background:var(--color-danger-soft);  color:var(--color-danger); }
+  .pill.src   { background:var(--color-danger); color:#fff; }
+
+  .section-t { font-size:11px; font-weight:700; color:var(--color-text-primary);
+               margin:14px 2px 8px; display:flex; align-items:center; gap:6px; }
+  .bar { width:3px; height:10px; background:var(--color-primary);
+         border-radius:2px; display:inline-block; }
+
+  /* 动作行（详情页新增） */
+  .actions { display:flex; gap:8px; margin-top:10px; }
+  .btn { flex:1; height:36px; border-radius:var(--radius-sm); border:none;
+         font-size:12px; font-weight:700; display:flex; align-items:center;
+         justify-content:center; gap:6px; }
+  .btn.primary { background:var(--color-danger); color:#fff; }
+  .btn.ghost   { background:transparent; color:var(--color-danger);
+                 border:1px solid var(--color-danger); }
+  .btn.neutral { background:var(--color-surface-muted); color:var(--color-text-secondary); }
+  .btn.small   { flex:0 0 auto; padding:0 12px; height:30px; font-size:11px; }
+  .btn:disabled { opacity:.45; }
+
+  /* 底部弹层 */
+  .scrim { position:absolute; inset:0; background:rgba(38,49,38,.45); }
+  .sheet { position:absolute; left:0; right:0; bottom:0; background:var(--color-surface-alt);
+           border-radius:var(--radius-lg) var(--radius-lg) 0 0; padding:18px 16px 26px;
+           box-shadow:var(--shadow-sheet); }
+  .grab { width:36px; height:4px; border-radius:2px; background:var(--color-border);
+          margin:0 auto 14px; }
+  .sheet .h { font:var(--font-title); color:var(--color-text-primary); text-align:center; }
+  .sheet .who { text-align:center; font-size:11px; color:var(--color-text-secondary);
+                margin:4px 0 14px; }
+  .grp-t { font-size:11px; font-weight:700; color:var(--color-text-primary); margin-bottom:8px; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip { padding:7px 14px; border-radius:var(--radius-pill); font-size:12px; font-weight:600;
+          background:var(--color-surface-muted); color:var(--color-text-primary);
+          border:1.5px solid transparent; }
+  .chip.on { background:var(--mark-chip-active-bg); color:var(--color-danger);
+             border-color:var(--mark-chip-active-bd); font-weight:700; }
+  .other-input { margin-top:10px; height:36px; border-radius:var(--radius-sm);
+                 border:1px solid var(--color-border); padding:0 12px; font-size:12px;
+                 color:var(--color-text-primary); background:var(--color-surface); }
+  .hint { margin-top:14px; background:var(--color-info-soft); border-radius:var(--radius-sm);
+          padding:10px 12px; font-size:10px; line-height:1.6; color:var(--color-info);
+          display:flex; gap:8px; }
+  .hint .ic { font-size:13px; }
+  .sheet .actions2 { display:flex; gap:10px; margin-top:16px; }
+  .sheet .actions2 .btn { height:42px; font-size:13px; }
+
+  /* toast */
+  .toast { position:absolute; left:50%; transform:translateX(-50%); bottom:132px;
+           background:rgba(38,49,38,.92); color:#fff; font-size:11px; padding:10px 16px;
+           border-radius:var(--radius-pill); display:flex; gap:8px; align-items:center;
+           white-space:nowrap; }
+  .toast .ok { color:#9FD8AC; font-weight:800; }
+
+  /* 空态 */
+  .empty { position:absolute; inset:0; display:flex; flex-direction:column;
+           align-items:center; justify-content:center; padding:0 36px; text-align:center; }
+  .empty .ic { font-size:40px; color:var(--color-text-secondary); opacity:.55; }
+  .empty .t  { font-size:13px; font-weight:700; color:var(--color-text-primary); margin-top:12px; }
+  .empty .b  { font-size:10px; color:var(--color-text-secondary); margin-top:6px; line-height:1.7; }
+  .empty .btn.primary { background:var(--color-primary); margin-top:16px; flex:0 0 auto; padding:0 22px; }
+  .empty .btn.neutral { margin-top:8px;  flex:0 0 auto; padding:0 22px; height:32px; font-size:11px; }
+
+  /* 告警卡（P5） */
+  .alarm { border-left:3px solid var(--color-danger); }
+  .alarm .lvl { font-size:10px; color:var(--color-danger); font-weight:800; }
+
+  /* 升级引导（P6） */
+  .upsell .sheet .h2 { font-size:16px; font-weight:800; color:var(--color-primary-dark);
+                       text-align:center; margin:4px 0 8px; }
+  .price { text-align:center; margin:10px 0; }
+  .price .p { font-size:22px; font-weight:800; color:var(--color-primary-dark); }
+  .price .u { font-size:10px; color:var(--color-text-secondary); }
+
+  /* 概览场景卡（P7） */
+  .scene { background:var(--color-surface-alt); border:1px solid var(--color-border);
+           border-radius:var(--radius-md); padding:10px; }
+  .scene .ft { font-size:9px; color:var(--color-text-secondary); margin-top:5px; line-height:1.4; }
+  .scene .sep { color:var(--color-border); }
+
+  .caption { width:390px; font-size:11px; color:var(--color-text-secondary);
+             line-height:1.6; padding:2px 4px; }
+  .caption b { color:var(--color-text-primary); }
+</style>
+</head>
+<body>
+
+<h1>疫病 · 标记患病入口 — 高保真原型</h1>
+<p class="sub">390×844 · 令牌与现网一致 · spec: docs/superpowers/specs/2026-09-29-epidemic-mark-diseased-entry-spec.md · 2026-09-29</p>
+
+<div class="board">
+
+<!-- ═══ P1 牲畜详情 · 未标记态 + 标记弹层（主入口） ═══ -->
+<div class="col">
+  <div class="col-label">P1 · 主入口 — 牲畜详情页 → 标记弹层</div>
+  <div class="phone">
+    <div class="statusbar"><span>9:41</span><span>●●● 🔋</span></div>
+    <div class="appbar"><span class="back">‹</span><span class="t">牛只详情</span><span class="r">牧场</span></div>
+    <div class="body">
+      <div class="card">
+        <div class="row">
+          <div class="avatar">63</div>
+          <div style="flex:1">
+            <div class="code">SL-2024-0063</div>
+            <div class="meta">母牛 · 3 号围栏 · 佩戴 TB 胶囊</div>
+          </div>
+          <span class="pill warn">留意</span>
+        </div>
+      </div>
+      <div class="section-t"><span class="bar"></span>健康信息</div>
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <span style="font-size:11px;color:var(--color-text-secondary)">体温 39.6℃ ↑</span>
+          <span style="font-size:11px;color:var(--color-text-secondary)">反刍 正常</span>
+          <span style="font-size:11px;color:var(--color-text-secondary)">活动 偏低</span>
+        </div>
+        <!-- 新增动作行：未标记态 -->
+        <div class="actions">
+          <button class="btn primary">🦠 标记疑似患病</button>
+        </div>
+      </div>
+    </div>
+    <div class="scrim"></div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="h">标记疑似患病源头</div>
+      <div class="who">SL-2024-0063 · 母牛 · 3 号围栏</div>
+      <div class="grp-t">病种（单选）</div>
+      <div class="chips">
+        <span class="chip on">口蹄疫疑似</span>
+        <span class="chip">牛结核疑似</span>
+        <span class="chip">布病疑似</span>
+        <span class="chip">腹泻类疾病</span>
+        <span class="chip">其他</span>
+      </div>
+      <div class="hint"><span class="ic">ⓘ</span><span>标记后将立即分析该牛近 72 小时的接触轨迹，生成接触追踪与处置建议。</span></div>
+      <div class="actions2">
+        <button class="btn neutral">取消</button>
+        <button class="btn primary">确认标记</button>
+      </div>
+    </div>
+  </div>
+  <div class="caption"><b>① 主入口</b>：详情页健康信息卡底部新增动作行（OWNER/B2B_ADMIN 可见）。「标记疑似患病」呼起共享弹层；病种默认不选，未选时确认按钮置灰。</div>
+</div>
+
+<!-- ═══ P2 弹层变体：「其他」输入 / 提交成功 ═══ -->
+<div class="col">
+  <div class="col-label">P2 · 弹层变体 — 「其他」输入 + 成功 toast</div>
+  <div class="phone">
+    <div class="statusbar"><span>9:41</span><span>●●● 🔋</span></div>
+    <div class="appbar"><span class="back">‹</span><span class="t">牛只详情</span><span class="r">牧场</span></div>
+    <div class="body">
+      <div class="card">
+        <div class="row">
+          <div class="avatar">63</div>
+          <div style="flex:1">
+            <div class="code">SL-2024-0063</div>
+            <div class="meta">母牛 · 3 号围栏 · 佩戴 TB 胶囊</div>
+          </div>
+          <span class="pill warn">留意</span>
+        </div>
+      </div>
+      <div class="section-t"><span class="bar"></span>健康信息</div>
+      <div class="card" style="min-height:120px"></div>
+    </div>
+    <div class="scrim"></div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="h">标记疑似患病源头</div>
+      <div class="who">SL-2024-0063 · 母牛 · 3 号围栏</div>
+      <div class="grp-t">病种（单选）</div>
+      <div class="chips">
+        <span class="chip">口蹄疫疑似</span>
+        <span class="chip">牛结核疑似</span>
+        <span class="chip">布病疑似</span>
+        <span class="chip">腹泻类疾病</span>
+        <span class="chip on">其他</span>
+      </div>
+      <input class="other-input" placeholder="请输入病种名称（必填）" value="牛病毒性腹泻">
+      <div class="hint"><span class="ic">ⓘ</span><span>标记后将立即分析该牛近 72 小时的接触轨迹，生成接触追踪与处置建议。</span></div>
+      <div class="actions2">
+        <button class="btn neutral">取消</button>
+        <button class="btn primary">确认标记</button>
+      </div>
+    </div>
+    <div class="toast"><span class="ok">✓</span>已标记，接触分析完成（12 次接触）</div>
+  </div>
+  <div class="caption"><b>「其他」</b>选中时展开必填输入框。提交成功 → toast（含接触次数，来自后端 contactsGenerated）→ 自动跳转 /twin/epidemic?sourceLivestockId=…。contactsGenerated=0 时 toast 换为「已标记，但近 72 小时无定位轨迹，接触网络为空」。</div>
+</div>
+
+<!-- ═══ P3 已标记态 + 取消确认 ═══ -->
+<div class="col">
+  <div class="col-label">P3 · 已标记态 — 源头徽标 + 取消标记</div>
+  <div class="phone">
+    <div class="statusbar"><span>9:41</span><span>●●● 🔋</span></div>
+    <div class="appbar"><span class="back">‹</span><span class="t">牛只详情</span><span class="r">牧场</span></div>
+    <div class="body">
+      <div class="card">
+        <div class="row">
+          <div class="avatar" style="background:var(--color-danger-soft);color:var(--color-danger)">63</div>
+          <div style="flex:1">
+            <div class="code">SL-2024-0063</div>
+            <div class="meta">母牛 · 3 号围栏 · 佩戴 TB 胶囊</div>
+          </div>
+          <span class="pill src">疑似源头</span>
+        </div>
+        <div style="margin-top:10px;background:var(--color-danger-soft);border-radius:var(--radius-sm);padding:8px 10px">
+          <div style="font-size:10px;color:var(--color-danger);font-weight:700">🦠 口蹄疫疑似 · 已标记 2 小时</div>
+          <div style="font-size:9px;color:var(--color-text-secondary);margin-top:3px">接触 12 头 · 一级处置 1 · 见「疫病防控」工作台</div>
+        </div>
+      </div>
+      <div class="section-t"><span class="bar"></span>健康信息</div>
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <span style="font-size:11px;color:var(--color-text-secondary)">体温 39.6℃ ↑</span>
+          <span style="font-size:11px;color:var(--color-text-secondary)">反刍 正常</span>
+          <span style="font-size:11px;color:var(--color-text-secondary)">活动 偏低</span>
+        </div>
+        <!-- 已标记态动作行 -->
+        <div class="actions">
+          <button class="btn neutral">查看疫病工作台</button>
+          <button class="btn ghost">取消染病标记</button>
+        </div>
+      </div>
+    </div>
+    <div class="scrim"></div>
+    <div class="sheet" style="padding-bottom:30px">
+      <div class="grab"></div>
+      <div class="h">取消染病标记？</div>
+      <div class="who" style="margin-top:8px;line-height:1.7">将同时取消 SL-2024-0063 作为源头的<br>全部未完成处置单（共 3 张）。</div>
+      <div class="actions2">
+        <button class="btn neutral">保留标记</button>
+        <button class="btn primary" style="background:var(--color-danger)">确认取消</button>
+      </div>
+    </div>
+  </div>
+  <div class="caption"><b>已标记态</b>：头像/徽标转红、信息条显示病种+标记时长+接触摘要；动作行换为「查看工作台 / 取消染病标记」。取消需二次确认（明示连带取消处置单 → DELETE /epidemic/mark/{id}，后端 cancelActiveBySource）。</div>
+</div>
+
+<!-- ═══ P4 工作台空态改版 ═══ -->
+<div class="col">
+  <div class="col-label">P4 · 疫病工作台空态 — 补「去选择病牛」</div>
+  <div class="phone">
+    <div class="statusbar"><span>9:41</span><span>●●● 🔋</span></div>
+    <div class="appbar"><span class="back">‹</span><span class="t">疫病防控</span><span class="r">72h 窗口</span></div>
+    <div class="empty">
+      <div class="ic">🐾</div>
+      <div class="t">暂无标记的疑似源头</div>
+      <div class="b">当前牧场还没有确认染病的牲畜。<br>从围栏页选择牛只，在详情页即可标记疑似患病，<br>系统将自动生成接触追踪与处置建议。</div>
+      <button class="btn primary">去选择病牛</button>
+      <button class="btn neutral">重试</button>
+    </div>
+  </div>
+  <div class="caption"><b>空态闭环</b>（对 4e96278e 的增强）：文案指向真实路径（围栏页 → 牛只详情 → 标记），主按钮跳转围栏页牛只列表；重试保留（网络异常场景）。免费用户点主按钮同样走 P6 升级引导。</div>
+</div>
+
+<!-- ═══ P5 疫病告警快捷入口 ═══ -->
+<div class="col">
+  <div class="col-label">P5 · 疫病类告警 — 「标记为源头」快捷动作</div>
+  <div class="phone">
+    <div class="statusbar"><span>9:41</span><span>●●● 🔋</span></div>
+    <div class="appbar"><span class="back">‹</span><span class="t">告警中心</span><span class="r">健康 4</span></div>
+    <div class="body">
+      <div class="card alarm">
+        <div class="row">
+          <div style="flex:1">
+            <div class="lvl">疫病风险 · 严重</div>
+            <div style="font-size:12px;font-weight:700;color:var(--color-text-primary);margin-top:3px">SL-2024-0063 体温持续升高</div>
+            <div class="meta">体温 39.6℃ 持续 9 小时 · 3 号围栏</div>
+          </div>
+        </div>
+        <div class="actions" style="margin-top:12px">
+          <button class="btn neutral small">查看牛只</button>
+          <button class="btn small" style="background:var(--color-danger);color:#fff">标记为源头</button>
+        </div>
+      </div>
+      <div class="card" style="opacity:.55">
+        <div class="row"><div style="flex:1">
+          <div style="font-size:10px;color:var(--color-warning);font-weight:800">发热 · 警告</div>
+          <div style="font-size:12px;font-weight:700;color:var(--color-text-primary);margin-top:3px">SL-2024-0071 低热</div>
+          <div class="meta">38.9℃ · 2 号围栏</div>
+        </div></div>
+      </div>
+    </div>
+    <div class="scrim"></div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="h">标记疑似患病源头</div>
+      <div class="who">SL-2024-0063 · 母牛 · 3 号围栏（来自告警）</div>
+      <div class="grp-t">病种（单选）</div>
+      <div class="chips">
+        <span class="chip on">口蹄疫疑似</span>
+        <span class="chip">牛结核疑似</span>
+        <span class="chip">布病疑似</span>
+        <span class="chip">腹泻类疾病</span>
+        <span class="chip">其他</span>
+      </div>
+      <div class="hint"><span class="ic">ⓘ</span><span>标记后将立即分析该牛近 72 小时的接触轨迹，生成接触追踪与处置建议。</span></div>
+      <div class="actions2">
+        <button class="btn neutral">取消</button>
+        <button class="btn primary">确认标记</button>
+      </div>
+    </div>
+  </div>
+  <div class="caption"><b>③ 快捷路径</b>：仅 EPIDEMIC 类型告警显示该动作；牛只已预填，弹层只选病种。与告警的「处理=已读」语义并存（标记是更强动作，不替代已读）。</div>
+</div>
+
+<!-- ═══ P6 免费用户升级引导 ═══ -->
+<div class="col upsell">
+  <div class="col-label">P6 · 免费用户 — 点击标记 → 升级引导</div>
+  <div class="phone">
+    <div class="statusbar"><span>9:41</span><span>●●● 🔋</span></div>
+    <div class="appbar"><span class="back">‹</span><span class="t">牛只详情</span><span class="r">牧场</span></div>
+    <div class="body">
+      <div class="card">
+        <div class="row">
+          <div class="avatar">71</div>
+          <div style="flex:1">
+            <div class="code">SL-2024-0071</div>
+            <div class="meta">母牛 · 2 号围栏</div>
+          </div>
+          <span class="pill ok">平稳</span>
+        </div>
+      </div>
+      <div class="section-t"><span class="bar"></span>健康信息</div>
+      <div class="card" style="min-height:150px">
+        <div style="font-size:10px;color:var(--color-text-secondary)">免费版 · 疫病防控为 Premium 功能</div>
+      </div>
+    </div>
+    <div class="scrim"></div>
+    <div class="sheet" style="padding-bottom:34px">
+      <div class="grab"></div>
+      <div style="text-align:center;font-size:34px">🔒</div>
+      <div class="h2">疫病防控需要 Premium</div>
+      <div style="text-align:center;font-size:11px;color:var(--color-text-secondary);line-height:1.7">
+        标记疑似患病、接触追踪与四级处置<br>属于 Premium 功能（epidemic_alert）。
+      </div>
+      <div class="price"><span class="p">$2.65</span> <span class="u">/ 头 / 月</span></div>
+      <div class="actions2">
+        <button class="btn neutral">暂不升级</button>
+        <button class="btn primary" style="background:var(--color-primary-dark)">了解 Premium</button>
+      </div>
+    </div>
+  </div>
+  <div class="caption"><b>裁决②</b>：免费用户按钮可见，点击走升级引导（沿用工作台 _LockedState 语汇），不隐藏——保留功能感知。入口挂 subscriptionController 的 tier 判定。</div>
+</div>
+
+<!-- ═══ P7 概览疫病卡衔接 ═══ -->
+<div class="col">
+  <div class="col-label">P7 · 概览疫病卡 — 副文两段式衔接</div>
+  <div class="phone">
+    <div class="statusbar"><span>9:41</span><span>●●● 🔋</span></div>
+    <div class="appbar"><span class="back">‹</span><span class="t">牧场</span><span class="r">HKT Main Ranch ⌄</span></div>
+    <div class="body">
+      <div class="section-t"><span class="bar"></span>健康管理</div>
+      <div class="row" style="align-items:stretch;margin-bottom:8px">
+        <div class="scene" style="flex:1">
+          <div class="row" style="gap:6px"><span style="font-size:11px;font-weight:700">🌡️ 发热管理</span><span class="pill warn" style="margin-left:auto">1 只异常</span></div>
+          <div class="ft">1 只发烧 · 0 只低热</div>
+        </div>
+        <div style="width:7px"></div>
+        <div class="scene" style="flex:1">
+          <div class="row" style="gap:6px"><span style="font-size:11px;font-weight:700">🌾 消化管理</span><span class="pill warn" style="margin-left:auto">2 只异常</span></div>
+          <div class="ft">2 只反刍偏低</div>
+        </div>
+      </div>
+      <div class="row" style="align-items:stretch">
+        <div class="scene" style="flex:1">
+          <div class="row" style="gap:6px"><span style="font-size:11px;font-weight:700">💗 发情管理</span><span class="pill ok" style="margin-left:auto">平稳</span></div>
+          <div class="ft">暂无高分个体，适合巡查</div>
+        </div>
+        <div style="width:7px"></div>
+        <div class="scene" style="flex:1;border-color:var(--color-danger)">
+          <div class="row" style="gap:6px"><span style="font-size:11px;font-weight:700">🛡️ 疫病防控</span><span class="pill danger" style="margin-left:auto">27.3%</span></div>
+          <div class="ft">7 日异常率 27.3% <span class="sep">·</span> <span style="color:var(--color-danger);font-weight:700">未标记源头</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="caption"><b>裁决 D</b>：异常率超警戒且无标记源头时，副文追加「未标记源头」红字提示；点击仍进工作台（P4 空态引导）。有源头时维持现有副文不动。</div>
+</div>
+
+</div>
+</body>
+</html>
