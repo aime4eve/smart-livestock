@@ -318,7 +318,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String ranchFenceDeleted(String name) {
-    return 'Deleted fence \"$name\"';
+    return 'Deleted fence $name';
   }
 
   @override
@@ -333,12 +333,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String ranchFenceDeletedWithAlerts(String name, int count) {
-    return 'Deleted fence \"$name\" and $count alerts';
+    return 'Deleted fence $name and $count alerts';
   }
 
   @override
   String ranchConfirmDeleteFence(String name) {
-    return 'Confirm delete \"$name\"? This cannot be undone.';
+    return 'Confirm delete $name? This cannot be undone.';
   }
 
   @override
@@ -1249,7 +1249,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String b2bFarmCreationSuccess(String name) {
-    return 'Ranch \"$name\" created successfully';
+    return 'Ranch $name created successfully';
   }
 
   @override
@@ -1743,7 +1743,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String tenantDeleteMessage(String name) {
-    return 'About to delete tenant \"$name\". This action cannot be undone.';
+    return 'About to delete tenant $name. This action cannot be undone.';
   }
 
   @override
@@ -2253,12 +2253,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String b2bFarmChangeSuccess(String farm, String owner) {
-    return '\"$farm\" owner changed to $owner';
+    return '$farm owner changed to $owner';
   }
 
   @override
   String b2bFarmRenameDemo(String name) {
-    return '\"$name\" rename feature coming soon';
+    return '$name rename feature coming soon';
   }
 
   @override
@@ -2281,7 +2281,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get b2bWorkerAssignNone =>
-      'No workers available. Create one with \"Add Worker\" first.';
+      'No workers available. Create one with Add Worker first.';
 
   @override
   String b2bWorkerAssignConfirm(String count) {
@@ -2293,7 +2293,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String b2bWorkerRemoveConfirm(String name, String farm) {
-    return 'Remove \"$name\" from \"$farm\"?';
+    return 'Remove $name from $farm?';
   }
 
   @override
@@ -2301,7 +2301,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String b2bWorkerCreated(String name) {
-    return 'Worker \"$name\" created and assigned';
+    return 'Worker $name created and assigned';
   }
 
   @override
@@ -2312,7 +2312,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String b2bWorkerResetPwdTitle(String name) {
-    return 'Reset \"$name\" Password';
+    return 'Reset $name Password';
   }
 
   @override
@@ -3563,7 +3563,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsQualityNoSessionHint =>
-      'No calibration sessions yet. Click \"+ Create Calibration Session\" to start.';
+      'No calibration sessions yet. Click + Create Calibration Session to start.';
 
   @override
   String get gpsQualityDelete => 'Delete';
@@ -4422,7 +4422,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String alertFenceDeleteConfirm(String name) {
-    return 'Delete fence \"$name\"?';
+    return 'Delete fence $name?';
   }
 
   @override
@@ -4618,18 +4618,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsQualityTrackLineEmpty =>
-      'No standard track candidates yet. Click \"Import Track\" to start.';
+      'No standard track candidates yet. Click Import Track to start.';
 
   @override
   String get gpsQualityTrackLineImportBtn => 'Import Track';
 
   @override
   String get gpsQualityTrackLineRules =>
-      'Management rules (append-only, no merging): one import = one independent candidate, never auto-merged; re-importing the same file adds a new record instead of overwriting; the point list is snapshotted when a check is launched, so deleting a candidate does not affect historical reports; select ≥2 to \"Merge\" (phase 2).';
+      'Management rules (append-only, no merging): one import = one independent candidate, never auto-merged; re-importing the same file adds a new record instead of overwriting; the point list is snapshotted when a check is launched, so deleting a candidate does not affect historical reports; select ≥2 to Merge (phase 2).';
 
   @override
   String gpsQualityTrackLineDeleteConfirm(Object name) {
-    return 'Delete candidate track \"$name\"? Historical check reports are not affected (point list is snapshotted).';
+    return 'Delete candidate track $name? Historical check reports are not affected (point list is snapshotted).';
   }
 
   @override
@@ -4655,14 +4655,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsQualityLineUploadHint =>
-      'Supports .xlsx (RTK handset \"line tracking\" export). One line per file; each import creates one candidate.';
+      'Supports .xlsx (RTK handset line tracking export). One line per file; each import creates one candidate.';
 
   @override
   String get gpsQualityLinePickFile => 'Choose File';
 
   @override
   String get gpsQualityLineFormatTitle =>
-      'File layout (RTK handset export: single sheet \"line tracking\", 8 columns, one row per line)';
+      'File layout (RTK handset export: single sheet line tracking, 8 columns, one row per line)';
 
   @override
   String get gpsQualityLineCleanRules =>
@@ -4752,7 +4752,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsQualityLineNameHint =>
-      'Defaults to the file\'s \"name\" column, editable. One import = one independent candidate; re-importing the same file adds a record instead of overwriting.';
+      'Defaults to the file\'s name column, editable. One import = one independent candidate; re-importing the same file adds a record instead of overwriting.';
 
   @override
   String get gpsQualityLineImportAction => 'Import';
@@ -4837,7 +4837,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsQualityCheckSummaryHint =>
-      'Click \"View Report\" to open the report of that type';
+      'Click View Report to open the report of that type';
 
   @override
   String get gpsQualitySummaryLatest => 'Latest Check';
@@ -4898,7 +4898,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsQualityLineGotoComparison =>
-      'For cross-device comparison, go to the \"Quality Comparison\" tab.';
+      'For cross-device comparison, go to the Quality Comparison tab.';
 
   @override
   String get gpsQualityLineComparison => 'Line Check Comparison';
@@ -4954,7 +4954,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get telemetryImportFormatTitle =>
-      'File format requirements (blade platform \"Device Data\" export, 6 columns)';
+      'File format requirements (blade platform Device Data export, 6 columns)';
 
   @override
   String get telemetryImportRequired => 'Required';
@@ -5010,7 +5010,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get telemetryImportRulesNote =>
-      'Import rules: the device is matched by the DevEUI in the file name; unregistered devices fail the whole file so no orphan data is produced; records already existing at the same device timestamp are skipped (idempotent, safe to re-import); imported history triggers no alerts, does not move the live sync cursor, and is marked as \"manual import\".';
+      'Import rules: the device is matched by the DevEUI in the file name; unregistered devices fail the whole file so no orphan data is produced; records already existing at the same device timestamp are skipped (idempotent, safe to re-import); imported history triggers no alerts, does not move the live sync cursor, and is marked as manual import.';
 
   @override
   String get telemetryImportNextParse => 'Next: Parse';
@@ -5106,7 +5106,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String telemetryImportDone(int telemetry, int gps) {
-    return 'Import complete. $telemetry telemetry records written, including $gps GPS track points; duplicate and non-importable rows were skipped automatically. The source is marked as \"manual import\" — no alerts were triggered and the live sync cursor is untouched.';
+    return 'Import complete. $telemetry telemetry records written, including $gps GPS track points; duplicate and non-importable rows were skipped automatically. The source is marked as manual import — no alerts were triggered and the live sync cursor is untouched.';
   }
 
   @override
@@ -5123,7 +5123,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get telemetryImportResultHint =>
-      'You can replay this device\'s track by time in \"Map · Track History\"; steps and acceleration have joined the health analytics data pool and count toward activity statistics.';
+      'You can replay this device\'s track by time in Map · Track History; steps and acceleration have joined the health analytics data pool and count toward activity statistics.';
 
   @override
   String get telemetryImportImportAnother => 'Import Another File';
@@ -5911,7 +5911,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deviceProfileRuleHint =>
-      'This list decides which TB device profiles the provisioning wizard accepts: devices whose profile is missing (or disabled) will show \"Waiting for TB device\". Add mappings here when onboarding a new link — no release needed.';
+      'This list decides which TB device profiles the provisioning wizard accepts: devices whose profile is missing (or disabled) will show Waiting for TB device. Add mappings here when onboarding a new link — no release needed.';
 
   @override
   String deviceProfileRuleStat(int total, int enabled, int disabled) {
@@ -5926,7 +5926,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deviceProfileRuleEmpty =>
-      'No rules yet — tap \"Add Rule\" to create one';
+      'No rules yet — tap Add Rule to create one';
 
   @override
   String get deviceProfileRuleColName => 'Profile (TB)';
@@ -5984,7 +5984,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String deviceProfileRuleDeleteWarn(String name) {
-    return 'After deletion, devices on profile \"$name\" will fail provisioning with \"Waiting for TB device\". Devices and telemetry on the ThingsBoard platform are not affected.';
+    return 'After deletion, devices on profile $name will fail provisioning with Waiting for TB device. Devices and telemetry on the ThingsBoard platform are not affected.';
   }
 
   @override
@@ -6024,7 +6024,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deviceProfileRuleEnabledHelp =>
-      'Disabled rules fail provisioning (\"Waiting for TB device\"); re-enable any time.';
+      'Disabled rules fail provisioning (Waiting for TB device); re-enable any time.';
 
   @override
   String get deviceProfileRuleFieldRemark => 'Remark';
@@ -6980,4 +6980,69 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get fenceEditTargetMissing =>
       'This fence was deleted; the edit was discarded';
+
+  @override
+  String get epidemicPathRiskHint =>
+      'Cumulative contact-event risk (0-100); only paths scoring 70+ are shown';
+
+  @override
+  String get epidemicPathSourceTag => 'source';
+
+  @override
+  String epidemicDispositionRegistered(
+    String livestock,
+    String action,
+    String due,
+  ) {
+    return 'Registered \'$action\' for $livestock$due';
+  }
+
+  @override
+  String epidemicDispositionExisting(Object action, Object livestock) {
+    return '$livestock already has an active \'$action\' task';
+  }
+
+  @override
+  String epidemicDispositionDone(Object action, Object livestock) {
+    return '\'$action\' for $livestock is complete';
+  }
+
+  @override
+  String epidemicDispositionCancelled(Object action, Object livestock) {
+    return '\'$action\' for $livestock was cancelled';
+  }
+
+  @override
+  String get epidemicDispositionRegisterFailed =>
+      'Registration failed, please retry';
+
+  @override
+  String get epidemicCompleteAction => 'Done';
+
+  @override
+  String get epidemicCancelAction => 'Cancel';
+
+  @override
+  String epidemicCompleteConfirm(Object action, Object livestock) {
+    return 'Mark the \'$action\' task for $livestock as completed?';
+  }
+
+  @override
+  String epidemicCancelConfirm(Object action, Object livestock) {
+    return 'Cancel the \'$action\' task for $livestock? You can register it again later.';
+  }
+
+  @override
+  String get epidemicDispRegisteredTag => 'Registered';
+
+  @override
+  String epidemicDispositionDueBy(Object due) {
+    return ', complete by $due';
+  }
+
+  @override
+  String get epidemicDispCompletedTag => 'completed';
+
+  @override
+  String get epidemicDispCancelledTag => 'cancelled';
 }

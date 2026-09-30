@@ -5450,5 +5450,35 @@
   }
   ,"fenceEditTargetMissing": "该围栏已被删除，编辑已取消"
   ,"@fenceEditTargetMissing": {}
+  ,"epidemicPathRiskHint": "按接触事件风险分累加（0-100），仅显示 ≥70 的高风险路径"
+  ,"@epidemicPathRiskHint": {}
+  ,"epidemicPathSourceTag": "源头"
+  ,"@epidemicPathSourceTag": {}
+  ,"epidemicDispositionRegistered": "已为 {livestock} 登记「{action}」任务{due}"
+  ,"@epidemicDispositionRegistered": {"placeholders":{"livestock":{"type":"String"},"action":{"type":"String"},"due":{"type":"String"}}}
+  ,"epidemicDispositionExisting": "{livestock} 已有进行中的「{action}」任务"
+  ,"@epidemicDispositionExisting": {"livestock":{"type":"String"},"action":{"type":"String"}}
+  ,"epidemicDispositionDone": "{livestock} 的「{action}」任务已完成"
+  ,"@epidemicDispositionDone": {"livestock":{"type":"String"},"action":{"type":"String"}}
+  ,"epidemicDispositionCancelled": "{livestock} 的「{action}」任务已取消"
+  ,"@epidemicDispositionCancelled": {"livestock":{"type":"String"},"action":{"type":"String"}}
+  ,"epidemicDispositionRegisterFailed": "登记失败，请重试"
+  ,"@epidemicDispositionRegisterFailed": {}
+  ,"epidemicCompleteAction": "完成"
+  ,"@epidemicCompleteAction": {}
+  ,"epidemicCancelAction": "取消"
+  ,"@epidemicCancelAction": {}
+  ,"epidemicCompleteConfirm": "确认将 {livestock} 的「{action}」任务标记为已完成？"
+  ,"@epidemicCompleteConfirm": {"livestock":{"type":"String"},"action":{"type":"String"}}
+  ,"epidemicCancelConfirm": "确认取消 {livestock} 的「{action}」任务？取消后可重新登记。"
+  ,"@epidemicCancelConfirm": {"livestock":{"type":"String"},"action":{"type":"String"}}
+  ,"epidemicDispRegisteredTag": "已登记"
+  ,"@epidemicDispRegisteredTag": {}
+  ,"epidemicDispositionDueBy": "，请在 {due} 前完成"
+  ,"@epidemicDispositionDueBy": {"due":{"type":"String"}}
+  ,"epidemicDispCompletedTag": "已完成"
+  ,"@epidemicDispCompletedTag": {}
+  ,"epidemicDispCancelledTag": "已取消"
+  ,"@epidemicDispCancelledTag": {}
 
 }

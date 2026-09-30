@@ -33,7 +33,7 @@ class EpidemicApiRepository implements EpidemicRepository {
   }
 
   @override
-  Future<int> createDisposition({
+  Future<DispositionRegistration> createDisposition({
     required String livestockId,
     required String sourceLivestockId,
     required String actionCode,
@@ -48,12 +48,23 @@ class EpidemicApiRepository implements EpidemicRepository {
         if (eventId != null) 'eventId': eventId,
       },
     );
-    return (data['id'] as num?)?.toInt() ?? 0;
+    return DispositionRegistration(
+      created: (data['created'] as bool?) ?? true,
+      id: (data['id'] as num?)?.toInt() ?? 0,
+    );
   }
 
   @override
   Future<void> completeDisposition(int dispositionId) async {
     await ApiClient.instance.farmPost('/health/epidemic/dispositions/$dispositionId/complete');
+  }
+
+  @override
+  Future<void> cancelDisposition(int dispositionId, {String? reason}) async {
+    // farmPost has no query-parameter support; the cancel endpoint takes an
+    // optional reason param, so append it to the suffix directly.
+    final query = (reason == null || reason.isEmpty) ? '' : '?reason=${Uri.encodeComponent(reason)}';
+    await ApiClient.instance.farmPost('/health/epidemic/dispositions/$dispositionId/cancel$query');
   }
 
   @override

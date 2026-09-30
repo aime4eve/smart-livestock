@@ -48,6 +48,105 @@ class _EpidemicWorkbenchPageState extends ConsumerState<EpidemicWorkbenchPage> {
     });
   }
 
+  /// Registers the recommended disposition task for [item] and toasts what
+  /// actually happened — a fresh registration (with the due time) or the
+  /// idempotent "task already running" case. Registration alone has no other
+  /// visible effect, so without this feedback the tap looks like a no-op.
+  Future<void> _registerDisposition(EpidemicLivestockItem item) async {
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final registration = await ref
+          .read(epidemicWorkbenchControllerProvider.notifier)
+          .markDisposition(item);
+      if (!mounted) return;
+      final action = _epidemicActionLabel(l10n, item.recommendedAction);
+      final code = _epidemicShortCode(item.livestockCode);
+      final due = item.dueAt == null
+          ? ''
+          : l10n.epidemicDispositionDueBy(formatMdhm(item.dueAt!));
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            registration.created
+                ? l10n.epidemicDispositionRegistered(code, action, due)
+                : l10n.epidemicDispositionExisting(code, action),
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.epidemicDispositionRegisterFailed)),
+      );
+    }
+  }
+
+  /// Completes or cancels the registered disposition task on [item] after a
+  /// confirmation dialog, then toasts the outcome. Closes the disposition
+  /// loop: until now a registered task could never be finished in the UI.
+  Future<void> _settleDisposition(
+    EpidemicLivestockItem item, {
+    required bool complete,
+  }) async {
+    final l10n = AppLocalizations.of(context)!;
+    final code = _epidemicShortCode(item.livestockCode);
+    final action = _epidemicActionLabel(l10n, item.recommendedAction);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        content: Text(
+          complete
+              ? l10n.epidemicCompleteConfirm(code, action)
+              : l10n.epidemicCancelConfirm(code, action),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(
+              complete
+                  ? l10n.epidemicCompleteAction
+                  : l10n.epidemicCancelAction,
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryDark,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final controller = ref.read(epidemicWorkbenchControllerProvider.notifier);
+      if (complete) {
+        await controller.completeDisposition(item);
+      } else {
+        await controller.cancelDisposition(item);
+      }
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            complete
+                ? l10n.epidemicDispositionDone(code, action)
+                : l10n.epidemicDispositionCancelled(code, action),
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.epidemicDispositionRegisterFailed)),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -124,12 +223,9 @@ class _EpidemicWorkbenchPageState extends ConsumerState<EpidemicWorkbenchPage> {
                               onOpenNetwork: () => setState(
                                 () => view = EpidemicWorkbenchView.network,
                               ),
-                              onMark: (item) => ref
-                                  .read(
-                                    epidemicWorkbenchControllerProvider
-                                        .notifier,
-                                  )
-                                  .markDisposition(item),
+                              onMark: (item) => _registerDisposition(item),
+                              onSettle: (item, {required complete}) =>
+                                  _settleDisposition(item, complete: complete),
                             ),
                           if (view == EpidemicWorkbenchView.records)
                             _RecordsView(
@@ -557,6 +653,7 @@ class _DispositionView extends StatelessWidget {
     required this.onToggle,
     required this.onOpenNetwork,
     required this.onMark,
+    required this.onSettle,
   });
 
   final EpidemicWorkbenchData data;
@@ -564,6 +661,8 @@ class _DispositionView extends StatelessWidget {
   final ValueChanged<int> onToggle;
   final VoidCallback onOpenNetwork;
   final ValueChanged<EpidemicLivestockItem> onMark;
+  final void Function(EpidemicLivestockItem item, {required bool complete})
+      onSettle;
 
   @override
   Widget build(BuildContext context) {
@@ -626,6 +725,7 @@ class _DispositionView extends StatelessWidget {
               onToggle(item.maxRiskScore + item.livestockCode.hashCode),
           onOpenNetwork: onOpenNetwork,
           onMark: () => onMark(item),
+          onSettle: onSettle,
         ),
     ];
   }
@@ -734,6 +834,7 @@ class _LivestockCard extends StatelessWidget {
     required this.onToggle,
     required this.onOpenNetwork,
     required this.onMark,
+    required this.onSettle,
   });
 
   final EpidemicLivestockItem item;
@@ -741,6 +842,30 @@ class _LivestockCard extends StatelessWidget {
   final VoidCallback onToggle;
   final VoidCallback onOpenNetwork;
   final VoidCallback onMark;
+  final void Function(EpidemicLivestockItem item, {required bool complete})
+      onSettle;
+
+  /// Compact inline action chip on the disposition status row.
+  Widget _settleChip(String label, {required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(7),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: AppColors.primaryDark,
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -778,7 +903,7 @@ class _LivestockCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    _shortCode(item.livestockCode),
+                    _epidemicShortCode(item.livestockCode),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -868,16 +993,55 @@ class _LivestockCard extends StatelessWidget {
               color: primarySoft,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Text(
-              item.dueAt == null
-                  ? actionLabel(l10n)
-                  : '${actionLabel(l10n)} · ${formatMdhm(item.dueAt!)}',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: primary,
-              ),
-            ),
+            // Disposition status row. With a registered task it shows the
+            // registration tag + action + due time and closes the loop with
+            // inline complete/cancel actions; otherwise it stays the tier's
+            // recommended action with its suggested deadline.
+            child: item.dispositionId == null
+                ? Text(
+                    item.dueAt == null
+                        ? actionLabel(l10n)
+                        : '${actionLabel(l10n)} · ${formatMdhm(item.dueAt!)}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: primary,
+                    ),
+                  )
+                : Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          switch (item.actionStatus) {
+                            'COMPLETED' =>
+                              '${actionLabel(l10n)} · ${l10n.epidemicDispCompletedTag}',
+                            'CANCELLED' =>
+                              '${actionLabel(l10n)} · ${l10n.epidemicDispCancelledTag}',
+                            _ =>
+                              '${l10n.epidemicDispRegisteredTag} · ${actionLabel(l10n)}'
+                                  '${item.dueAt == null ? '' : ' · ${formatMdhm(item.dueAt!)}'}',
+                          },
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: primary,
+                          ),
+                        ),
+                      ),
+                      if (item.actionStatus == 'PENDING' ||
+                          item.actionStatus == 'IN_PROGRESS') ...[
+                        _settleChip(
+                          l10n.epidemicCompleteAction,
+                          onTap: () => onSettle(item, complete: true),
+                        ),
+                        const SizedBox(width: 6),
+                        _settleChip(
+                          l10n.epidemicCancelAction,
+                          onTap: () => onSettle(item, complete: false),
+                        ),
+                      ],
+                    ],
+                  ),
           ),
           if (item.eventIds.isNotEmpty)
             InkWell(
@@ -948,13 +1112,8 @@ class _LivestockCard extends StatelessWidget {
     );
   }
 
-  String actionLabel(AppLocalizations l10n) => switch (item.recommendedAction) {
-    'ISOLATE_NOTIFY_VET' => l10n.epidemicActionIsolateVet,
-    'IMMEDIATE_VET_CHECK' => l10n.epidemicActionImmediateCheck,
-    'HEALTH_RECHECK' => l10n.epidemicActionMarkObservation,
-    'CONTINUE_TRACING' => l10n.epidemicActionContinueTracing,
-    _ => l10n.epidemicActionArchive,
-  };
+  String actionLabel(AppLocalizations l10n) =>
+      _epidemicActionLabel(l10n, item.recommendedAction);
 
   String _lastSeen(AppLocalizations l10n) {
     final minutes = item.lastContactAgeMinutes;
@@ -973,11 +1132,6 @@ class _LivestockCard extends StatelessWidget {
     'MEDIUM_DURATION' => l10n.epidemicFactorMediumDuration,
     _ => code,
   };
-
-  String _shortCode(String code) {
-    final parts = code.split('-');
-    return parts.length > 1 ? parts.last : code;
-  }
 
   Widget _metric(String label, String value) {
     return Expanded(
@@ -1012,6 +1166,24 @@ class _LivestockCard extends StatelessWidget {
     );
   }
 }
+
+/// Tag-style short code shown inside graph bubbles and compact rows: the
+/// tail segment of the ear tag ("ST-21" -> "21").
+String _epidemicShortCode(String code) {
+  final parts = code.split('-');
+  return parts.length > 1 ? parts.last : code;
+}
+
+/// Disposition action display name, shared by the card, the registration
+/// toast and the settle dialogs.
+String _epidemicActionLabel(AppLocalizations l10n, String actionCode) =>
+    switch (actionCode) {
+      'ISOLATE_NOTIFY_VET' => l10n.epidemicActionIsolateVet,
+      'IMMEDIATE_VET_CHECK' => l10n.epidemicActionImmediateCheck,
+      'HEALTH_RECHECK' => l10n.epidemicActionMarkObservation,
+      'CONTINUE_TRACING' => l10n.epidemicActionContinueTracing,
+      _ => l10n.epidemicActionArchive,
+    };
 
 class _RecordsView extends StatelessWidget {
   const _RecordsView({
@@ -1212,6 +1384,9 @@ class _NetworkView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final codeById = {
+      for (final node in data.network.nodes) node.livestockId: node.livestockCode,
+    };
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1232,7 +1407,13 @@ class _NetworkView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        _sectionHeading(l10n.epidemicHighRiskPaths, l10n.epidemicSpreadHint),
+        // Risk explanation replaces the bare "spread direction" hint: the
+        // opaque numbers ("2 → 1") only make sense once the scale and the
+        // 70-point display threshold are spelled out.
+        _sectionHeading(
+          l10n.epidemicHighRiskPaths,
+          l10n.epidemicPathRiskHint,
+        ),
         for (final path in data.network.paths.where(
           (path) => path.riskScore >= 70,
         ))
@@ -1251,7 +1432,19 @@ class _NetworkView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  path.livestockIds.join(' → '),
+                  // Ear-tag codes, not raw internal ids: nodes carry the
+                  // id→code mapping, so "2 → 1" renders as "21 → 10" with
+                  // the path origin tagged as the suspected source.
+                  path.livestockIds
+                      .asMap()
+                      .entries
+                      .map((entry) {
+                        final code = codeById[entry.value] ?? entry.value;
+                        return entry.key == 0
+                            ? '${_epidemicShortCode(code)} · ${l10n.epidemicPathSourceTag}'
+                            : _epidemicShortCode(code);
+                      })
+                      .join(' → '),
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,

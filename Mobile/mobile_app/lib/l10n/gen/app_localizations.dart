@@ -12598,6 +12598,100 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'该围栏已被删除，编辑已取消'**
   String get fenceEditTargetMissing;
+
+  /// No description provided for @epidemicPathRiskHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'按接触事件风险分累加（0-100），仅显示 ≥70 的高风险路径'**
+  String get epidemicPathRiskHint;
+
+  /// No description provided for @epidemicPathSourceTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'源头'**
+  String get epidemicPathSourceTag;
+
+  /// No description provided for @epidemicDispositionRegistered.
+  ///
+  /// In zh, this message translates to:
+  /// **'已为 {livestock} 登记「{action}」任务{due}'**
+  String epidemicDispositionRegistered(
+    String livestock,
+    String action,
+    String due,
+  );
+
+  /// No description provided for @epidemicDispositionExisting.
+  ///
+  /// In zh, this message translates to:
+  /// **'{livestock} 已有进行中的「{action}」任务'**
+  String epidemicDispositionExisting(Object action, Object livestock);
+
+  /// No description provided for @epidemicDispositionDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'{livestock} 的「{action}」任务已完成'**
+  String epidemicDispositionDone(Object action, Object livestock);
+
+  /// No description provided for @epidemicDispositionCancelled.
+  ///
+  /// In zh, this message translates to:
+  /// **'{livestock} 的「{action}」任务已取消'**
+  String epidemicDispositionCancelled(Object action, Object livestock);
+
+  /// No description provided for @epidemicDispositionRegisterFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'登记失败，请重试'**
+  String get epidemicDispositionRegisterFailed;
+
+  /// No description provided for @epidemicCompleteAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'完成'**
+  String get epidemicCompleteAction;
+
+  /// No description provided for @epidemicCancelAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消'**
+  String get epidemicCancelAction;
+
+  /// No description provided for @epidemicCompleteConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认将 {livestock} 的「{action}」任务标记为已完成？'**
+  String epidemicCompleteConfirm(Object action, Object livestock);
+
+  /// No description provided for @epidemicCancelConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认取消 {livestock} 的「{action}」任务？取消后可重新登记。'**
+  String epidemicCancelConfirm(Object action, Object livestock);
+
+  /// No description provided for @epidemicDispRegisteredTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'已登记'**
+  String get epidemicDispRegisteredTag;
+
+  /// No description provided for @epidemicDispositionDueBy.
+  ///
+  /// In zh, this message translates to:
+  /// **'，请在 {due} 前完成'**
+  String epidemicDispositionDueBy(Object due);
+
+  /// No description provided for @epidemicDispCompletedTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'已完成'**
+  String get epidemicDispCompletedTag;
+
+  /// No description provided for @epidemicDispCancelledTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'已取消'**
+  String get epidemicDispCancelledTag;
 }
 
 class _AppLocalizationsDelegate

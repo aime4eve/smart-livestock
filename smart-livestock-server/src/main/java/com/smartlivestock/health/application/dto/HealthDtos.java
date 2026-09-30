@@ -409,7 +409,11 @@ public final class HealthDtos {
             String status,
             List<String> reasonCodes,
             Instant dueAt,
-            Instant completedAt
+            Instant completedAt,
+            // False when an active disposition already existed and was
+            // returned as-is (idempotent create) — the client uses it to
+            // phrase the toast correctly ("registered" vs "already running").
+            boolean created
     ) {}
 
 // ── Stats / Trends ─────────────────────────────────────────

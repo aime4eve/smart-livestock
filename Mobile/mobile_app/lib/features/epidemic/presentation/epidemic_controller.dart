@@ -58,19 +58,36 @@ class EpidemicWorkbenchController extends FarmScopedAsyncNotifier<EpidemicWorkbe
     await refresh();
   }
 
-  Future<void> markDisposition(EpidemicLivestockItem item) async {
-    await ref.read(epidemicRepositoryProvider).createDisposition(
+  /// Registers the recommended disposition task and refreshes; returns the
+  /// registration outcome so the page can toast what actually happened
+  /// (fresh registration vs already-running task).
+  Future<DispositionRegistration> markDisposition(
+      EpidemicLivestockItem item) async {
+    final registration = await ref
+        .read(epidemicRepositoryProvider)
+        .createDisposition(
           livestockId: item.livestockId,
           sourceLivestockId: state.value!.context.source.livestockId,
           actionCode: item.recommendedAction,
         );
     await refresh();
+    return registration;
   }
 
-  Future<void> complete(EpidemicLivestockItem item) async {
+  Future<void> completeDisposition(EpidemicLivestockItem item) async {
     final id = item.dispositionId;
     if (id != null) {
       await ref.read(epidemicRepositoryProvider).completeDisposition(id);
+      await refresh();
+    }
+  }
+
+  Future<void> cancelDisposition(EpidemicLivestockItem item) async {
+    final id = item.dispositionId;
+    if (id != null) {
+      await ref
+          .read(epidemicRepositoryProvider)
+          .cancelDisposition(id, reason: 'workbench');
       await refresh();
     }
   }

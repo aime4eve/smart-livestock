@@ -6819,4 +6819,67 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get fenceEditTargetMissing => '该围栏已被删除，编辑已取消';
+
+  @override
+  String get epidemicPathRiskHint => '按接触事件风险分累加（0-100），仅显示 ≥70 的高风险路径';
+
+  @override
+  String get epidemicPathSourceTag => '源头';
+
+  @override
+  String epidemicDispositionRegistered(
+    String livestock,
+    String action,
+    String due,
+  ) {
+    return '已为 $livestock 登记「$action」任务$due';
+  }
+
+  @override
+  String epidemicDispositionExisting(Object action, Object livestock) {
+    return '$livestock 已有进行中的「$action」任务';
+  }
+
+  @override
+  String epidemicDispositionDone(Object action, Object livestock) {
+    return '$livestock 的「$action」任务已完成';
+  }
+
+  @override
+  String epidemicDispositionCancelled(Object action, Object livestock) {
+    return '$livestock 的「$action」任务已取消';
+  }
+
+  @override
+  String get epidemicDispositionRegisterFailed => '登记失败，请重试';
+
+  @override
+  String get epidemicCompleteAction => '完成';
+
+  @override
+  String get epidemicCancelAction => '取消';
+
+  @override
+  String epidemicCompleteConfirm(Object action, Object livestock) {
+    return '确认将 $livestock 的「$action」任务标记为已完成？';
+  }
+
+  @override
+  String epidemicCancelConfirm(Object action, Object livestock) {
+    return '确认取消 $livestock 的「$action」任务？取消后可重新登记。';
+  }
+
+  @override
+  String get epidemicDispRegisteredTag => '已登记';
+
+  @override
+  String epidemicDispositionDueBy(Object due) {
+    return '，请在 $due 前完成';
+  }
+
+  @override
+  String get epidemicDispCompletedTag => '已完成';
+
+  @override
+  String get epidemicDispCancelledTag => '已取消';
 }
