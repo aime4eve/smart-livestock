@@ -50,10 +50,20 @@ public class SynthesisService {
     public void generate(SynthesisScenario scenario) {
         List<ActiveInstallationInfo> installations =
                 deviceQueryPort.findActiveInstallationsByScenario(scenario.getId());
-        if (installations.isEmpty()) return;
+        if (installations.isEmpty()) {
+            // Silent here = invisible in the field: test ran 14.5h with zero
+            // synthetic rows because this branch kept firing. Always say why.
+            log.warn("Scenario [{}] resolved to 0 eligible active installations "
+                    + "(device ACTIVE + not deleted + live binding) - skipping tick",
+                    scenario.getName());
+            return;
+        }
 
         Instant now = Instant.now();
-        if (!scenario.isActiveAt(now)) return;
+        if (!scenario.isActiveAt(now)) {
+            log.debug("Scenario [{}] outside its activity window - skipping tick", scenario.getName());
+            return;
+        }
 
         Set<Long> targets = selectTargetsIfNeeded(installations, scenario, now);
 
