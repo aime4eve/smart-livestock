@@ -6976,4 +6976,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String durationDaysShort(int days) {
     return '$days d';
   }
+
+  @override
+  String get fenceEditTargetMissing =>
+      'This fence was deleted; the edit was discarded';
 }

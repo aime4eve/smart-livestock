@@ -12592,6 +12592,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'{days} 天'**
   String durationDaysShort(int days);
+
+  /// No description provided for @fenceEditTargetMissing.
+  ///
+  /// In zh, this message translates to:
+  /// **'该围栏已被删除，编辑已取消'**
+  String get fenceEditTargetMissing;
 }
 
 class _AppLocalizationsDelegate

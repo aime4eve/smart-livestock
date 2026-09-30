@@ -5448,5 +5448,7 @@
       "days": {"type": "int"}
     }
   }
+  ,"fenceEditTargetMissing": "该围栏已被删除，编辑已取消"
+  ,"@fenceEditTargetMissing": {}
 
 }

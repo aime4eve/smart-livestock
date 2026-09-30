@@ -5450,5 +5450,7 @@
       "days": {"type": "int"}
     }
   }
+  ,"fenceEditTargetMissing": "This fence was deleted; the edit was discarded"
+  ,"@fenceEditTargetMissing": {}
 
 }

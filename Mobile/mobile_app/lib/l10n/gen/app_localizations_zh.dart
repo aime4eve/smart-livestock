@@ -6816,4 +6816,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String durationDaysShort(int days) {
     return '$days 天';
   }
+
+  @override
+  String get fenceEditTargetMissing => '该围栏已被删除，编辑已取消';
 }
