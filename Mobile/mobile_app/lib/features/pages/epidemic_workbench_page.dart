@@ -61,7 +61,7 @@ class _EpidemicWorkbenchPageState extends ConsumerState<EpidemicWorkbenchPage> {
           .markDisposition(item);
       if (!mounted) return;
       final action = _epidemicActionLabel(l10n, item.recommendedAction);
-      final code = _epidemicShortCode(item.livestockCode);
+      final code = item.livestockCode;
       final due = item.dueAt == null
           ? ''
           : l10n.epidemicDispositionDueBy(formatMdhm(item.dueAt!));
@@ -90,7 +90,7 @@ class _EpidemicWorkbenchPageState extends ConsumerState<EpidemicWorkbenchPage> {
     required bool complete,
   }) async {
     final l10n = AppLocalizations.of(context)!;
-    final code = _epidemicShortCode(item.livestockCode);
+    final code = item.livestockCode;
     final action = _epidemicActionLabel(l10n, item.recommendedAction);
     final confirmed = await showDialog<bool>(
       context: context,
@@ -903,11 +903,11 @@ class _LivestockCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    _epidemicShortCode(item.livestockCode),
+                    item.livestockCode,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 11,
                       fontWeight: FontWeight.w700,
                       color: primary,
                     ),
@@ -1165,13 +1165,6 @@ class _LivestockCard extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Tag-style short code shown inside graph bubbles and compact rows: the
-/// tail segment of the ear tag ("ST-21" -> "21").
-String _epidemicShortCode(String code) {
-  final parts = code.split('-');
-  return parts.length > 1 ? parts.last : code;
 }
 
 /// Disposition action display name, shared by the card, the registration
@@ -1441,8 +1434,8 @@ class _NetworkView extends StatelessWidget {
                       .map((entry) {
                         final code = codeById[entry.value] ?? entry.value;
                         return entry.key == 0
-                            ? '${_epidemicShortCode(code)} · ${l10n.epidemicPathSourceTag}'
-                            : _epidemicShortCode(code);
+                            ? '$code · ${l10n.epidemicPathSourceTag}'
+                            : code;
                       })
                       .join(' → '),
                   style: const TextStyle(
@@ -1509,13 +1502,14 @@ class _NetworkPainter extends CustomPainter {
         ),
       );
       final isSource = node.kind == 'SOURCE';
-      final radius = isSource ? 26.0 : 20.0;
+      // Full ear-tag codes ("ST-21") need room: wider bubbles, smaller glyphs.
+      final radius = isSource ? 30.0 : 25.0;
       canvas.drawCircle(offset, radius, Paint()..color = AppColors.danger);
       _text(
         canvas,
-        _shortCode(node.livestockCode),
+        node.livestockCode,
         offset,
-        isSource ? 15 : 13,
+        isSource ? 11 : 10,
         Colors.white,
       );
       _text(
@@ -1556,11 +1550,6 @@ class _NetworkPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _NetworkPainter oldDelegate) =>
       oldDelegate.network != network;
-
-  String _shortCode(String code) {
-    final parts = code.split('-');
-    return parts.length > 1 ? parts.last : code;
-  }
 }
 
 class _BottomBar extends StatelessWidget {
