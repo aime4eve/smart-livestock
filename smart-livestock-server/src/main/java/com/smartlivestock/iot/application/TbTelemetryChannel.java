@@ -10,23 +10,34 @@ import com.smartlivestock.iot.domain.repository.DeviceTelemetryLogRepository;
 import com.smartlivestock.iot.domain.repository.TbDeviceBindingRepository;
 import com.smartlivestock.iot.infrastructure.client.thingsboard.TbClient;
 import com.smartlivestock.iot.infrastructure.client.thingsboard.TbProperties;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * ThingsBoard REST telemetry channel (NIX-179 Phase 1).
  * Pulls bound devices' timeseries with a per-device persistent cursor and
  * feeds frames through the unified ingest() entry. Fail-open: any error on
  * one device never blocks other devices or the blade channel.
+ *
+ * The poll runs on a DEDICATED executor, not the shared Spring scheduler:
+ * the shared single-thread scheduler was observed dying silently in the
+ * field (2026-09-30), which froze every @Scheduled task on it — including
+ * this poll, so all real tracker devices stopped reporting. Same pattern as
+ * SynthesisRunner / GpsIngestionTaskScheduler.
  */
 @Component
 @ConditionalOnProperty(name = "smartlivestock.tb.enabled", havingValue = "true")
@@ -45,8 +56,41 @@ public class TbTelemetryChannel {
     private final DeviceTelemetryLogRepository deviceTelemetryLogRepository;
     private final TelemetryIngestionService ingestionService;
 
-    @Scheduled(fixedDelayString = "${smartlivestock.tb.poll-interval-ms:300000}")
+    @Value("${smartlivestock.tb.poll-interval-ms:300000}")
+    private long pollIntervalMs;
+
+    private ScheduledExecutorService pollExecutor;
+
+    @PostConstruct
+    public void start() {
+        pollExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "tb-telemetry-poll");
+            t.setDaemon(true);
+            return t;
+        });
+        pollExecutor.scheduleWithFixedDelay(
+                this::poll, pollIntervalMs, pollIntervalMs, TimeUnit.MILLISECONDS);
+        log.info("[TB] telemetry poll started on a dedicated executor (fixedDelay={}ms)", pollIntervalMs);
+    }
+
+    @PreDestroy
+    public void stop() {
+        if (pollExecutor != null) {
+            pollExecutor.shutdownNow();
+        }
+    }
+
     public void poll() {
+        // catch Throwable — a scheduleWithFixedDelay task is cancelled the
+        // first time its runnable throws, so nothing may escape this method.
+        try {
+            pollInternal();
+        } catch (Throwable t) {
+            log.error("[TB] poll cycle failed - dedicated schedule kept alive", t);
+        }
+    }
+
+    private void pollInternal() {
         if (properties.getTenantId() == null || properties.getTenantId() <= 0) {
             log.error("[TB] invalid tenant-id {}, skip cycle", properties.getTenantId());
             return;
