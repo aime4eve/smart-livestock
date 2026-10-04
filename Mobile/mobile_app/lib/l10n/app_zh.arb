@@ -5344,5 +5344,60 @@
   ,"@signalSyncStale": {}
   ,"signalSyncRetry": "立即重试"
   ,"@signalSyncRetry": {}
-
+  ,"healthPhysiologyTitle": "生理记录"
+  ,"@healthPhysiologyTitle": {}
+  ,"healthPhysiologyStageLactating": "泌乳期 · 第 {n} 天"
+  ,"@healthPhysiologyStageLactating": {
+      "placeholders": {
+        "n": {"type": "int"}
+      }
+    }
+  ,"healthPhysiologyStageDry": "干奶期"
+  ,"@healthPhysiologyStageDry": {}
+  ,"healthPhysiologyEventCalving": "产犊"
+  ,"@healthPhysiologyEventCalving": {}
+  ,"healthPhysiologyEventBreeding": "配种"
+  ,"@healthPhysiologyEventBreeding": {}
+  ,"healthPhysiologyEventPregnancyCheck": "妊娠检查"
+  ,"@healthPhysiologyEventPregnancyCheck": {}
+  ,"healthPhysiologyEventDryOff": "干奶"
+  ,"@healthPhysiologyEventDryOff": {}
+  ,"healthPhysiologyEventIllness": "发病"
+  ,"@healthPhysiologyEventIllness": {}
+  ,"healthPhysiologyEventRecovery": "康复"
+  ,"@healthPhysiologyEventRecovery": {}
+  ,"healthPhysiologyAddRecord": "＋ 记录"
+  ,"@healthPhysiologyAddRecord": {}
+  ,"healthPhysiologyEmptyTitle": "尚无生理记录"
+  ,"@healthPhysiologyEmptyTitle": {}
+  ,"healthPhysiologyEmptyHint": "点“＋ 记录”开始建档"
+  ,"@healthPhysiologyEmptyHint": {}
+  ,"healthPhysiologyWindowActive": "窗口中"
+  ,"@healthPhysiologyWindowActive": {}
+  ,"healthPhysiologySourceManual": "手工录入"
+  ,"@healthPhysiologySourceManual": {}
+  ,"healthPhysiologySourceDisposition": "来源：疫病处置单 #{refId} · 处置中"
+  ,"@healthPhysiologySourceDisposition": {
+      "placeholders": {
+        "refId": {"type": "int"}
+      }
+    }
+  ,"healthPhysiologySourceAlertConfirm": "告警确认"
+  ,"@healthPhysiologySourceAlertConfirm": {}
+  ,"healthPhysiologyErrorTitle": "⚠️ 生理记录暂时不可用"
+  ,"@healthPhysiologyErrorTitle": {}
+  ,"healthPhysiologyErrorDesc": "数据没有丢失——服务恢复后自动重试。"
+  ,"@healthPhysiologyErrorDesc": {}
+  ,"healthPhysiologyRetry": "重新加载"
+  ,"@healthPhysiologyRetry": {}
+  ,"healthPhysiologySheetTitle": "新增生理记录"
+  ,"@healthPhysiologySheetTitle": {}
+  ,"healthPhysiologyOccurredDate": "发生日期"
+  ,"@healthPhysiologyOccurredDate": {}
+  ,"healthPhysiologyNoteHint": "备注（选填，≤500 字）…"
+  ,"@healthPhysiologyNoteHint": {}
+  ,"healthPhysiologyIllnessNote": "录“发病”无结束日期字段——康复日后录“康复”事件即闭合窗口。"
+  ,"@healthPhysiologyIllnessNote": {}
+  ,"healthPhysiologySaveFailed": "保存失败，请稍后重试"
+  ,"@healthPhysiologySaveFailed": {}
 }

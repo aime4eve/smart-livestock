@@ -6688,4 +6688,80 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get signalSyncRetry => '立即重试';
+
+  @override
+  String get healthPhysiologyTitle => '生理记录';
+
+  @override
+  String healthPhysiologyStageLactating(int n) {
+    return '泌乳期 · 第 $n 天';
+  }
+
+  @override
+  String get healthPhysiologyStageDry => '干奶期';
+
+  @override
+  String get healthPhysiologyEventCalving => '产犊';
+
+  @override
+  String get healthPhysiologyEventBreeding => '配种';
+
+  @override
+  String get healthPhysiologyEventPregnancyCheck => '妊娠检查';
+
+  @override
+  String get healthPhysiologyEventDryOff => '干奶';
+
+  @override
+  String get healthPhysiologyEventIllness => '发病';
+
+  @override
+  String get healthPhysiologyEventRecovery => '康复';
+
+  @override
+  String get healthPhysiologyAddRecord => '＋ 记录';
+
+  @override
+  String get healthPhysiologyEmptyTitle => '尚无生理记录';
+
+  @override
+  String get healthPhysiologyEmptyHint => '点“＋ 记录”开始建档';
+
+  @override
+  String get healthPhysiologyWindowActive => '窗口中';
+
+  @override
+  String get healthPhysiologySourceManual => '手工录入';
+
+  @override
+  String healthPhysiologySourceDisposition(int refId) {
+    return '来源：疫病处置单 #$refId · 处置中';
+  }
+
+  @override
+  String get healthPhysiologySourceAlertConfirm => '告警确认';
+
+  @override
+  String get healthPhysiologyErrorTitle => '⚠️ 生理记录暂时不可用';
+
+  @override
+  String get healthPhysiologyErrorDesc => '数据没有丢失——服务恢复后自动重试。';
+
+  @override
+  String get healthPhysiologyRetry => '重新加载';
+
+  @override
+  String get healthPhysiologySheetTitle => '新增生理记录';
+
+  @override
+  String get healthPhysiologyOccurredDate => '发生日期';
+
+  @override
+  String get healthPhysiologyNoteHint => '备注（选填，≤500 字）…';
+
+  @override
+  String get healthPhysiologyIllnessNote => '录“发病”无结束日期字段——康复日后录“康复”事件即闭合窗口。';
+
+  @override
+  String get healthPhysiologySaveFailed => '保存失败，请稍后重试';
 }

@@ -31,6 +31,9 @@ class AppColors {
   static const Color estrus = Color(0xFFC25689);
   static const Color aiAnomaly = Color(0xFF7C3AED);
 
+  /// Fever / active illness-window chip accent (NIX-256, prototype --fever).
+  static const Color fever = Color(0xFFD97B29);
+
   /// LINE check type color (NIX-68, spec §9 --c-line).
   static const Color lineTeal = Color(0xFF0F766E);
   static const Color fenceApproach = Color(0xFF454F45);

@@ -6845,4 +6845,83 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signalSyncRetry => 'Retry now';
+
+  @override
+  String get healthPhysiologyTitle => 'Physiology Records';
+
+  @override
+  String healthPhysiologyStageLactating(int n) {
+    return 'Lactating · day $n';
+  }
+
+  @override
+  String get healthPhysiologyStageDry => 'Dry off';
+
+  @override
+  String get healthPhysiologyEventCalving => 'Calving';
+
+  @override
+  String get healthPhysiologyEventBreeding => 'Breeding';
+
+  @override
+  String get healthPhysiologyEventPregnancyCheck => 'Pregnancy check';
+
+  @override
+  String get healthPhysiologyEventDryOff => 'Dry-off';
+
+  @override
+  String get healthPhysiologyEventIllness => 'Illness onset';
+
+  @override
+  String get healthPhysiologyEventRecovery => 'Recovery';
+
+  @override
+  String get healthPhysiologyAddRecord => '+ Add record';
+
+  @override
+  String get healthPhysiologyEmptyTitle => 'No records yet';
+
+  @override
+  String get healthPhysiologyEmptyHint => 'Tap \"+ Add record\" to start';
+
+  @override
+  String get healthPhysiologyWindowActive => 'In window';
+
+  @override
+  String get healthPhysiologySourceManual => 'Manual entry';
+
+  @override
+  String healthPhysiologySourceDisposition(int refId) {
+    return 'From epidemic disposition #$refId · in progress';
+  }
+
+  @override
+  String get healthPhysiologySourceAlertConfirm => 'Alert confirmed';
+
+  @override
+  String get healthPhysiologyErrorTitle => '⚠️ Physiology records unavailable';
+
+  @override
+  String get healthPhysiologyErrorDesc =>
+      'No data is lost — it will retry automatically once the service recovers.';
+
+  @override
+  String get healthPhysiologyRetry => 'Reload';
+
+  @override
+  String get healthPhysiologySheetTitle => 'New physiology record';
+
+  @override
+  String get healthPhysiologyOccurredDate => 'Date occurred';
+
+  @override
+  String get healthPhysiologyNoteHint => 'Note (optional, ≤500 chars)…';
+
+  @override
+  String get healthPhysiologyIllnessNote =>
+      'Recording “Illness onset” has no end-date field — add a “Recovery” event later to close the window.';
+
+  @override
+  String get healthPhysiologySaveFailed =>
+      'Save failed, please try again later';
 }

@@ -1,0 +1,45 @@
+============================================================
+  SCREENSHOT FIDELITY COMPARISON REPORT
+============================================================
+Baseline:  prototype-elements/state-empty.png (390x116)
+Actual:    flutter/form-empty-box.png (390x171)
+Threshold: 85% similarity required
+
+── OVERALL ──
+  Similarity:     93.3%
+  Avg pixel diff: 6.22
+  Max pixel diff: 245
+  Verdict:        PASS
+
+── PER-REGION ANALYSIS ──
+  [OK  ] status_bar        sim= 88.7%  avg_diff=  7.03  mismatch= 11.3%
+  [OK  ] appbar            sim= 99.4%  avg_diff=  0.41  mismatch=  0.6%
+  [OK  ] summary_strip     sim= 96.4%  avg_diff=  2.97  mismatch=  3.6%
+  [OK  ] filter_bar        sim= 95.0%  avg_diff=  3.56  mismatch=  5.0%
+  [OK  ] content           sim= 85.3%  avg_diff= 19.89  mismatch= 14.7%
+  [OK  ] bottom_nav        sim= 97.2%  avg_diff=  6.07  mismatch=  2.8%
+
+── DOMINANT COLORS (baseline vs actual) ──
+  status_bar:
+    base: #FFFFFF(85.6%)  #F8F7F5(8.7%)  #FFFFFE(5.6%)
+    actu: #FFFFFF(99.7%)  #FEFEFE(0.2%)  #FDFDFC(0.1%)
+  appbar:
+    base: #FFFFFF(99.8%)  #F8F7F5(0.1%)  #FDFDFC(0.1%)
+    actu: #FFFFFF(99.5%)  #FDFDFC(0.3%)  #FFFEFE(0.2%)
+  summary_strip:
+    base: #FFFFFF(99.7%)  #FFFEFE(0.2%)  #FEFEFE(0.1%)
+    actu: #FFFFFF(99.3%)  #FEFDFD(0.4%)  #FDFDFC(0.3%)
+  filter_bar:
+    base: #FFFFFF(99.3%)  #FEFEFE(0.5%)  #D4D4D4(0.2%)
+    actu: #FFFFFF(99.1%)  #FEFDFD(0.6%)  #DEC8BF(0.3%)
+  content:
+    base: #FFFFFF(98.8%)  #FEFEFE(0.8%)  #FDFDFD(0.4%)
+    actu: #FFFFFF(69.7%)  #2F6B3B(28.5%)  #FEFEFE(1.7%)
+  bottom_nav:
+    base: #FFFFFF(90.8%)  #FEFEFE(6.5%)  #F1EFEB(2.7%)
+    actu: #FFFFFF(75.3%)  #F6F4EE(12.3%)  #F4F2EC(12.3%)
+
+── DIAGNOSIS ──
+  All regions meet threshold. Visual fidelity likely acceptable.
+
+============================================================

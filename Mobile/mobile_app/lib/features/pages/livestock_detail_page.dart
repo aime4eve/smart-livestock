@@ -22,6 +22,7 @@ import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip
 import 'package:hkt_livestock_agentic/features/livestock/presentation/livestock_controller.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/livestock_form_sheet.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/trajectory_sheet.dart';
+import 'package:hkt_livestock_agentic/features/physiology/presentation/widgets/physiology_record_card.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/locked_overlay.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
@@ -121,6 +122,9 @@ class LivestockDetailPage extends ConsumerWidget {
                     GatewayDistanceCard(livestockId: detail.livestockId),
                     const SizedBox(height: AppSpacing.md),
                     _HealthDataCard(detail: detail),
+                    const SizedBox(height: AppSpacing.md),
+                    // ── Inline: physiology record card (NIX-256) ──
+                    PhysiologyRecordCard(livestockId: detail.livestockId),
                     const SizedBox(height: AppSpacing.md),
                     _LocationCard(detail: detail),
                   ],

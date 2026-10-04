@@ -1,0 +1,50 @@
+============================================================
+  SCREENSHOT FIDELITY COMPARISON REPORT
+============================================================
+Baseline:  prototype-elements/sheet-phone.png (390x554)
+Actual:    flutter/form-sheet.png (390x844)
+Threshold: 85% similarity required
+
+── OVERALL ──
+  Similarity:     56.4%
+  Avg pixel diff: 42.53
+  Max pixel diff: 252
+  Verdict:        FAIL
+
+── PER-REGION ANALYSIS ──
+  [OK  ] status_bar        sim= 85.2%  avg_diff= 17.81  mismatch= 14.8%
+  [OK  ] appbar            sim= 90.8%  avg_diff= 22.30  mismatch=  9.2%
+  [DIFF] summary_strip     sim= 15.1%  avg_diff= 62.02  mismatch= 84.9%
+  [DIFF] filter_bar        sim=  4.7%  avg_diff= 66.13  mismatch= 95.3%
+  [DIFF] content           sim= 59.6%  avg_diff= 45.60  mismatch= 40.4%
+  [DIFF] bottom_nav        sim= 53.3%  avg_diff= 62.75  mismatch= 46.7%
+
+── DOMINANT COLORS (baseline vs actual) ──
+  status_bar:
+    base: #FFFFFF(92.4%)  #D9D5CA(3.8%)  #FDFDFC(3.8%)
+    actu: #F8F6F0(80.4%)  #FFFFFF(17.2%)  #F9F7F1(2.3%)
+  appbar:
+    base: #FFFFFF(98.1%)  #FEFEFE(1.2%)  #FDFDFD(0.7%)
+    actu: #F8F6F0(98.8%)  #F7F5EF(0.8%)  #F6F4EE(0.4%)
+  summary_strip:
+    base: #AEB1A9(85.6%)  #FFFFFF(12.2%)  #FDFDFC(2.2%)
+    actu: #F8F6F0(93.2%)  #FFFFFF(4.2%)  #F7F5EF(2.7%)
+  filter_bar:
+    base: #AEB1A9(99.0%)  #D5D0C4(0.5%)  #B1B3AB(0.5%)
+    actu: #F8F6F0(83.1%)  #FFFFFF(13.9%)  #DBE2D6(3.0%)
+  content:
+    base: #FFFFFF(76.6%)  #AEB1A9(12.1%)  #2F6B3B(11.3%)
+    actu: #FFFFFF(72.8%)  #F8F6F0(22.7%)  #2F6B3B(4.5%)
+  bottom_nav:
+    base: #FFFFFF(94.7%)  #FCFCFB(2.6%)  #D9D5C9(2.6%)
+    actu: #F8F6F0(83.0%)  #8BA95A(9.0%)  #2F6B3B(8.0%)
+
+── DIAGNOSIS ──
+  [!] filter_bar below threshold (4.7% < 85%)
+      -> Check colors, spacing, and layout in this region
+  [!] summary_strip below threshold (15.1% < 85%)
+      -> Check colors, spacing, and layout in this region
+  [!] bottom_nav below threshold (53.3% < 85%)
+      -> Check colors, spacing, and layout in this region
+
+============================================================

@@ -12370,6 +12370,150 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'立即重试'**
   String get signalSyncRetry;
+
+  /// No description provided for @healthPhysiologyTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'生理记录'**
+  String get healthPhysiologyTitle;
+
+  /// No description provided for @healthPhysiologyStageLactating.
+  ///
+  /// In zh, this message translates to:
+  /// **'泌乳期 · 第 {n} 天'**
+  String healthPhysiologyStageLactating(int n);
+
+  /// No description provided for @healthPhysiologyStageDry.
+  ///
+  /// In zh, this message translates to:
+  /// **'干奶期'**
+  String get healthPhysiologyStageDry;
+
+  /// No description provided for @healthPhysiologyEventCalving.
+  ///
+  /// In zh, this message translates to:
+  /// **'产犊'**
+  String get healthPhysiologyEventCalving;
+
+  /// No description provided for @healthPhysiologyEventBreeding.
+  ///
+  /// In zh, this message translates to:
+  /// **'配种'**
+  String get healthPhysiologyEventBreeding;
+
+  /// No description provided for @healthPhysiologyEventPregnancyCheck.
+  ///
+  /// In zh, this message translates to:
+  /// **'妊娠检查'**
+  String get healthPhysiologyEventPregnancyCheck;
+
+  /// No description provided for @healthPhysiologyEventDryOff.
+  ///
+  /// In zh, this message translates to:
+  /// **'干奶'**
+  String get healthPhysiologyEventDryOff;
+
+  /// No description provided for @healthPhysiologyEventIllness.
+  ///
+  /// In zh, this message translates to:
+  /// **'发病'**
+  String get healthPhysiologyEventIllness;
+
+  /// No description provided for @healthPhysiologyEventRecovery.
+  ///
+  /// In zh, this message translates to:
+  /// **'康复'**
+  String get healthPhysiologyEventRecovery;
+
+  /// No description provided for @healthPhysiologyAddRecord.
+  ///
+  /// In zh, this message translates to:
+  /// **'＋ 记录'**
+  String get healthPhysiologyAddRecord;
+
+  /// No description provided for @healthPhysiologyEmptyTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'尚无生理记录'**
+  String get healthPhysiologyEmptyTitle;
+
+  /// No description provided for @healthPhysiologyEmptyHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'点“＋ 记录”开始建档'**
+  String get healthPhysiologyEmptyHint;
+
+  /// No description provided for @healthPhysiologyWindowActive.
+  ///
+  /// In zh, this message translates to:
+  /// **'窗口中'**
+  String get healthPhysiologyWindowActive;
+
+  /// No description provided for @healthPhysiologySourceManual.
+  ///
+  /// In zh, this message translates to:
+  /// **'手工录入'**
+  String get healthPhysiologySourceManual;
+
+  /// No description provided for @healthPhysiologySourceDisposition.
+  ///
+  /// In zh, this message translates to:
+  /// **'来源：疫病处置单 #{refId} · 处置中'**
+  String healthPhysiologySourceDisposition(int refId);
+
+  /// No description provided for @healthPhysiologySourceAlertConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'告警确认'**
+  String get healthPhysiologySourceAlertConfirm;
+
+  /// No description provided for @healthPhysiologyErrorTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'⚠️ 生理记录暂时不可用'**
+  String get healthPhysiologyErrorTitle;
+
+  /// No description provided for @healthPhysiologyErrorDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据没有丢失——服务恢复后自动重试。'**
+  String get healthPhysiologyErrorDesc;
+
+  /// No description provided for @healthPhysiologyRetry.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新加载'**
+  String get healthPhysiologyRetry;
+
+  /// No description provided for @healthPhysiologySheetTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'新增生理记录'**
+  String get healthPhysiologySheetTitle;
+
+  /// No description provided for @healthPhysiologyOccurredDate.
+  ///
+  /// In zh, this message translates to:
+  /// **'发生日期'**
+  String get healthPhysiologyOccurredDate;
+
+  /// No description provided for @healthPhysiologyNoteHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'备注（选填，≤500 字）…'**
+  String get healthPhysiologyNoteHint;
+
+  /// No description provided for @healthPhysiologyIllnessNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'录“发病”无结束日期字段——康复日后录“康复”事件即闭合窗口。'**
+  String get healthPhysiologyIllnessNote;
+
+  /// No description provided for @healthPhysiologySaveFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存失败，请稍后重试'**
+  String get healthPhysiologySaveFailed;
 }
 
 class _AppLocalizationsDelegate

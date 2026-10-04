@@ -5346,5 +5346,60 @@
   ,"@signalSyncStale": {}
   ,"signalSyncRetry": "Retry now"
   ,"@signalSyncRetry": {}
-
+  ,"healthPhysiologyTitle": "Physiology Records"
+  ,"@healthPhysiologyTitle": {}
+  ,"healthPhysiologyStageLactating": "Lactating · day {n}"
+  ,"@healthPhysiologyStageLactating": {
+      "placeholders": {
+        "n": {"type": "int"}
+      }
+    }
+  ,"healthPhysiologyStageDry": "Dry off"
+  ,"@healthPhysiologyStageDry": {}
+  ,"healthPhysiologyEventCalving": "Calving"
+  ,"@healthPhysiologyEventCalving": {}
+  ,"healthPhysiologyEventBreeding": "Breeding"
+  ,"@healthPhysiologyEventBreeding": {}
+  ,"healthPhysiologyEventPregnancyCheck": "Pregnancy check"
+  ,"@healthPhysiologyEventPregnancyCheck": {}
+  ,"healthPhysiologyEventDryOff": "Dry-off"
+  ,"@healthPhysiologyEventDryOff": {}
+  ,"healthPhysiologyEventIllness": "Illness onset"
+  ,"@healthPhysiologyEventIllness": {}
+  ,"healthPhysiologyEventRecovery": "Recovery"
+  ,"@healthPhysiologyEventRecovery": {}
+  ,"healthPhysiologyAddRecord": "+ Add record"
+  ,"@healthPhysiologyAddRecord": {}
+  ,"healthPhysiologyEmptyTitle": "No records yet"
+  ,"@healthPhysiologyEmptyTitle": {}
+  ,"healthPhysiologyEmptyHint": "Tap \"+ Add record\" to start"
+  ,"@healthPhysiologyEmptyHint": {}
+  ,"healthPhysiologyWindowActive": "In window"
+  ,"@healthPhysiologyWindowActive": {}
+  ,"healthPhysiologySourceManual": "Manual entry"
+  ,"@healthPhysiologySourceManual": {}
+  ,"healthPhysiologySourceDisposition": "From epidemic disposition #{refId} · in progress"
+  ,"@healthPhysiologySourceDisposition": {
+      "placeholders": {
+        "refId": {"type": "int"}
+      }
+    }
+  ,"healthPhysiologySourceAlertConfirm": "Alert confirmed"
+  ,"@healthPhysiologySourceAlertConfirm": {}
+  ,"healthPhysiologyErrorTitle": "⚠️ Physiology records unavailable"
+  ,"@healthPhysiologyErrorTitle": {}
+  ,"healthPhysiologyErrorDesc": "No data is lost — it will retry automatically once the service recovers."
+  ,"@healthPhysiologyErrorDesc": {}
+  ,"healthPhysiologyRetry": "Reload"
+  ,"@healthPhysiologyRetry": {}
+  ,"healthPhysiologySheetTitle": "New physiology record"
+  ,"@healthPhysiologySheetTitle": {}
+  ,"healthPhysiologyOccurredDate": "Date occurred"
+  ,"@healthPhysiologyOccurredDate": {}
+  ,"healthPhysiologyNoteHint": "Note (optional, ≤500 chars)…"
+  ,"@healthPhysiologyNoteHint": {}
+  ,"healthPhysiologyIllnessNote": "Recording “Illness onset” has no end-date field — add a “Recovery” event later to close the window."
+  ,"@healthPhysiologyIllnessNote": {}
+  ,"healthPhysiologySaveFailed": "Save failed, please try again later"
+  ,"@healthPhysiologySaveFailed": {}
 }
