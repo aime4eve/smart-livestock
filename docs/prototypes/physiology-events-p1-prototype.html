@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>生理记录卡 P1 — 小原型 v1.2（2026-10-04，评审修订）</title>
+<style>
+/* 令牌 = 饮水原型同一套（NIX-246 方案 D 基线），无新增。
+   B5 裁决：生理记录语义色 = 品牌绿（--primary/--primary-soft），与饮水卡水蓝区分 */
+:root{
+  --primary:#2F6B3B;--primary-soft:#E3F0E4;--surface:#F8F6F0;--surface-alt:#FFFFFF;--border:#D7D2C6;
+  --text-primary:#263126;--text-secondary:#617061;
+  --drinking:#3D7FA8;--drinking-soft:#E2EDF4;--fever:#D97B29;--danger:#C2564B;
+  --radius-md:12px;--shadow-card:0 1px 3px rgba(38,49,38,.06),0 1px 2px rgba(38,49,38,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Noto Sans SC","PingFang SC",sans-serif;background:#E0DDD6;color:var(--text-primary);padding:24px;display:flex;gap:28px;justify-content:center;flex-wrap:wrap}
+.phone{width:390px;background:var(--surface);border-radius:24px;box-shadow:0 4px 16px rgba(38,49,38,.12);overflow:hidden;border:1px solid var(--border)}
+.sbar{display:flex;justify-content:space-between;padding:6px 14px;font-size:10px;font-weight:600;background:var(--surface-alt)}
+.nbar{display:flex;align-items:center;padding:10px 12px;background:var(--surface-alt);border-bottom:1px solid var(--border)}
+.nbar .back{font-size:15px}.nbar .t{font-size:14px;font-weight:700;flex:1;text-align:center}
+.body{padding:12px;display:flex;flex-direction:column;gap:10px;min-height:480px}
+.card{background:var(--surface-alt);border-radius:var(--radius-md);box-shadow:var(--shadow-card);padding:12px}
+.sec{font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--primary)}
+.chip{display:inline-flex;align-items:center;font-size:9px;font-weight:600;border-radius:999px;padding:2px 7px}
+.chip.manual{background:var(--primary-soft);color:var(--primary)}
+.chip.disp{background:rgba(217,123,41,.12);color:var(--fever)}
+.chip.sel{background:var(--primary);color:#fff}
+.chip.idle{background:var(--surface);color:var(--text-secondary);border:1px solid var(--border)}
+.ev-row{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border)}
+.ev-row:last-child{border-bottom:none}
+.ev-row .ic{width:30px;height:30px;border-radius:9px;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.ev-row .b{flex:1;min-width:0}
+.ev-row .n{font-size:11px;font-weight:700}
+.ev-row .d{font-size:9px;color:var(--text-secondary);margin-top:1px}
+.ev-row .when{font-size:9px;color:var(--text-secondary);white-space:nowrap}
+.add-btn{display:flex;align-items:center;justify-content:center;gap:5px;background:var(--primary);color:#fff;font-size:11px;font-weight:700;border-radius:8px;padding:8px 0;margin-top:9px}
+.subtle{font-size:10px;color:var(--text-secondary);line-height:1.5}
+.sheet{background:var(--surface-alt);border-radius:14px 14px 0 0;padding:14px 14px 18px;box-shadow:0 -4px 24px rgba(38,49,38,.15);position:relative;z-index:2}
+.sheet .grip{width:36px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 10px}
+.sheet .t{font-size:13px;font-weight:700;margin-bottom:10px}
+.type-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.type-grid .chip{font-size:10px;padding:6px 11px}
+.date-row{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:10px}
+.date-row .lab{font-size:10px;color:var(--text-secondary)}
+.date-row .v{font-size:12px;font-weight:700;margin-left:auto}
+.note-box{border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--text-secondary);min-height:52px;margin-bottom:12px}
+.save-btn{background:var(--primary);color:#fff;text-align:center;font-size:12px;font-weight:700;border-radius:8px;padding:10px 0}
+.scr-lab{font-size:12px;font-weight:700;color:var(--primary);text-align:center;margin-bottom:8px}
+/* A3：状态覆盖（骨架/错误/空态）+ C7 遮罩 */
+.dim-overlay{position:absolute;inset:0;background:rgba(38,49,38,.35);border-radius:24px 24px 0 0;z-index:1}
+.skeleton-line{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--surface) 25%,#ECE9E1 50%,var(--surface) 75%);background-size:200% 100%}
+.state-empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:5px;padding:14px 8px}
+.state-empty .big-ic{font-size:22px}
+.state-empty .t{font-size:11px;font-weight:700}
+.state-empty .d{font-size:9.5px;color:var(--text-secondary);line-height:1.5}
+.err-head{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--danger)}
+.err-d{font-size:9.5px;color:var(--text-secondary);line-height:1.55;margin-top:3px}
+.retry-btn{display:inline-block;background:var(--danger);color:#fff;font-size:9px;font-weight:700;border-radius:6px;padding:4px 12px;margin-top:5px}
+</style>
+</head>
+<body>
+
+<div>
+  <div class="scr-lab">① 牲畜详情页 · 生理记录卡（主入口）</div>
+  <div class="phone">
+    <div class="sbar"><span>9:41</span><span>📶 🔋86%</span></div>
+    <div class="nbar"><span class="back">‹</span><span class="t">牲畜详情 · NIX-0261</span></div>
+    <div class="body">
+      <div class="card">
+        <div class="sec"><span class="dot"></span>生理记录
+          <span class="chip idle" style="margin-left:auto">泌乳期 · 第 128 天</span>
+        </div>
+        <div class="ev-row">
+          <div class="ic">💊</div>
+          <div class="b"><div class="n">发病（乳房炎疑似）</div><div class="d">来源：疫病处置单 #42 · 处置中</div></div>
+          <span class="chip disp" style="align-self:center">窗口中</span>
+        </div>
+        <div class="ev-row">
+          <div class="ic">❤️</div>
+          <div class="b"><div class="n">配种</div><div class="d">冻精 2 次 · 手工录入</div></div>
+          <span class="when">2026-08-15</span>
+        </div>
+        <div class="ev-row">
+          <div class="ic">🐮</div>
+          <div class="b"><div class="n">产犊</div><div class="d">单胎 · 母犊存活 · 手工录入</div></div>
+          <span class="when">2026-05-29</span>
+        </div>
+        <div class="add-btn">＋ 记录</div>
+      </div>
+      <div class="card">
+        <div class="sec" style="margin-bottom:6px"><span class="dot"></span>状态覆盖（A3）</div>
+        <div class="subtle" style="margin-bottom:6px"><b>空态</b>（新牲畜零事件）：</div>
+        <div class="state-empty" style="border:1px dashed var(--border);border-radius:8px">
+          <span class="big-ic">📋</span>
+          <span class="t">尚无生理记录</span>
+          <span class="d">点"＋ 记录"开始建档</span>
+        </div>
+        <div class="subtle" style="margin:8px 0 6px"><b>加载骨架</b>：</div>
+        <div style="display:flex;flex-direction:column;gap:6px;padding:2px 0">
+          <div class="skeleton-line" style="width:100%"></div>
+          <div class="skeleton-line" style="width:82%"></div>
+          <div class="skeleton-line" style="width:60%"></div>
+        </div>
+        <div class="subtle" style="margin:8px 0 2px"><b>错误态</b>（接口 5xx/超时，与补传中性态区分）：</div>
+        <div>
+          <div class="err-head">⚠️ 生理记录暂时不可用</div>
+          <div class="err-d">数据没有丢失——服务恢复后自动重试。</div>
+          <span class="retry-btn">重新加载</span>
+        </div>
+        <div class="subtle" style="margin-top:8px"><b>权限降级</b>：无写权限角色隐藏"＋ 记录"按钮，列表仍可读（三角色 OWNER/B2B_ADMIN/WORKER 均可写）。</div>
+      </div>
+      <div class="subtle">生理记录是全项目生理状态的唯一载体：饮水统计排除窗口、泌乳分层、未来分娩预警都从这里取数；疫病处置单自动投影为"发病"窗口（完成即投影"康复"），无需重复录入。</div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <div class="scr-lab">② "＋ 记录" → 录入 bottom sheet</div>
+  <div class="phone">
+    <div class="sbar"><span>9:41</span><span>📶 🔋86%</span></div>
+    <div class="nbar"><span class="back">‹</span><span class="t">牲畜详情 · NIX-0261</span></div>
+    <div class="body" style="justify-content:flex-end;padding-bottom:0;position:relative">
+      <div class="dim-overlay"></div>
+      <div class="subtle" style="padding:0 4px 10px;position:relative;z-index:2;color:#fff">（详情页压暗遮罩，sheet 自底部弹出）</div>
+      <div class="sheet">
+        <div class="grip"></div>
+        <div class="t">新增生理记录</div>
+        <div class="type-grid">
+          <span class="chip idle">🐮 产犊</span>
+          <span class="chip idle">❤️ 配种</span>
+          <span class="chip sel">🤰 妊娠检查</span>
+          <span class="chip idle">⏸️ 干奶</span>
+          <span class="chip idle">💊 发病</span>
+          <span class="chip idle">✅ 康复</span>
+        </div>
+        <div class="date-row"><span class="lab">发生日期</span><span class="v">2026-10-04</span></div>
+        <div class="note-box">备注（选填，≤500 字）…</div>
+        <div class="save-btn">保存</div>
+        <div class="subtle" style="margin-top:9px">录"发病"无结束日期字段——康复日后录"康复"事件即闭合窗口（spec §8 A1 语义）。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
