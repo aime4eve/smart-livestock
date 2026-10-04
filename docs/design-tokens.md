@@ -70,7 +70,7 @@ Source: `docs/prototypes/drinking-event-detection-prototype.html`
 | `.phone-shell` | `box-shadow` | `var(--shadow-elev)` |
 | `.phone-shell` | `background` | `var(--surface)` |
 | `.phone-shell` | `border` | `1px solid var(--border)` |
-| `.phone-shell` | `width` | `280px` |
+| `.phone-shell` | `width` | `390px`（v1.2 P7 调整，与保真对照 390 惯例一致） |
 | `.status-bar` | `font-size` | `10px` |
 | `.status-bar` | `font-weight` | `600` |
 | `.status-bar` | `padding` | `6px 14px` |
