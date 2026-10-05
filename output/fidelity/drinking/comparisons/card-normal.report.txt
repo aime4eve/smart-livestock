@@ -1,0 +1,46 @@
+============================================================
+  SCREENSHOT FIDELITY COMPARISON REPORT
+============================================================
+Baseline:  output/fidelity/drinking/prototype-elements/card-drinking.png (390x250)
+Actual:    output/fidelity/drinking/flutter/card-normal.png (390x288)
+Threshold: 85% similarity required
+
+── OVERALL ──
+  Similarity:     73.8%
+  Avg pixel diff: 28.73
+  Max pixel diff: 248
+  Verdict:        FAIL
+
+── PER-REGION ANALYSIS ──
+  [OK  ] status_bar        sim=100.0%  avg_diff=  9.73  mismatch=  0.0%
+  [OK  ] appbar            sim= 92.2%  avg_diff= 11.69  mismatch=  7.8%
+  [OK  ] summary_strip     sim= 92.8%  avg_diff= 10.10  mismatch=  7.2%
+  [OK  ] filter_bar        sim= 93.9%  avg_diff=  6.60  mismatch=  6.1%
+  [DIFF] content           sim= 70.4%  avg_diff= 30.87  mismatch= 29.6%
+  [OK  ] bottom_nav        sim=100.0%  avg_diff=  9.17  mismatch=  0.0%
+
+── DOMINANT COLORS (baseline vs actual) ──
+  status_bar:
+    base: #FFFFFF(83.9%)  #F5F3ED(8.1%)  #FEFDFD(8.0%)
+    actu: #F8F6F0(84.2%)  #F7F5EF(8.1%)  #F5F3ED(7.7%)
+  appbar:
+    base: #FFFFFF(93.0%)  #E2EDF4(6.1%)  #E3EDF4(0.9%)
+    actu: #FFFFFF(94.8%)  #E2EDF4(4.5%)  #FBFDFE(0.7%)
+  summary_strip:
+    base: #FFFFFF(97.7%)  #E2EDF4(1.6%)  #E0ECF3(0.7%)
+    actu: #FFFFFF(95.7%)  #E2EDF4(3.5%)  #FEFFFF(0.8%)
+  filter_bar:
+    base: #FFFFFF(98.6%)  #FEFEFE(1.0%)  #FDFDFD(0.4%)
+    actu: #FFFFFF(98.9%)  #FEFEFE(0.5%)  #FCFCFB(0.5%)
+  content:
+    base: #FFFFFF(70.6%)  #FCF5EE(15.0%)  #5A92B5(14.4%)
+    actu: #FFFFFF(77.1%)  #FCF5EE(15.8%)  #5A92B5(7.1%)
+  bottom_nav:
+    base: #FFFFFF(71.2%)  #FCF5EE(22.9%)  #FCFCFB(5.9%)
+    actu: #FFFFFF(51.5%)  #F8F6F0(29.3%)  #F7F5EF(19.2%)
+
+── DIAGNOSIS ──
+  [!] content below threshold (70.4% < 85%)
+      -> Check colors, spacing, and layout in this region
+
+============================================================

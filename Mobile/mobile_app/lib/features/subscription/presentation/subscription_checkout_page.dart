@@ -84,7 +84,7 @@ class _SubscriptionCheckoutPageState
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
-                      tierInfo.name,
+                      localizedTierName(tierInfo.tier),
                       style: theme.textTheme.headlineSmall,
                     ),
                     const SizedBox(height: AppSpacing.sm),
@@ -211,7 +211,10 @@ class _SubscriptionCheckoutPageState
                 key: const Key('pay-button'),
                 onPressed: _paying ? null : () async {
                   setState(() => _paying = true);
-                  final ok = await ref
+                  // null = success; otherwise the failure message for the
+                  // toast — server-localized state-conflict guidance beats
+                  // a blanket "please retry" (2026-10-06).
+                  final error = await ref
                       .read(subscriptionControllerProvider.notifier)
                       .checkout(
                         tier: widget.tier.name,
@@ -222,15 +225,17 @@ class _SubscriptionCheckoutPageState
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        ok
+                        error == null
                             ? l10n.subSubscribeSuccess(
                                 localizedTierName(tierInfo.tier))
-                            : l10n.subSubscribeFailed,
+                            : (error.isNotEmpty
+                                ? error
+                                : l10n.subSubscribeFailed),
                       ),
                     ),
                   );
                   // 订购成功后清栈回到"我的"，避免用户停在套餐页找不到返回路径
-                  if (ok) context.go(AppRoute.mine.path);
+                  if (error == null) context.go(AppRoute.mine.path);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,

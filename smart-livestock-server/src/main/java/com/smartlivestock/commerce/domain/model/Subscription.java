@@ -15,6 +15,9 @@ import java.time.Instant;
  * State machine: TRIAL -> ACTIVE -> SUSPENDED/RENEWAL_FAILED/CANCELLED/EXPIRED
  *                 TRIAL -> FREE (expireTrial)
  *                 TRIAL -> CANCELLED
+ *                 RENEWAL_FAILED -> ACTIVE (changeTier repay path — the only
+ *                 self-service exit; the 7-day auto-downgrade remains as the
+ *                 fallback when the farmer never repays)
  */
 public class Subscription extends AggregateRoot {
 
@@ -102,17 +105,21 @@ public class Subscription extends AggregateRoot {
     }
 
     /**
-     * Change tier. Allowed from ACTIVE, TRIAL, or FREE.
-     * When coming from FREE, transitions to ACTIVE.
+     * Change tier. Allowed from ACTIVE, TRIAL, FREE, or RENEWAL_FAILED.
+     * When coming from FREE, TRIAL, or RENEWAL_FAILED, transitions to
+     * ACTIVE — checkout from a renewal-failed (lapsed) subscription is the
+     * farmer's repay/re-subscribe path; without it RENEWAL_FAILED is a trap
+     * (no cancel, no reactivate, auto-downgrade only after 7 days).
      */
     public void changeTier(SubscriptionTier newTier, String billingCycle, Instant expiresAt) {
         requireStatusFor("changeTier",
-            SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIAL, SubscriptionStatus.FREE);
+            SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIAL, SubscriptionStatus.FREE,
+            SubscriptionStatus.RENEWAL_FAILED);
         SubscriptionTier oldTier = this.tier;
         this.tier = newTier;
         this.billingCycle = billingCycle;
         this.expiresAt = expiresAt;
-        if (this.status == SubscriptionStatus.FREE || this.status == SubscriptionStatus.TRIAL) {
+        if (this.status != SubscriptionStatus.ACTIVE) {
             this.status = SubscriptionStatus.ACTIVE;
         }
         registerEvent(new SubscriptionTierChangedEvent(tenantId, oldTier.name(), newTier.name()));

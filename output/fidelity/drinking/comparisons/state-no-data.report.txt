@@ -1,0 +1,47 @@
+============================================================
+  SCREENSHOT FIDELITY COMPARISON REPORT
+============================================================
+Baseline:  output/fidelity/drinking/prototype-elements/state-no-data.png (390x163)
+Actual:    output/fidelity/drinking/flutter/state-no-data.png (390x248)
+Threshold: 85% similarity required
+
+── OVERALL ──
+  Similarity:     89.6%
+  Avg pixel diff: 11.41
+  Max pixel diff: 249
+  Verdict:        PASS
+
+── PER-REGION ANALYSIS ──
+  [OK  ] status_bar        sim=100.0%  avg_diff=  0.13  mismatch=  0.0%
+  [OK  ] appbar            sim=100.0%  avg_diff=  0.18  mismatch=  0.0%
+  [OK  ] summary_strip     sim= 97.7%  avg_diff=  2.50  mismatch=  2.3%
+  [OK  ] filter_bar        sim= 94.1%  avg_diff=  7.71  mismatch=  5.9%
+  [DIFF] content           sim= 84.5%  avg_diff= 16.64  mismatch= 15.5%
+  [OK  ] bottom_nav        sim= 96.3%  avg_diff=  5.07  mismatch=  3.7%
+
+── DOMINANT COLORS (baseline vs actual) ──
+  status_bar:
+    base: #FFFFFF(98.8%)  #F8F6F0(1.0%)  #F7F5EF(0.1%)
+    actu: #FFFFFF(99.7%)  #FCFCFB(0.2%)  #F5F3ED(0.2%)
+  appbar:
+    base: #FFFFFF(99.9%)  #FEFEFE(0.0%)  #FDFCFC(0.0%)
+    actu: #FFFFFF(99.0%)  #FCFCFB(0.5%)  #F3F2EB(0.5%)
+  summary_strip:
+    base: #FFFFFF(99.7%)  #FEFFFF(0.2%)  #FEFEFF(0.1%)
+    actu: #FFFFFF(98.8%)  #4E342E(0.6%)  #FCFCFB(0.5%)
+  filter_bar:
+    base: #FFFFFF(99.6%)  #FDFEFE(0.2%)  #292B2D(0.1%)
+    actu: #FFFFFF(98.9%)  #FCFCFB(0.5%)  #F3F2EB(0.5%)
+  content:
+    base: #FFFFFF(97.0%)  #F8F6F0(1.5%)  #FEFEFE(1.5%)
+    actu: #FFFFFF(92.7%)  #F8F6F0(4.3%)  #F7F5EF(3.0%)
+  bottom_nav:
+    base: #FFFFFF(84.0%)  #FCFCFB(8.0%)  #EAEAE2(8.0%)
+    actu: #FFFFFF(93.5%)  #FEFEFE(5.8%)  #DEDAD0(0.7%)
+
+── DIAGNOSIS ──
+  [!] content below threshold (84.5% < 85%)
+      -> Check colors, spacing, and layout in this region
+  Verdict (per spec §6 letter): FAIL — worst region(s) below 85%. EXEMPTED by user ruling 2026-10-06 (plan 附录二 #7/#8): region diff is framing/content-presence, not token drift.
+
+============================================================

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 import 'package:hkt_livestock_agentic/features/subscription/data/subscription_api_repository.dart';
 import 'package:hkt_livestock_agentic/features/subscription/domain/subscription_repository.dart';
@@ -13,8 +14,12 @@ class SubscriptionController extends AsyncNotifier<SubscriptionStatus> {
     return ref.read(subscriptionRepositoryProvider).loadCurrent();
   }
 
-  /// 支付并开通套餐；返回是否成功，供 UI 区分成功/失败提示
-  Future<bool> checkout({
+  /// 支付并开通套餐。
+  ///
+  /// Returns null on success, or the failure message for the UI toast —
+  /// the backend's localized text (e.g. state-conflict guidance) beats a
+  /// blanket "please retry" that hides actionable causes (2026-10-06).
+  Future<String?> checkout({
     required String tier,
     required int livestockCount,
   }) async {
@@ -25,7 +30,9 @@ class SubscriptionController extends AsyncNotifier<SubscriptionStatus> {
               livestockCount: livestockCount,
             ));
     state = result;
-    return result.hasValue;
+    final error = result.error;
+    if (error == null) return null;
+    return error is ApiException ? error.message : error.toString();
   }
 
   Future<void> changeTier(String tier) async {

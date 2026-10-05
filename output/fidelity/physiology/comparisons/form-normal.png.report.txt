@@ -1,0 +1,47 @@
+============================================================
+  SCREENSHOT FIDELITY COMPARISON REPORT
+============================================================
+Baseline:  prototype-elements/card-normal.png (390x250)
+Actual:    flutter/form-normal.png (390x248)
+Threshold: 85% similarity required
+
+── OVERALL ──
+  Similarity:     91.9%
+  Avg pixel diff: 9.46
+  Max pixel diff: 245
+  Verdict:        PASS
+
+── PER-REGION ANALYSIS ──
+  [OK  ] status_bar        sim=100.0%  avg_diff=  0.28  mismatch=  0.0%
+  [DIFF] appbar            sim= 81.2%  avg_diff= 19.12  mismatch= 18.8%
+  [OK  ] summary_strip     sim= 99.7%  avg_diff=  0.49  mismatch=  0.3%
+  [OK  ] filter_bar        sim= 86.6%  avg_diff= 16.36  mismatch= 13.4%
+  [OK  ] content           sim= 94.1%  avg_diff=  6.35  mismatch=  5.9%
+  [OK  ] bottom_nav        sim= 99.5%  avg_diff=  1.64  mismatch=  0.5%
+
+── DOMINANT COLORS (baseline vs actual) ──
+  status_bar:
+    base: #FFFFFF(99.2%)  #F8F6F0(0.7%)  #FEFEFE(0.1%)
+    actu: #FFFFFF(97.7%)  #F8F7F5(1.9%)  #F8F6F0(0.4%)
+  appbar:
+    base: #FFFFFF(88.0%)  #F8F6F0(8.1%)  #F7F5EF(3.9%)
+    actu: #FFFFFF(85.1%)  #F8F6F0(12.7%)  #F7F5EF(2.2%)
+  summary_strip:
+    base: #FFFFFF(97.8%)  #FEFEFE(1.1%)  #F8F6F0(1.1%)
+    actu: #FFFFFF(97.2%)  #FEFEFE(1.6%)  #DDD8CD(1.2%)
+  filter_bar:
+    base: #FFFFFF(91.0%)  #E3F0E4(6.0%)  #FAEFE5(2.9%)
+    actu: #FFFFFF(93.3%)  #E3F0E4(4.4%)  #FAEFE5(2.2%)
+  content:
+    base: #FFFFFF(78.5%)  #2F6B3B(17.7%)  #FEFEFE(3.9%)
+    actu: #FFFFFF(79.8%)  #2F6B3B(16.5%)  #FEFEFE(3.8%)
+  bottom_nav:
+    base: #FFFFFF(71.4%)  #2F6B3B(22.9%)  #FDFEFD(5.7%)
+    actu: #FFFFFF(75.7%)  #2F6B3B(18.2%)  #FEFEFE(6.1%)
+
+── DIAGNOSIS ──
+  [!] appbar below threshold (81.2% < 85%)
+      -> Check colors, spacing, and layout in this region
+  All regions meet threshold. Visual fidelity likely acceptable.
+
+============================================================

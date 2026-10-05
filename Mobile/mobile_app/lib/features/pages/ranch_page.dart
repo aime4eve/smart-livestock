@@ -1668,7 +1668,12 @@ class _RanchPageState extends ConsumerState<RanchPage>
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: 7,
           crossAxisSpacing: 7,
-          childAspectRatio: 3.75,
+          // Fixed tile height matching the RanchSummaryTile row above
+          // (~66px): childAspectRatio made height scale with tile width,
+          // blowing the tiles up to ~260px on desktop-wide viewports
+          // (user report 2026-10-06). 66 also fits the two-line footBold
+          // worst case that the 2026-09-28 overflow fix targeted.
+          mainAxisExtent: 66,
           children: [
             card(
               icon: Icons.thermostat,

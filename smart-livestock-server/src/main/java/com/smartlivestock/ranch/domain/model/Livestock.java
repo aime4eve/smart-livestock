@@ -17,6 +17,9 @@ public class Livestock extends AggregateRoot {
     private String gender;
     private LocalDate birthDate;
     private BigDecimal weight;
+    /**
+     * @deprecated 以 PhysiologyQueryPort/告警为准（NIX-256）；仅注册默认，无业务写入口
+     */
     private HealthStatus healthStatus;
     private BigDecimal lastLatitude;
     private BigDecimal lastLongitude;

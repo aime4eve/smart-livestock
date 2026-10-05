@@ -1,0 +1,50 @@
+============================================================
+  SCREENSHOT FIDELITY COMPARISON REPORT
+============================================================
+Baseline:  prototype-elements/sheet-panel.png (390x364)
+Actual:    flutter/form-sheet-panel-aligned.png (390x385)
+Threshold: 85% similarity required
+
+── OVERALL ──
+  Similarity:     69.5%
+  Avg pixel diff: 45.68
+  Max pixel diff: 251
+  Verdict:        FAIL
+
+── PER-REGION ANALYSIS ──
+  [OK  ] status_bar        sim= 89.9%  avg_diff=  8.43  mismatch= 10.1%
+  [OK  ] appbar            sim= 88.1%  avg_diff= 16.88  mismatch= 11.9%
+  [DIFF] summary_strip     sim= 73.3%  avg_diff= 37.44  mismatch= 26.7%
+  [DIFF] filter_bar        sim= 73.2%  avg_diff= 36.95  mismatch= 26.8%
+  [DIFF] content           sim= 60.5%  avg_diff= 62.03  mismatch= 39.5%
+  [OK  ] bottom_nav        sim= 86.0%  avg_diff= 28.15  mismatch= 14.0%
+
+── DOMINANT COLORS (baseline vs actual) ──
+  status_bar:
+    base: #FFFFFF(88.1%)  #FEFEFE(6.6%)  #F4F5F4(5.3%)
+    actu: #FFFFFF(98.3%)  #D9D4C9(0.9%)  #FDFDFC(0.8%)
+  appbar:
+    base: #FFFFFF(98.6%)  #FEFEFE(0.9%)  #FDFDFD(0.4%)
+    actu: #FFFFFF(98.6%)  #FEFEFE(1.1%)  #FDFDFD(0.3%)
+  summary_strip:
+    base: #FFFFFF(82.7%)  #F8F6F0(11.7%)  #2F6B3B(5.6%)
+    actu: #FFFFFF(49.0%)  #F8F6F0(39.9%)  #2F6B3B(11.1%)
+  filter_bar:
+    base: #FFFFFF(65.9%)  #F8F6F0(24.4%)  #2F6B3B(9.7%)
+    actu: #FFFFFF(94.0%)  #F8F6F0(4.5%)  #FCFCFB(1.5%)
+  content:
+    base: #FFFFFF(81.9%)  #2F6B3B(15.2%)  #FEFEFE(2.9%)
+    actu: #FFFFFF(72.1%)  #F8F6F0(14.1%)  #2D6739(13.7%)
+  bottom_nav:
+    base: #FFFFFF(99.5%)  #FEFEFE(0.3%)  #FDFDFD(0.2%)
+    actu: #F8F6F0(91.5%)  #8BA95A(4.3%)  #2F6B3B(4.2%)
+
+── DIAGNOSIS ──
+  [!] content below threshold (60.5% < 85%)
+      -> Check colors, spacing, and layout in this region
+  [!] filter_bar below threshold (73.2% < 85%)
+      -> Check colors, spacing, and layout in this region
+  [!] summary_strip below threshold (73.3% < 85%)
+      -> Check colors, spacing, and layout in this region
+
+============================================================

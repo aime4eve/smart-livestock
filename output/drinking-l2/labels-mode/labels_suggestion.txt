@@ -1,0 +1,50 @@
+Drinking-event label-mode calibration report (NIX-256 Task 6, spec §15.4)
+========================================================================
+labels : output/drinking-l2/labels-mode/labels-export-2.csv
+series : output/drinking-l2/backfill/series.csv
+gating : in-body gate ON, depth margin 1.0 degC (production parity, fixed; merge-gap is a grid axis)
+grid   : S_th [0.06, 0.08, 0.1, 0.12, 0.15] x k [0.5, 1, 2, 3, 5] x R_th [0.5, 0.6, 0.7, 0.75, 0.8] x gap [10, 15, 20, 25, 30]
+
+== Label sample ==
+total rows          : 2101
+CONFIRMED (pos.)    : 1994  (incl. MANUAL back-fills: 3)
+REJECTED (neg.)     : 107
+UNLABELED (ignored) : 0
+per farm:
+  farm 1: positives=1994, REJECTED=107, CONFIRMED+REJECTED=2101
+
+== Current production parameters on this label set ==
+S_th=0.06, k=0.5, R_th=0.7, merge-gap=15
+TP=1595  FP=40  FN=399  Se=0.7999  PPV=0.9755  F=0.879
+
+== Grid best (F desc) ==
+S_th=0.06, k=0.5, R_th=0.5, merge-gap=10
+TP=1596  FP=40  FN=398  Se=0.8004  PPV=0.9756  F=0.8793
+
+Top-10 grid points:
+params                               TP   FP   FN   Se      PPV     F
+S_th=0.06|k=0.5|R_th=0.5|gap=10     1596   40  398  0.8004  0.9756  0.8793
+S_th=0.06|k=0.5|R_th=0.5|gap=15     1596   40  398  0.8004  0.9756  0.8793
+S_th=0.06|k=0.5|R_th=0.6|gap=10     1596   40  398  0.8004  0.9756  0.8793
+S_th=0.06|k=0.5|R_th=0.6|gap=15     1596   40  398  0.8004  0.9756  0.8793
+S_th=0.06|k=0.5|R_th=0.7|gap=10     1595   40  399  0.7999  0.9755   0.879
+S_th=0.06|k=0.5|R_th=0.7|gap=15     1595   40  399  0.7999  0.9755   0.879
+S_th=0.06|k=0.5|R_th=0.75|gap=10    1595   40  399  0.7999  0.9755   0.879
+S_th=0.06|k=0.5|R_th=0.75|gap=15    1595   40  399  0.7999  0.9755   0.879
+S_th=0.06|k=0.5|R_th=0.8|gap=10     1595   40  399  0.7999  0.9755   0.879
+S_th=0.06|k=0.5|R_th=0.8|gap=15     1595   40  399  0.7999  0.9755   0.879
+
+== Acceptance (spec §15.4: per-farm CONFIRMED+REJECTED >= 100) ==
+farm 1: CONFIRMED+REJECTED=2101 -> sufficient
+
+采信判定：通过。维持现产参数（最优提升 ΔF=0.0003 低于采信阈值 0.005）。
+  fall-threshold=0.06  k-sigma=0.5  recovery-ratio=0.7  merge-gap-min=15
+  样本量：CONFIRMED+MANUAL 1994（含 MANUAL 补录 3）、REJECTED 107；分牧场样本见上方统计。
+
+== Caveats ==
+- Detections with no overlapping label count neither TP nor FP:
+  operators label a subset, so unmatched detections have unknown
+  polarity; PPV is conditional on labelled regions.
+- UNLABELED rows are ignored; MANUAL back-fills are positive truth.
+- Matching is per-device interval overlap, greedy nearest-center
+  (matching.match_labels_overlap).

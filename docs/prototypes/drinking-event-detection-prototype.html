@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>饮水行为检测 — 高保真原型 v1.4（2026-10-06）</title>
+<style>
+/* ═══════════════ 设计令牌（可被 prototype-to-flutter-fidelity 解析） ═══════════════
+   基线来源：health-scenario-alert-integration-prototype.html（NIX-246 方案 D 拍板令牌）
+   本原型仅新增饮水语义色 --drinking 与事件标记色，其余全部复用基线。 */
+:root{
+  --primary:#2F6B3B;--primary-dark:#244F2D;--primary-soft:#E3F0E4;--accent:#8BA95A;
+  --surface:#F8F6F0;--surface-alt:#FFFFFF;--border:#D7D2C6;
+  --text-primary:#263126;--text-secondary:#617061;
+  --success:#4C9A5F;--warning:#D28A2D;--danger:#C2564B;--info:#4A7F9D;--estrus:#C25689;
+  --fever:#D97B29;--digestive:#8D6E4F;--epidemic:#2E7D74;
+  --drinking:#3D7FA8;            /* 新增：饮水语义色（水蓝，较 --info 偏青、更深） */
+  --drinking-soft:#E2EDF4;       /* 新增：饮水浅底 */
+  --drinking-event:#2C6486;      /* 新增：温度曲线上饮水谷事件标记 */
+  --map-green:#DCE8D5;--map-fence:#2F6B3B;
+  --xs:4px;--sm:8px;--md:12px;--lg:16px;--xl:24px;--xxl:32px;
+  --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+  --shadow-card:0 1px 3px rgba(38,49,38,.06),0 1px 2px rgba(38,49,38,.04);
+  --shadow-elev:0 4px 16px rgba(38,49,38,.12);
+  --shadow-sheet:0 -4px 24px rgba(38,49,38,.15);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sans-serif;background:#E0DDD6;color:var(--text-primary);min-height:100vh;padding:24px}
+.page-title{text-align:center;margin-bottom:8px}
+.page-title h1{font-size:22px;font-weight:700}
+.page-title p{font-size:13px;color:var(--text-secondary);margin-top:4px}
+.flow-grid{display:flex;flex-wrap:wrap;gap:28px;justify-content:center;margin-top:24px;max-width:2000px;margin-left:auto;margin-right:auto}
+.screen-group{display:flex;flex-direction:column;align-items:center;gap:10px}
+.screen-label{font-size:13px;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:6px}
+.screen-label .num{width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.screen-label .num.new{background:var(--drinking)}
+.screen-sublabel{font-size:11px;color:var(--text-secondary);max-width:430px;text-align:center;line-height:1.4}
+
+/* ── 手机壳（280px，与项目原型惯例一致） ── */
+.phone-shell{width:390px;background:var(--surface);border-radius:24px;box-shadow:var(--shadow-elev);overflow:hidden;border:1px solid var(--border)}
+.status-bar{display:flex;justify-content:space-between;align-items:center;padding:6px 14px;font-size:10px;font-weight:600;color:var(--text-primary);background:var(--surface-alt)}
+.nav-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface-alt);border-bottom:1px solid var(--border)}
+.nav-bar .back{font-size:15px;color:var(--text-primary)}
+.nav-bar .title{font-size:14px;font-weight:700;flex:1;text-align:center}
+.nav-bar .spacer{width:15px}
+.screen-body{padding:12px;display:flex;flex-direction:column;gap:10px;min-height:520px}
+
+/* ── 通用卡片语言（对齐 NIX-246 方案 D） ── */
+.card{background:var(--surface-alt);border-radius:var(--radius-md);box-shadow:var(--shadow-card);padding:12px}
+.section-title{font-size:12px;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.section-title .dot{width:8px;height:8px;border-radius:50%}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;border-radius:999px;padding:3px 8px}
+.chip.drinking{background:var(--drinking-soft);color:var(--drinking)}
+.chip.normal{background:var(--primary-soft);color:var(--primary)}
+.chip.fever{background:rgba(217,123,41,.12);color:var(--fever)}
+.chip.muted{background:var(--surface);color:var(--text-secondary);border:1px solid var(--border)}
+.subtle{font-size:11px;color:var(--text-secondary);line-height:1.45}
+
+/* ── 屏 1：牲畜详情页 · 饮水行为卡 ── */
+.drinking-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.drinking-card-head .title{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700}
+.bignum-row{display:flex;align-items:baseline;gap:6px}
+.bignum{font-size:30px;font-weight:800;color:var(--drinking);line-height:1}
+.bignum-unit{font-size:11px;color:var(--text-secondary)}
+.last-drink{margin-left:auto;text-align:right}
+.last-drink .v{font-size:12px;font-weight:700;color:var(--text-primary)}
+.mini-bars{display:flex;align-items:flex-end;gap:6px;height:44px;margin-top:10px;padding:0 2px}
+.mini-bars .bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.mini-bars .bar{width:100%;border-radius:4px 4px 2px 2px;background:var(--drinking);opacity:.85}
+.mini-bars .bar.low{background:var(--fever);opacity:.55}
+.mini-bars .day{font-size:8px;color:var(--text-secondary)}
+.mini-bars .val{font-size:8px;font-weight:700;color:var(--text-secondary)}
+.context-note{display:flex;gap:6px;align-items:flex-start;background:rgba(217,123,41,.08);border-radius:8px;padding:7px 8px;margin-top:10px}
+.context-note .ic{font-size:11px;line-height:1.3}
+.context-note .tx{font-size:9.5px;color:var(--fever);line-height:1.45}
+
+/* ── 屏 2：健康详情图表页 · 饮水行为详情 ── */
+.chart-card{background:var(--surface-alt);border-radius:var(--radius-md);box-shadow:var(--shadow-card);padding:12px}
+.chart-title{font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.chart-title .right{font-size:9px;font-weight:600;color:var(--text-secondary)}
+.chart-area{position:relative;background:var(--surface);border-radius:8px;padding:8px}
+svg.chart{width:100%;height:auto;display:block}
+.legend-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:7px}
+.legend-row .lg{display:flex;align-items:center;gap:4px;font-size:8.5px;color:var(--text-secondary)}
+.legend-row .swatch{width:10px;height:10px;border-radius:3px}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:2px}
+.seg .opt{font-size:9px;font-weight:600;color:var(--text-secondary);border-radius:999px;padding:3px 7px}
+.seg .opt.on{background:var(--drinking);color:#fff}
+.note-box{background:rgba(61,127,168,.07);border-radius:8px;padding:9px 10px;display:flex;gap:7px;align-items:flex-start}
+.note-box .icon{font-size:13px;color:var(--drinking);flex-shrink:0;line-height:1.2}
+.note-box .text{font-size:9.5px;color:var(--drinking);line-height:1.5}
+
+/* ── 屏 3：状态与异常态 ── */
+.state-card{display:flex;flex-direction:column;align-items:center;text-align:center;padding:18px 12px;gap:8px}
+.state-card .big-ic{font-size:26px}
+.state-card .t{font-size:12px;font-weight:700}
+.state-card .d{font-size:10px;color:var(--text-secondary);line-height:1.5}
+.premium-strip{display:flex;align-items:center;gap:6px;background:linear-gradient(90deg,rgba(61,127,168,.10),rgba(61,127,168,.04));border:1px dashed var(--drinking);border-radius:8px;padding:7px 9px;margin-top:10px}
+.premium-strip .tx{font-size:9.5px;color:var(--drinking);line-height:1.4}
+
+/* ── 屏 4-6：图层开关 / 订阅锁定态 / 告警行 / 可达性 ── */
+.locked-overlay{position:relative}
+.locked-overlay .dim{opacity:.28;filter:blur(1px)}
+.locked-overlay .lock-msg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.locked-overlay .lock-msg .lock-ic{font-size:22px}
+.locked-overlay .lock-msg .lock-tx{font-size:10px;color:var(--text-secondary);text-align:center;padding:0 16px;line-height:1.5}
+.locked-overlay .lock-msg .upgrade-btn{padding:5px 14px;background:var(--primary);color:#fff;border-radius:6px;font-size:10px;font-weight:700}
+.tier-badge{position:absolute;top:8px;right:8px;font-size:8.5px;font-weight:700;background:var(--primary-soft);color:var(--primary);border-radius:999px;padding:2px 7px}
+.layer-chips{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.layer-chip{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;border:1px solid var(--border);border-radius:999px;padding:3px 8px;color:var(--text-secondary);background:var(--surface-alt)}
+.layer-chip .sw{width:7px;height:7px;border-radius:50%}
+.layer-chip.on{color:var(--text-primary);border-color:var(--drinking)}
+.flow-line{margin-top:4px}
+.flow-step{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px dashed var(--border)}
+.flow-step:last-child{border-bottom:none}
+.flow-step .n{width:16px;height:16px;border-radius:50%;background:var(--drinking);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.flow-step .tx{font-size:10px;line-height:1.5;color:var(--text-primary)}
+.flow-step .tx small{display:block;color:var(--text-secondary);font-size:9px}
+.al-row{display:flex;align-items:flex-start;gap:9px}
+.al-row .ic{width:34px;height:34px;border-radius:10px;background:var(--drinking-soft);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.al-row .body{flex:1;min-width:0}
+.al-row .t{font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px}
+.al-row .d{font-size:9.5px;color:var(--text-secondary);line-height:1.5;margin-top:2px}
+.al-row .time{font-size:8.5px;color:var(--text-secondary);white-space:nowrap}
+
+/* ── 屏 3 补充：加载骨架 / 服务异常态（1:1 实现状态覆盖） ── */
+.skeleton-line{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--surface) 25%,#ECE9E1 50%,var(--surface) 75%);background-size:200% 100%;animation:sk 1.2s infinite}
+@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.err-card{display:flex;flex-direction:column;gap:7px;align-items:flex-start}
+.err-card .head{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--danger)}
+.err-card .d{font-size:10px;color:var(--text-secondary);line-height:1.55}
+.retry-btn{padding:5px 14px;background:var(--danger);color:#fff;border-radius:6px;font-size:10px;font-weight:700}
+
+/* ── 说明面板 ── */
+.spec-panel{max-width:860px;margin:28px auto 0;background:var(--surface-alt);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:20px 24px}
+.spec-panel h2{font-size:15px;margin-bottom:10px;color:var(--primary)}
+.spec-panel h3{font-size:13px;margin:14px 0 6px;color:var(--text-primary)}
+.spec-panel p,.spec-panel li{font-size:12px;color:var(--text-secondary);line-height:1.7}
+.spec-panel ul{padding-left:18px}
+.spec-panel table{width:100%;border-collapse:collapse;margin:8px 0;font-size:11px}
+.spec-panel th,.spec-panel td{border:1px solid var(--border);padding:5px 8px;text-align:left}
+.spec-panel th{background:var(--surface);font-weight:700}
+.tok{font-family:Menlo,monospace;font-size:10.5px;background:var(--surface);border-radius:4px;padding:1px 5px}
+.mount-list li{margin-bottom:4px}
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  <h1>💧 饮水行为检测 — 高保真原型 v1.4</h1>
+  <p>瘤胃温度谷检测饮水事件 ｜ 2026-10-04 ｜ 视觉基线：NIX-246 方案 D（深绿 Hero + 白卡浮起 + 语义色系统）｜ 新增语义色 <span class="tok">--drinking</span></p>
+</div>
+
+<div class="flow-grid">
+
+  <!-- ═══════════ 屏 1：牲畜详情页 · 饮水行为卡 ═══════════ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num new">1</span>牲畜详情页 · 健康 Tab → 饮水行为卡</div>
+    <div class="screen-sublabel">挂载点：体温 / 瘤胃蠕动 / 发情三张趋势图同级追加；卡片展示"今日次数 + 上次饮水 + 近 7 日柱状"，发热期自动叠加上下文标注</div>
+    <div class="phone-shell">
+      <div class="status-bar"><span>9:41</span><span>📶 🔋86%</span></div>
+      <div class="nav-bar"><span class="back">‹</span><span class="title">牲畜详情 · NIX-0261</span><span class="spacer"></span></div>
+      <div class="screen-body">
+
+        <div class="card" style="display:flex;align-items:center;gap:10px">
+          <div style="width:40px;height:40px;border-radius:12px;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-size:20px">🐄</div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:700">NIX-0261 · 西门塔尔</div>
+            <div class="subtle">母 · 36 月龄 · 在养 · 设备 RBC-265</div>
+          </div>
+          <span class="chip normal">健康</span>
+        </div>
+
+        <!-- 饮水行为卡（新增，与体温/蠕动趋势图同级） -->
+        <div class="card">
+          <div class="drinking-card-head">
+            <div class="title"><span class="dot" style="background:var(--drinking)"></span>饮水行为</div>
+            <span class="chip drinking">今日 7 次</span>
+          </div>
+          <div class="bignum-row">
+            <span class="bignum">7</span><span class="bignum-unit">次 / 今日</span>
+            <div class="last-drink">
+              <div class="subtle">上次饮水</div>
+              <div class="v">35 分钟前</div>
+            </div>
+          </div>
+          <div class="mini-bars">
+            <div class="bar-wrap"><span class="val">8</span><div class="bar" style="height:32px"></div><span class="day">一</span></div>
+            <div class="bar-wrap"><span class="val">7</span><div class="bar" style="height:28px"></div><span class="day">二</span></div>
+            <div class="bar-wrap"><span class="val">9</span><div class="bar" style="height:38px"></div><span class="day">三</span></div>
+            <div class="bar-wrap"><span class="val">6</span><div class="bar" style="height:24px"></div><span class="day">四</span></div>
+            <div class="bar-wrap"><span class="val">3</span><div class="bar low" style="height:12px"></div><span class="day">五</span></div>
+            <div class="bar-wrap"><span class="val">8</span><div class="bar" style="height:32px"></div><span class="day">六</span></div>
+            <div class="bar-wrap"><span class="val">7</span><div class="bar" style="height:28px"></div><span class="day">今</span></div>
+          </div>
+          <div class="subtle" style="margin-top:8px">同类成母牛均值 7.3 次/日 · 本牛近 30 日基线 7.6 次/日</div>
+          <div class="context-note">
+            <span class="ic">🌡️</span>
+            <span class="tx">周五 3 次：当日 10:20–16:40 处于发热期（38.9→40.2°C），发热期间饮水减少属常见现象；发热期数据不参与异常判定与基线计算</span>
+          </div>
+        </div>
+
+        <!-- 邻位趋势卡（示意为已存在的体温卡，体现层级关系） -->
+        <div class="card">
+          <div class="drinking-card-head">
+            <div class="title"><span class="dot" style="background:var(--fever)"></span>体温趋势（既有）</div>
+            <span class="chip fever">当前 38.9°C</span>
+          </div>
+          <div class="chart-area">
+            <svg class="chart" viewBox="0 0 340 70" preserveAspectRatio="none">
+              <defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#D97B29" stop-opacity=".25"/><stop offset="100%" stop-color="#D97B29" stop-opacity="0"/></linearGradient></defs>
+              <line x1="0" y1="34" x2="340" y2="34" stroke="#617061" stroke-width="1" stroke-dasharray="4,4" opacity=".35"/>
+              <text x="4" y="30" font-size="8" fill="#617061">基线 38.5</text>
+              <path d="M0,40 L48,38 L96,42 L144,36 L192,39 L240,30 L288,36 L340,38 L340,70 L0,70 Z" fill="url(#tg)"/>
+              <path d="M0,40 L48,38 L96,42 L144,36 L192,39 L240,30 L288,36 L340,38" fill="none" stroke="#D97B29" stroke-width="2"/>
+            </svg>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ 屏 2：健康详情图表页 · 饮水行为详情 ═══════════ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num new">2</span>健康详情图表页 → “饮水行为详情”分节</div>
+    <div class="screen-sublabel">挂载点：与"发热监测 / 消化健康 / 发情检测"三个详情分节并列的第四分节；温度曲线叠加饮水谷标记 + 发热期排除区</div>
+    <div class="phone-shell">
+      <div class="status-bar"><span>9:41</span><span>📶 🔋86%</span></div>
+      <div class="nav-bar"><span class="back">‹</span><span class="title">健康详情 · 饮水行为</span><span class="spacer"></span></div>
+      <div class="screen-body">
+
+        <div class="chart-card">
+          <div class="chart-title">
+            <span>📊 今日饮水时刻分布</span>
+            <span class="right">共 7 次</span>
+          </div>
+          <div class="chart-area">
+            <svg class="chart" viewBox="0 0 340 96" preserveAspectRatio="none">
+              <!-- 饲喂/挤奶峰值参考区（半透明绿） -->
+              <rect x="30" y="8" width="42" height="70" rx="3" fill="#DCE8D5" opacity=".55"/>
+              <rect x="150" y="8" width="42" height="70" rx="3" fill="#DCE8D5" opacity=".55"/>
+              <rect x="250" y="8" width="46" height="70" rx="3" fill="#DCE8D5" opacity=".55"/>
+              <text x="33" y="18" font-size="9.5" fill="#3D6743">饲喂后</text>
+              <text x="153" y="18" font-size="9.5" fill="#3D6743">挤奶后</text>
+              <text x="253" y="18" font-size="9.5" fill="#3D6743">傍晚高峰</text>
+              <!-- 时间轴 -->
+              <line x1="10" y1="78" x2="330" y2="78" stroke="#D7D2C6" stroke-width="1"/>
+              <text x="6" y="90" font-size="9.5" fill="#617061">0时</text>
+              <text x="105" y="90" font-size="9.5" fill="#617061">8时</text>
+              <text x="205" y="90" font-size="9.5" fill="#617061">16时</text>
+              <text x="310" y="90" font-size="9.5" fill="#617061">24时</text>
+              <!-- 饮水事件（菱形标记，水蓝色） -->
+              <g fill="#3D7FA8">
+                <path d="M44,64 l5,6 -5,6 -5,-6 Z"/>
+                <path d="M58,64 l5,6 -5,6 -5,-6 Z"/>
+                <path d="M170,64 l5,6 -5,6 -5,-6 Z"/>
+                <path d="M184,64 l5,6 -5,6 -5,-6 Z"/>
+                <path d="M262,64 l5,6 -5,6 -5,-6 Z"/>
+                <path d="M280,64 l5,6 -5,6 -5,-6 Z"/>
+                <path d="M298,64 l5,6 -5,6 -5,-6 Z"/>
+              </g>
+            </svg>
+          </div>
+          <div class="legend-row">
+            <span class="lg"><span class="swatch" style="background:#3D7FA8;transform:rotate(45deg);width:8px;height:8px"></span>饮水事件（谷底≈饮水结束）</span>
+            <span class="lg"><span class="swatch" style="background:#DCE8D5"></span>饲喂/挤奶时段</span>
+          </div>
+          <div class="subtle" style="margin-top:7px">75% 饮水集中在饲喂/挤奶后，与本牛日常习惯一致</div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title">
+            <span>🌡️ 48h 温度×饮水</span>
+            <div class="seg"><span class="opt on">本牛</span><span class="opt">同类</span></div>
+          </div>
+          <div class="chart-area">
+            <svg class="chart" viewBox="0 0 340 120" preserveAspectRatio="none">
+              <!-- 发热 episode 阴影区（含 6h 退热缓冲，浅橙） -->
+              <rect x="196" y="8" width="76" height="94" rx="4" fill="#D97B29" opacity=".12"/>
+              <text x="200" y="18" font-size="9.5" fill="#D97B29">发热期·已排除</text>
+              <!-- 基线 -->
+              <line x1="0" y1="58" x2="340" y2="58" stroke="#617061" stroke-width="1" stroke-dasharray="4,4" opacity=".35"/>
+              <text x="4" y="54" font-size="8" fill="#617061">基线 38.5</text>
+              <!-- 温度曲线：两谷一峰 -->
+              <path d="M0,52 L20,54 L38,50 L54,56 L70,52 L86,50 L104,86 L120,62 L138,56 L156,58 L176,54 L196,44 L216,22 L236,18 L256,26 L276,44 L296,52 L312,88 L326,62 L340,56"
+                    fill="none" stroke="#D97B29" stroke-width="2"/>
+              <!-- 饮水谷标记（圆点 + 降幅标签） -->
+              <circle cx="104" cy="86" r="4" fill="#2C6486" stroke="#fff" stroke-width="1.5"/>
+              <text x="86" y="102" font-size="9.5" fill="#2C6486" font-weight="700">−1.7°C</text>
+              <circle cx="312" cy="88" r="4" fill="#2C6486" stroke="#fff" stroke-width="1.5"/>
+              <text x="296" y="104" font-size="9.5" fill="#2C6486" font-weight="700">−1.4°C</text>
+            </svg>
+          </div>
+          <div class="legend-row">
+            <span class="lg"><span class="swatch" style="background:#D97B29"></span>瘤胃温度</span>
+            <span class="lg"><span class="swatch" style="background:#2C6486;border-radius:50%"></span>饮水谷（点=谷底）</span>
+            <span class="lg"><span class="swatch" style="background:rgba(217,123,41,.2)"></span>发热期+6h 缓冲</span>
+          </div>
+        </div>
+
+        <div class="note-box">
+          <span class="icon">ℹ️</span>
+          <span class="text">数据为瘤胃温度自动检测，更新延迟约 30 分钟；夏季水温接近体温时部分饮水可能未被识别（检出的均可靠）。发热期数据不参与异常判定与基线计算。</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ 屏 3：状态与异常态 ═══════════ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num new">3</span>状态与异常态（卡片与详情分节共用）</div>
+    <div class="screen-sublabel">未绑定胶囊 / 数据不足 / 离线补传中三种非健康态；饮水骤减警示为二期告警的展示预埋</div>
+    <div class="phone-shell">
+      <div class="status-bar"><span>9:41</span><span>📶 🔋86%</span></div>
+      <div class="nav-bar"><span class="back">‹</span><span class="title">饮水行为 · 状态</span><span class="spacer"></span></div>
+      <div class="screen-body">
+
+        <div class="card state-card">
+          <div class="big-ic">📭</div>
+          <div class="t">暂无饮水数据</div>
+          <div class="d">该牲畜尚未绑定瘤胃胶囊，绑定后约 24 小时内建立基线并开始统计</div>
+          <span class="chip muted">未绑定 RBC 胶囊</span>
+        </div>
+
+        <div class="card state-card">
+          <div class="big-ic">🧮</div>
+          <div class="t">基线建立中</div>
+          <div class="d">已积累 2 天数据，检测算法需 ≥3 天有效数据才能可靠区分饮水谷与体温波动</div>
+          <span class="chip drinking">2 / 3 天</span>
+        </div>
+
+        <div class="card state-card">
+          <div class="big-ic">📡</div>
+          <div class="t">数据补传中</div>
+          <div class="d">网关离线 4 小时，设备本地缓存将自动补传，期间统计可能有延迟</div>
+          <span class="chip muted">离线 04:12–08:15</span>
+        </div>
+
+        <div class="card">
+          <div class="drinking-card-head">
+            <div class="title"><span class="dot" style="background:var(--drinking)"></span>二期预埋 · 饮水骤减提示</div>
+            <span class="chip muted">二期</span>
+          </div>
+          <div class="premium-strip">
+            <span class="tx">⚠️ 近 24h 饮水 2 次，较本牛基线下降 74% —— 常见于发热初期与采食下降，建议结合体温曲线查看（告警能力待试点验证后开放）</span>
+          </div>
+          <div class="subtle" style="margin-top:7px">本期仅展示统计与上下文，不做主动告警；此条为二期 DRINKING_ABNORMAL 告警的展示形态预埋。</div>
+        </div>
+
+        <div class="card">
+          <div class="drinking-card-head">
+            <div class="title"><span class="dot" style="background:var(--drinking)"></span>加载态（骨架屏）</div>
+            <span class="chip muted">loading</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;padding:4px 0">
+            <div style="display:flex;align-items:baseline;gap:8px"><div class="skeleton-line" style="width:56px;height:26px"></div><div class="skeleton-line" style="width:48px"></div></div>
+            <div class="skeleton-line" style="width:100%"></div>
+            <div class="skeleton-line" style="width:88%"></div>
+            <div class="skeleton-line" style="width:64%"></div>
+          </div>
+          <div class="subtle" style="margin-top:6px">首次进入与下拉刷新时：大数字区/柱状区/副标行按骨架占位，不发空态文案。</div>
+        </div>
+
+        <div class="card err-card">
+          <div class="head">⚠️ 饮水数据暂时不可用</div>
+          <div class="d">检测服务暂时无法访问，你的数据没有丢失——恢复后（通常几分钟内）将自动补算今日统计。</div>
+          <span class="retry-btn">重新加载</span>
+          <div class="subtle">触发条件：统计接口 5xx/超时。与"数据补传中"（设备离线补传，黄色中性态）区分：本态为红色错误态，仅服务端故障时出现。</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ 屏 4：体温曲线页 × 饮水图层 ═══════════ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num new">4</span>体温趋势卡 → 饮水事件图层叠加</div>
+    <div class="screen-sublabel">对应方案 §6.3 挂载点②：既有体温曲线（fl_chart）上以图层模式叠加饮水谷标记，与发热标记同层级；图层可开关</div>
+    <div class="phone-shell">
+      <div class="status-bar"><span>9:41</span><span>📶 🔋86%</span></div>
+      <div class="nav-bar"><span class="back">‹</span><span class="title">体温趋势 · 近 48h</span><span class="spacer"></span></div>
+      <div class="screen-body">
+
+        <div class="chart-card">
+          <div class="chart-title">
+            <span>🌡️ 体温曲线（既有）</span>
+            <span class="right">当前 38.9°C</span>
+          </div>
+          <div class="chart-area">
+            <svg class="chart" viewBox="0 0 340 120" preserveAspectRatio="none">
+              <rect x="196" y="8" width="76" height="94" rx="4" fill="#D97B29" opacity=".12"/>
+              <text x="200" y="18" font-size="9.5" fill="#D97B29">发热期</text>
+              <line x1="0" y1="58" x2="340" y2="58" stroke="#617061" stroke-width="1" stroke-dasharray="4,4" opacity=".35"/>
+              <text x="4" y="54" font-size="8" fill="#617061">基线 38.5</text>
+              <path d="M0,52 L20,54 L38,50 L54,56 L70,52 L86,50 L104,86 L120,62 L138,56 L156,58 L176,54 L196,44 L216,22 L236,18 L256,26 L276,44 L296,52 L312,88 L326,62 L340,56"
+                    fill="none" stroke="#D97B29" stroke-width="2"/>
+              <circle cx="104" cy="86" r="4" fill="#2C6486" stroke="#fff" stroke-width="1.5"/>
+              <circle cx="312" cy="88" r="4" fill="#2C6486" stroke="#fff" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <div class="layer-chips">
+            <span class="layer-chip on"><span class="sw" style="background:#D97B29"></span>发热标记 ✓</span>
+            <span class="layer-chip on"><span class="sw" style="background:#2C6486"></span>饮水事件 ✓</span>
+            <span class="layer-chip on"><span class="sw" style="background:#617061"></span>基线 ✓</span>
+          </div>
+          <div class="subtle" style="margin-top:7px">点击图层 chip 可开关对应标记层；饮水谷点位与"饮水行为"详情分节同源（drinking_events）。</div>
+        </div>
+
+        <div class="note-box">
+          <span class="icon">🔗</span>
+          <span class="text">同源联动：从曲线谷点点击可直接跳转"饮水行为详情"对应时段；从详情分节的谷点也可回跳体温曲线。</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ 屏 5：订阅分级与锁定态 ═══════════ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num new">5</span>订阅分级 · 同类对比锁定态</div>
+    <div class="screen-sublabel">对齐 health-detail-charts.html 订阅分级惯例：本牛统计全订阅可用；"同类均值"参照设计为 Premium 权益（待裁决项③的可视化）</div>
+    <div class="phone-shell">
+      <div class="status-bar"><span>9:41</span><span>📶 🔋86%</span></div>
+      <div class="nav-bar"><span class="back">‹</span><span class="title">饮水行为 · 对比</span><span class="spacer"></span></div>
+      <div class="screen-body">
+
+        <div class="chart-card">
+          <div class="chart-title">
+            <span>🐮 本牛近 7 日</span>
+            <span class="right">全订阅可用</span>
+          </div>
+          <div class="chart-area">
+            <svg class="chart" viewBox="0 0 340 80" preserveAspectRatio="none">
+              <line x1="14" y1="66" x2="326" y2="66" stroke="#D7D2C6" stroke-width="1"/>
+              <g fill="#3D7FA8">
+                <rect x="26" y="26" width="26" height="40" rx="3"/>
+                <rect x="70" y="32" width="26" height="34" rx="3"/>
+                <rect x="114" y="20" width="26" height="46" rx="3"/>
+                <rect x="158" y="38" width="26" height="28" rx="3"/>
+                <rect x="202" y="52" width="26" height="14" rx="3" fill="#D28A2D" opacity=".55"/>
+                <rect x="246" y="26" width="26" height="40" rx="3"/>
+                <rect x="290" y="32" width="26" height="34" rx="3"/>
+              </g>
+            </svg>
+          </div>
+          <div class="subtle" style="margin-top:6px">周合计 48 次 · 日均 6.9 次 · 较本牛基线 −9%</div>
+        </div>
+
+        <div class="chart-card locked-overlay">
+          <span class="tier-badge">Premium+</span>
+          <div class="dim">
+            <div class="chart-title"><span>📊 同类成母牛均值对比</span></div>
+            <div class="chart-area" style="height:80px">
+              <svg class="chart" viewBox="0 0 340 80" preserveAspectRatio="none">
+                <g fill="#8BA95A">
+                  <rect x="26" y="30" width="26" height="36" rx="3"/>
+                  <rect x="70" y="28" width="26" height="38" rx="3"/>
+                  <rect x="114" y="24" width="26" height="42" rx="3"/>
+                  <rect x="158" y="32" width="26" height="34" rx="3"/>
+                  <rect x="202" y="30" width="26" height="36" rx="3"/>
+                  <rect x="246" y="26" width="26" height="40" rx="3"/>
+                  <rect x="290" y="30" width="26" height="36" rx="3"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <div class="lock-msg">
+            <span class="lock-ic">🔒</span>
+            <span class="lock-tx">同类对比（按品种/月龄段分组）<br>为 Premium 权益</span>
+            <span class="upgrade-btn">升级解锁</span>
+          </div>
+        </div>
+
+        <div class="subtle">锁定态视觉对齐既有订阅分级惯例（模糊淡化 + 居中锁形 + 升级按钮 + Premium+ 角标）；本牛统计与异常提示不受订阅分级限制。</div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ 屏 6：二期告警形态 + 入口可达性 ═══════════ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num new">6</span>告警中心形态（二期预埋）+ 入口可达性倒查</div>
+    <div class="screen-sublabel">DRINKING_ABNORMAL 告警行在告警中心的形态预埋（行样式届时对齐 alert-workbench spec）；可达性满足收口验证 #25 纪律</div>
+    <div class="phone-shell">
+      <div class="status-bar"><span>9:41</span><span>📶 🔋86%</span></div>
+      <div class="nav-bar"><span class="back">‹</span><span class="title">告警中心（二期预埋）</span><span class="spacer"></span></div>
+      <div class="screen-body">
+
+        <div class="card">
+          <div class="al-row">
+            <div class="ic">💧</div>
+            <div class="body">
+              <div class="t">饮水骤减 <span class="chip drinking" style="padding:1px 6px;font-size:8px">二期</span></div>
+              <div class="d">NIX-0261 近 24h 饮水 2 次，较本牛基线下降 74%——常见于发热初期与采食下降，建议结合体温曲线查看</div>
+            </div>
+            <span class="time">08:40</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title"><span class="dot" style="background:var(--drinking)"></span>入口可达性倒查（#25 纪律）</div>
+          <div class="flow-line">
+            <div class="flow-step"><span class="n">1</span><span class="tx">牲畜列表 → 点击目标牲畜<small>角色：所有者 / 牧场管理员 / 牧场员（BASIC 免费含）</small></span></div>
+            <div class="flow-step"><span class="n">2</span><span class="tx">详情页健康 Tab → "饮水行为"卡（主入口，与体温趋势卡同级）<small>2 次点击可达本牛统计；卡片常显，无隐藏入口</small></span></div>
+            <div class="flow-step"><span class="n">3</span><span class="tx">点卡片 → "饮水行为详情"分节（时刻分布 + 温度曲线叠加）<small>3 次点击可达全量视图；分层切换在详情内</small></span></div>
+            <div class="flow-step"><span class="n">4</span><span class="tx">告警中心 → 饮水骤减告警行（二期）→ 点击跳转详情<small>告警链路待 L3 验证后开放</small></span></div>
+          </div>
+        </div>
+
+        <div class="subtle">无 UI 承载的配套项：手动回算入口为运维 API（不做页面）；生理阶段字段（二期）仅作同类分组依据；i18n key 表与种子演示数据在 spec/plan 阶段交付。</div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════ 说明面板 ═══════════ -->
+<div class="spec-panel">
+  <h2>📐 设计说明与待裁决项</h2>
+
+  <h3>1. 挂载点盘点（全部挂载位置，防"入口缺失"；含周边配套屏 4-6）</h3>
+  <ul class="mount-list">
+    <li>① <b>牲畜详情页 · 健康 Tab</b>：体温/瘤胃蠕动/发情三张趋势卡同级追加"饮水行为"卡（屏 1）——主入口。</li>
+    <li>② <b>健康详情图表页</b>：与"发热监测/消化健康/发情检测"三个分节并列新增"💧 饮水行为详情"（屏 2）——由 ① 卡片点击进入。</li>
+    <li>③ <b>状态与异常态</b>：未绑定胶囊 / 基线建立中（&lt;3 天）/ 数据补传中，两处挂载点共用（屏 3）。</li>
+    <li>④ <b>体温趋势卡图层叠加</b>：既有体温曲线增加"饮水事件"标记层，与发热标记同层级、可开关、双向联动（屏 4，方案 §6.3 挂载点②）。</li>
+    <li>⑤ <b>订阅分级锁定态</b>：本牛统计全订阅可用；"同类均值对比"按 Premium 权益设计（屏 5，对齐 health-detail-charts.html 惯例）。</li>
+    <li>⑥ <b>告警中心（二期预埋）</b>：DRINKING_ABNORMAL 告警行形态（屏 6，行样式届时对齐 alert-workbench spec）。</li>
+    <li>⑦ <b>入口可达性倒查</b>：列表→详情卡（2 击）→详情分节（3 击）→告警（二期），角色为全牧场角色 BASIC 含（屏 6，#25 纪律）。</li>
+    <li>⑧ <b>不做</b>：牧场概览页不新增饮水入口（概览保持方案 D 四区结构，饮水属个体级洞察）；不新增独立 Tab；手动回算为运维 API 不做页面。</li>
+  </ul>
+
+  <h3>1b. 配套改动 ↔ UI 承载映射（对应技术方案 §6.4 盘点，逐项交代）</h3>
+  <table>
+    <tr><th>配套项（方案 §6.4）</th><th>UI 承载</th><th>屏</th></tr>
+    <tr><td>发热 episode/退热缓冲排除</td><td>柱状图发热日染橙 + context-note + 曲线阴影区"已排除"</td><td>屏 1 / 屏 2</td></tr>
+    <tr><td>分层口径（breed/月龄）</td><td>本牛基线 vs 同类均值双参照 + 分段切换 + 同类分组依据（二期生理阶段字段）</td><td>屏 1 / 屏 2 / 屏 5</td></tr>
+    <tr><td>订阅分级（同类对比 = Premium）</td><td>locked-overlay 锁定卡 + 升级按钮 + Premium+ 角标</td><td>屏 5</td></tr>
+    <tr><td>AlertType DRINKING_ABNORMAL（二期）</td><td>告警中心行 + 点击跳转详情；本期仅屏 3 预埋条</td><td>屏 3 / 屏 6</td></tr>
+    <tr><td>体温曲线叠加饮水标记</td><td>图层 chip（发热 ✓ / 饮水事件 ✓）+ 谷点双向联动</td><td>屏 4</td></tr>
+    <tr><td>生理阶段字段（二期，无新 UI）</td><td>仅作同类分组依据，不新增页面</td><td>—</td></tr>
+    <tr><td>手动回算入口 / i18n key / 种子演示</td><td>无 UI（运维 API）/ spec 阶段交付 / demo 牧场直接可见</td><td>—</td></tr>
+  </table>
+
+  <h3>2. 新增设计令牌（其余全部复用 NIX-246 方案 D 基线）</h3>
+  <table>
+    <tr><th>令牌</th><th>值</th><th>用途</th></tr>
+    <tr><td><span class="tok">--drinking</span></td><td>#3D7FA8</td><td>饮水语义色（水蓝）：大数字、柱状、今日 chip、事件菱形（深阶 --drinking-event #2C6486 用于曲线标记）</td></tr>
+    <tr><td><span class="tok">--drinking-soft</span></td><td>#E2EDF4</td><td>饮水浅底（chip 背景）</td></tr>
+    <tr><td><span class="tok">--drinking-event</span></td><td>#2C6486</td><td>温度曲线上的饮水谷事件点（白描边圆点）</td></tr>
+  </table>
+  <p>发热上下文标注复用 <span class="tok">--fever</span>（#D97B29）低透明度底；饲喂/挤奶峰值参考区复用 <span class="tok">--map-green</span>（#DCE8D5）。</p>
+
+  <h3>3. 数据口径在 UI 上的体现（对齐技术方案）</h3>
+  <ul>
+    <li><b>诚实口径</b>：详情页常驻 note-box 说明"30 分钟更新延迟 + 夏季弱信号漏检可能（检出均可靠）"——对齐方案 §7 对外口径。</li>
+    <li><b>发热上下文</b>：柱状图发热日染橙（--fever 低透明）+ 卡片底部 context-note 说明"发热期饮水减少属常见现象，未计入异常"——发烧抑制饮水的反向价值可视化。</li>
+    <li><b>分层口径</b>：屏 1 副标展示"同类均值 vs 本牛基线"双参照；屏 2 提供"本牛 / 同类均值"分段切换（对应方案 §4.2 第 5 条：统计分层不改算法参数）。</li>
+    <li><b>基线门槛</b>：&lt;3 天数据不展示统计（算法需 ≥3 天有效数据），显示"基线建立中"进度态。</li>
+    <li><b>二期预埋</b>：饮水骤减提示条展示二期告警形态，标注"待试点验证后开放"——本期不触发。</li>
+  </ul>
+
+  <h3>3b. ZH/EN 文案表（i18n key 首批规划，spec 阶段入 ARB）</h3>
+  <table>
+    <tr><th>key</th><th>中文</th><th>English</th></tr>
+    <tr><td><span class="tok">health.drinking.title</span></td><td>饮水行为</td><td>Drinking Behavior</td></tr>
+    <tr><td><span class="tok">health.drinking.todayCount</span></td><td>{n} 次 / 今日</td><td>{n} today</td></tr>
+    <tr><td><span class="tok">health.drinking.lastDrink</span></td><td>上次饮水</td><td>Last drink</td></tr>
+    <tr><td><span class="tok">health.drinking.minutesAgo</span></td><td>{n} 分钟前</td><td>{n} min ago</td></tr>
+    <tr><td><span class="tok">health.drinking.weekBars</span></td><td>近 7 日</td><td>Last 7 days</td></tr>
+    <tr><td><span class="tok">health.drinking.peerBaseline</span></td><td>同类{stage}均值 {n} 次/日 · 本牛基线 {m} 次/日</td><td>{stage} peer avg {n}/day · own baseline {m}/day</td></tr>
+    <tr><td><span class="tok">health.drinking.feverContext</span></td><td>{date} {n} 次：当日处于发热期（{range}），发热期间饮水减少属常见现象，未计入异常</td><td>{date}: {n} visits during fever episode ({range}) — reduced drinking is expected during fever, excluded from stats</td></tr>
+    <tr><td><span class="tok">health.drinking.detail.title</span></td><td>饮水行为详情</td><td>Drinking Behavior Detail</td></tr>
+    <tr><td><span class="tok">health.drinking.timeDistribution</span></td><td>今日饮水时刻分布</td><td>Today's drinking timeline</td></tr>
+    <tr><td><span class="tok">health.drinking.tempOverlay</span></td><td>48h 温度×饮水</td><td>48h temp × drinking</td></tr>
+    <tr><td><span class="tok">health.drinking.honestyNote</span></td><td>数据为瘤胃温度自动检测，更新延迟约 30 分钟；夏季水温接近体温时部分饮水可能未被识别（检出的均可靠）。发热期时段不参与统计。</td><td>Auto-detected from rumen temperature with ~30 min delay. Some drinks may be missed in summer when water is near body temperature (detected events are reliable). Fever periods are excluded.</td></tr>
+    <tr><td><span class="tok">health.drinking.state.noData / .building / .backfill / .error</span></td><td>暂无饮水数据 / 基线建立中 / 数据补传中 / 饮水数据暂时不可用</td><td>No drinking data yet / Building baseline / Backfilling / Temporarily unavailable</td></tr>
+  </table>
+  <p><b>数据边界样张（spec 阶段用真实回放数据验证）</b>：0 次饮水日（柱状空+文案"未检出"）、全发热周（整周染橙）、英文长文案换行（peerBaseline 英文约 2.1 倍长度，卡片需两行余量）、大字模式 textScale 1.3。原型未逐一定制边界视觉，以组件弹性布局约束为准。</p>
+
+  <h3>3c. 数据溯源表（四轮评审 F1 硬检查：原型上每个数字 → 端点 → 字段，标不出的删或补契约）</h3>
+  <table>
+    <tr><th>原型数字/元素</th><th>端点</th><th>字段 / 规则</th></tr>
+    <tr><td>今日 7 次</td><td><span class="tok">GET .../drinking-summary?date=&days=1</span></td><td>daily.count</td></tr>
+    <tr><td>上次饮水 35 分钟前</td><td><span class="tok">drinking-summary</span></td><td>daily.events 最后一条 event_end_at（前端算相对时间）</td></tr>
+    <tr><td>近 7 日柱值 8/7/9/6/3/8/7</td><td><span class="tok">drinking-summary?days=7</span></td><td>按牛日（Asia/Shanghai）分日计数；发热日低值照实展示 + 染橙标注</td></tr>
+    <tr><td>周合计 48 · 日均 6.9（屏 5）</td><td><span class="tok">drinking-summary?days=7</span></td><td>weekly.count / weekly.avgPerDay</td></tr>
+    <tr><td>本牛近 30 日基线 7.6</td><td><span class="tok">drinking-summary?days=30</span></td><td>rolling30dBaseline.avgPerDay（剔除发热覆盖 ≥50% 的日）+ sampleDays</td></tr>
+    <tr><td>同类成母牛均值 7.3</td><td><span class="tok">GET .../drinking-peer-comparison</span>（Premium，服务端校验）</td><td>peerAvgPerDay + 分组元数据（品种/生理阶段/样本头数）</td></tr>
+    <tr><td>较本牛基线 −9%（屏 5）</td><td>前端计算</td><td>weekly.avgPerDay 对 rolling30dBaseline.avgPerDay</td></tr>
+    <tr><td>基线建立中 · 3 天门槛</td><td>—（配置非端点）</td><td><span class="tok">health.drinking.baseline-min-days:3</span>（F3：可配置，非魔法数）</td></tr>
+    <tr><td>泌乳期 · 第 128 天（生理原型）</td><td>PhysiologyQueryPort.currentStage</td><td>LACTATING.since 推导（泌乳长度配置 305d，F7）</td></tr>
+  </table>
+
+  <h3>4. 裁决记录（2026-10-04）</h3>
+  <ul>
+    <li>① 语义色：<b>水蓝 #3D7FA8</b>（默认裁定按推荐执行）——与发情玫红/发热橙/消化棕区分度最高。</li>
+    <li>② 卡片命名：<b>"饮水行为"</b>（默认裁定按推荐执行）——涵盖次数+时刻+上下文三层；对外话术可用"饮水频次"。</li>
+    <li>③ 同类对比：<b>Premium 权益</b>（默认裁定按推荐执行，屏 5 即此形态）——本牛统计全订阅可用。</li>
+    <li>④ 时间窗：<b>仅 7 日</b>（默认裁定按推荐执行）——14 日需求出现时先改原型再实现。</li>
+    <li><i>以上按推荐默认执行并随原型 v1.1 冻结；任何一项调整 = 按变更纪律先改原型+清单再确认。</i></li>
+  </ul>
+
+  <h3>5. 实现提示（给 plan 阶段）</h3>
+  <p>图表沿用项目既有栈：详情页趋势为 fl_chart LineChart（见 <span class="tok">livestock_detail_page.dart:851</span> 内联趋势图区），饮水谷标记用 ScatterChart 或 LineChartData 的 dotPainter；时刻分布与 mini-bars 可用自绘（与本项目 contact-tracing 图表同法）。i18n key 规划 <span class="tok">health.drinking.*</span>；两处挂载点组件化复用（DrinkingCard / DrinkingDetailSection）。</p>
+</div>
+
+</body>
+</html>

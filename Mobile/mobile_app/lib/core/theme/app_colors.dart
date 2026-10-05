@@ -31,6 +31,24 @@ class AppColors {
   static const Color estrus = Color(0xFFC25689);
   static const Color aiAnomaly = Color(0xFF7C3AED);
 
+  /// Fever / active illness-window chip accent (NIX-256, prototype --fever).
+  static const Color fever = Color(0xFFD97B29);
+
+  /// Drinking semantic color (NIX-256, prototype --drinking): big numbers,
+  /// mini bars, chips and diamond markers.
+  static const Color drinking = Color(0xFF3D7FA8);
+
+  /// Drinking chip soft background (prototype --drinking-soft).
+  static const Color drinkingSoft = Color(0xFFE2EDF4);
+
+  /// Drinking valley marker on temperature curves (prototype
+  /// --drinking-event, white stroke ring).
+  static const Color drinkingEvent = Color(0xFF2C6486);
+
+  /// Map / vegetation green (design token --map-green) — reused as the
+  /// drinking peak reference-zone fill (NIX-256 prototype screen 2).
+  static const Color mapGreen = Color(0xFFDCE8D5);
+
   /// LINE check type color (NIX-68, spec §9 --c-line).
   static const Color lineTeal = Color(0xFF0F766E);
   static const Color fenceApproach = Color(0xFF454F45);

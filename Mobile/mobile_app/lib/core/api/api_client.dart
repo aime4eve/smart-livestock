@@ -98,6 +98,15 @@ class ApiClient {
     return put('/farms/$id$suffix', body: body);
   }
 
+  /// Farm-scoped PATCH (NIX-256 drinking label marking; same shape as
+  /// [farmPut] but going through the raw PATCH verb).
+  Future<Map<String, dynamic>> farmPatch(String suffix,
+      {Object? body, String? farmId}) async {
+    final id = farmId ?? _activeFarmId;
+    if (id == null) throw StateError('No active farm');
+    return patch('/farms/$id$suffix', body: body);
+  }
+
   Future<void> farmDelete(String suffix, {String? farmId}) async {
     final id = farmId ?? _activeFarmId;
     if (id == null) throw StateError('No active farm');

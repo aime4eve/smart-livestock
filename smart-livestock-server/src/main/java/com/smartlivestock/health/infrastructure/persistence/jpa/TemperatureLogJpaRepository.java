@@ -12,4 +12,12 @@ public interface TemperatureLogJpaRepository extends JpaRepository<TemperatureLo
     List<TemperatureLogJpaEntity> findByDeviceIdAndRecordedAtBetweenOrderByRecordedAtAsc(
             Long deviceId, Instant from, Instant to);
     boolean existsByDeviceIdAndRecordedAtAndSource(Long deviceId, Instant recordedAt, String source);
+
+    /**
+     * Points of one livestock (all its devices) recorded in {@code [from, to)}
+     * — the sample-day minimum-points check (NIX-256 Task 5a). The
+     * recorded_at range keeps the time-partition pruning intact.
+     */
+    long countByLivestockIdAndRecordedAtGreaterThanEqualAndRecordedAtLessThan(
+            Long livestockId, Instant from, Instant to);
 }
