@@ -76,6 +76,15 @@ health:
     enabled: ${HEALTH_ALERT_RECONCILE_ENABLED:true}
     cron: ${HEALTH_ALERT_RECONCILE_CRON:0 40 * * * *}
   drinking:
+    # Pipeline master switch: false removes the nightly batch bean entirely
+    # (health.drinking.enabled). Detection params below keep their values so
+    # a manual admin recalculation can still run while the batch is paused.
+    enabled: ${HEALTH_DRINKING_ENABLED:true}
+    # Nightly recalculation trigger (cron, server local time): every farm
+    # with active capsule bindings re-derives yesterday's Asia/Shanghai
+    # cow-day. Default 03:40 — after datagen retention (03:00) and the
+    # partition check (02:10), before morning dashboards.
+    analysis-cron: ${HEALTH_DRINKING_ANALYSIS_CRON:0 40 3 * * *}
     # L1 calibration 2026-10-05 (Aubé dataset, spec §14): F=0.94 @ 5-min.
     fall-threshold: ${HEALTH_DRINKING_FALL_THRESHOLD:0.06}
     k-sigma: ${HEALTH_DRINKING_K_SIGMA:0.5}

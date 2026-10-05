@@ -36,6 +36,33 @@ public class DeviceQueryPortImpl implements DeviceQueryPort {
             return List.of();
         }
         List<Installation> installations = installationRepository.findByLivestockIdIn(List.copyOf(livestockIds));
+        return toActiveCapsuleBindings(installations);
+    }
+
+    @Override
+    public List<CapsuleBinding> findAllActiveCapsuleBindings() {
+        return toActiveCapsuleBindings(installationRepository.findAllActive());
+    }
+
+    @Override
+    public java.util.Optional<CapsuleBinding> findActiveCapsuleBinding(Long livestockId) {
+        return findActiveCapsuleBindings(List.of(livestockId)).stream().findFirst();
+    }
+
+    @Override
+    public java.util.Optional<CapsuleBinding> findActiveCapsuleBindingByDeviceId(Long deviceId) {
+        return installationRepository.findActiveByDeviceId(deviceId)
+                .filter(installation -> isDeviceActiveCapsule(installation.getDeviceId()))
+                .map(installation -> new CapsuleBinding(installation.getLivestockId(), installation.getDeviceId()));
+    }
+
+    @Override
+    public boolean deviceExists(Long deviceId) {
+        return deviceId != null && deviceRepository.findById(deviceId).isPresent();
+    }
+
+    /** Active installations whose device is an ACTIVE capsule → bindings. */
+    private List<CapsuleBinding> toActiveCapsuleBindings(List<Installation> installations) {
         if (installations.isEmpty()) {
             return List.of();
         }
@@ -51,18 +78,6 @@ public class DeviceQueryPortImpl implements DeviceQueryPort {
                 .filter(installation -> activeCapsuleDeviceIds.contains(installation.getDeviceId()))
                 .map(installation -> new CapsuleBinding(installation.getLivestockId(), installation.getDeviceId()))
                 .toList();
-    }
-
-    @Override
-    public java.util.Optional<CapsuleBinding> findActiveCapsuleBinding(Long livestockId) {
-        return findActiveCapsuleBindings(List.of(livestockId)).stream().findFirst();
-    }
-
-    @Override
-    public java.util.Optional<CapsuleBinding> findActiveCapsuleBindingByDeviceId(Long deviceId) {
-        return installationRepository.findActiveByDeviceId(deviceId)
-                .filter(installation -> isDeviceActiveCapsule(installation.getDeviceId()))
-                .map(installation -> new CapsuleBinding(installation.getLivestockId(), installation.getDeviceId()));
     }
 
     private boolean isDeviceActiveCapsule(Long deviceId) {

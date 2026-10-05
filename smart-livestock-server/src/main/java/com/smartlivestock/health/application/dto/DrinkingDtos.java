@@ -18,6 +18,23 @@ public final class DrinkingDtos {
     /** POST body: {eventStartAt: "yyyy-MM-dd HH:mm", note?}. */
     public record DrinkingManualRequest(String eventStartAt, String note) {}
 
+    /**
+     * POST /api/v1/admin/drinking-recalculate body (NIX-256 Task 4):
+     * {deviceId?, from: "yyyy-MM-dd", to: "yyyy-MM-dd"}. The window is a
+     * <b>closed date range</b>: from 00:00 → to+1 day 00:00 (Asia/Shanghai).
+     * Omitting deviceId recalculates every farm with active capsule
+     * bindings (P5).
+     */
+    public record DrinkingRecalcRequest(Long deviceId, String from, String to) {}
+
+    /**
+     * Recalculation summary. {@code scope} is "DEVICE" (single device,
+     * {@code farms} null) or "ALL_FARMS" (farm sweep; {@code failedFarms}
+     * counts farms whose recalculation threw — the sweep continues past
+     * them, mirroring the nightly batch semantics).
+     */
+    public record DrinkingRecalcResponse(String scope, Integer farms, int devices, int events, int failedFarms) {}
+
     public record DrinkingEventResponse(
             Long id,
             Long livestockId,

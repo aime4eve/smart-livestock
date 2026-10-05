@@ -48,6 +48,13 @@ public class RanchQueryPortImpl implements RanchQueryPort {
     }
 
     @Override
+    public List<LivestockInfo> findAllById(Collection<Long> livestockIds) {
+        return livestockRepository.findAllByIdIn(livestockIds).stream()
+                .map(this::toInfo)
+                .toList();
+    }
+
+    @Override
     public int countActiveAlertsByFarmId(Long farmId) {
         return (int) alertRepository.findByFarmId(farmId).stream()
                 .filter(a -> a.getStatus() == AlertStatus.ACTIVE)

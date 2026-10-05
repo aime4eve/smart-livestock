@@ -5,12 +5,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 public interface SpringDataLivestockRepository extends JpaRepository<LivestockJpaEntity, Long> {
     @Query("SELECT l FROM LivestockJpaEntity l WHERE l.farmId = :farmId AND l.deletedAt IS NULL")
     List<LivestockJpaEntity> findByFarmId(@Param("farmId") Long farmId);
+
+    @Query("SELECT l FROM LivestockJpaEntity l WHERE l.id IN :ids AND l.deletedAt IS NULL")
+    List<LivestockJpaEntity> findAllByIdIn(@Param("ids") Collection<Long> ids);
+
 
     @Query("SELECT l FROM LivestockJpaEntity l WHERE l.farmId = :farmId AND l.deletedAt IS NULL ORDER BY l.id")
     org.springframework.data.domain.Page<LivestockJpaEntity> findByFarmIdPaged(@Param("farmId") Long farmId,

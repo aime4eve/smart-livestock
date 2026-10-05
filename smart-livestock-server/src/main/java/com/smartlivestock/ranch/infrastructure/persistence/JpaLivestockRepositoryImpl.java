@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,6 +41,16 @@ public class JpaLivestockRepositoryImpl implements LivestockRepository {
     @Override
     public List<Livestock> findByFarmId(Long farmId) {
         return springDataRepo.findByFarmId(farmId).stream()
+                .map(LivestockMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Livestock> findAllByIdIn(Collection<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return springDataRepo.findAllByIdIn(ids).stream()
                 .map(LivestockMapper::toDomain)
                 .toList();
     }

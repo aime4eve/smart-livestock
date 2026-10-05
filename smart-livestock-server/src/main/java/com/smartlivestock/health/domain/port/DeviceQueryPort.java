@@ -20,9 +20,24 @@ public interface DeviceQueryPort {
      */
     List<CapsuleBinding> findActiveCapsuleBindings(Collection<Long> livestockIds);
 
+    /**
+     * Every active capsule binding across all farms — the nightly drinking
+     * batch universe (NIX-256 Task 4). Callers reverse-map livestock → farm
+     * via {@code RanchQueryPort}.
+     */
+    List<CapsuleBinding> findAllActiveCapsuleBindings();
+
     /** The livestock's currently installed in-body capsule, if any. */
     Optional<CapsuleBinding> findActiveCapsuleBinding(Long livestockId);
 
     /** Reverse lookup: the livestock a device is currently installed on. */
     Optional<CapsuleBinding> findActiveCapsuleBindingByDeviceId(Long deviceId);
+
+    /**
+     * Whether the device id exists at all (any type/status). Admin manual
+     * recalculation accepts removed capsules too — their history still
+     * recalculates against the old owner (F6) — so existence, not binding,
+     * is the validation.
+     */
+    boolean deviceExists(Long deviceId);
 }

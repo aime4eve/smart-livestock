@@ -66,7 +66,7 @@ import java.util.Set;
 public class DrinkingEventDetectionService {
 
     /** Ranch operating timezone; the cow-day boundary (F5). */
-    static final ZoneId COW_DAY_ZONE = ZoneId.of("Asia/Shanghai");
+    public static final ZoneId COW_DAY_ZONE = ZoneId.of("Asia/Shanghai");
 
     /** In-body temperature gate, shared with the ingestion plausibility band (35–43°C). */
     static final double IN_BODY_MIN_TEMP = 35.0;
@@ -413,26 +413,31 @@ public class DrinkingEventDetectionService {
      * rows in the overlap-extended window, re-derive from temperature_logs,
      * re-insert with the §15.4 label snapshot restored. Entry point for the
      * T4 daily scheduler and the admin recalculate API.
+     *
+     * @return sweep statistics for batch summaries (NIX-256 Task 4)
      */
     @Transactional
-    public void recalculateDevice(Long deviceId, Instant from, Instant to) {
+    public RecalcStats recalculateDevice(Long deviceId, Instant from, Instant to) {
         CapsuleBinding binding = deviceQueryPort.findActiveCapsuleBindingByDeviceId(deviceId).orElse(null);
-        recalculate(deviceId, binding != null ? binding.livestockId() : null, from, to, null);
+        int rows = recalculate(deviceId, binding != null ? binding.livestockId() : null, from, to, null);
+        return new RecalcStats(1, rows);
     }
 
     /**
      * Recalculate every actively-installed capsule of a farm over
      * {@code [from, to)}. Exclusion windows are fetched once per herd (B4)
      * instead of per device.
+     *
+     * @return sweep statistics for batch summaries (NIX-256 Task 4)
      */
     @Transactional
-    public void recalculateFarm(Long farmId, Instant from, Instant to) {
+    public RecalcStats recalculateFarm(Long farmId, Instant from, Instant to) {
         List<Long> livestockIds = ranchQueryPort.findAllByFarmId(farmId).stream()
                 .map(LivestockInfo::id)
                 .toList();
         List<CapsuleBinding> bindings = deviceQueryPort.findActiveCapsuleBindings(livestockIds);
         if (bindings.isEmpty()) {
-            return;
+            return new RecalcStats(0, 0);
         }
         Instant scanFrom = scanFrom(from);
         Instant scanTo = scanTo(to);
@@ -446,19 +451,30 @@ public class DrinkingEventDetectionService {
             windowsByLivestock.computeIfAbsent(entry.getKey(), ignored -> new ArrayList<>())
                     .addAll(entry.getValue());
         }
+        int rows = 0;
         for (CapsuleBinding binding : bindings) {
-            recalculate(binding.deviceId(), binding.livestockId(), from, to,
+            rows += recalculate(binding.deviceId(), binding.livestockId(), from, to,
                     windowsByLivestock.getOrDefault(binding.livestockId(), List.of()));
         }
+        return new RecalcStats(bindings.size(), rows);
     }
+
+    /**
+     * Outcome of one recalculation sweep: {@code devices} = active capsule
+     * bindings processed, {@code events} = drinking-event rows written
+     * (confirmed events + borderline candidates + §15.4 label restores).
+     */
+    public record RecalcStats(int devices, int events) {}
 
     /**
      * One device, one transaction: snapshot labels → delete → re-insert →
      * restore. {@code prefetchedWindows} carries the herd-batch windows from
      * {@link #recalculateFarm} (B4); when null they are resolved here.
+     *
+     * @return number of drinking-event rows written
      */
-    private void recalculate(Long deviceId, Long livestockId, Instant from, Instant to,
-                             List<ExclusionWindow> prefetchedWindows) {
+    private int recalculate(Long deviceId, Long livestockId, Instant from, Instant to,
+                            List<ExclusionWindow> prefetchedWindows) {
         Params params = currentParams();
         Instant deleteFrom = from.minus(Duration.ofHours(params.recalcOverlapHours()));
         Instant deleteTo = to.plus(Duration.ofHours(params.recalcOverlapHours()));
@@ -527,8 +543,10 @@ public class DrinkingEventDetectionService {
                 restores++;
             }
         }
+        int rowsWritten = result.events().size() + result.candidates().size() + restores;
         log.debug("Drinking recalc device={} window=[{},{}): {} events, {} candidates, {} labeled restores",
                 deviceId, deleteFrom, deleteTo, result.events().size(), result.candidates().size(), restores);
+        return rowsWritten;
     }
 
     private void insertRow(Long deviceId, Long livestockId, Valley valley, String source,
