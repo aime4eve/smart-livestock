@@ -6603,7 +6603,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workbenchField => 'Field check';
 
   @override
-  String get workbenchFieldSub => '接近 · 低电 · 离线';
+  String get workbenchFieldSub => 'Approach · battery · offline';
 
   @override
   String get workbenchObserve => 'Observe';
@@ -7045,4 +7045,363 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get epidemicDispCancelledTag => 'cancelled';
+
+  @override
+  String get healthPhysiologyTitle => 'Physiology Records';
+
+  @override
+  String healthPhysiologyStageLactating(int n) {
+    return 'Lactating · day $n';
+  }
+
+  @override
+  String get healthPhysiologyStageDry => 'Dry off';
+
+  @override
+  String get healthPhysiologyEventCalving => 'Calving';
+
+  @override
+  String get healthPhysiologyEventBreeding => 'Breeding';
+
+  @override
+  String get healthPhysiologyEventPregnancyCheck => 'Pregnancy check';
+
+  @override
+  String get healthPhysiologyEventDryOff => 'Dry-off';
+
+  @override
+  String get healthPhysiologyEventIllness => 'Illness onset';
+
+  @override
+  String get healthPhysiologyEventRecovery => 'Recovery';
+
+  @override
+  String get healthPhysiologyAddRecord => '+ Add record';
+
+  @override
+  String get healthPhysiologyEmptyTitle => 'No records yet';
+
+  @override
+  String get healthPhysiologyEmptyHint => 'Tap \"+ Add record\" to start';
+
+  @override
+  String get healthPhysiologyWindowActive => 'In window';
+
+  @override
+  String get healthPhysiologySourceManual => 'Manual entry';
+
+  @override
+  String healthPhysiologySourceDisposition(int refId) {
+    return 'From epidemic disposition #$refId · in progress';
+  }
+
+  @override
+  String get healthPhysiologySourceAlertConfirm => 'Alert confirmed';
+
+  @override
+  String get healthPhysiologyErrorTitle => '⚠️ Physiology records unavailable';
+
+  @override
+  String get healthPhysiologyErrorDesc =>
+      'No data is lost — it will retry automatically once the service recovers.';
+
+  @override
+  String get healthPhysiologyRetry => 'Reload';
+
+  @override
+  String get healthPhysiologySheetTitle => 'New physiology record';
+
+  @override
+  String get healthPhysiologyOccurredDate => 'Date occurred';
+
+  @override
+  String get healthPhysiologyNoteHint => 'Note (optional, ≤500 chars)…';
+
+  @override
+  String get healthPhysiologyIllnessNote =>
+      'Recording “Illness onset” has no end-date field — add a “Recovery” event later to close the window.';
+
+  @override
+  String get healthPhysiologySaveFailed =>
+      'Save failed, please try again later';
+
+  @override
+  String get healthPhysiologyEditSheetTitle => 'Edit physiology record';
+
+  @override
+  String get healthPhysiologyDeleteTitle => 'Delete physiology record';
+
+  @override
+  String get healthPhysiologyDeleteConfirm =>
+      'This cannot be undone. Delete this record?';
+
+  @override
+  String get healthPhysiologyDelete => 'Delete';
+
+  @override
+  String get healthDrinkingTitle => 'Drinking Behavior';
+
+  @override
+  String healthDrinkingTodayCount(int n) {
+    return '$n today';
+  }
+
+  @override
+  String get healthDrinkingTodayUnit => 'visits / today';
+
+  @override
+  String get healthDrinkingLastDrink => 'Last drink';
+
+  @override
+  String healthDrinkingMinutesAgo(int n) {
+    return '$n min ago';
+  }
+
+  @override
+  String healthDrinkingYesterdayAt(String time) {
+    return 'yesterday $time';
+  }
+
+  @override
+  String healthDrinkingPeerBaseline(String group, String n) {
+    return '$group peer avg $n/day';
+  }
+
+  @override
+  String healthDrinkingOwnBaseline(String m) {
+    return 'own baseline $m/day';
+  }
+
+  @override
+  String healthDrinkingPeerInsufficient(int minDays) {
+    return 'Peer sample insufficient (needs ≥$minDays qualifying sample days)';
+  }
+
+  @override
+  String get healthDrinkingPeerGroupLactating => 'cow';
+
+  @override
+  String get healthDrinkingPeerGroupDry => 'dry';
+
+  @override
+  String healthDrinkingFeverContext(String date, int n, int percent) {
+    return '$date: $n visits with ~$percent% fever coverage — reduced drinking is expected during fever; fever data is excluded from anomaly detection and baselines';
+  }
+
+  @override
+  String get healthDrinkingDayMon => 'Mon';
+
+  @override
+  String get healthDrinkingDayTue => 'Tue';
+
+  @override
+  String get healthDrinkingDayWed => 'Wed';
+
+  @override
+  String get healthDrinkingDayThu => 'Thu';
+
+  @override
+  String get healthDrinkingDayFri => 'Fri';
+
+  @override
+  String get healthDrinkingDaySat => 'Sat';
+
+  @override
+  String get healthDrinkingDaySun => 'Sun';
+
+  @override
+  String get healthDrinkingDayToday => 'Today';
+
+  @override
+  String get healthDrinkingWeekdayPrefix => '';
+
+  @override
+  String get healthDrinkingStateNoData => 'No drinking data yet';
+
+  @override
+  String get healthDrinkingNoDataDesc =>
+      'This livestock has no rumen capsule bound; binding one establishes a baseline and starts statistics within ~24 hours';
+
+  @override
+  String get healthDrinkingNoDataChip => 'No RBC capsule bound';
+
+  @override
+  String get healthDrinkingStateBuilding => 'Building baseline';
+
+  @override
+  String healthDrinkingBuildingDesc(int n, int min) {
+    return '$n day(s) collected so far — the detector needs ≥$min valid days to reliably separate drinking valleys from temperature noise';
+  }
+
+  @override
+  String healthDrinkingBuildingChip(int n, int min) {
+    return '$n / $min days';
+  }
+
+  @override
+  String get healthDrinkingStateBackfill => 'Backfilling';
+
+  @override
+  String get healthDrinkingStateError =>
+      'Drinking data temporarily unavailable';
+
+  @override
+  String get healthDrinkingErrorDesc =>
+      'The detection service is unreachable — your data is not lost; today\'s statistics will be recalculated automatically once it recovers (usually within minutes).';
+
+  @override
+  String get healthDrinkingRetry => 'Retry';
+
+  @override
+  String get healthDrinkingDetailTitle => 'Drinking Behavior Detail';
+
+  @override
+  String get healthDrinkingTimeDistribution => 'Today\'s drinking timeline';
+
+  @override
+  String healthDrinkingTotalToday(int n) {
+    return '$n total';
+  }
+
+  @override
+  String healthDrinkingConcentration(int percent) {
+    return '$percent% of drinks cluster after feeding/milking, consistent with this cow\'s routine';
+  }
+
+  @override
+  String get healthDrinkingTempOverlay => '48h temp × drinking';
+
+  @override
+  String get healthDrinkingSegSelf => 'Self';
+
+  @override
+  String get healthDrinkingSegPeer => 'Peers';
+
+  @override
+  String get healthDrinkingHonestyNote =>
+      'Auto-detected from rumen temperature with ~30 min delay. Some drinks may be missed in summer when water is near body temperature (detected events are reliable). Fever data is excluded from anomaly detection and baselines.';
+
+  @override
+  String get healthDrinkingTempUnavailable => 'No temperature data';
+
+  @override
+  String get healthDrinkingLegendTemp => 'Rumen temperature';
+
+  @override
+  String get healthDrinkingLegendValley => 'Drinking valley (dot = trough)';
+
+  @override
+  String get healthDrinkingLegendBaseline => 'Baseline';
+
+  @override
+  String get healthDrinkingLegendEvent => 'Drinking event (trough ≈ drink end)';
+
+  @override
+  String get healthDrinkingLegendZone => 'Feeding / milking window';
+
+  @override
+  String get healthDrinkingZoneFeed => 'After feeding';
+
+  @override
+  String get healthDrinkingZoneMilking => 'After milking';
+
+  @override
+  String get healthDrinkingZoneEvening => 'Evening peak';
+
+  @override
+  String healthDrinkingAxisHour(int h) {
+    return '${h}h';
+  }
+
+  @override
+  String get healthDrinkingPeerCompareTitle => 'Peer cow average comparison';
+
+  @override
+  String get healthDrinkingPeerCompareSelf => 'Own last 7 days';
+
+  @override
+  String get healthDrinkingPeerComparePeer => 'Peer average';
+
+  @override
+  String healthDrinkingPerDay(String v) {
+    return '$v/day';
+  }
+
+  @override
+  String healthDrinkingPendingGroupTitle(int n) {
+    return 'To be marked ($n)';
+  }
+
+  @override
+  String healthDrinkingEventListTitle(int n) {
+    return 'Today\'s events ($n)';
+  }
+
+  @override
+  String get healthDrinkingConfirm => 'Confirm';
+
+  @override
+  String get healthDrinkingReject => 'False';
+
+  @override
+  String get healthDrinkingLabelConfirmed => 'Confirmed';
+
+  @override
+  String get healthDrinkingLabelRejected => 'Rejected';
+
+  @override
+  String get healthDrinkingLabelUnlabeled => 'Unlabeled';
+
+  @override
+  String get healthDrinkingNeedsVerification => 'Verify';
+
+  @override
+  String get healthDrinkingSourceManual => 'Back-filled';
+
+  @override
+  String get healthDrinkingAddManual => '+ Back-fill missed';
+
+  @override
+  String get healthDrinkingNoEventsToday => 'No drinking events detected today';
+
+  @override
+  String get healthDrinkingSaveFailed => 'Save failed, please try again later';
+
+  @override
+  String get healthDrinkingManualSheetTitle => 'Back-fill drinking event';
+
+  @override
+  String get healthDrinkingManualTimeLabel => 'Time';
+
+  @override
+  String get healthDrinkingManualTimeHint => 'yyyy-MM-dd HH:mm (local time)';
+
+  @override
+  String get healthDrinkingManualTimeInvalid =>
+      'Invalid time format, expected yyyy-MM-dd HH:mm';
+
+  @override
+  String get healthDrinkingManualTimeFuture => 'Time cannot be in the future';
+
+  @override
+  String get healthDrinkingManualNoteHint => 'Note (optional, ≤500 chars)…';
+
+  @override
+  String get healthDrinkingTierBadge => 'Premium+';
+
+  @override
+  String get healthDrinkingLockedMessage =>
+      'Peer comparison (grouped by breed / stage) is a Premium feature';
+
+  @override
+  String get healthDrinkingUpgrade => 'Upgrade';
+
+  @override
+  String get healthDrinkingLayerFever => 'Fever marks ✓';
+
+  @override
+  String get healthDrinkingLayerDrinking => 'Drinking events ✓';
+
+  @override
+  String get healthDrinkingLayerBaseline => 'Baseline ✓';
 }

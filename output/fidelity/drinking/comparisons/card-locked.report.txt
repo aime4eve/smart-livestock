@@ -1,0 +1,48 @@
+============================================================
+  SCREENSHOT FIDELITY COMPARISON REPORT
+============================================================
+Baseline:  output/fidelity/drinking/prototype-elements/locked-peer-card.png (390x140)
+Actual:    output/fidelity/drinking/flutter/card-locked.png (390x289)
+Threshold: 85% similarity required
+
+── OVERALL ──
+  Similarity:     79.9%
+  Avg pixel diff: 21.74
+  Max pixel diff: 252
+  Verdict:        FAIL
+
+── PER-REGION ANALYSIS ──
+  [OK  ] status_bar        sim= 89.3%  avg_diff= 15.93  mismatch= 10.7%
+  [OK  ] appbar            sim= 98.6%  avg_diff=  3.79  mismatch=  1.4%
+  [OK  ] summary_strip     sim= 87.8%  avg_diff= 14.47  mismatch= 12.2%
+  [OK  ] filter_bar        sim= 86.2%  avg_diff= 18.58  mismatch= 13.8%
+  [DIFF] content           sim= 54.6%  avg_diff= 62.82  mismatch= 45.4%
+  [DIFF] bottom_nav        sim= 82.4%  avg_diff= 24.36  mismatch= 17.6%
+
+── DOMINANT COLORS (baseline vs actual) ──
+  status_bar:
+    base: #FFFFFF(97.2%)  #FEFFFF(1.6%)  #F8F6F0(1.2%)
+    actu: #FCF5EE(75.6%)  #FFFFFF(16.6%)  #FDFAF6(7.8%)
+  appbar:
+    base: #FFFFFF(94.3%)  #E3F0E4(4.1%)  #E1EFE2(1.6%)
+    actu: #FFFFFF(69.6%)  #F8F6F0(22.9%)  #F7F5EF(7.4%)
+  summary_strip:
+    base: #FFFFFF(93.3%)  #E3F0E4(4.7%)  #E1EFE2(2.0%)
+    actu: #FFFFFF(84.8%)  #F8F6F0(10.7%)  #F6F5EE(4.5%)
+  filter_bar:
+    base: #FFFFFF(97.9%)  #FEFEFE(1.1%)  #FDFDFD(1.0%)
+    actu: #FFFFFF(98.9%)  #FDFCFC(0.6%)  #F3F2EC(0.6%)
+  content:
+    base: #FDFCFA(68.2%)  #DEE6D0(17.7%)  #FFFFFF(14.1%)
+    actu: #FFFFFF(72.8%)  #2F6B3B(15.1%)  #F8F6F0(12.1%)
+  bottom_nav:
+    base: #FFFFFF(80.8%)  #FCFCFB(9.6%)  #EAEAE2(9.6%)
+    actu: #FFFFFF(90.9%)  #F8F6F0(5.6%)  #FEFEFE(3.6%)
+
+── DIAGNOSIS ──
+  [!] content below threshold (54.6% < 85%)
+      -> Check colors, spacing, and layout in this region
+  [!] bottom_nav below threshold (82.4% < 85%)
+      -> Check colors, spacing, and layout in this region
+
+============================================================

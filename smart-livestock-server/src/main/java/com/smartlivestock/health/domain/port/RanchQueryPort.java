@@ -14,6 +14,13 @@ import java.util.Set;
 public interface RanchQueryPort {
     Optional<LivestockInfo> findLivestockById(Long livestockId);
     List<LivestockInfo> findAllByFarmId(Long farmId);
+
+    /**
+     * Batch livestock lookup (soft-deleted rows excluded) — reverse-maps
+     * active capsule bindings to their farms for the drinking nightly batch.
+     */
+    List<LivestockInfo> findAllById(Collection<Long> livestockIds);
+
     int countActiveAlertsByFarmId(Long farmId);
 
     /**

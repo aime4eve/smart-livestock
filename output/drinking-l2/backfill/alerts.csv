@@ -1,0 +1,2 @@
+farm_id,livestock_id,device_id,type,status,severity,message,resolved_type,resolved_at,source,created_at,updated_at
+1,40,60,TEMPERATURE_ABNORMAL,AUTO_RESOLVED,CRITICAL,datagen backfill: simulated 5-day fever period (baseline +1.2C); drives drinking-detection exclusion window,AUTO,2026-10-04 16:00:00+00,DATAGEN,2026-09-29 16:00:00,2026-10-04 16:00:00

@@ -43,10 +43,7 @@ class SubscriptionStatusCard extends ConsumerWidget {
     }
   }
 
-  String _tierName(SubscriptionTier tier) {
-    final info = SubscriptionTierInfo.all[tier];
-    return info?.name ?? tier.name;
-  }
+  String _tierName(SubscriptionTier tier) => localizedTierName(tier);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

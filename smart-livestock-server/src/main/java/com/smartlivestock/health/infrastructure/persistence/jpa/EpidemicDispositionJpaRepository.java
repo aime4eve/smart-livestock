@@ -18,4 +18,11 @@ public interface EpidemicDispositionJpaRepository
 
     List<EpidemicDispositionJpaEntity> findBySourceLivestockIdAndStatusIn(
             Long sourceLivestockId, Collection<EpidemicDispositionStatus> statuses);
+
+    // NIX-256: read-time physiology window merge — all dispositions of one
+    // livestock regardless of status (window shape depends on status).
+    List<EpidemicDispositionJpaEntity> findByLivestockId(Long livestockId);
+
+    // NIX-256: farm batch variant for PhysiologyQueryPort.activeWindowsForFarm.
+    List<EpidemicDispositionJpaEntity> findByLivestockIdIn(Collection<Long> livestockIds);
 }

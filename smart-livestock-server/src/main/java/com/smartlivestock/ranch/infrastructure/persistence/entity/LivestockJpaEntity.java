@@ -39,6 +39,9 @@ public class LivestockJpaEntity {
     @Column(name = "weight", precision = 7, scale = 2)
     private BigDecimal weight;
 
+    /**
+     * @deprecated 以 PhysiologyQueryPort/告警为准（NIX-256）；仅注册默认，无业务写入口
+     */
     @Column(name = "health_status", nullable = false, length = 20)
     private String healthStatus;
 

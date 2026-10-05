@@ -1,0 +1,50 @@
+============================================================
+  SCREENSHOT FIDELITY COMPARISON REPORT
+============================================================
+Baseline:  output/fidelity/drinking/prototype-elements/locked-peer-card.png (390x140)
+Actual:    output/fidelity/drinking/flutter/peer-locked-view.png (390x431)
+Threshold: 85% similarity required
+
+── OVERALL ──
+  Similarity:     77.6%
+  Avg pixel diff: 20.63
+  Max pixel diff: 222
+  Verdict:        FAIL
+
+── PER-REGION ANALYSIS ──
+  [OK  ] status_bar        sim=100.0%  avg_diff=  2.37  mismatch=  0.0%
+  [DIFF] appbar            sim= 61.9%  avg_diff= 34.22  mismatch= 38.1%
+  [DIFF] summary_strip     sim= 80.2%  avg_diff= 22.85  mismatch= 19.8%
+  [OK  ] filter_bar        sim= 96.7%  avg_diff=  4.34  mismatch=  3.3%
+  [DIFF] content           sim= 78.0%  avg_diff= 22.10  mismatch= 22.0%
+  [DIFF] bottom_nav        sim= 45.2%  avg_diff= 45.69  mismatch= 54.8%
+
+── DOMINANT COLORS (baseline vs actual) ──
+  status_bar:
+    base: #FFFFFF(97.2%)  #FEFFFF(1.6%)  #F8F6F0(1.2%)
+    actu: #F1F6F9(53.1%)  #FFFFFF(40.6%)  #F8F6F0(6.3%)
+  appbar:
+    base: #FFFFFF(94.3%)  #E3F0E4(4.1%)  #E1EFE2(1.6%)
+    actu: #F1F6F9(63.3%)  #FFFFFF(25.2%)  #F8F6F0(11.5%)
+  summary_strip:
+    base: #FFFFFF(93.3%)  #E3F0E4(4.7%)  #E1EFE2(2.0%)
+    actu: #F1F6F9(50.2%)  #FFFFFF(44.1%)  #F8F6F0(5.7%)
+  filter_bar:
+    base: #FFFFFF(97.9%)  #FEFEFE(1.1%)  #FDFDFD(1.0%)
+    actu: #FFFFFF(94.2%)  #F8F6F0(5.0%)  #FEFEFE(0.8%)
+  content:
+    base: #FDFCFA(68.2%)  #DEE6D0(17.7%)  #FFFFFF(14.1%)
+    actu: #FFFFFF(86.6%)  #F8F6F0(8.1%)  #DFE7D1(5.3%)
+  bottom_nav:
+    base: #FFFFFF(80.8%)  #FCFCFB(9.6%)  #EAEAE2(9.6%)
+    actu: #FFFFFF(79.6%)  #DFE7D1(11.6%)  #2F6B3B(8.9%)
+
+── DIAGNOSIS ──
+  [!] bottom_nav below threshold (45.2% < 85%)
+      -> Check colors, spacing, and layout in this region
+  [!] appbar below threshold (61.9% < 85%)
+      -> Check colors, spacing, and layout in this region
+  [!] content below threshold (78.0% < 85%)
+      -> Check colors, spacing, and layout in this region
+
+============================================================

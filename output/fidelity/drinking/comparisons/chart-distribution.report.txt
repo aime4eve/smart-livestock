@@ -1,0 +1,49 @@
+============================================================
+  SCREENSHOT FIDELITY COMPARISON REPORT
+============================================================
+Baseline:  output/fidelity/drinking/prototype-elements/chart-distribution.png (390x214)
+Actual:    output/fidelity/drinking/flutter/chart-distribution.png (390x409)
+Threshold: 85% similarity required
+
+── OVERALL ──
+  Similarity:     87.8%
+  Avg pixel diff: 16.32
+  Max pixel diff: 242
+  Verdict:        PASS
+
+── PER-REGION ANALYSIS ──
+  [OK  ] status_bar        sim= 85.1%  avg_diff= 26.91  mismatch= 14.9%
+  [DIFF] appbar            sim= 75.4%  avg_diff= 26.56  mismatch= 24.6%
+  [OK  ] summary_strip     sim= 94.1%  avg_diff= 14.02  mismatch=  5.9%
+  [DIFF] filter_bar        sim= 78.7%  avg_diff= 20.40  mismatch= 21.3%
+  [OK  ] content           sim= 91.2%  avg_diff= 16.03  mismatch=  8.8%
+  [OK  ] bottom_nav        sim= 85.2%  avg_diff= 12.96  mismatch= 14.8%
+
+── DOMINANT COLORS (baseline vs actual) ──
+  status_bar:
+    base: #FFFFFF(80.7%)  #F5F3ED(9.7%)  #FEFDFD(9.6%)
+    actu: #FFFFFF(66.9%)  #F8F6F0(27.4%)  #F7F5EF(5.7%)
+  appbar:
+    base: #FFFFFF(97.7%)  #FEFEFE(1.5%)  #FDFDFD(0.8%)
+    actu: #FFFFFF(89.3%)  #F8F6F0(6.4%)  #FAFAFA(4.3%)
+  summary_strip:
+    base: #FFFFFF(92.9%)  #FDFDFB(5.8%)  #FEFEFE(1.4%)
+    actu: #F1F6F9(57.3%)  #FFFFFF(35.0%)  #F8F6F0(7.7%)
+  filter_bar:
+    base: #F8F6F0(87.5%)  #FFFFFF(6.9%)  #F8F5EF(5.6%)
+    actu: #F1F6F9(75.0%)  #FFFFFF(17.4%)  #F8F6F0(7.6%)
+  content:
+    base: #F8F6F0(51.9%)  #FFFFFF(32.8%)  #E9EEE1(15.3%)
+    actu: #FFFFFF(86.8%)  #F8F6F0(8.7%)  #5A92B5(4.4%)
+  bottom_nav:
+    base: #FFFFFF(99.6%)  #F8F6F0(0.2%)  #FEFEFE(0.2%)
+    actu: #FFFFFF(96.6%)  #FEFEFE(2.5%)  #FDFDFD(1.0%)
+
+── DIAGNOSIS ──
+  [!] appbar below threshold (75.4% < 85%)
+      -> Check colors, spacing, and layout in this region
+  [!] filter_bar below threshold (78.7% < 85%)
+      -> Check colors, spacing, and layout in this region
+  All regions meet threshold. Visual fidelity likely acceptable.
+
+============================================================

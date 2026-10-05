@@ -1,0 +1,48 @@
+============================================================
+  SCREENSHOT FIDELITY COMPARISON REPORT
+============================================================
+Baseline:  output/fidelity/drinking/prototype-elements/note-box.png (390x66)
+Actual:    output/fidelity/drinking/flutter/note-box.png (390x99)
+Threshold: 85% similarity required
+
+── OVERALL ──
+  Similarity:     65.0%
+  Avg pixel diff: 41.45
+  Max pixel diff: 147
+  Verdict:        FAIL
+
+── PER-REGION ANALYSIS ──
+  [OK  ] status_bar        sim=100.0%  avg_diff= 19.42  mismatch=  0.0%
+  [OK  ] appbar            sim=100.0%  avg_diff= 19.47  mismatch=  0.0%
+  [OK  ] summary_strip     sim= 88.0%  avg_diff= 25.49  mismatch= 12.0%
+  [DIFF] filter_bar        sim= 37.0%  avg_diff= 55.58  mismatch= 63.0%
+  [DIFF] content           sim= 62.2%  avg_diff= 43.10  mismatch= 37.8%
+  [OK  ] bottom_nav        sim=100.0%  avg_diff= 17.24  mismatch=  0.0%
+
+── DOMINANT COLORS (baseline vs actual) ──
+  status_bar:
+    base: #EAEDEB(98.3%)  #F8F6F0(1.4%)  #F9F6F0(0.3%)
+    actu: #FFFFFF(99.0%)  #FDFCFC(0.5%)  #F3F2EC(0.5%)
+  appbar:
+    base: #EAEDEB(99.7%)  #F9F7F0(0.1%)  #F7F5F0(0.1%)
+    actu: #FFFFFF(99.0%)  #FDFCFC(0.5%)  #F3F2EC(0.5%)
+  summary_strip:
+    base: #EAEDEB(89.5%)  #E9ECEB(6.1%)  #E8ECEA(4.4%)
+    actu: #FFFFFF(98.7%)  #FEFEFE(0.7%)  #FDFCFC(0.5%)
+  filter_bar:
+    base: #EAEDEB(85.6%)  #E8ECEA(8.8%)  #ECEEEC(5.6%)
+    actu: #FFFFFF(87.5%)  #5A92B5(9.4%)  #FAFCFD(3.1%)
+  content:
+    base: #EAEDEB(95.2%)  #E9ECEB(2.8%)  #E8ECEA(2.0%)
+    actu: #FFFFFF(79.8%)  #5A92B5(18.7%)  #FEFEFE(1.5%)
+  bottom_nav:
+    base: #EAEDEB(59.5%)  #F8F6F0(21.0%)  #ECEEEC(19.5%)
+    actu: #FFFFFF(98.6%)  #FEFEFE(0.9%)  #FDFDFD(0.5%)
+
+── DIAGNOSIS ──
+  [!] filter_bar below threshold (37.0% < 85%)
+      -> Check colors, spacing, and layout in this region
+  [!] content below threshold (62.2% < 85%)
+      -> Check colors, spacing, and layout in this region
+
+============================================================

@@ -6882,4 +6882,355 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get epidemicDispCancelledTag => '已取消';
+
+  @override
+  String get healthPhysiologyTitle => '生理记录';
+
+  @override
+  String healthPhysiologyStageLactating(int n) {
+    return '泌乳期 · 第 $n 天';
+  }
+
+  @override
+  String get healthPhysiologyStageDry => '干奶期';
+
+  @override
+  String get healthPhysiologyEventCalving => '产犊';
+
+  @override
+  String get healthPhysiologyEventBreeding => '配种';
+
+  @override
+  String get healthPhysiologyEventPregnancyCheck => '妊娠检查';
+
+  @override
+  String get healthPhysiologyEventDryOff => '干奶';
+
+  @override
+  String get healthPhysiologyEventIllness => '发病';
+
+  @override
+  String get healthPhysiologyEventRecovery => '康复';
+
+  @override
+  String get healthPhysiologyAddRecord => '＋ 记录';
+
+  @override
+  String get healthPhysiologyEmptyTitle => '尚无生理记录';
+
+  @override
+  String get healthPhysiologyEmptyHint => '点“＋ 记录”开始建档';
+
+  @override
+  String get healthPhysiologyWindowActive => '窗口中';
+
+  @override
+  String get healthPhysiologySourceManual => '手工录入';
+
+  @override
+  String healthPhysiologySourceDisposition(int refId) {
+    return '来源：疫病处置单 #$refId · 处置中';
+  }
+
+  @override
+  String get healthPhysiologySourceAlertConfirm => '告警确认';
+
+  @override
+  String get healthPhysiologyErrorTitle => '⚠️ 生理记录暂时不可用';
+
+  @override
+  String get healthPhysiologyErrorDesc => '数据没有丢失——服务恢复后自动重试。';
+
+  @override
+  String get healthPhysiologyRetry => '重新加载';
+
+  @override
+  String get healthPhysiologySheetTitle => '新增生理记录';
+
+  @override
+  String get healthPhysiologyOccurredDate => '发生日期';
+
+  @override
+  String get healthPhysiologyNoteHint => '备注（选填，≤500 字）…';
+
+  @override
+  String get healthPhysiologyIllnessNote => '录“发病”无结束日期字段——康复日后录“康复”事件即闭合窗口。';
+
+  @override
+  String get healthPhysiologySaveFailed => '保存失败，请稍后重试';
+
+  @override
+  String get healthPhysiologyEditSheetTitle => '编辑生理记录';
+
+  @override
+  String get healthPhysiologyDeleteTitle => '删除生理记录';
+
+  @override
+  String get healthPhysiologyDeleteConfirm => '删除后不可恢复，确定删除这条记录吗？';
+
+  @override
+  String get healthPhysiologyDelete => '删除';
+
+  @override
+  String get healthDrinkingTitle => '饮水行为';
+
+  @override
+  String healthDrinkingTodayCount(int n) {
+    return '$n 次 / 今日';
+  }
+
+  @override
+  String get healthDrinkingTodayUnit => '次 / 今日';
+
+  @override
+  String get healthDrinkingLastDrink => '上次饮水';
+
+  @override
+  String healthDrinkingMinutesAgo(int n) {
+    return '$n 分钟前';
+  }
+
+  @override
+  String healthDrinkingYesterdayAt(String time) {
+    return '昨天 $time';
+  }
+
+  @override
+  String healthDrinkingPeerBaseline(String group, String n) {
+    return '同类$group均值 $n 次/日';
+  }
+
+  @override
+  String healthDrinkingOwnBaseline(String m) {
+    return '本牛基线 $m 次/日';
+  }
+
+  @override
+  String healthDrinkingPeerInsufficient(int minDays) {
+    return '同类样本暂不足（需 ≥$minDays 个达标样本日）';
+  }
+
+  @override
+  String get healthDrinkingPeerGroupLactating => '成母牛';
+
+  @override
+  String get healthDrinkingPeerGroupDry => '干奶';
+
+  @override
+  String healthDrinkingFeverContext(String date, int n, int percent) {
+    return '$date $n 次：当日发热覆盖约 $percent%，发热期间饮水减少属常见现象；发热期数据不参与异常判定与基线计算';
+  }
+
+  @override
+  String get healthDrinkingDayMon => '一';
+
+  @override
+  String get healthDrinkingDayTue => '二';
+
+  @override
+  String get healthDrinkingDayWed => '三';
+
+  @override
+  String get healthDrinkingDayThu => '四';
+
+  @override
+  String get healthDrinkingDayFri => '五';
+
+  @override
+  String get healthDrinkingDaySat => '六';
+
+  @override
+  String get healthDrinkingDaySun => '日';
+
+  @override
+  String get healthDrinkingDayToday => '今';
+
+  @override
+  String get healthDrinkingWeekdayPrefix => '周';
+
+  @override
+  String get healthDrinkingStateNoData => '暂无饮水数据';
+
+  @override
+  String get healthDrinkingNoDataDesc => '该牲畜尚未绑定瘤胃胶囊，绑定后约 24 小时内建立基线并开始统计';
+
+  @override
+  String get healthDrinkingNoDataChip => '未绑定 RBC 胶囊';
+
+  @override
+  String get healthDrinkingStateBuilding => '基线建立中';
+
+  @override
+  String healthDrinkingBuildingDesc(int n, int min) {
+    return '已积累 $n 天数据，检测算法需 ≥$min 天有效数据才能可靠区分饮水谷与体温波动';
+  }
+
+  @override
+  String healthDrinkingBuildingChip(int n, int min) {
+    return '$n / $min 天';
+  }
+
+  @override
+  String get healthDrinkingStateBackfill => '数据补传中';
+
+  @override
+  String get healthDrinkingStateError => '饮水数据暂时不可用';
+
+  @override
+  String get healthDrinkingErrorDesc =>
+      '检测服务暂时无法访问，你的数据没有丢失——恢复后（通常几分钟内）将自动补算今日统计。';
+
+  @override
+  String get healthDrinkingRetry => '重新加载';
+
+  @override
+  String get healthDrinkingDetailTitle => '饮水行为详情';
+
+  @override
+  String get healthDrinkingTimeDistribution => '今日饮水时刻分布';
+
+  @override
+  String healthDrinkingTotalToday(int n) {
+    return '共 $n 次';
+  }
+
+  @override
+  String healthDrinkingConcentration(int percent) {
+    return '$percent% 饮水集中在饲喂/挤奶后，与本牛日常习惯一致';
+  }
+
+  @override
+  String get healthDrinkingTempOverlay => '48h 温度×饮水';
+
+  @override
+  String get healthDrinkingSegSelf => '本牛';
+
+  @override
+  String get healthDrinkingSegPeer => '同类';
+
+  @override
+  String get healthDrinkingHonestyNote =>
+      '数据为瘤胃温度自动检测，更新延迟约 30 分钟；夏季水温接近体温时部分饮水可能未被识别（检出的均可靠）。发热期数据不参与异常判定与基线计算。';
+
+  @override
+  String get healthDrinkingTempUnavailable => '暂无温度数据';
+
+  @override
+  String get healthDrinkingLegendTemp => '瘤胃温度';
+
+  @override
+  String get healthDrinkingLegendValley => '饮水谷（点=谷底）';
+
+  @override
+  String get healthDrinkingLegendBaseline => '基线';
+
+  @override
+  String get healthDrinkingLegendEvent => '饮水事件（谷底≈饮水结束）';
+
+  @override
+  String get healthDrinkingLegendZone => '饲喂/挤奶时段';
+
+  @override
+  String get healthDrinkingZoneFeed => '饲喂后';
+
+  @override
+  String get healthDrinkingZoneMilking => '挤奶后';
+
+  @override
+  String get healthDrinkingZoneEvening => '傍晚高峰';
+
+  @override
+  String healthDrinkingAxisHour(int h) {
+    return '$h时';
+  }
+
+  @override
+  String get healthDrinkingPeerCompareTitle => '同类成母牛均值对比';
+
+  @override
+  String get healthDrinkingPeerCompareSelf => '本牛近 7 日';
+
+  @override
+  String get healthDrinkingPeerComparePeer => '同类均值';
+
+  @override
+  String healthDrinkingPerDay(String v) {
+    return '$v 次/日';
+  }
+
+  @override
+  String healthDrinkingPendingGroupTitle(int n) {
+    return '待标记（$n）';
+  }
+
+  @override
+  String healthDrinkingEventListTitle(int n) {
+    return '今日饮水事件（$n）';
+  }
+
+  @override
+  String get healthDrinkingConfirm => '确认';
+
+  @override
+  String get healthDrinkingReject => '误报';
+
+  @override
+  String get healthDrinkingLabelConfirmed => '已确认';
+
+  @override
+  String get healthDrinkingLabelRejected => '误报';
+
+  @override
+  String get healthDrinkingLabelUnlabeled => '未标记';
+
+  @override
+  String get healthDrinkingNeedsVerification => '待核实';
+
+  @override
+  String get healthDrinkingSourceManual => '补录';
+
+  @override
+  String get healthDrinkingAddManual => '＋ 漏报补录';
+
+  @override
+  String get healthDrinkingNoEventsToday => '今日未检出饮水事件';
+
+  @override
+  String get healthDrinkingSaveFailed => '保存失败，请稍后重试';
+
+  @override
+  String get healthDrinkingManualSheetTitle => '补录饮水事件';
+
+  @override
+  String get healthDrinkingManualTimeLabel => '时刻';
+
+  @override
+  String get healthDrinkingManualTimeHint => 'yyyy-MM-dd HH:mm（本地时间）';
+
+  @override
+  String get healthDrinkingManualTimeInvalid => '时刻格式不正确，应为 yyyy-MM-dd HH:mm';
+
+  @override
+  String get healthDrinkingManualTimeFuture => '时刻不能晚于现在';
+
+  @override
+  String get healthDrinkingManualNoteHint => '备注（选填，≤500 字）…';
+
+  @override
+  String get healthDrinkingTierBadge => 'Premium+';
+
+  @override
+  String get healthDrinkingLockedMessage => '同类对比（按品种/月龄段分组）为 Premium 权益';
+
+  @override
+  String get healthDrinkingUpgrade => '升级解锁';
+
+  @override
+  String get healthDrinkingLayerFever => '发热标记 ✓';
+
+  @override
+  String get healthDrinkingLayerDrinking => '饮水事件 ✓';
+
+  @override
+  String get healthDrinkingLayerBaseline => '基线 ✓';
 }

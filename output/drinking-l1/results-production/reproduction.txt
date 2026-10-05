@@ -1,0 +1,30 @@
+Reproduction of Aube et al. 2025 three methods (gold standard N=730 bouts)
+Evaluation window: per-series observation coverage +/- 30 min
+
+### temperature column: ruminal ###
+interval 5 min | method     TP   FP   FN    Se%   PPV%     F%   | paper TP/FP/FN Se PPV F | dF(pp)
+                 FixT      657   23   73   90.0   96.6   93.2   | 657/26/73 90.0/96.2/93.0 | +0.2
+                 Cow-dT    647   10   83   88.6   98.5   93.3   | 646/10/84 88.5/98.5/93.2 | +0.1
+                 FallST    657    5   73   90.0   99.2   94.4   | 659/5/71 90.3/99.2/94.5 | -0.1
+interval 6 min | method     TP   FP   FN    Se%   PPV%     F%   | paper TP/FP/FN Se PPV F | dF(pp)
+                 FixT      656   18   74   89.9   97.3   93.4   | 657/26/73 90.0/96.2/93.0 | +0.4
+                 Cow-dT    643    7   87   88.1   98.9   93.2   | 646/10/84 88.5/98.5/93.2 | -0.0
+                 FallST    653    4   77   89.5   99.4   94.2   | 659/5/71 90.3/99.2/94.5 | -0.3
+interval 10 min | method     TP   FP   FN    Se%   PPV%     F%   | paper TP/FP/FN Se PPV F | dF(pp)
+                 FixT      642    9   88   87.9   98.6   93.0   | 657/26/73 90.0/96.2/93.0 | -0.0
+                 Cow-dT    625    1  105   85.6   99.8   92.2   | 646/10/84 88.5/98.5/93.2 | -1.0
+                 FallST    642    1   88   87.9   99.8   93.5   | 659/5/71 90.3/99.2/94.5 | -1.0
+
+### temperature column: corrected ###
+interval 5 min | method     TP   FP   FN    Se%   PPV%     F%   | paper TP/FP/FN Se PPV F | dF(pp)
+                 FixT        3    4  727    0.4   42.9    0.8   | 657/26/73 90.0/96.2/93.0 | -92.2
+                 Cow-dT     41  791  689    5.6    4.9    5.2   | 646/10/84 88.5/98.5/93.2 | -88.0
+                 FallST      6    4  724    0.8   60.0    1.6   | 659/5/71 90.3/99.2/94.5 | -92.9
+interval 6 min | method     TP   FP   FN    Se%   PPV%     F%   | paper TP/FP/FN Se PPV F | dF(pp)
+                 FixT        3    4  727    0.4   42.9    0.8   | 657/26/73 90.0/96.2/93.0 | -92.2
+                 Cow-dT     43  681  687    5.9    5.9    5.9   | 646/10/84 88.5/98.5/93.2 | -87.3
+                 FallST      6    3  724    0.8   66.7    1.6   | 659/5/71 90.3/99.2/94.5 | -92.9
+interval 10 min | method     TP   FP   FN    Se%   PPV%     F%   | paper TP/FP/FN Se PPV F | dF(pp)
+                 FixT        3    3  727    0.4   50.0    0.8   | 657/26/73 90.0/96.2/93.0 | -92.2
+                 Cow-dT     33  407  697    4.5    7.5    5.6   | 646/10/84 88.5/98.5/93.2 | -87.6
+                 FallST      6    1  724    0.8   85.7    1.6   | 659/5/71 90.3/99.2/94.5 | -92.9

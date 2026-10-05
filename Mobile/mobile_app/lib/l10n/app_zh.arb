@@ -5481,4 +5481,287 @@
   ,"epidemicDispCancelledTag": "已取消"
   ,"@epidemicDispCancelledTag": {}
 
+  ,"healthPhysiologyTitle": "生理记录"
+  ,"@healthPhysiologyTitle": {}
+  ,"healthPhysiologyStageLactating": "泌乳期 · 第 {n} 天"
+  ,"@healthPhysiologyStageLactating": {
+      "placeholders": {
+        "n": {"type": "int"}
+      }
+    }
+  ,"healthPhysiologyStageDry": "干奶期"
+  ,"@healthPhysiologyStageDry": {}
+  ,"healthPhysiologyEventCalving": "产犊"
+  ,"@healthPhysiologyEventCalving": {}
+  ,"healthPhysiologyEventBreeding": "配种"
+  ,"@healthPhysiologyEventBreeding": {}
+  ,"healthPhysiologyEventPregnancyCheck": "妊娠检查"
+  ,"@healthPhysiologyEventPregnancyCheck": {}
+  ,"healthPhysiologyEventDryOff": "干奶"
+  ,"@healthPhysiologyEventDryOff": {}
+  ,"healthPhysiologyEventIllness": "发病"
+  ,"@healthPhysiologyEventIllness": {}
+  ,"healthPhysiologyEventRecovery": "康复"
+  ,"@healthPhysiologyEventRecovery": {}
+  ,"healthPhysiologyAddRecord": "＋ 记录"
+  ,"@healthPhysiologyAddRecord": {}
+  ,"healthPhysiologyEmptyTitle": "尚无生理记录"
+  ,"@healthPhysiologyEmptyTitle": {}
+  ,"healthPhysiologyEmptyHint": "点“＋ 记录”开始建档"
+  ,"@healthPhysiologyEmptyHint": {}
+  ,"healthPhysiologyWindowActive": "窗口中"
+  ,"@healthPhysiologyWindowActive": {}
+  ,"healthPhysiologySourceManual": "手工录入"
+  ,"@healthPhysiologySourceManual": {}
+  ,"healthPhysiologySourceDisposition": "来源：疫病处置单 #{refId} · 处置中"
+  ,"@healthPhysiologySourceDisposition": {
+      "placeholders": {
+        "refId": {"type": "int"}
+      }
+    }
+  ,"healthPhysiologySourceAlertConfirm": "告警确认"
+  ,"@healthPhysiologySourceAlertConfirm": {}
+  ,"healthPhysiologyErrorTitle": "⚠️ 生理记录暂时不可用"
+  ,"@healthPhysiologyErrorTitle": {}
+  ,"healthPhysiologyErrorDesc": "数据没有丢失——服务恢复后自动重试。"
+  ,"@healthPhysiologyErrorDesc": {}
+  ,"healthPhysiologyRetry": "重新加载"
+  ,"@healthPhysiologyRetry": {}
+  ,"healthPhysiologySheetTitle": "新增生理记录"
+  ,"@healthPhysiologySheetTitle": {}
+  ,"healthPhysiologyOccurredDate": "发生日期"
+  ,"@healthPhysiologyOccurredDate": {}
+  ,"healthPhysiologyNoteHint": "备注（选填，≤500 字）…"
+  ,"@healthPhysiologyNoteHint": {}
+  ,"healthPhysiologyIllnessNote": "录“发病”无结束日期字段——康复日后录“康复”事件即闭合窗口。"
+  ,"@healthPhysiologyIllnessNote": {}
+  ,"healthPhysiologySaveFailed": "保存失败，请稍后重试"
+  ,"@healthPhysiologySaveFailed": {}
+  ,"healthPhysiologyEditSheetTitle": "编辑生理记录"
+  ,"@healthPhysiologyEditSheetTitle": {}
+  ,"healthPhysiologyDeleteTitle": "删除生理记录"
+  ,"@healthPhysiologyDeleteTitle": {}
+  ,"healthPhysiologyDeleteConfirm": "删除后不可恢复，确定删除这条记录吗？"
+  ,"@healthPhysiologyDeleteConfirm": {}
+  ,"healthPhysiologyDelete": "删除"
+  ,"@healthPhysiologyDelete": {}
+  ,"healthDrinkingTitle": "饮水行为"
+  ,"@healthDrinkingTitle": {}
+  ,"healthDrinkingTodayCount": "{n} 次 / 今日"
+  ,"@healthDrinkingTodayCount": {
+      "placeholders": {
+        "n": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingTodayUnit": "次 / 今日"
+  ,"@healthDrinkingTodayUnit": {}
+  ,"healthDrinkingLastDrink": "上次饮水"
+  ,"@healthDrinkingLastDrink": {}
+  ,"healthDrinkingMinutesAgo": "{n} 分钟前"
+  ,"@healthDrinkingMinutesAgo": {
+      "placeholders": {
+        "n": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingYesterdayAt": "昨天 {time}"
+  ,"@healthDrinkingYesterdayAt": {
+      "placeholders": {
+        "time": {"type": "String"}
+      }
+    }
+  ,"healthDrinkingPeerBaseline": "同类{group}均值 {n} 次/日"
+  ,"@healthDrinkingPeerBaseline": {
+      "placeholders": {
+        "group": {"type": "String"},
+        "n": {"type": "String"}
+      }
+    }
+  ,"healthDrinkingOwnBaseline": "本牛基线 {m} 次/日"
+  ,"@healthDrinkingOwnBaseline": {
+      "placeholders": {
+        "m": {"type": "String"}
+      }
+    }
+  ,"healthDrinkingPeerInsufficient": "同类样本暂不足（需 ≥{minDays} 个达标样本日）"
+  ,"@healthDrinkingPeerInsufficient": {
+      "placeholders": {
+        "minDays": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingPeerGroupLactating": "成母牛"
+  ,"@healthDrinkingPeerGroupLactating": {}
+  ,"healthDrinkingPeerGroupDry": "干奶"
+  ,"@healthDrinkingPeerGroupDry": {}
+  ,"healthDrinkingFeverContext": "{date} {n} 次：当日发热覆盖约 {percent}%，发热期间饮水减少属常见现象；发热期数据不参与异常判定与基线计算"
+  ,"@healthDrinkingFeverContext": {
+      "placeholders": {
+        "date": {"type": "String"},
+        "n": {"type": "int"},
+        "percent": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingDayMon": "一"
+  ,"@healthDrinkingDayMon": {}
+  ,"healthDrinkingDayTue": "二"
+  ,"@healthDrinkingDayTue": {}
+  ,"healthDrinkingDayWed": "三"
+  ,"@healthDrinkingDayWed": {}
+  ,"healthDrinkingDayThu": "四"
+  ,"@healthDrinkingDayThu": {}
+  ,"healthDrinkingDayFri": "五"
+  ,"@healthDrinkingDayFri": {}
+  ,"healthDrinkingDaySat": "六"
+  ,"@healthDrinkingDaySat": {}
+  ,"healthDrinkingDaySun": "日"
+  ,"@healthDrinkingDaySun": {}
+  ,"healthDrinkingDayToday": "今"
+  ,"@healthDrinkingDayToday": {}
+  ,"healthDrinkingWeekdayPrefix": "周"
+  ,"@healthDrinkingWeekdayPrefix": {}
+  ,"healthDrinkingStateNoData": "暂无饮水数据"
+  ,"@healthDrinkingStateNoData": {}
+  ,"healthDrinkingNoDataDesc": "该牲畜尚未绑定瘤胃胶囊，绑定后约 24 小时内建立基线并开始统计"
+  ,"@healthDrinkingNoDataDesc": {}
+  ,"healthDrinkingNoDataChip": "未绑定 RBC 胶囊"
+  ,"@healthDrinkingNoDataChip": {}
+  ,"healthDrinkingStateBuilding": "基线建立中"
+  ,"@healthDrinkingStateBuilding": {}
+  ,"healthDrinkingBuildingDesc": "已积累 {n} 天数据，检测算法需 ≥{min} 天有效数据才能可靠区分饮水谷与体温波动"
+  ,"@healthDrinkingBuildingDesc": {
+      "placeholders": {
+        "n": {"type": "int"},
+        "min": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingBuildingChip": "{n} / {min} 天"
+  ,"@healthDrinkingBuildingChip": {
+      "placeholders": {
+        "n": {"type": "int"},
+        "min": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingStateBackfill": "数据补传中"
+  ,"@healthDrinkingStateBackfill": {}
+  ,"healthDrinkingStateError": "饮水数据暂时不可用"
+  ,"@healthDrinkingStateError": {}
+  ,"healthDrinkingErrorDesc": "检测服务暂时无法访问，你的数据没有丢失——恢复后（通常几分钟内）将自动补算今日统计。"
+  ,"@healthDrinkingErrorDesc": {}
+  ,"healthDrinkingRetry": "重新加载"
+  ,"@healthDrinkingRetry": {}
+  ,"healthDrinkingDetailTitle": "饮水行为详情"
+  ,"@healthDrinkingDetailTitle": {}
+  ,"healthDrinkingTimeDistribution": "今日饮水时刻分布"
+  ,"@healthDrinkingTimeDistribution": {}
+  ,"healthDrinkingTotalToday": "共 {n} 次"
+  ,"@healthDrinkingTotalToday": {
+      "placeholders": {
+        "n": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingConcentration": "{percent}% 饮水集中在饲喂/挤奶后，与本牛日常习惯一致"
+  ,"@healthDrinkingConcentration": {
+      "placeholders": {
+        "percent": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingTempOverlay": "48h 温度×饮水"
+  ,"@healthDrinkingTempOverlay": {}
+  ,"healthDrinkingSegSelf": "本牛"
+  ,"@healthDrinkingSegSelf": {}
+  ,"healthDrinkingSegPeer": "同类"
+  ,"@healthDrinkingSegPeer": {}
+  ,"healthDrinkingHonestyNote": "数据为瘤胃温度自动检测，更新延迟约 30 分钟；夏季水温接近体温时部分饮水可能未被识别（检出的均可靠）。发热期数据不参与异常判定与基线计算。"
+  ,"@healthDrinkingHonestyNote": {}
+  ,"healthDrinkingTempUnavailable": "暂无温度数据"
+  ,"@healthDrinkingTempUnavailable": {}
+  ,"healthDrinkingLegendTemp": "瘤胃温度"
+  ,"@healthDrinkingLegendTemp": {}
+  ,"healthDrinkingLegendValley": "饮水谷（点=谷底）"
+  ,"@healthDrinkingLegendValley": {}
+  ,"healthDrinkingLegendBaseline": "基线"
+  ,"@healthDrinkingLegendBaseline": {}
+  ,"healthDrinkingLegendEvent": "饮水事件（谷底≈饮水结束）"
+  ,"@healthDrinkingLegendEvent": {}
+  ,"healthDrinkingLegendZone": "饲喂/挤奶时段"
+  ,"@healthDrinkingLegendZone": {}
+  ,"healthDrinkingZoneFeed": "饲喂后"
+  ,"@healthDrinkingZoneFeed": {}
+  ,"healthDrinkingZoneMilking": "挤奶后"
+  ,"@healthDrinkingZoneMilking": {}
+  ,"healthDrinkingZoneEvening": "傍晚高峰"
+  ,"@healthDrinkingZoneEvening": {}
+  ,"healthDrinkingAxisHour": "{h}时"
+  ,"@healthDrinkingAxisHour": {
+      "placeholders": {
+        "h": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingPeerCompareTitle": "同类成母牛均值对比"
+  ,"@healthDrinkingPeerCompareTitle": {}
+  ,"healthDrinkingPeerCompareSelf": "本牛近 7 日"
+  ,"@healthDrinkingPeerCompareSelf": {}
+  ,"healthDrinkingPeerComparePeer": "同类均值"
+  ,"@healthDrinkingPeerComparePeer": {}
+  ,"healthDrinkingPerDay": "{v} 次/日"
+  ,"@healthDrinkingPerDay": {
+      "placeholders": {
+        "v": {"type": "String"}
+      }
+    }
+  ,"healthDrinkingPendingGroupTitle": "待标记（{n}）"
+  ,"@healthDrinkingPendingGroupTitle": {
+      "placeholders": {
+        "n": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingEventListTitle": "今日饮水事件（{n}）"
+  ,"@healthDrinkingEventListTitle": {
+      "placeholders": {
+        "n": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingConfirm": "确认"
+  ,"@healthDrinkingConfirm": {}
+  ,"healthDrinkingReject": "误报"
+  ,"@healthDrinkingReject": {}
+  ,"healthDrinkingLabelConfirmed": "已确认"
+  ,"@healthDrinkingLabelConfirmed": {}
+  ,"healthDrinkingLabelRejected": "误报"
+  ,"@healthDrinkingLabelRejected": {}
+  ,"healthDrinkingLabelUnlabeled": "未标记"
+  ,"@healthDrinkingLabelUnlabeled": {}
+  ,"healthDrinkingNeedsVerification": "待核实"
+  ,"@healthDrinkingNeedsVerification": {}
+  ,"healthDrinkingSourceManual": "补录"
+  ,"@healthDrinkingSourceManual": {}
+  ,"healthDrinkingAddManual": "＋ 漏报补录"
+  ,"@healthDrinkingAddManual": {}
+  ,"healthDrinkingNoEventsToday": "今日未检出饮水事件"
+  ,"@healthDrinkingNoEventsToday": {}
+  ,"healthDrinkingSaveFailed": "保存失败，请稍后重试"
+  ,"@healthDrinkingSaveFailed": {}
+  ,"healthDrinkingManualSheetTitle": "补录饮水事件"
+  ,"@healthDrinkingManualSheetTitle": {}
+  ,"healthDrinkingManualTimeLabel": "时刻"
+  ,"@healthDrinkingManualTimeLabel": {}
+  ,"healthDrinkingManualTimeHint": "yyyy-MM-dd HH:mm（本地时间）"
+  ,"@healthDrinkingManualTimeHint": {}
+  ,"healthDrinkingManualTimeInvalid": "时刻格式不正确，应为 yyyy-MM-dd HH:mm"
+  ,"@healthDrinkingManualTimeInvalid": {}
+  ,"healthDrinkingManualTimeFuture": "时刻不能晚于现在"
+  ,"@healthDrinkingManualTimeFuture": {}
+  ,"healthDrinkingManualNoteHint": "备注（选填，≤500 字）…"
+  ,"@healthDrinkingManualNoteHint": {}
+  ,"healthDrinkingTierBadge": "Premium+"
+  ,"@healthDrinkingTierBadge": {}
+  ,"healthDrinkingLockedMessage": "同类对比（按品种/月龄段分组）为 Premium 权益"
+  ,"@healthDrinkingLockedMessage": {}
+  ,"healthDrinkingUpgrade": "升级解锁"
+  ,"@healthDrinkingUpgrade": {}
+  ,"healthDrinkingLayerFever": "发热标记 ✓"
+  ,"@healthDrinkingLayerFever": {}
+  ,"healthDrinkingLayerDrinking": "饮水事件 ✓"
+  ,"@healthDrinkingLayerDrinking": {}
+  ,"healthDrinkingLayerBaseline": "基线 ✓"
+  ,"@healthDrinkingLayerBaseline": {}
 }

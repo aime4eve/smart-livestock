@@ -1635,16 +1635,6 @@ class _RanchPageState extends ConsumerState<RanchPage>
     // Content-driven card height: a fixed childAspectRatio ties height to card
     // width, so on phone widths (~51dp) the inner column (~60dp) overflows and
     // the foot text paints past the card border in release builds.
-    Widget sceneRow(Widget left, Widget right) => IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(child: left),
-          const SizedBox(width: 7),
-          Expanded(child: right),
-        ],
-      ),
-    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1677,82 +1667,91 @@ class _RanchPageState extends ConsumerState<RanchPage>
           ],
         ),
         const SizedBox(height: 7),
-        sceneRow(
-          card(
-            icon: Icons.thermostat,
-            color: const Color(0xFFD97B29),
-            name: l10n.ranchSceneFeverMgmt,
-            statusPill: scene.fever.abnormalCount == 0
-                ? pill(AppColors.success, l10n.pillSteady)
-                : pill(
-                    scene.fever.criticalCount > 0
-                        ? AppColors.danger
-                        : AppColors.warning,
-                    l10n.pillAbnormal(scene.fever.abnormalCount),
-                  ),
-            foot: scene.fever.abnormalCount == 0
-                ? l10n.sceneFeverCalm
-                : l10n.sceneFeverFoot(feverN, lowN),
-            footBold: scene.fever.abnormalCount > 0 && feverOver6h > 0
-                ? TextSpan(
-                    text: l10n.sceneFeverFootOver(feverOver6h),
-                    style: const TextStyle(
-                      fontSize: 9,
-                      height: 1.3,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.danger,
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 7,
+          crossAxisSpacing: 7,
+          // Fixed tile height matching the RanchSummaryTile row above
+          // (~66px): childAspectRatio made height scale with tile width,
+          // blowing the tiles up to ~260px on desktop-wide viewports
+          // (user report 2026-10-06). 66 also fits the two-line footBold
+          // worst case that the 2026-09-28 overflow fix targeted.
+          mainAxisExtent: 66,
+          children: [
+            card(
+              icon: Icons.thermostat,
+              color: const Color(0xFFD97B29),
+              name: l10n.ranchSceneFeverMgmt,
+              statusPill: scene.fever.abnormalCount == 0
+                  ? pill(AppColors.success, l10n.pillSteady)
+                  : pill(
+                      scene.fever.criticalCount > 0
+                          ? AppColors.danger
+                          : AppColors.warning,
+                      l10n.pillAbnormal(scene.fever.abnormalCount),
                     ),
-                  )
-                : null,
-            onTap: () => context.push(AppRoute.twinFever.path),
-          ),
-          card(
-            icon: Icons.grain,
-            color: const Color(0xFF8D6E4F),
-            name: l10n.ranchSceneDigestiveMgmt,
-            statusPill: scene.digestive.abnormalCount == 0
-                ? pill(AppColors.success, l10n.pillSteady)
-                : pill(
-                    AppColors.warning,
-                    l10n.pillAbnormal(scene.digestive.abnormalCount),
-                  ),
-            foot: scene.digestive.abnormalCount == 0
-                ? l10n.sceneDigestiveCalm
-                : l10n.sceneDigestiveFoot(scene.digestive.abnormalCount),
-            onTap: () => context.push(AppRoute.twinDigestive.path),
-          ),
-        ),
-        const SizedBox(height: 7),
-        sceneRow(
-          card(
-            icon: Icons.favorite,
-            color: AppColors.estrus,
-            name: l10n.ranchSceneEstrusMgmt,
-            statusPill: scene.estrus.highScoreCount == 0
-                ? pill(AppColors.success, l10n.pillSteady)
-                : pill(
-                    AppColors.estrus,
-                    l10n.pillHigh(scene.estrus.highScoreCount),
-                  ),
-            foot: scene.estrus.highScoreCount == 0
-                ? l10n.sceneEstrusCalm
-                : l10n.sceneEstrusFoot(scene.estrus.highScoreCount),
-            onTap: () => context.push(AppRoute.twinEstrus.path),
-          ),
-          card(
-            icon: Icons.shield,
-            color: const Color(0xFF2E7D74),
-            name: l10n.ranchSceneEpidemic,
-            statusPill: epiOver
-                ? pill(AppColors.danger, l10n.pillRate(epiRate))
-                : scene.epidemic.abnormalRate > 0
-                ? pill(AppColors.warning, l10n.pillRate(epiRate))
-                : pill(AppColors.success, l10n.pillSteady),
-            foot: epiOver
-                ? (scene.epidemic.hasMarkedSource
-                    ? l10n.sceneEpidemicFootAbove(epiRate)
-                    : l10n.sceneEpidemicFootNoSource(epiRate))
-                : l10n.sceneEpidemicFootBelow(epiRate),
+              foot: scene.fever.abnormalCount == 0
+                  ? l10n.sceneFeverCalm
+                  : l10n.sceneFeverFoot(feverN, lowN),
+              footBold: scene.fever.abnormalCount > 0 && feverOver6h > 0
+                  ? TextSpan(
+                      text: l10n.sceneFeverFootOver(feverOver6h),
+                      style: const TextStyle(
+                        fontSize: 9,
+                        height: 1.3,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.danger,
+                      ),
+                    )
+                  : null,
+              onTap: () => context.push(AppRoute.twinFever.path),
+            ),
+            card(
+              icon: Icons.grain,
+              color: const Color(0xFF8D6E4F),
+              name: l10n.ranchSceneDigestiveMgmt,
+              statusPill: scene.digestive.abnormalCount == 0
+                  ? pill(AppColors.success, l10n.pillSteady)
+                  : pill(
+                      AppColors.warning,
+                      l10n.pillAbnormal(scene.digestive.abnormalCount),
+                    ),
+              foot: scene.digestive.abnormalCount == 0
+                  ? l10n.sceneDigestiveCalm
+                  : l10n.sceneDigestiveFoot(scene.digestive.abnormalCount),
+              onTap: () => context.push(AppRoute.twinDigestive.path),
+            ),
+            card(
+              icon: Icons.favorite,
+              color: AppColors.estrus,
+              name: l10n.ranchSceneEstrusMgmt,
+              statusPill: scene.estrus.highScoreCount == 0
+                  ? pill(AppColors.success, l10n.pillSteady)
+                  : pill(
+                      AppColors.estrus,
+                      l10n.pillHigh(scene.estrus.highScoreCount),
+                    ),
+              foot: scene.estrus.highScoreCount == 0
+                  ? l10n.sceneEstrusCalm
+                  : l10n.sceneEstrusFoot(scene.estrus.highScoreCount),
+              onTap: () => context.push(AppRoute.twinEstrus.path),
+            ),
+            card(
+              icon: Icons.shield,
+              color: const Color(0xFF2E7D74),
+              name: l10n.ranchSceneEpidemic,
+              statusPill: epiOver
+                  ? pill(AppColors.danger, l10n.pillRate(epiRate))
+                  : scene.epidemic.abnormalRate > 0
+                  ? pill(AppColors.warning, l10n.pillRate(epiRate))
+                  : pill(AppColors.success, l10n.pillSteady),
+              foot: epiOver
+                  ? (scene.epidemic.hasMarkedSource
+                      ? l10n.sceneEpidemicFootAbove(epiRate)
+                      : l10n.sceneEpidemicFootNoSource(epiRate))
+                  : l10n.sceneEpidemicFootBelow(epiRate),
             // P7: epiOver with no marked source appends a danger bold tail
             // segment via the same two-span foot the fever card uses.
             footBold: epiOver && !scene.epidemic.hasMarkedSource
@@ -1766,8 +1765,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
                     ),
                   )
                 : null,
-            onTap: () => context.push(AppRoute.twinEpidemic.path),
-          ),
+              onTap: () => context.push(AppRoute.twinEpidemic.path),
+            ),
+          ],
         ),
         // 对账提示：仅场景异常数 ≠ 活跃单数时出现（裁决 23）
         _buildReconcileLine(

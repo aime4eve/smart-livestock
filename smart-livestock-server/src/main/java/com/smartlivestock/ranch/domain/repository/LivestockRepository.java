@@ -2,6 +2,7 @@ package com.smartlivestock.ranch.domain.repository;
 
 import com.smartlivestock.ranch.domain.model.Livestock;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,6 +10,10 @@ public interface LivestockRepository {
     Livestock save(Livestock livestock);
     Optional<Livestock> findById(Long id);
     List<Livestock> findByFarmId(Long farmId);
+
+    /** Batch lookup by ids, soft-deleted rows excluded. */
+    List<Livestock> findAllByIdIn(Collection<Long> ids);
+
     Optional<Livestock> findByLivestockCode(String livestockCode);
     void deleteById(Long id);
     long countByFarmId(Long farmId);

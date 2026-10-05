@@ -1,0 +1,50 @@
+============================================================
+  SCREENSHOT FIDELITY COMPARISON REPORT
+============================================================
+Baseline:  prototype-elements/sheet-panel.png (390x364)
+Actual:    flutter/form-sheet-panel.png (390x425)
+Threshold: 85% similarity required
+
+── OVERALL ──
+  Similarity:     73.8%
+  Avg pixel diff: 30.14
+  Max pixel diff: 251
+  Verdict:        FAIL
+
+── PER-REGION ANALYSIS ──
+  [DIFF] status_bar        sim=  7.5%  avg_diff= 70.10  mismatch= 92.5%
+  [DIFF] appbar            sim= 46.6%  avg_diff= 46.67  mismatch= 53.4%
+  [DIFF] summary_strip     sim= 83.7%  avg_diff= 26.33  mismatch= 16.3%
+  [DIFF] filter_bar        sim= 66.0%  avg_diff= 44.60  mismatch= 34.0%
+  [DIFF] content           sim= 82.7%  avg_diff= 21.80  mismatch= 17.3%
+  [DIFF] bottom_nav        sim= 80.5%  avg_diff= 35.65  mismatch= 19.5%
+
+── DOMINANT COLORS (baseline vs actual) ──
+  status_bar:
+    base: #FFFFFF(88.1%)  #FEFEFE(6.6%)  #F4F5F4(5.3%)
+    actu: #B3B7B3(87.6%)  #AEB1A9(11.9%)  #B3B7B2(0.5%)
+  appbar:
+    base: #FFFFFF(98.6%)  #FEFEFE(0.9%)  #FDFDFD(0.4%)
+    actu: #FFFFFF(66.1%)  #B3B7B3(28.4%)  #AEB1A9(5.5%)
+  summary_strip:
+    base: #FFFFFF(82.7%)  #F8F6F0(11.7%)  #2F6B3B(5.6%)
+    actu: #FFFFFF(98.9%)  #FEFEFE(0.9%)  #FDFDFD(0.3%)
+  filter_bar:
+    base: #FFFFFF(65.9%)  #F8F6F0(24.4%)  #2F6B3B(9.7%)
+    actu: #FFFFFF(54.3%)  #F8F6F0(35.8%)  #2F6B3B(9.9%)
+  content:
+    base: #FFFFFF(81.9%)  #2F6B3B(15.2%)  #FEFEFE(2.9%)
+    actu: #FFFFFF(75.2%)  #F8F6F0(12.5%)  #2D6739(12.2%)
+  bottom_nav:
+    base: #FFFFFF(99.5%)  #FEFEFE(0.3%)  #FDFDFD(0.2%)
+    actu: #F8F6F0(89.3%)  #8BA95A(5.4%)  #2F6B3B(5.3%)
+
+── DIAGNOSIS ──
+  [!] status_bar below threshold (7.5% < 85%)
+      -> Check colors, spacing, and layout in this region
+  [!] appbar below threshold (46.6% < 85%)
+      -> Check colors, spacing, and layout in this region
+  [!] filter_bar below threshold (66.0% < 85%)
+      -> Check colors, spacing, and layout in this region
+
+============================================================
