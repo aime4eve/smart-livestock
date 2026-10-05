@@ -30,6 +30,15 @@ public interface DrinkingEventJpaRepository extends JpaRepository<DrinkingEventJ
             Long livestockId, Instant from, Instant to);
 
     /**
+     * All rows across every farm with {@code event_start_at} in
+     * {@code [from, to)}, oldest first with an id tie-break — the admin
+     * label export (spec §15.4) dumps the whole marking dataset in a
+     * stable order.
+     */
+    List<DrinkingEventJpaEntity> findByEventStartAtGreaterThanEqualAndEventStartAtLessThanOrderByEventStartAtAscIdAsc(
+            Instant from, Instant to);
+
+    /**
      * The UNIQUE-key lookup for the manual back-fill idempotency
      * (device, event_start_at, algorithm_version='manual'): a repeat POST
      * of the same instant re-reads and returns the existing row.
