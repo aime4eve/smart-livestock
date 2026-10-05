@@ -330,6 +330,37 @@ class SubscriptionTest {
             assertThat(event.getOldTier()).isEqualTo("BASIC");
             assertThat(event.getNewTier()).isEqualTo("STANDARD");
         }
+
+        @Test
+        void fromRenewalFailed_repaysToActive() {
+            // The repay path (2026-10-06): checkout from a lapsed subscription
+            // must succeed, or RENEWAL_FAILED is a trap — cancel/reactivate
+            // are both rejected and the auto-downgrade only fires after 7 days.
+            Subscription sub = createActiveSubscription();
+            sub.markRenewalFailed();
+            sub.clearDomainEvents();
+
+            Instant expires = Instant.now().plusSeconds(30 * 86400);
+            sub.changeTier(SubscriptionTier.PREMIUM, "monthly", expires);
+
+            assertThat(sub.getTier()).isEqualTo(SubscriptionTier.PREMIUM);
+            assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.ACTIVE);
+            assertThat(sub.getExpiresAt()).isEqualTo(expires);
+            assertThat(sub.isActiveOrTrial()).isTrue();
+        }
+
+        @Test
+        void fromRenewalFailed_sameTier_renewsInPlace() {
+            Subscription sub = createActiveSubscription();
+            sub.markRenewalFailed();
+
+            Instant expires = Instant.now().plusSeconds(30 * 86400);
+            sub.changeTier(SubscriptionTier.STANDARD, "monthly", expires);
+
+            assertThat(sub.getTier()).isEqualTo(SubscriptionTier.STANDARD);
+            assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.ACTIVE);
+            assertThat(sub.getExpiresAt()).isEqualTo(expires);
+        }
     }
 
     // ── suspend / reactivate ─────────────────────────────────────────

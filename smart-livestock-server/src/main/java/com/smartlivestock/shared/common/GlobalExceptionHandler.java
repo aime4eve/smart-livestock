@@ -63,10 +63,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleDomainException(DomainException ex) {
         String requestId = currentRequestId();
         HttpStatus status = mapToHttpStatus(ex.getCode());
+        // Domain messages are English developer text (e.g. "Cannot changeTier:
+        // current status is RENEWAL_FAILED") — surface a localized generic
+        // message per error code and keep the raw detail in the log. The
+        // resolve() fallback returns the key itself when no property exists,
+        // so only codes with an error.domain.* entry are rewritten.
+        String key = "error.domain." + ex.getCode();
+        String resolved = messageResolver.resolve(key, null, LocaleContextHolder.getLocale());
+        String userMessage = key.equals(resolved) ? ex.getMessage() : resolved;
         log.warn("[{}] DomainException {}: {}", requestId, ex.getCode(), ex.getMessage());
         return ResponseEntity
                 .status(status)
-                .body(ApiResponse.error(ex.getCode(), ex.getMessage(), requestId));
+                .body(ApiResponse.error(ex.getCode(), userMessage, requestId));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
