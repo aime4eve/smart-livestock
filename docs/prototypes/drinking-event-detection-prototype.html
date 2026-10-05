@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>饮水行为检测 — 高保真原型 v1.0（2026-10-04）</title>
+<title>饮水行为检测 — 高保真原型 v1.4（2026-10-06）</title>
 <style>
 /* ═══════════════ 设计令牌（可被 prototype-to-flutter-fidelity 解析） ═══════════════
    基线来源：health-scenario-alert-integration-prototype.html（NIX-246 方案 D 拍板令牌）
@@ -147,7 +147,7 @@ svg.chart{width:100%;height:auto;display:block}
 <body>
 
 <div class="page-title">
-  <h1>💧 饮水行为检测 — 高保真原型 v1.3</h1>
+  <h1>💧 饮水行为检测 — 高保真原型 v1.4</h1>
   <p>瘤胃温度谷检测饮水事件 ｜ 2026-10-04 ｜ 视觉基线：NIX-246 方案 D（深绿 Hero + 白卡浮起 + 语义色系统）｜ 新增语义色 <span class="tok">--drinking</span></p>
 </div>
 
@@ -241,15 +241,15 @@ svg.chart{width:100%;height:auto;display:block}
               <rect x="30" y="8" width="42" height="70" rx="3" fill="#DCE8D5" opacity=".55"/>
               <rect x="150" y="8" width="42" height="70" rx="3" fill="#DCE8D5" opacity=".55"/>
               <rect x="250" y="8" width="46" height="70" rx="3" fill="#DCE8D5" opacity=".55"/>
-              <text x="33" y="18" font-size="7.5" fill="#4C7A52">饲喂后</text>
-              <text x="153" y="18" font-size="7.5" fill="#4C7A52">挤奶后</text>
-              <text x="253" y="18" font-size="7.5" fill="#4C7A52">傍晚高峰</text>
+              <text x="33" y="18" font-size="9.5" fill="#3D6743">饲喂后</text>
+              <text x="153" y="18" font-size="9.5" fill="#3D6743">挤奶后</text>
+              <text x="253" y="18" font-size="9.5" fill="#3D6743">傍晚高峰</text>
               <!-- 时间轴 -->
               <line x1="10" y1="78" x2="330" y2="78" stroke="#D7D2C6" stroke-width="1"/>
-              <text x="6" y="90" font-size="7.5" fill="#617061">0时</text>
-              <text x="105" y="90" font-size="7.5" fill="#617061">8时</text>
-              <text x="205" y="90" font-size="7.5" fill="#617061">16时</text>
-              <text x="310" y="90" font-size="7.5" fill="#617061">24时</text>
+              <text x="6" y="90" font-size="9.5" fill="#617061">0时</text>
+              <text x="105" y="90" font-size="9.5" fill="#617061">8时</text>
+              <text x="205" y="90" font-size="9.5" fill="#617061">16时</text>
+              <text x="310" y="90" font-size="9.5" fill="#617061">24时</text>
               <!-- 饮水事件（菱形标记，水蓝色） -->
               <g fill="#3D7FA8">
                 <path d="M44,64 l5,6 -5,6 -5,-6 Z"/>
@@ -278,7 +278,7 @@ svg.chart{width:100%;height:auto;display:block}
             <svg class="chart" viewBox="0 0 340 120" preserveAspectRatio="none">
               <!-- 发热 episode 阴影区（含 6h 退热缓冲，浅橙） -->
               <rect x="196" y="8" width="76" height="94" rx="4" fill="#D97B29" opacity=".12"/>
-              <text x="200" y="18" font-size="7.5" fill="#D97B29">发热期·已排除</text>
+              <text x="200" y="18" font-size="9.5" fill="#D97B29">发热期·已排除</text>
               <!-- 基线 -->
               <line x1="0" y1="58" x2="340" y2="58" stroke="#617061" stroke-width="1" stroke-dasharray="4,4" opacity=".35"/>
               <text x="4" y="54" font-size="8" fill="#617061">基线 38.5</text>
@@ -287,9 +287,9 @@ svg.chart{width:100%;height:auto;display:block}
                     fill="none" stroke="#D97B29" stroke-width="2"/>
               <!-- 饮水谷标记（圆点 + 降幅标签） -->
               <circle cx="104" cy="86" r="4" fill="#2C6486" stroke="#fff" stroke-width="1.5"/>
-              <text x="86" y="102" font-size="7.5" fill="#2C6486" font-weight="700">−1.7°C</text>
+              <text x="86" y="102" font-size="9.5" fill="#2C6486" font-weight="700">−1.7°C</text>
               <circle cx="312" cy="88" r="4" fill="#2C6486" stroke="#fff" stroke-width="1.5"/>
-              <text x="296" y="104" font-size="7.5" fill="#2C6486" font-weight="700">−1.4°C</text>
+              <text x="296" y="104" font-size="9.5" fill="#2C6486" font-weight="700">−1.4°C</text>
             </svg>
           </div>
           <div class="legend-row">
@@ -391,7 +391,7 @@ svg.chart{width:100%;height:auto;display:block}
           <div class="chart-area">
             <svg class="chart" viewBox="0 0 340 120" preserveAspectRatio="none">
               <rect x="196" y="8" width="76" height="94" rx="4" fill="#D97B29" opacity=".12"/>
-              <text x="200" y="18" font-size="7.5" fill="#D97B29">发热期</text>
+              <text x="200" y="18" font-size="9.5" fill="#D97B29">发热期</text>
               <line x1="0" y1="58" x2="340" y2="58" stroke="#617061" stroke-width="1" stroke-dasharray="4,4" opacity=".35"/>
               <text x="4" y="54" font-size="8" fill="#617061">基线 38.5</text>
               <path d="M0,52 L20,54 L38,50 L54,56 L70,52 L86,50 L104,86 L120,62 L138,56 L156,58 L176,54 L196,44 L216,22 L236,18 L256,26 L276,44 L296,52 L312,88 L326,62 L340,56"

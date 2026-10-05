@@ -99,6 +99,11 @@ class _TimeDistributionPainter extends CustomPainter {
   static const double _x0 = 10;
   static const double _x1 = 330;
 
+  /// Zone/axis label size. Prototype v1.2 drew these at 7.5px — CJK strokes
+  /// collapse at that size on device; 9.5 matches the prototype's own
+  /// caption scale (readability fix 2026-10-06, user-approved deviation).
+  static const double _labelFontSize = 9.5;
+
   double _hourToX(double hour) => _x0 + (hour / 24) * (_x1 - _x0);
 
   @override
@@ -111,6 +116,7 @@ class _TimeDistributionPainter extends CustomPainter {
 
     // ── Peak reference zones: fill --map-green (#DCE8D5) opacity .55, rx3.
     final zonePaint = Paint()..color = AppColors.mapGreen.withValues(alpha: 0.55);
+    final bandLabelTexts = <({Offset pos, String text})>[];
     for (final zone in _kDrinkingPeakZones) {
       final left = _hourToX(zone.startHour);
       final right = _hourToX(zone.endHour);
@@ -119,13 +125,10 @@ class _TimeDistributionPainter extends CustomPainter {
         RRect.fromRectAndRadius(rect, const Radius.circular(3)),
         zonePaint,
       );
-      _drawText(
-        canvas,
-        zoneLabels[zone.labelKey]!,
-        Offset(left + 3, _zoneTop + 3),
-        fontSize: 7.5,
-        color: const Color(0xFF4C7A52),
-      );
+      bandLabelTexts.add((
+        pos: Offset(left + 3, _zoneTop + 3),
+        text: zoneLabels[zone.labelKey]!,
+      ));
     }
 
     // ── Time axis: line y78 x10–330 stroke --border w1 + tick labels.
@@ -137,17 +140,6 @@ class _TimeDistributionPainter extends CustomPainter {
       const Offset(_x1, _axisY),
       axisPaint,
     );
-    const axisHours = [0.0, 8.0, 16.0, 24.0];
-    const axisLabelX = [6.0, 105.0, 205.0, 310.0];
-    for (var i = 0; i < axisHours.length; i++) {
-      _drawText(
-        canvas,
-        axisLabels[i],
-        Offset(axisLabelX[i], _axisY + 6),
-        fontSize: 7.5,
-        color: AppColors.textSecondary,
-      );
-    }
 
     // ── Drinking event diamonds: fill --drinking, 10×10 (path l5,6
     // -5,6 -5,-6), centered on the event hour at y70.
@@ -165,6 +157,30 @@ class _TimeDistributionPainter extends CustomPainter {
     }
 
     canvas.restore();
+
+    // Text is drawn OUTSIDE the X-scaled canvas (x premultiplied by sx):
+    // glyphs inside scale(sx, 1) stretch horizontally ~15% on wide phones,
+    // smearing CJK strokes (readability fix 2026-10-06, prototype v1.3).
+    for (final t in bandLabelTexts) {
+      _drawText(
+        canvas,
+        t.text,
+        Offset(t.pos.dx * sx, t.pos.dy),
+        fontSize: _labelFontSize,
+        color: const Color(0xFF3D6743),
+      );
+    }
+    const axisHours = [0.0, 8.0, 16.0, 24.0];
+    const axisLabelX = [6.0, 105.0, 205.0, 310.0];
+    for (var i = 0; i < axisHours.length; i++) {
+      _drawText(
+        canvas,
+        axisLabels[i],
+        Offset(axisLabelX[i] * sx, _axisY + 6),
+        fontSize: _labelFontSize,
+        color: AppColors.textSecondary,
+      );
+    }
   }
 
   void _drawText(
