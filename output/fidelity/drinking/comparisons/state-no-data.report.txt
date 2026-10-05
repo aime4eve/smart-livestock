@@ -42,6 +42,6 @@ Threshold: 85% similarity required
 ── DIAGNOSIS ──
   [!] content below threshold (84.5% < 85%)
       -> Check colors, spacing, and layout in this region
-  All regions meet threshold. Visual fidelity likely acceptable.
+  Verdict (per spec §6 letter): FAIL — worst region(s) below 85%. EXEMPTED by user ruling 2026-10-06 (plan 附录二 #7/#8): region diff is framing/content-presence, not token drift.
 
 ============================================================

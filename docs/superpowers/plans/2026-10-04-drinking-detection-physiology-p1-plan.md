@@ -106,3 +106,27 @@
 - 定参（2026-10-05 L1 标定，merge-gap=15 终版口径，门禁 F≥0.90 达成）：`S_th = 0.06 °C/min`（Δt 归一；5-min 数据等效 0.30°C/步，6-min 0.36°C，10-min 0.60°C）、`k = 0.5`（k 轴单调：k=1→0.9346、k=2→0.9010、k=3→0.8317 破门禁，配置防误设大值）、`R_th = 0.7`（L1 近乎不敏感 0.5~0.8 差 ≤0.15pp，防御性默认）、`merge-gap = 15min`（**改定**：敏感性扫描 gap={0,10,15,20,25,30}→F={82.45,93.76,94.00,93.90,93.27,92.65}；原 30 系对 Aubé"30 min apart"分辨下限句的误读，把 Se 压在 86.7% 天花板；gap=0 FP 211 个证明合并必须存在）、退热缓冲 6h（L2 复核）。选定参数 F：5/6/10-min = **0.9400**/0.9390/0.9270（5-min：TP 650/FP 3，Se 89.0%/PPV 99.5%）。详见 `docs/research/2026-10-05-drinking-l1-calibration-report.md`。
 - 勘误：Aubé 数据集温度为 5-min 间隔（非 10-min）；饮水信号在 `ruminal_temperature` 列（`corrected_temperature` 列已被平滑，F≈1%）——平台 `temperature_logs` 存原始通道温度，同口径无此问题。
 - **生产口径转正（评审 B1 收口，2026-10-05）**：内核深度判据（谷底 ≤ μ−kσ−1.0°C）与 35–43°C 门卫经生产口径全网格重跑验证：F=0.928/0.9209@5/6-min 门禁通过（10-min 0.8756 如实记录、平台无此档）——内核保留，详见 spec §14.1 与 `output/drinking-l1/results-production/`；复现 `calibrate.py --merge-gap 15 --in-body-gate --depth-margin 1.0`。
+
+### 附录二：保真对照 FAIL/区域不达标 正式豁免清单（用户裁决 2026-10-06，②A）
+
+> R2 评审 N6/M4 收口：spec §6"≥85%（无 worst-region FAIL）"按字面判定的全部不达标项，经用户逐批裁决豁免如下。豁免≠通过：豁免项以"已核实的差异定性 + 证据指针"入档，不再作为门禁阻塞。
+
+| # | 对照项 | 分值 | 豁免定性（已核实证据） |
+|---|---|---|---|
+| 1 | card-normal（饮水卡常态） | 73.8% | 数据态数值/文案差异已被用户 2026-10-05 裁决"A"接受；结构 token 无漂移 |
+| 2 | form-sheet-panel（生理录入面板） | 73.8% | 同上，用户 2026-10-05 已接受 |
+| 3 | chart-overlay（48h 叠加图） | 84.6% | fl_chart LineChart 平滑曲线 vs 原型手绘曲线的形态差，谷值点数据实测一致（M6 修复后取数窗完整） |
+| 4 | note-box（数据说明框） | 65.0% | 原型演示文案 vs 实现版精简文案（AGENTS 红线：无学术引用），内容语义等价 |
+| 5 | form-empty / form-sheet / aligned（生理表单三态） | 56–78% | 原型演示形态（全屏 sheet 摆位）vs 实现版平台 sheet 惯例，用户 10-05 已见六形态实截并接受面板形态 |
+| 6 | card-locked / peer-locked-view（锁定态两份） | 79.9/77.6% | 独立演示卡 vs 上下文内 UpgradeOverlay 的取景差异（`locked-views.FRAMING.md` 逐项量化） |
+| 7 | state-no-data content 区 / state-skeleton summary_strip 区 | 84.5% ×2 | 距阈值 0.5pp，噪声级；整体 89.6/86.1 |
+| 8 | state-skeleton bottom_nav 区 | 69.0% | **已核实**（2026-10-06）：Flutter 骨架态该横带含浅蓝图表占位框+Overview 选中态，原型同带近乎全空白（99.6% 白）——内容存在性/取景差异，非布局缺陷（R2 N6 先核实再定项） |
+
+### 附录三：R2 修复批记录（2026-10-06，用户裁决 ①③④执行）
+
+- 证据链（0fbebc30）：L1 正典 results/ 已 git 恢复至 d416af19；"逐数一致"改实测口径（6-min 15 行 TP−1、0.9201 门禁不变）；spec §14.1 复现命令补 --out；selection.json 补口径元数据；labels 建议加 epsilon(0.5pp)+现产平局优先（N7）；label_drill [:16] 修（N4）；vspot 补 drop_vs_pre_max 列（N16）。
+- 后端（c836b14e）：PATCH label 白名单 CONFIRMED/REJECTED（m-c）；生理 PUT note 空串=显式清空/null=保留（N17）；journey javadoc 失实自述修正+build.gradle 执行债指针（N1 代码侧）。
+- Flutter（caef03ef）：updateEvent 空串直达 wire（N17）；生理测试改 byKey 查找（n-i）；发病提示仅 ILLNESS 显示（n-h）。
+- N5 英文样张重截（滚轮+700ms+叶子节点 rect 配方）：Drinking Behavior 分节 + 发热长文案逐字完整无截断；ui-en-home 换为真实主页看板。
+- 顺带批（③A）：m-u/n-j/n-e/n-a/r1-n4 注释互指。
+- journey 实跑债：本机无 docker 命令，绑定 T7 dev 部署后冒烟（与评审建议一致）。
