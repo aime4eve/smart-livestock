@@ -280,7 +280,7 @@ public enum PhysiologyStageType { LACTATING, DRY }   // P1 只推导这两态；
 
 ### 15.3 统计口径（F4 聚合规则细化）
 
-- 日柱/周合计/30 日基线：`source != ALGORITHM_CANDIDATE && label != REJECTED` 参与计数（检出默认计、误报剔除、补录计入、候选不进）；
+- 日柱/周合计/30 日基线：`label != REJECTED && (source != ALGORITHM_CANDIDATE || label == CONFIRMED)` 参与计数（检出默认计、误报剔除、补录计入、未确认候选不进、**确认候选转正计入**——与 §15.2 转正语义一致，修订于 T3 评审）；
 - 参数评估口径（离线）：全部 label 参与——CONFIRMED=TP 真值、REJECTED=FP 真值、MANUAL 补录=FN 真值、CANDIDATE 经裁决后归位。
 
 ### 15.4 参数修正闭环（离线工具，P1 不做自动改参）
@@ -288,6 +288,8 @@ public enum PhysiologyStageType { LACTATING, DRY }   // P1 只推导这两态；
 - 标签导出：`GET /api/v1/admin/drinking-labels/export?from=&to=`（CSV：事件字段+label+confidence+检测上下文），管理员权限；
 - `calibrate.py --labels <export.csv>` 新模式：在标签集上重算参数网格的 Se/PPV/F，输出**建议参数**报告——运维据此改 `health.drinking.*` 配置；
 - 采信门槛：单牧场 CONFIRMED+REJECTED 合计 ≥100 条方出建议，报告注明样本量；自动调参列 P2（需护栏设计）。
+- **与 AI 平台的关系（用户裁决 2026-10-05）**：P1 刻意用确定性统计（网格搜索）而非 AI 平台——参数仅 3~4 标量、可解释是硬需求、频率季度级。P1 同时铺好三个衔接点：标签数据集（未来 ML 的训练/评估集）、导出端点（平台取数口）、`health.drinking.*` 配置面（平台建议参数的生效通道）；标签量达数千级且全群单组参数表达不了异质性时，`--labels` 逻辑平移为平台任务（仿 `AnomalyScoreClient` HTTP 端口 + 降级模式），P1 资产零返工。
+- **标签跨重算保留**：日批/手动重算的删除范围 = `source NOT IN ('MANUAL') AND label 语义可重建`——具体为：只删算法产物行（透传 source 的检出与 ALGORITHM_CANDIDATE），**MANUAL 行永不删**；重插后按 `(device_id, event_start_at)` 匹配回填删除前的 label（CONFIRMED/REJECTED 不因重算丢失）。
 
 ### 15.5 与验证阶梯的关系
 

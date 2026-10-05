@@ -75,6 +75,16 @@ health:
   alert-reconcile:
     enabled: ${HEALTH_ALERT_RECONCILE_ENABLED:true}
     cron: ${HEALTH_ALERT_RECONCILE_CRON:0 40 * * * *}
+  drinking:
+    # L1 calibration 2026-10-05 (Aubé dataset, spec §14): F=0.94 @ 5-min.
+    fall-threshold: ${HEALTH_DRINKING_FALL_THRESHOLD:0.06}
+    k-sigma: ${HEALTH_DRINKING_K_SIGMA:0.5}
+    recovery-window-min: ${HEALTH_DRINKING_RECOVERY_WINDOW_MIN:120}
+    recovery-ratio: ${HEALTH_DRINKING_RECOVERY_RATIO:0.7}
+    merge-gap-min: ${HEALTH_DRINKING_MERGE_GAP_MIN:15}
+    candidate-tolerance: ${HEALTH_DRINKING_CANDIDATE_TOLERANCE:0.5}
+    fever-buffer-hours: ${HEALTH_DRINKING_FEVER_BUFFER_HOURS:6}
+    recalc-overlap-hours: ${HEALTH_DRINKING_RECALC_OVERLAP_HOURS:1}
 
 ai:
   platform:
