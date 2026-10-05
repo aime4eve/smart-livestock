@@ -20,6 +20,15 @@ public interface DrinkingEventJpaRepository extends JpaRepository<DrinkingEventJ
             Long deviceId, Instant from, Instant to);
 
     /**
+     * All rows of one livestock (every device) with {@code event_start_at}
+     * in {@code [from, to)}, newest first — the UI list endpoint (Task 5a)
+     * returns every row including borderline candidates and REJECTED ones;
+     * the client renders the groups from source/label.
+     */
+    List<DrinkingEventJpaEntity> findByLivestockIdAndEventStartAtGreaterThanEqualAndEventStartAtLessThanOrderByEventStartAtDesc(
+            Long livestockId, Instant from, Instant to);
+
+    /**
      * F6 recalc delete: algorithm-produced rows only ({@code source != MANUAL})
      * in the overlap-extended window. MANUAL rows are never deleted.
      */

@@ -17,24 +17,28 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 import java.util.Locale;
 
 /**
- * Marking-loop application service (NIX-256 Task 3, spec §15.2): ranch-owner
- * label flips and manual back-fill of missed drinking events. Read/query
- * endpoints for the UI land in Task 5; this service stays the write path.
+ * Marking-loop application service (NIX-256 Task 3, spec §15.2) plus the
+ * event-list read (Task 5a): ranch-owner label flips, manual back-fill of
+ * missed drinking events, and the UI detail query. Aggregations live in
+ * {@link DrinkingSummaryService}; this service stays the row-level path.
  */
 @Service
 @RequiredArgsConstructor
 public class DrinkingEventService {
 
-    /** Manual entries are interpreted in the ranch operating timezone (B3). */
+    /** Manual entries and UI day windows are interpreted in the ranch operating timezone (B3/F5). */
     private static final ZoneId ENTRY_ZONE = ZoneId.of("Asia/Shanghai");
     private static final int NOTE_MAX_LENGTH = 500;
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
 
     private final DrinkingEventJpaRepository eventRepository;
     private final RanchQueryPort ranchQueryPort;
@@ -97,6 +101,50 @@ public class DrinkingEventService {
         entity.setNote(note);
         DrinkingEventJpaEntity saved = eventRepository.save(entity);
         return toResponse(saved);
+    }
+
+    // ── Read path (Task 5a, endpoint 1) ────────────────────────
+
+    /**
+     * All rows of the livestock inside {@code [from, to)} (Task 5a): every
+     * row is returned — detected, borderline candidates, REJECTED and MANUAL
+     * — because the client renders the source/label groups itself.
+     * {@code from}/{@code to} are optional calendar days in Asia/Shanghai
+     * forming a <b>closed date range</b> (from 00:00 → to+1 day 00:00), the
+     * same window semantics as the admin recalculation; both default to the
+     * recent 7 days ending today.
+     */
+    @Transactional(readOnly = true)
+    public List<DrinkingEventResponse> listEvents(Long farmId, Long livestockId, String from, String to) {
+        requireLivestockInFarm(farmId, livestockId);
+        LocalDate toDay = parseDay(to, LocalDate.now(ENTRY_ZONE), "error.drinking.rangeInvalid");
+        LocalDate fromDay = parseDay(from, toDay.minusDays(6), "error.drinking.rangeInvalid");
+        if (fromDay.isAfter(toDay)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.drinking.rangeInvalid");
+        }
+        if (toDay.isAfter(LocalDate.now(ENTRY_ZONE))) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.drinking.futureDate");
+        }
+        Instant windowFrom = fromDay.atStartOfDay(ENTRY_ZONE).toInstant();
+        Instant windowTo = toDay.plusDays(1).atStartOfDay(ENTRY_ZONE).toInstant();
+        return eventRepository
+                .findByLivestockIdAndEventStartAtGreaterThanEqualAndEventStartAtLessThanOrderByEventStartAtDesc(
+                        livestockId, windowFrom, windowTo)
+                .stream()
+                .map(DrinkingEventService::toResponse)
+                .toList();
+    }
+
+    /** Parse an optional ISO calendar day; blank/absent falls back to the default. */
+    private static LocalDate parseDay(String value, LocalDate fallback, String errorKey) {
+        if (value == null || value.isBlank()) {
+            return fallback;
+        }
+        try {
+            return LocalDate.parse(value.trim(), DATE_FORMAT);
+        } catch (DateTimeParseException exception) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, errorKey);
+        }
     }
 
     // ── Validation helpers ──────────────────────────────────────

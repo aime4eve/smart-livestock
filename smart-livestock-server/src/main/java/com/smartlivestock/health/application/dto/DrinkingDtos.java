@@ -2,6 +2,8 @@ package com.smartlivestock.health.application.dto;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
 
 /**
  * DTOs for the drinking-event marking loop (NIX-256 Task 3, spec §15.2).
@@ -50,5 +52,66 @@ public final class DrinkingDtos {
             String note,
             Instant createdAt,
             Instant updatedAt
+    ) {}
+
+    // ════════════════════════════════════════════════════════════
+    // Task 5a read endpoints — shapes pinned by the prototype data
+    // tracing table (3c): every UI number maps onto a field below.
+    // ════════════════════════════════════════════════════════════
+
+    /**
+     * GET drinking-summary response. {@code daily} is always present;
+     * {@code weekly} only for {@code days=7}; {@code rolling30dBaseline}
+     * only for {@code days=30} (independent computations, F4);
+     * {@code dayCounts} (per-day count + fever coverage for the orange
+     * fever-day bars) for days=7/30. All dates are Shanghai cow-days (F5).
+     */
+    public record DrinkingSummaryResponse(
+            LocalDate date,
+            int days,
+            DrinkingDaily daily,
+            DrinkingWeekly weekly,
+            DrinkingRollingBaseline rolling30dBaseline,
+            List<DrinkingDayCount> dayCounts
+    ) {}
+
+    /**
+     * The {@code date} cow-day: counted events (§15.3 isCounted), their
+     * timeline for the moment-distribution chart, and the end of the last
+     * counted event (the client renders "35 min ago" from it).
+     */
+    public record DrinkingDaily(int count, List<DrinkingDayEvent> events, Instant lastDrinkEndAt) {}
+
+    public record DrinkingDayEvent(Instant startAt, Instant endAt, BigDecimal tempDrop,
+                                   String label, BigDecimal confidence, String source) {}
+
+    /** Weekly sum counts fever days as-is (F4 layer 1: direct sum). */
+    public record DrinkingWeekly(int count, BigDecimal avgPerDay) {}
+
+    /**
+     * Rolling 30-day baseline: average over sample days only (fever
+     * coverage ≥50% days and under-reported days excluded, F4 layer 2).
+     * {@code avgPerDay} is null when there is not a single sample day.
+     */
+    public record DrinkingRollingBaseline(BigDecimal avgPerDay, int sampleDays) {}
+
+    /** One bar of the mini bar chart; fever-covered days render orange. */
+    public record DrinkingDayCount(LocalDate date, int count, BigDecimal feverCoveredPercent) {}
+
+    /**
+     * GET drinking-peer-comparison response. {@code peerAvgPerDay} is null
+     * with {@code reason=INSUFFICIENT_PEERS} when no other group member
+     * reaches the minimum sample days (the UI shows the degraded copy, not
+     * an error). {@code groupStage} is LACTATING / DRY or null when the
+     * stage is undetermined.
+     */
+    public record DrinkingPeerComparisonResponse(
+            BigDecimal peerAvgPerDay,
+            String reason,
+            String groupBreed,
+            String groupStage,
+            int peerCount,
+            int sampleDaysTotal,
+            int minSampleDays
     ) {}
 }

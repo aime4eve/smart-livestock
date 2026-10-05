@@ -439,18 +439,8 @@ public class DrinkingEventDetectionService {
         if (bindings.isEmpty()) {
             return new RecalcStats(0, 0);
         }
-        Instant scanFrom = scanFrom(from);
-        Instant scanTo = scanTo(to);
-        Map<Long, List<ExclusionWindow>> windowsByLivestock = new HashMap<>();
-        for (Map.Entry<Long, List<PhysiologyWindow>> entry
-                : physiologyQueryPort.activeWindowsForFarm(farmId, scanFrom, scanTo).entrySet()) {
-            windowsByLivestock.put(entry.getKey(), toExclusionWindows(entry.getValue()));
-        }
-        for (Map.Entry<Long, List<ExclusionWindow>> entry
-                : alertWindowsByLivestock(farmId, scanFrom.minus(Duration.ofHours(feverBufferHours))).entrySet()) {
-            windowsByLivestock.computeIfAbsent(entry.getKey(), ignored -> new ArrayList<>())
-                    .addAll(entry.getValue());
-        }
+        Map<Long, List<ExclusionWindow>> windowsByLivestock =
+                rawFeverWindowsByFarm(farmId, scanFrom(from), scanTo(to));
         int rows = 0;
         for (CapsuleBinding binding : bindings) {
             rows += recalculate(binding.deviceId(), binding.livestockId(), from, to,
@@ -603,24 +593,12 @@ public class DrinkingEventDetectionService {
 
     private List<ExclusionWindow> exclusionWindowsForDevice(Long deviceId, Long livestockId,
                                                             Instant from, Instant to) {
-        List<ExclusionWindow> windows = new ArrayList<>();
-        if (livestockId != null) {
-            windows.addAll(toExclusionWindows(physiologyQueryPort.activeWindows(
-                    livestockId, scanFrom(from), scanTo(to))));
-        } else {
+        if (livestockId == null) {
             log.warn("Drinking recalc of device {} has no livestock binding — physiology exclusion windows skipped", deviceId);
+            return List.of();
         }
-        Long farmId = livestockId == null ? null : ranchQueryPort.findLivestockById(livestockId)
-                .map(LivestockInfo::farmId)
-                .orElse(null);
-        if (farmId != null) {
-            windows.addAll(alertWindowsByLivestock(farmId,
-                    scanFrom(from).minus(Duration.ofHours(feverBufferHours)))
-                    .getOrDefault(livestockId, List.of()));
-        } else {
-            log.warn("Drinking recalc of device {} could not resolve a farm — alert exclusion windows skipped", deviceId);
-        }
-        return windows;
+        // Raw (unbuffered) windows — the kernel applies the fever buffer.
+        return rawFeverWindowsForLivestock(livestockId, scanFrom(from), scanTo(to));
     }
 
     private static List<ExclusionWindow> toExclusionWindows(List<PhysiologyWindow> physiologyWindows) {
@@ -645,5 +623,69 @@ public class DrinkingEventDetectionService {
                         .computeIfAbsent(alert.livestockId(), ignored -> new ArrayList<>())
                         .add(new ExclusionWindow(alert.createdAt(), alert.resolvedAt())));
         return byLivestock;
+    }
+
+    /**
+     * Raw (unbuffered) fever window assembly per livestock of a farm over
+     * {@code [from, to)}: physiology illness windows (batch, B4) ∪
+     * TEMPERATURE_ABNORMAL alert windows. Shared by the detector's
+     * per-farm/device recalculations and the Task 5 statistics — one
+     * assembly, so detection and day-coverage math cannot drift.
+     */
+    private Map<Long, List<ExclusionWindow>> rawFeverWindowsByFarm(Long farmId, Instant from, Instant to) {
+        Map<Long, List<ExclusionWindow>> byLivestock = new HashMap<>();
+        physiologyQueryPort.activeWindowsForFarm(farmId, from, to)
+                .forEach((livestockId, windows) ->
+                        // Mutable copy: the alert merge below may addAll into
+                        // this value when a livestock has both sources (e.g. an
+                        // active disposition AND a resolved fever alert).
+                        byLivestock.put(livestockId, new ArrayList<>(toExclusionWindows(windows))));
+        alertWindowsByLivestock(farmId, from.minus(Duration.ofHours(feverBufferHours)))
+                .forEach((livestockId, windows) -> byLivestock
+                        .computeIfAbsent(livestockId, ignored -> new ArrayList<>())
+                        .addAll(windows));
+        return byLivestock;
+    }
+
+    /**
+     * Raw windows of one livestock — the single-livestock view of
+     * {@link #rawFeverWindowsByFarm}, resolving the farm from the livestock.
+     */
+    private List<ExclusionWindow> rawFeverWindowsForLivestock(Long livestockId, Instant from, Instant to) {
+        Long farmId = ranchQueryPort.findLivestockById(livestockId)
+                .map(LivestockInfo::farmId)
+                .orElse(null);
+        if (farmId == null) {
+            log.warn("Fever windows of livestock {} could not resolve a farm — alert exclusion windows skipped", livestockId);
+            return List.of();
+        }
+        return rawFeverWindowsByFarm(farmId, from, to).getOrDefault(livestockId, List.of());
+    }
+
+    /**
+     * Buffered fever windows of one livestock over {@code [from, to)}
+     * (package-visible, NIX-256 Task 5a): physiology illness windows ∪
+     * TEMPERATURE_ABNORMAL alert windows with the defervescence buffer
+     * applied — exactly the exclusion semantics the detector uses inside
+     * {@code detectRange}. Consumers computing per-day fever coverage
+     * (baseline sample-day rule, F4) read this so statistics and detection
+     * share one source of truth.
+     */
+    List<ExclusionWindow> feverWindowsForLivestock(Long livestockId, Instant from, Instant to) {
+        return extendWindows(rawFeverWindowsForLivestock(livestockId, from, to), feverBufferHours);
+    }
+
+    /**
+     * Buffered fever windows of a whole farm, keyed by livestock id
+     * (package-visible, NIX-256 Task 5a) — the batch variant of
+     * {@link #feverWindowsForLivestock} for herd-level statistics (peer
+     * comparison) that must not re-query the farm per head.
+     */
+    Map<Long, List<ExclusionWindow>> feverWindowsByFarm(Long farmId, Instant from, Instant to) {
+        Map<Long, List<ExclusionWindow>> buffered = new HashMap<>();
+        rawFeverWindowsByFarm(farmId, from, to)
+                .forEach((livestockId, windows) ->
+                        buffered.put(livestockId, extendWindows(windows, feverBufferHours)));
+        return buffered;
     }
 }
