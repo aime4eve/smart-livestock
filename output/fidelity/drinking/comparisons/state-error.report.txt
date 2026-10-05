@@ -1,0 +1,45 @@
+============================================================
+  SCREENSHOT FIDELITY COMPARISON REPORT
+============================================================
+Baseline:  /tmp/proto-err-baseline.png (390x215)
+Actual:    output/fidelity/drinking/flutter/state-error.png (390x237)
+Threshold: 85% similarity required
+
+── OVERALL ──
+  Similarity:     89.8%
+  Avg pixel diff: 15.14
+  Max pixel diff: 240
+  Verdict:        PASS
+
+── PER-REGION ANALYSIS ──
+  [OK  ] status_bar        sim= 99.5%  avg_diff=  7.63  mismatch=  0.5%
+  [OK  ] appbar            sim= 99.5%  avg_diff=  3.85  mismatch=  0.5%
+  [OK  ] summary_strip     sim= 85.6%  avg_diff= 25.21  mismatch= 14.4%
+  [OK  ] filter_bar        sim= 94.4%  avg_diff=  9.27  mismatch=  5.6%
+  [OK  ] content           sim= 87.0%  avg_diff= 17.71  mismatch= 13.0%
+  [OK  ] bottom_nav        sim= 91.8%  avg_diff= 12.76  mismatch=  8.2%
+
+── DOMINANT COLORS (baseline vs actual) ──
+  status_bar:
+    base: #FFFFFF(51.7%)  #F8F6F0(35.7%)  #F5F3ED(12.6%)
+    actu: #FFFFFF(47.9%)  #F8F6F0(46.9%)  #F8F5EF(5.2%)
+  appbar:
+    base: #FFFFFF(64.2%)  #F8F6F0(28.9%)  #F7F5EF(6.9%)
+    actu: #FFFFFF(93.9%)  #F8F6F0(5.9%)  #F7F5EF(0.2%)
+  summary_strip:
+    base: #FFFFFF(90.2%)  #F8F6F0(8.4%)  #FEFEFE(1.5%)
+    actu: #F8F6F0(85.5%)  #FFFFFF(9.7%)  #F7F5EE(4.8%)
+  filter_bar:
+    base: #FFFFFF(90.5%)  #F8F6F0(5.8%)  #FEFFFF(3.8%)
+    actu: #FFFFFF(81.0%)  #F7F5EF(11.5%)  #F8F6F0(7.5%)
+  content:
+    base: #FFFFFF(81.5%)  #F8F6F0(15.0%)  #F6F9FB(3.5%)
+    actu: #FFFFFF(75.7%)  #F8F6F0(21.1%)  #F7F5EF(3.2%)
+  bottom_nav:
+    base: #FFFFFF(93.7%)  #F8F6F0(5.7%)  #F6F4ED(0.6%)
+    actu: #FFFFFF(98.5%)  #FEFEFE(0.8%)  #FDFDFD(0.6%)
+
+── DIAGNOSIS ──
+  All regions meet threshold. Visual fidelity likely acceptable.
+
+============================================================

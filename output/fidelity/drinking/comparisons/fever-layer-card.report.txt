@@ -1,0 +1,47 @@
+============================================================
+  SCREENSHOT FIDELITY COMPARISON REPORT
+============================================================
+Baseline:  output/fidelity/drinking/prototype-elements/fever-layer-card.png (390x267)
+Actual:    output/fidelity/drinking/flutter/fever-layer-card.png (390x159)
+Threshold: 85% similarity required
+
+── OVERALL ──
+  Similarity:     94.0%
+  Avg pixel diff: 15.01
+  Max pixel diff: 242
+  Verdict:        PASS
+
+── PER-REGION ANALYSIS ──
+  [OK  ] status_bar        sim=100.0%  avg_diff=  0.34  mismatch=  0.0%
+  [DIFF] appbar            sim= 79.1%  avg_diff= 23.10  mismatch= 20.9%
+  [OK  ] summary_strip     sim= 99.6%  avg_diff=  3.53  mismatch=  0.4%
+  [OK  ] filter_bar        sim= 98.0%  avg_diff= 13.13  mismatch=  2.0%
+  [OK  ] content           sim= 95.1%  avg_diff= 16.31  mismatch=  4.9%
+  [OK  ] bottom_nav        sim= 97.7%  avg_diff=  2.77  mismatch=  2.3%
+
+── DOMINANT COLORS (baseline vs actual) ──
+  status_bar:
+    base: #FFFFFF(99.3%)  #F8F6F0(0.6%)  #FEFEFE(0.1%)
+    actu: #FFFFFF(94.8%)  #F8F6F0(4.6%)  #F9F8F3(0.5%)
+  appbar:
+    base: #FFFFFF(95.9%)  #FEFEFE(2.7%)  #FDFDFD(1.3%)
+    actu: #FFFFFF(91.9%)  #F8F6F0(5.8%)  #FEFEFE(2.3%)
+  summary_strip:
+    base: #F8F6F0(50.9%)  #FFFFFF(44.6%)  #F8F5EF(4.5%)
+    actu: #FFFFFF(94.5%)  #F8F6F0(4.8%)  #FEFEFE(0.7%)
+  filter_bar:
+    base: #F8F6F0(84.9%)  #F3E7D7(8.2%)  #FFFFFF(6.9%)
+    actu: #FFFFFF(94.8%)  #F8F6F0(4.6%)  #F9F8F3(0.5%)
+  content:
+    base: #F8F6F0(52.4%)  #FFFFFF(38.0%)  #F3E7D7(9.6%)
+    actu: #FFFFFF(94.7%)  #F8F6F0(4.7%)  #F9F8F3(0.5%)
+  bottom_nav:
+    base: #FFFFFF(99.0%)  #FEFEFE(0.7%)  #FDFDFD(0.3%)
+    actu: #FFFFFF(94.8%)  #F8F6F0(4.6%)  #F9F8F3(0.5%)
+
+── DIAGNOSIS ──
+  [!] appbar below threshold (79.1% < 85%)
+      -> Check colors, spacing, and layout in this region
+  All regions meet threshold. Visual fidelity likely acceptable.
+
+============================================================
