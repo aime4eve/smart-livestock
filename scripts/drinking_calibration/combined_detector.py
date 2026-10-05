@@ -95,17 +95,24 @@ def detect_combined(
         i += 1
 
     # Merge confirmed events closer than merge_gap_min (start-to-start).
+    # Rolling anchor: the gap compares against the previous member's own
+    # start, not the merged chain's first start — a chain-first anchor
+    # slices a single long descent into phantom segments at exact
+    # merge-gap multiples (platform-parity fix, T6 replay 2026-10-05).
     candidates.sort(key=lambda b: b["start_ts"])
     merged = []
     merge_gap_sec = merge_gap_min * 60.0
+    last_member_start = None
     for ev in candidates:
         if merged:
-            prev = merged[-1]
-            gap = (ev["start_ts"] - prev["start_ts"]) / np.timedelta64(1, "s")
+            gap = (ev["start_ts"] - last_member_start) / np.timedelta64(1, "s")
             if gap < merge_gap_sec:
+                prev = merged[-1]
                 prev["end_ts"] = max(prev["end_ts"], ev["end_ts"])
                 prev["temp_drop"] = max(prev["temp_drop"], ev["temp_drop"])
                 prev["min_temp"] = min(prev["min_temp"], ev["min_temp"])
+                last_member_start = ev["start_ts"]
                 continue
         merged.append(ev)
+        last_member_start = ev["start_ts"]
     return merged

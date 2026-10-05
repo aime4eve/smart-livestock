@@ -307,19 +307,26 @@ public class DrinkingEventDetectionService {
      * Chain-merge confirmed events whose consecutive starts are closer than
      * {@code mergeGapMin} minutes: earliest start, deepest trough, largest
      * drop, highest confidence; source = earliest start's point source.
+     *
+     * <p>The gap compares against the <b>previous member's own start</b>
+     * (rolling anchor), not the merged chain's earliest start: a descent
+     * longer than the merge gap emits one candidate per qualifying step, and
+     * a chain-first anchor would slice that single valley into phantom
+     * segments at exact merge-gap multiples (T6 replay finding, 2026-10-05).
      */
     static List<Valley> mergeEvents(List<Valley> valleys, int mergeGapMin) {
         List<Valley> sorted = valleys.stream()
                 .sorted(Comparator.comparing(Valley::startAt))
                 .toList();
         List<Valley> merged = new ArrayList<>();
+        Instant lastMemberStart = null;
         for (Valley valley : sorted) {
-            if (!merged.isEmpty() && minutesBetween(
-                    merged.get(merged.size() - 1).startAt(), valley.startAt()) < mergeGapMin) {
+            if (lastMemberStart != null && minutesBetween(lastMemberStart, valley.startAt()) < mergeGapMin) {
                 merged.set(merged.size() - 1, combine(merged.get(merged.size() - 1), valley));
             } else {
                 merged.add(valley);
             }
+            lastMemberStart = valley.startAt();
         }
         return merged;
     }

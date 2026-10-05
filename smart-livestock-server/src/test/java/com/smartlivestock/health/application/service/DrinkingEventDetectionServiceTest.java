@@ -316,6 +316,51 @@ class DrinkingEventDetectionServiceTest {
         assertThat(deep.confidence()).isGreaterThan(shallow.confidence());
     }
 
+    // ── 11. Rolling merge anchor: one long descent = one event ──
+    // T6 replay finding (2026-10-05): judgeDay emits one candidate per
+    // qualifying descent step, so a descent longer than merge-gap used to
+    // split into phantom segments at exact +15min multiples when the chain
+    // anchor was the merged chain's first start. The gap must compare
+    // against the previous member's own start (rolling anchor).
+
+    @Test
+    void longDescentMergesIntoSingleEvent() {
+        // 20-min descent (5 steps × 0.7°C), trough 10:20, full recovery by 11:00.
+        List<TempPoint> descent = new ArrayList<>();
+        double temp = 39.2;
+        for (int i = 0; i <= 4; i++) {
+            descent.add(point(String.format("2026-06-10T%02d:%02d", 10, i * 5), temp));
+            temp -= 0.7;
+        }
+        descent.add(point("2026-06-10T10:20", temp));
+        List<TempPoint> points = merge(
+                flat("2026-06-10T06:00", "2026-06-10T10:00", 39.2),
+                descent,
+                flat("2026-06-10T10:25", "2026-06-10T12:00", 39.2));
+
+        DetectionResult result = detect(points, "2026-06-10T00:00", "2026-06-10T23:59");
+
+        assertThat(result.events()).hasSize(1);
+        assertThat(result.events().get(0).startAt()).isEqualTo(at("2026-06-10T10:00"));
+        assertThat(result.events().get(0).troughAt()).isEqualTo(at("2026-06-10T10:20"));
+    }
+
+    @Test
+    void mergeEventsRollingAnchorKeepsGenuineSeparateBouts() {
+        Valley v1 = new Valley(at("2026-06-10T08:00"), at("2026-06-10T08:10"), 3.0, 36.0, 0.9, "THINGSBOARD", 2, 2, 2);
+        Valley v2 = new Valley(at("2026-06-10T08:10"), at("2026-06-10T08:20"), 2.9, 36.1, 0.9, "THINGSBOARD", 2, 2, 2);
+        Valley v3 = new Valley(at("2026-06-10T08:20"), at("2026-06-10T08:30"), 2.8, 36.2, 0.9, "THINGSBOARD", 2, 2, 2);
+        Valley far = new Valley(at("2026-06-10T09:00"), at("2026-06-10T09:10"), 3.0, 36.0, 0.9, "THINGSBOARD", 2, 2, 2);
+
+        List<Valley> merged = DrinkingEventDetectionService.mergeEvents(
+                new ArrayList<>(List.of(v1, v2, v3, far)), 15);
+
+        assertThat(merged).hasSize(2);
+        assertThat(merged.get(0).startAt()).isEqualTo(at("2026-06-10T08:00"));
+        assertThat(merged.get(0).minTemp()).isEqualTo(36.0);
+        assertThat(merged.get(1).startAt()).isEqualTo(at("2026-06-10T09:00"));
+    }
+
     // ── 10. Midnight crossing belongs to the start's local day ──
 
     @Test
