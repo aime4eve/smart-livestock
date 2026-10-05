@@ -83,6 +83,7 @@
 - **重算删除语义（F6）**：日批重跑与手动回算 = 先 `DELETE WHERE device_id=? AND event_start_at >= from−1h AND event_start_at < to+1h` 再插入（1h 漂移余量，配置 `health.drinking.recalc-overlap-hours:1`）——防补传 recordedAt 漂移绕过 UNIQUE 键产生重复行。
 - 检测器与统计参数**全部配置化**（`health.drinking.*`，F3：魔法数不入 UI 当权威）：`baseline-min-days:3`（基线最少有效天数，默认 3，标定复核）、`recalc-overlap-hours:1`、`recovery-window-min:120`、`merge-gap-min:15`、`k-sigma:0.5`、`fall-threshold:0.06`（°C/min，Δt 归一）、`recovery-ratio:0.7`；两判据组合（FallST 斜率 ∧ 逐牛逐日 μ−kσ）+ 回升确认 + 15min 合并；参数定值见 §14（Aubé 开放数据集 L1 标定，2026-10-05）。
 - 排除窗口：发热 episode/退热 6h 缓冲——由 `PhysiologyQueryPort.activeWindows` 读时合并产出（处置单侧）∪ `TEMPERATURE_ABNORMAL` 告警窗口拼装（`AlertBrief` 已自带 `createdAt/resolvedAt`，RanchQueryPort:41，**零 DTO 改动**）。
+- **source 语义（用户裁决 2026-10-05：基于仿真数据实现功能）**：检测处理全部 source 的温度点（含 DATAGEN），事件**保留温度点 source 标记**——仿真事件可演示、可统计展示，但按 source 可区分、永不与真实数据混算对外效果口径（AGENTS 红线"仿真不得冒充效果验收"不变，禁的是冒充、不是使用）。原"DATAGEN 不入库"条款废止，替换为本条。
 - 调度：`DrinkingEventScheduler` cron 默认 `0 40 3 * * *` + enabled 开关，**走共享调度池**（`SchedulerPoolConfig` 全局唯一显式 taskScheduler 8 线程 + 心跳探针兜底；不新建 scheduler bean——多 bean 混杂正是 09-30 静默死亡根因注释点名的模式，且 `@Scheduled` 无法路由第二个 bean）。
 
 ## 5. i18n
@@ -127,7 +128,7 @@
 2. **状态覆盖**：§3.3 五态 + Premium 锁定态逐一切换验证。
 3. **i18n**：`flutter gen-l10n` 无缺失、`flutter analyze` 通过、ZH/EN 切换走查。
 4. **可达性**（#25）：列表→卡片 2 击、详情分节 3 击；无隐藏入口。
-5. **数据口径**：DATAGEN 不入库；发热窗口不产事件（构造含发烧序列的集成测试）；新端点 curl 真实数据冒烟（#25）。
+5. **数据口径**：DATAGEN 事件带 source 标记入库（§4 source 语义，演示可用）；发热窗口不产事件（构造含发烧序列的集成测试）；新端点 curl 真实数据冒烟（#25）。
 6. **编译/测试**：后端编译 + 目标测试全绿（对比既有失败基线不扩大）。
 
 ---
@@ -253,3 +254,41 @@ public enum PhysiologyStageType { LACTATING, DRY }   // P1 只推导这两态；
 | `recalc-overlap-hours` | **1** | 维持原值（F6） |
 
 组合检测器（FallST ∧ μ−kσ + 回升确认 + 15min 合并）：**5-min F=0.9400**（TP 650/FP 3，Se 89.0%/PPV 99.5%）、6-min 0.9390、10-min 0.9270——门禁 F≥0.90 达成。数据勘误：饮水信号在 `ruminal_temperature` 列（corrected 列已被平滑）；我们平台 `temperature_logs` 存原始通道温度，同口径无此问题。
+
+## 15. 反馈标定闭环（用户裁决 2026-10-05：仿真实现 + 标记修正参数）
+
+三原则：①功能基于仿真数据即可跑通演示（§4 source 语义）；②系统具备"标记 → 修参数"的闭环能力；③标记来源双通道——系统自动发现 + 牧场主手动。
+
+### 15.1 数据模型（并入 drinking_events，T3 一并建表）
+
+| 列 | 语义 |
+|---|---|
+| `source` | 事件来源温度点的 source 透传（DATAGEN/THINGSBOARD/AGENTIC_PLATFORM/MANUAL_IMPORT…）+ 两个新枚举值：`MANUAL`（牧场主补录的漏报）、`ALGORITHM_CANDIDATE`（系统自动发现的疑似漏报候选，见 15.2） |
+| `label` | `UNLABELED` / `CONFIRMED`（确认真饮水）/ `REJECTED`（判误报）；默认 UNLABELED |
+| `confidence` | 事件置信度 0~1（纯函数：降幅、斜率、回升比对各自阈值的裕度归一合成，检测时写入） |
+
+### 15.2 标记通道
+
+**牧场主手动（写 API + T5 UI 行级操作）**：
+- `PATCH /api/v1/farms/{farmId}/livestock/{livestockId}/drinking-events/{id}/label` body `{label: CONFIRMED|REJECTED}`；
+- `POST .../drinking-events/manual` body `{eventStartAt, note?}`——补录漏报（source=MANUAL、label=CONFIRMED）；
+- 权限同生理事件（OWNER/B2B_ADMIN/WORKER 可写）。
+
+**系统自动发现（检测批产出，零人工）**：
+- 每事件写 confidence；低于 `health.drinking.low-confidence:0.5` 呈现为"待核实"（UI 低置信标记）；
+- **borderline 候选**：未过判据但各判据达阈值 50% 裕度内（配置 `health.drinking.candidate-tolerance:0.5`）的温度谷落 `source=ALGORITHM_CANDIDATE` 行——不计入统计、不算事件数，进"待标记"队列；牧场主确认后 label=CONFIRMED 转正参与统计，忽略则重算窗口清理。
+
+### 15.3 统计口径（F4 聚合规则细化）
+
+- 日柱/周合计/30 日基线：`source != ALGORITHM_CANDIDATE && label != REJECTED` 参与计数（检出默认计、误报剔除、补录计入、候选不进）；
+- 参数评估口径（离线）：全部 label 参与——CONFIRMED=TP 真值、REJECTED=FP 真值、MANUAL 补录=FN 真值、CANDIDATE 经裁决后归位。
+
+### 15.4 参数修正闭环（离线工具，P1 不做自动改参）
+
+- 标签导出：`GET /api/v1/admin/drinking-labels/export?from=&to=`（CSV：事件字段+label+confidence+检测上下文），管理员权限；
+- `calibrate.py --labels <export.csv>` 新模式：在标签集上重算参数网格的 Se/PPV/F，输出**建议参数**报告——运维据此改 `health.drinking.*` 配置；
+- 采信门槛：单牧场 CONFIRMED+REJECTED 合计 ≥100 条方出建议，报告注明样本量；自动调参列 P2（需护栏设计）。
+
+### 15.5 与验证阶梯的关系
+
+本节闭环在仿真数据上先行跑通（功能+标记+导出+重标定全链路演示）；真实设备数据接入后**同一套机制无缝切换**（标记 UI 与导出与 source 无关）；L3 试点（水表/摄像头）= 最高质量标记来源。对外效果口径仅采用真实 source 事件的标签统计——AGENTS 红线不变。

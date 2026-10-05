@@ -49,9 +49,10 @@
 
 1. Flyway 迁移：`drinking_events` 表——**DDL 惯例五项**（`TIMESTAMP`、`REFERENCES devices/livestock` 外键、`temp_drop/min_temp NUMERIC(10,2)`、`updated_at`；source 沿用动态口径不加 CHECK）——完整 DDL 见技术方案 §6.1（已按仓库范本修订）。
 2. `DrinkingEventDetectionService`（health.application.service）：纯函数核心（输入温度点列 → 事件列表）+ 两判据（FallST 斜率 ∧ μ−kσ）+ 2h 回升确认 + 15min 合并；参数读 `health.drinking.*` 配置（**全部配置化，四轮 F3**，定值见 spec §14/T2 标定：`baseline-min-days:3`/`recalc-overlap-hours:1`/`recovery-window-min:120`/`merge-gap-min:15`/`k-sigma:0.5`/`fall-threshold:0.06`/`recovery-ratio:0.7`）；**牛日边界 = Asia/Shanghai 日历日**（F5，跨午夜按本地日归属）。温度点列直接复用 `TemperatureLogJpaRepository.findByDeviceIdAndRecordedAtBetweenOrderByRecordedAtAsc`（已核实现成）。
-3. 排除窗口：`PhysiologyQueryPort.activeWindowsForFarm`（读时合并，含处置单路）∪ `TEMPERATURE_ABNORMAL` 告警窗口（`AlertBrief.createdAt/resolvedAt` 拼装，已核实零 DTO 改动）；离体过滤（35–43°C 门卫）+ source 过滤（排除 DATAGEN）。
+3. 排除窗口：`PhysiologyQueryPort.activeWindowsForFarm`（读时合并，含处置单路）∪ `TEMPERATURE_ABNORMAL` 告警窗口（`AlertBrief.createdAt/resolvedAt` 拼装，已核实零 DTO 改动）；离体过滤（35–43°C 门卫）。**source 透传不排除**（用户裁决 2026-10-05，spec §4/§15：DATAGEN 事件带 source 标记入库、可演示）。
+3b. **标记闭环数据面（spec §15.1/15.2）**：`drinking_events` 建 `label`（UNLABELED/CONFIRMED/REJECTED）、`source`（透传 + MANUAL/ALGORITHM_CANDIDATE 两新值）、`confidence` 三列；检测时写置信度（降幅/斜率/回升比裕度归一纯函数）与 borderline 候选行（`candidate-tolerance:0.5`）；标记 API：PATCH label（确认/误报）+ POST manual 补录漏报（三角色可写，权限对齐生理事件）。
 4. 输入查询：`temperature_logs` 按 device 分组取当日+前 2h 点列（复用现有仓储查询，不新造轮子）。
-5. 真库集成测试（Testcontainers，教训 #19）：正常 V 形谷两连发合并为一、发烧序列不产假阳性（排除窗口生效）、离体点丢弃、DATAGEN 不入库、跨日边界。
+5. 真库集成测试（Testcontainers，教训 #19）：正常 V 形谷两连发合并为一、发烧序列不产假阳性（排除窗口生效）、离体点丢弃、DATAGEN 事件带 source 标记入库、候选行不计统计、label 翻转改统计口径（REJECTED 剔除）、跨日边界。
 
 **验证**：`./gradlew compileJava` + 新测试全绿；既有失败基线（19 个）不扩大。
 
@@ -62,7 +63,7 @@
 3. 手动回算/批量触发 API（运维，管理员权限；路径对齐 TileAdminController 惯例）：`POST /api/v1/admin/drinking-recalculate`（body：`deviceId` 可选 + `from`/`to` 必填）+ `@PreAuthorize("hasAnyRole('PLATFORM_ADMIN','B2B_ADMIN')")`——带 deviceId=单设备补传后重算；**省略 deviceId=按日期范围全群重算（P5，T6 的 30 天回放直接复用此端点）**；不做页面。
 4. 幂等与补传（**F6 重算删除语义**）：同 device 同窗口重算 = 事务内先 `DELETE WHERE device_id=? AND event_start_at >= from−1h AND event_start_at < to+1h`（重叠删除，1h 余量配置 `health.drinking.recalc-overlap-hours`）再插入——时间戳漂移不会绕过 UNIQUE 键。
 
-**验证**：dev 部署后手动触发批任务，curl 检查 `drinking_events` 有真实通道数据、重跑无重复行；`actuator/health` 401→种子登录 200 判活（#23）。
+**验证**：dev 部署后手动触发批任务——**仿真数据在流（用户裁决后 source 全放行），curl 检查 `drinking_events` 有事件、source 标记正确（dev 全部应为 DATAGEN）、重跑无重复行**；可选加验：Aubé 真牛序列以 MANUAL_IMPORT 限窗灌入→检出对照已知答案→清理；`actuator/health` 401→种子登录 200 判活（#23）。
 
 ## Task 5 · API + Flutter 组件（保真核心 Task）
 
@@ -70,17 +71,18 @@
 2. Flutter 规格卡克隆：`DrinkingCard`（详情页健康 Tab 插入体温趋势卡同级）、`DrinkingDetailSection`（健康详情页第四分节）、状态卡组件（5 态）、Premium 锁定卡（复用/新建 LockedOverlay 组件）、图层 chips。
 3. 图表实现**钉死（减少 Task 内现场决策）**：体温曲线叠加用 fl_chart `LineChart`——主温度线 + 第二数据列谷点（`FlDotCirclePainter` 白描边）+ 发热区间 `HorizontalRangeAnnotation`；时刻分布与 mini-bars 自绘（对齐项目既有自绘图惯例）；分段切换/图层开关状态管理走 Riverpod（farm-scoped 规则 §5：`watchActiveFarmId()`）。
 4. i18n：spec §5 文案表（含四轮 F3：UI 无学术引用、发热口径精确句式）入 `app_zh.arb`/`app_en.arb`；实现对照**原型数据溯源表**（3c 节）逐数字核对端点字段。
+4b. **标记闭环 UI（spec §15.2，原型外新增——无原型屏，按行级轻量交互实现、不新开屏）**：事件行确认/误报操作（PATCH label）、详情分节"漏报补录"入口（POST manual）、低置信"待核实"标记（confidence<0.5）、候选行"待标记"分组（确认即转正）；文案入 ARB。
 5. 每 Task 内增量截图对照：Flutter Web build → 同尺寸截图 vs 基线 → `compare_screenshots.py` ≥85%，差异清零才提交。
 
 **验证**：`flutter analyze` 零问题；gen-l10n 无缺失；6+2 屏对照图全过阈值，落 `output/fidelity/drinking/comparisons/`；主旅程走查（详情卡→详情分节→图层开关→锁定态）截图留证。
 
-## Task 6 · L2 真实数据回放报告
+## Task 6 · L2 回放报告（用户裁决 2026-10-05 后分两段）
 
-1. dev/test 真实通道（THINGSBOARD/AGENTIC_PLATFORM）历史数据回放 30 天——**经 Task 4.3 批量触发端点**（省略 deviceId，指定 30 天范围），顺带验证该端点本身。
-2. 检查三项：检出频次量级 vs 牲畜类别（泌乳牛对照 Cardot 7.3±2.8，其他类别自建分布）；V 形形态人工抽查 20 例；DATAGEN 零混入。
+1. **L2-pre（本期可做，仿真数据全链路）**：dev/test 30 天回放——经 Task 4.3 批量触发端点（省略 deviceId，指定 30 天范围），顺带验证端点；**标记闭环演练**：打标签 → 导出 CSV → `calibrate.py --labels` 出建议报告（验证 spec §15 机制本身跑通）；V 形形态人工抽查 20 例。
+2. **L2-real（顺延）**：真实通道（THINGSBOARD/AGENTIC_PLATFORM）30 天回放——**当前温度/蠕动全部为 DATAGEN 仿真，无真实数据可放**；待 86/223 生产环境核实有真实设备数据、或试点设备接入后执行。报告仅采信真实 source 事件；频次量级对照 Cardot 7.3±2.8（泌乳牛）。
 3. 报告落 `docs/research/`（含边界样张验证：0 次日/全发热周/英文长文案/textScale 1.3）。
 
-**验证**：报告产出且三项有结论；异常样本清单回灌 T3 参数微调（如需改参数，同一次提交更新 spec/plan/配置）。
+**验证**：L2-pre 报告产出且三项有结论（回放/标记演练/形态抽查）；L2-real 触发条件与顺延状态在报告显式记录；异常样本清单回灌 T3 参数微调（如需改参数，同一次提交更新 spec/plan/配置）。
 
 ## Task 7 · 部署 dev → 用户集成测试 → L3 试点方案
 
