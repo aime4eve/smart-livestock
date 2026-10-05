@@ -129,8 +129,14 @@ class PhysiologyRecordCard extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(l10n.healthPhysiologyDeleteTitle),
-        content: Text(l10n.healthPhysiologyDeleteConfirm),
+        title: Text(
+          l10n.healthPhysiologyDeleteTitle,
+          key: const ValueKey('physiology-delete-dialog-title'),
+        ),
+        content: Text(
+          l10n.healthPhysiologyDeleteConfirm,
+          key: const ValueKey('physiology-delete-dialog-message'),
+        ),
         actions: [
           TextButton(
             key: const Key('physiology-delete-cancel'),

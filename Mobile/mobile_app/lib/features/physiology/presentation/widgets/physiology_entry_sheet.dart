@@ -168,6 +168,11 @@ class _PhysiologyEntrySheetState extends ConsumerState<PhysiologyEntrySheet> {
                 ),
               ),
               Text(
+                // Distinct keys per mode so tests can assert the edit
+                // sheet specifically (Mobile/AGENTS key-lookup convention).
+                key: _isEditing
+                    ? const ValueKey('physiology-edit-sheet-title')
+                    : const ValueKey('physiology-create-sheet-title'),
                 _isEditing
                     ? l10n.healthPhysiologyEditSheetTitle
                     : l10n.healthPhysiologySheetTitle,
@@ -199,6 +204,7 @@ class _PhysiologyEntrySheetState extends ConsumerState<PhysiologyEntrySheet> {
                         '✅ ${l10n.healthPhysiologyEventRecovery}',
                   }.entries)
                     _TypeChip(
+                      key: ValueKey('physiology-type-chip-${entry.key.name}'),
                       label: entry.value,
                       selected: entry.key == _type,
                       onTap: _isEditing
@@ -312,14 +318,19 @@ class _PhysiologyEntrySheetState extends ConsumerState<PhysiologyEntrySheet> {
                 ),
               ),
               const SizedBox(height: 9),
-              Text(
-                l10n.healthPhysiologyIllnessNote,
-                style: const TextStyle(
-                  fontSize: 10,
-                  height: 1.5,
-                  color: AppColors.textSecondary,
+              // Illness-only footnote (n-h): "no end-date field" is illness
+              // semantics, so the hint renders only when the selected type
+              // (or the locked type of the row being edited) is ILLNESS.
+              if (_type == PhysiologyEventType.illness)
+                Text(
+                  key: const ValueKey('physiology-illness-hint'),
+                  l10n.healthPhysiologyIllnessNote,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    height: 1.5,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
-              ),
             ],
           ),
         ),
@@ -339,6 +350,7 @@ class _PhysiologyEntrySheetState extends ConsumerState<PhysiologyEntrySheet> {
 /// edit mode: the chip keeps its selection state but does not respond.
 class _TypeChip extends StatelessWidget {
   const _TypeChip({
+    super.key,
     required this.label,
     required this.selected,
     required this.onTap,

@@ -33,6 +33,7 @@ class PhysiologyApiRepository implements PhysiologyRepository {
       body: {
         'eventType': eventType.wireName,
         'occurredAt': _wireDate(occurredAt),
+        // Create: an empty note is simply omitted — nothing to clear yet.
         if (note != null && note.isNotEmpty) 'note': note,
       },
     );
@@ -50,7 +51,11 @@ class PhysiologyApiRepository implements PhysiologyRepository {
       '/livestock/$livestockId/physiology-events/$eventId',
       body: {
         'occurredAt': _wireDate(occurredAt),
-        if (note != null && note.isNotEmpty) 'note': note,
+        // N17 explicit-clearing contract (backend c836b14e):
+        // null/omitted keeps the old note, an empty string clears it, a
+        // non-empty value updates it. The sheet trims before calling, so
+        // an empty field reaches the wire as '' — never silently dropped.
+        if (note != null) 'note': note,
       },
     );
     return PhysiologyEventItem.fromJson(data);

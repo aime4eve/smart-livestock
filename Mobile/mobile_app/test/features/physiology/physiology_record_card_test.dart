@@ -152,7 +152,8 @@ void main() {
     await tester.tap(find.byKey(const Key('physiology-edit-31')));
     await tester.pumpAndSettle();
 
-    expect(find.text('编辑生理记录'), findsOneWidget);
+    expect(find.byKey(const ValueKey('physiology-edit-sheet-title')),
+        findsOneWidget);
 
     // Note prefilled from the row.
     final noteField = tester.widget<TextField>(
@@ -162,7 +163,9 @@ void main() {
 
     // Type chip is locked: tapping another chip is a no-op (updateEvent
     // carries no type — the type is immutable server-side).
-    await tester.tap(find.text('🐮 产犊'));
+    await tester.tap(
+      find.byKey(const ValueKey('physiology-type-chip-calving')),
+    );
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('physiology-entry-save')));
@@ -170,7 +173,53 @@ void main() {
 
     expect(repo.updatedEventIds, [31]);
     expect(repo.lastUpdateNote, 'observed at pen 3');
-    expect(find.text('编辑生理记录'), findsNothing); // sheet popped
+    // sheet popped
+    expect(
+      find.byKey(const ValueKey('physiology-edit-sheet-title')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('clearing the note sends an explicit empty string (N17)',
+      (tester) async {
+    final repo = _FakePhysiologyRepository();
+    await _pumpCard(tester, repo);
+
+    await tester.tap(find.byKey(const Key('physiology-edit-31')));
+    await tester.pumpAndSettle();
+
+    // Overwrite the prefilled note with empty content and save.
+    await tester.enterText(find.byKey(const Key('physiology-entry-note')), '');
+    await tester.tap(find.byKey(const Key('physiology-entry-save')));
+    await tester.pumpAndSettle();
+
+    // The sheet must pass the trimmed empty string through: the backend
+    // contract (c836b14e) treats '' as "clear the note", so converting it
+    // to null (omitted) anywhere on the way would silently keep the old
+    // value.
+    expect(repo.updatedEventIds, [31]);
+    expect(repo.lastUpdateNote, '');
+  });
+
+  testWidgets('illness footnote is shown for the illness type only (n-h)',
+      (tester) async {
+    final repo = _FakePhysiologyRepository();
+    await _pumpCard(tester, repo);
+
+    // Create mode: the default type is pregnancy check — no hint.
+    await tester.tap(find.byKey(const Key('physiology-add-record')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('physiology-illness-hint')), findsNothing);
+
+    await tester
+        .tap(find.byKey(const ValueKey('physiology-type-chip-illness')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('physiology-illness-hint')), findsOneWidget);
+
+    await tester
+        .tap(find.byKey(const ValueKey('physiology-type-chip-calving')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('physiology-illness-hint')), findsNothing);
   });
 
   testWidgets('delete asks for confirmation before touching the repository',
@@ -181,8 +230,10 @@ void main() {
     await tester.tap(find.byKey(const Key('physiology-delete-31')));
     await tester.pumpAndSettle();
 
-    expect(find.text('删除生理记录'), findsOneWidget);
-    expect(find.text('删除后不可恢复，确定删除这条记录吗？'), findsOneWidget);
+    expect(find.byKey(const ValueKey('physiology-delete-dialog-title')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('physiology-delete-dialog-message')),
+        findsOneWidget);
 
     // Cancel path leaves the repository untouched.
     await tester.tap(find.byKey(const Key('physiology-delete-cancel')));
@@ -196,6 +247,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repo.deletedEventIds, [31]);
-    expect(find.text('删除生理记录'), findsNothing); // dialog closed
+    // dialog closed
+    expect(
+      find.byKey(const ValueKey('physiology-delete-dialog-title')),
+      findsNothing,
+    );
   });
 }
