@@ -8,6 +8,7 @@ import 'package:hkt_livestock_agentic/core/l10n/enum_labels.dart';
 import 'package:hkt_livestock_agentic/core/charts/temperature_axis.dart';
 import 'package:hkt_livestock_agentic/core/charts/chart_readout_layer.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
+import 'package:hkt_livestock_agentic/core/models/health_models.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/core/widgets/auto_refresh_listener.dart';
@@ -30,6 +31,10 @@ import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/features/devices/domain/devices_repository.dart';
 import 'package:hkt_livestock_agentic/features/devices/presentation/devices_controller.dart';
 import 'package:hkt_livestock_agentic/features/digestive/presentation/digestive_controller.dart';
+import 'package:hkt_livestock_agentic/features/drinking/presentation/widgets/drinking_card.dart';
+import 'package:hkt_livestock_agentic/features/drinking/presentation/widgets/drinking_detail_section.dart';
+import 'package:hkt_livestock_agentic/features/drinking/domain/drinking_models.dart';
+import 'package:hkt_livestock_agentic/features/drinking/presentation/drinking_controller.dart';
 
 class LivestockDetailPage extends ConsumerWidget {
   const LivestockDetailPage({super.key, required this.livestockId});
@@ -113,22 +118,7 @@ class LivestockDetailPage extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               asyncData.when(
-                data: (detail) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _LivestockInfoCard(detail: detail),
-                    const SizedBox(height: AppSpacing.md),
-                    _DeviceListCard(detail: detail),
-                    GatewayDistanceCard(livestockId: detail.livestockId),
-                    const SizedBox(height: AppSpacing.md),
-                    _HealthDataCard(detail: detail),
-                    const SizedBox(height: AppSpacing.md),
-                    // ── Inline: physiology record card (NIX-256) ──
-                    PhysiologyRecordCard(livestockId: detail.livestockId),
-                    const SizedBox(height: AppSpacing.md),
-                    _LocationCard(detail: detail),
-                  ],
-                ),
+                data: (detail) => _LivestockDetailBody(detail: detail),
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (e, _) => Center(
                   child: Column(
@@ -158,6 +148,64 @@ class LivestockDetailPage extends ConsumerWidget {
   }
 }
 
+/// Detail column as a stateful body so it can own the [GlobalKey] that
+/// scrolls from the DrinkingCard to the drinking detail section (the
+/// section lives further down the same scroll view, NIX-256).
+class _LivestockDetailBody extends StatefulWidget {
+  const _LivestockDetailBody({required this.detail});
+
+  final LivestockDetail detail;
+
+  @override
+  State<_LivestockDetailBody> createState() => _LivestockDetailBodyState();
+}
+
+class _LivestockDetailBodyState extends State<_LivestockDetailBody> {
+  final GlobalKey _drinkingDetailKey = GlobalKey();
+
+  @override
+  Widget build(BuildContext context) {
+    final detail = widget.detail;
+    final hasCapsule = detail.devices.any(
+      (d) => d.type == DeviceType.rumenCapsule,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _LivestockInfoCard(detail: detail),
+        const SizedBox(height: AppSpacing.md),
+        _DeviceListCard(detail: detail),
+        GatewayDistanceCard(livestockId: detail.livestockId),
+        const SizedBox(height: AppSpacing.md),
+        _HealthDataCard(detail: detail, drinkingSectionKey: _drinkingDetailKey),
+        const SizedBox(height: AppSpacing.md),
+        // ── Inline: drinking behavior summary card (NIX-256), same level
+        // as the fever trend card; taps scroll to the detail section. ──
+        DrinkingCard(
+          livestockId: detail.livestockId,
+          hasCapsule: hasCapsule,
+          onTap: () {
+            final ctx = _drinkingDetailKey.currentContext;
+            if (ctx != null) {
+              Scrollable.ensureVisible(
+                ctx,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOutCubic,
+                alignment: 0.0,
+              );
+            }
+          },
+        ),
+        const SizedBox(height: AppSpacing.md),
+        // ── Inline: physiology record card (NIX-256) ──
+        PhysiologyRecordCard(livestockId: detail.livestockId),
+        const SizedBox(height: AppSpacing.md),
+        _LocationCard(detail: detail),
+      ],
+    );
+  }
+}
+
 class _LivestockInfoCard extends StatelessWidget {
   const _LivestockInfoCard({required this.detail});
 
@@ -173,9 +221,16 @@ class _LivestockInfoCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(
-                detail.livestockCode,
-                style: Theme.of(context).textTheme.titleLarge,
+              // Long livestock codes (e.g. SL-2024-012) plus the status
+              // chip exceed the card width at 390px; ellipsize the code
+              // instead of overflowing the row by ~4px.
+              Flexible(
+                child: Text(
+                  detail.livestockCode,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
               ),
               const SizedBox(width: AppSpacing.sm),
               HighfiStatusChip(
@@ -807,9 +862,13 @@ class _BindDeviceSheetState extends ConsumerState<_BindDeviceSheet> {
 }
 
 class _HealthDataCard extends ConsumerWidget {
-  const _HealthDataCard({required this.detail});
+  const _HealthDataCard({required this.detail, this.drinkingSectionKey});
 
   final LivestockDetail detail;
+
+  /// Key of the drinking detail section so the DrinkingCard can scroll
+  /// to it (NIX-256).
+  final Key? drinkingSectionKey;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -856,19 +915,72 @@ class _HealthDataCard extends ConsumerWidget {
           const SizedBox(height: AppSpacing.md),
           // ── Inline: estrus score trend chart (Premium+) ──
           _EstrusTrendSection(livestockId: detail.livestockId, tier: tier),
+          const SizedBox(height: AppSpacing.md),
+          DrinkingDetailSection(
+            key: drinkingSectionKey,
+            livestockId: detail.livestockId,
+          ),
         ],
       ),
     );
   }
 }
 
-class _FeverTrendSection extends ConsumerWidget {
+/// Temperature trend chart with the drinking layer chips (NIX-256,
+/// prototype screen 4): the existing fever LineChart gains three
+/// toggleable overlay layers — fever marks / drinking events / baseline —
+/// all on by default (F2).
+///
+/// Layer notes:
+/// - Drinking layer: valley dots (r4 --drinking-event, white stroke 1.5)
+///   as a dot-only second series aligned to the temperature index axis;
+///   same dot style as the 48h overlay chart.
+/// - Fever layer: the existing chart has no fever-window annotation and
+///   the wire data has no time-granular fever windows, so this chip
+///   toggles threshold-exceeded point markers (temperature ≥
+///   fever.threshold) — a documented degradation from the prototype's
+///   fever shadow region.
+/// - Baseline layer: the existing per-cow baseline dashed line.
+class _FeverTrendSection extends ConsumerStatefulWidget {
   const _FeverTrendSection({required this.livestockId});
   final String livestockId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_FeverTrendSection> createState() => _FeverTrendSectionState();
+}
+
+class _FeverTrendSectionState extends ConsumerState<_FeverTrendSection> {
+  bool _feverLayer = true;
+  bool _drinkingLayer = true;
+  bool _baselineLayer = true;
+
+  /// Interpolated x index of [t] on the readings index axis, or null when
+  /// outside the covered time span (valley dots then simply don't render).
+  static double? _interpolatedIndex(
+    List<TemperatureRecord> readings,
+    DateTime t,
+  ) {
+    if (readings.isEmpty) return null;
+    if (t.isBefore(readings.first.timestamp) ||
+        t.isAfter(readings.last.timestamp)) {
+      return null;
+    }
+    for (var i = 0; i < readings.length - 1; i++) {
+      final a = readings[i].timestamp;
+      final b = readings[i + 1].timestamp;
+      if (!t.isBefore(a) && !t.isAfter(b)) {
+        final span = b.difference(a).inMilliseconds;
+        if (span <= 0) return i.toDouble();
+        return i + t.difference(a).inMilliseconds / span;
+      }
+    }
+    return (readings.length - 1).toDouble();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final livestockId = widget.livestockId;
     final asyncFever = ref.watch(feverDetailControllerProvider(livestockId));
 
     return asyncFever.when(
@@ -901,12 +1013,43 @@ class _FeverTrendSection extends ConsumerWidget {
         final timestamps = readings
             .map((reading) => reading.timestamp)
             .toList();
-        final minTemp =
+        // Drinking valleys inside the covered span (§15.3 counted rule),
+        // aligned to the index axis.
+        final valleySpots = _drinkingLayer
+            ? ref
+                  .watch(drinkingEventsControllerProvider(livestockId))
+                  .maybeWhen(
+                    data: (events) => events
+                        .where(
+                          (e) =>
+                              e.label != DrinkingLabel.rejected &&
+                              (!e.isCandidate ||
+                                  e.label == DrinkingLabel.confirmed) &&
+                              e.minTemp != null,
+                        )
+                        .map((e) {
+                          final x = _interpolatedIndex(
+                            readings,
+                            e.eventStartAt,
+                          );
+                          return x == null ? null : FlSpot(x, e.minTemp!);
+                        })
+                        .whereType<FlSpot>()
+                        .toList(),
+                    orElse: () => const <FlSpot>[],
+                  )
+            : const <FlSpot>[];
+
+        var minTemp =
             readings.map((r) => r.temperature).reduce((a, b) => a < b ? a : b) -
             0.3;
-        final maxTemp =
+        var maxTemp =
             readings.map((r) => r.temperature).reduce((a, b) => a > b ? a : b) +
             0.3;
+        for (final spot in valleySpots) {
+          minTemp = minTemp < spot.y ? minTemp : spot.y - 0.1;
+          maxTemp = maxTemp > spot.y ? maxTemp : spot.y + 0.1;
+        }
 
         final latestPoint = readings.last.timestamp;
         return Column(
@@ -972,7 +1115,23 @@ class _FeverTrendSection extends ConsumerWidget {
                       isCurved: true,
                       color: AppColors.danger,
                       barWidth: 2,
-                      dotData: const FlDotData(show: false),
+                      // Fever layer: threshold-exceeded point markers
+                      // (degraded from the prototype's fever shadow
+                      // region — no time-granular windows on the wire).
+                      dotData: _feverLayer
+                          ? FlDotData(
+                              show: true,
+                              checkToShowDot: (spot, _) =>
+                                  spot.y >= fever.threshold,
+                              getDotPainter: (spot, percent, bar, index) =>
+                                  FlDotCirclePainter(
+                                color: AppColors.fever,
+                                radius: 3,
+                                strokeColor: Colors.white,
+                                strokeWidth: 1,
+                              ),
+                            )
+                          : const FlDotData(show: false),
                       belowBarData: BarAreaData(
                         show: true,
                         gradient: LinearGradient(
@@ -985,19 +1144,37 @@ class _FeverTrendSection extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    LineChartBarData(
-                      spots: [
-                        FlSpot(0, fever.baselineTemp),
-                        FlSpot(
-                          (readings.length - 1).toDouble(),
-                          fever.baselineTemp,
+                    if (_baselineLayer)
+                      LineChartBarData(
+                        spots: [
+                          FlSpot(0, fever.baselineTemp),
+                          FlSpot(
+                            (readings.length - 1).toDouble(),
+                            fever.baselineTemp,
+                          ),
+                        ],
+                        color: AppColors.textSecondary.withValues(alpha: 0.4),
+                        dashArray: const [4, 4],
+                        barWidth: 1,
+                        dotData: const FlDotData(show: false),
+                      ),
+                    // Drinking layer: valley dots as a dot-only series.
+                    if (valleySpots.isNotEmpty)
+                      LineChartBarData(
+                        spots: valleySpots,
+                        color: AppColors.drinkingEvent,
+                        barWidth: 0,
+                        dotData: FlDotData(
+                          show: true,
+                          getDotPainter: (spot, percent, bar, index) =>
+                              FlDotCirclePainter(
+                            color: AppColors.drinkingEvent,
+                            radius: 4,
+                            strokeColor: Colors.white,
+                            strokeWidth: 1.5,
+                          ),
                         ),
-                      ],
-                      color: AppColors.textSecondary.withValues(alpha: 0.4),
-                      dashArray: const [4, 4],
-                      barWidth: 1,
-                      dotData: const FlDotData(show: false),
-                    ),
+                      ),
                   ],
                 ),
               ),
@@ -1013,9 +1190,96 @@ class _FeverTrendSection extends ConsumerWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 8),
+            // layer-chips row (prototype screen 4): three toggles, all on
+            // by default.
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                _LayerChip(
+                  key: const Key('drinking-layer-fever'),
+                  label: l10n.healthDrinkingLayerFever,
+                  swatch: AppColors.fever,
+                  on: _feverLayer,
+                  onTap: () => setState(() => _feverLayer = !_feverLayer),
+                ),
+                _LayerChip(
+                  key: const Key('drinking-layer-drinking'),
+                  label: l10n.healthDrinkingLayerDrinking,
+                  swatch: AppColors.drinkingEvent,
+                  on: _drinkingLayer,
+                  onTap: () => setState(() => _drinkingLayer = !_drinkingLayer),
+                ),
+                _LayerChip(
+                  key: const Key('drinking-layer-baseline'),
+                  label: l10n.healthDrinkingLayerBaseline,
+                  swatch: AppColors.textSecondary,
+                  on: _baselineLayer,
+                  onTap: () =>
+                      setState(() => _baselineLayer = !_baselineLayer),
+                ),
+              ],
+            ),
           ],
         );
       },
+    );
+  }
+}
+
+/// One layer-chip (prototype screen 4): fs9 fw700, r999, padding 3×8,
+/// 7×7 round swatch; on → text-primary + border --drinking, off →
+/// secondary + border --border.
+class _LayerChip extends StatelessWidget {
+  const _LayerChip({
+    super.key,
+    required this.label,
+    required this.swatch,
+    required this.on,
+    required this.onTap,
+  });
+
+  final String label;
+  final Color swatch;
+  final bool on;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(999),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: on ? AppColors.drinking : AppColors.border,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 7,
+              height: 7,
+              decoration: BoxDecoration(color: swatch, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                color: on ? AppColors.textPrimary : AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

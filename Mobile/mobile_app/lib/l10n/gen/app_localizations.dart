@@ -12514,6 +12514,474 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'保存失败，请稍后重试'**
   String get healthPhysiologySaveFailed;
+
+  /// No description provided for @healthDrinkingTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'饮水行为'**
+  String get healthDrinkingTitle;
+
+  /// No description provided for @healthDrinkingTodayCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 次 / 今日'**
+  String healthDrinkingTodayCount(int n);
+
+  /// No description provided for @healthDrinkingTodayUnit.
+  ///
+  /// In zh, this message translates to:
+  /// **'次 / 今日'**
+  String get healthDrinkingTodayUnit;
+
+  /// No description provided for @healthDrinkingLastDrink.
+  ///
+  /// In zh, this message translates to:
+  /// **'上次饮水'**
+  String get healthDrinkingLastDrink;
+
+  /// No description provided for @healthDrinkingMinutesAgo.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 分钟前'**
+  String healthDrinkingMinutesAgo(int n);
+
+  /// No description provided for @healthDrinkingYesterdayAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'昨天 {time}'**
+  String healthDrinkingYesterdayAt(String time);
+
+  /// No description provided for @healthDrinkingWeekBars.
+  ///
+  /// In zh, this message translates to:
+  /// **'近 7 日'**
+  String get healthDrinkingWeekBars;
+
+  /// No description provided for @healthDrinkingPeerBaseline.
+  ///
+  /// In zh, this message translates to:
+  /// **'同类{group}均值 {n} 次/日'**
+  String healthDrinkingPeerBaseline(String group, String n);
+
+  /// No description provided for @healthDrinkingOwnBaseline.
+  ///
+  /// In zh, this message translates to:
+  /// **'本牛基线 {m} 次/日'**
+  String healthDrinkingOwnBaseline(String m);
+
+  /// No description provided for @healthDrinkingPeerInsufficient.
+  ///
+  /// In zh, this message translates to:
+  /// **'同类样本暂不足（需 ≥{minDays} 个达标样本日）'**
+  String healthDrinkingPeerInsufficient(int minDays);
+
+  /// No description provided for @healthDrinkingPeerGroupLactating.
+  ///
+  /// In zh, this message translates to:
+  /// **'成母牛'**
+  String get healthDrinkingPeerGroupLactating;
+
+  /// No description provided for @healthDrinkingPeerGroupDry.
+  ///
+  /// In zh, this message translates to:
+  /// **'干奶'**
+  String get healthDrinkingPeerGroupDry;
+
+  /// No description provided for @healthDrinkingFeverContext.
+  ///
+  /// In zh, this message translates to:
+  /// **'{date} {n} 次：当日发热覆盖约 {percent}%，发热期间饮水减少属常见现象；发热期数据不参与异常判定与基线计算'**
+  String healthDrinkingFeverContext(String date, int n, int percent);
+
+  /// No description provided for @healthDrinkingDayMon.
+  ///
+  /// In zh, this message translates to:
+  /// **'一'**
+  String get healthDrinkingDayMon;
+
+  /// No description provided for @healthDrinkingDayTue.
+  ///
+  /// In zh, this message translates to:
+  /// **'二'**
+  String get healthDrinkingDayTue;
+
+  /// No description provided for @healthDrinkingDayWed.
+  ///
+  /// In zh, this message translates to:
+  /// **'三'**
+  String get healthDrinkingDayWed;
+
+  /// No description provided for @healthDrinkingDayThu.
+  ///
+  /// In zh, this message translates to:
+  /// **'四'**
+  String get healthDrinkingDayThu;
+
+  /// No description provided for @healthDrinkingDayFri.
+  ///
+  /// In zh, this message translates to:
+  /// **'五'**
+  String get healthDrinkingDayFri;
+
+  /// No description provided for @healthDrinkingDaySat.
+  ///
+  /// In zh, this message translates to:
+  /// **'六'**
+  String get healthDrinkingDaySat;
+
+  /// No description provided for @healthDrinkingDaySun.
+  ///
+  /// In zh, this message translates to:
+  /// **'日'**
+  String get healthDrinkingDaySun;
+
+  /// No description provided for @healthDrinkingDayToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'今'**
+  String get healthDrinkingDayToday;
+
+  /// No description provided for @healthDrinkingWeekdayPrefix.
+  ///
+  /// In zh, this message translates to:
+  /// **'周'**
+  String get healthDrinkingWeekdayPrefix;
+
+  /// No description provided for @healthDrinkingStateNoData.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无饮水数据'**
+  String get healthDrinkingStateNoData;
+
+  /// No description provided for @healthDrinkingNoDataDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'该牲畜尚未绑定瘤胃胶囊，绑定后约 24 小时内建立基线并开始统计'**
+  String get healthDrinkingNoDataDesc;
+
+  /// No description provided for @healthDrinkingNoDataChip.
+  ///
+  /// In zh, this message translates to:
+  /// **'未绑定 RBC 胶囊'**
+  String get healthDrinkingNoDataChip;
+
+  /// No description provided for @healthDrinkingStateBuilding.
+  ///
+  /// In zh, this message translates to:
+  /// **'基线建立中'**
+  String get healthDrinkingStateBuilding;
+
+  /// No description provided for @healthDrinkingBuildingDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'已积累 {n} 天数据，检测算法需 ≥{min} 天有效数据才能可靠区分饮水谷与体温波动'**
+  String healthDrinkingBuildingDesc(int n, int min);
+
+  /// No description provided for @healthDrinkingBuildingChip.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} / {min} 天'**
+  String healthDrinkingBuildingChip(int n, int min);
+
+  /// No description provided for @healthDrinkingStateBackfill.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据补传中'**
+  String get healthDrinkingStateBackfill;
+
+  /// No description provided for @healthDrinkingStateError.
+  ///
+  /// In zh, this message translates to:
+  /// **'饮水数据暂时不可用'**
+  String get healthDrinkingStateError;
+
+  /// No description provided for @healthDrinkingErrorDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'检测服务暂时无法访问，你的数据没有丢失——恢复后（通常几分钟内）将自动补算今日统计。'**
+  String get healthDrinkingErrorDesc;
+
+  /// No description provided for @healthDrinkingRetry.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新加载'**
+  String get healthDrinkingRetry;
+
+  /// No description provided for @healthDrinkingDetailTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'饮水行为详情'**
+  String get healthDrinkingDetailTitle;
+
+  /// No description provided for @healthDrinkingTimeDistribution.
+  ///
+  /// In zh, this message translates to:
+  /// **'今日饮水时刻分布'**
+  String get healthDrinkingTimeDistribution;
+
+  /// No description provided for @healthDrinkingTotalToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'共 {n} 次'**
+  String healthDrinkingTotalToday(int n);
+
+  /// No description provided for @healthDrinkingConcentration.
+  ///
+  /// In zh, this message translates to:
+  /// **'{percent}% 饮水集中在饲喂/挤奶后，与本牛日常习惯一致'**
+  String healthDrinkingConcentration(int percent);
+
+  /// No description provided for @healthDrinkingTempOverlay.
+  ///
+  /// In zh, this message translates to:
+  /// **'48h 温度×饮水'**
+  String get healthDrinkingTempOverlay;
+
+  /// No description provided for @healthDrinkingSegSelf.
+  ///
+  /// In zh, this message translates to:
+  /// **'本牛'**
+  String get healthDrinkingSegSelf;
+
+  /// No description provided for @healthDrinkingSegPeer.
+  ///
+  /// In zh, this message translates to:
+  /// **'同类'**
+  String get healthDrinkingSegPeer;
+
+  /// No description provided for @healthDrinkingHonestyNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'数据为瘤胃温度自动检测，更新延迟约 30 分钟；夏季水温接近体温时部分饮水可能未被识别（检出的均可靠）。发热期数据不参与异常判定与基线计算。'**
+  String get healthDrinkingHonestyNote;
+
+  /// No description provided for @healthDrinkingTempUnavailable.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无温度数据'**
+  String get healthDrinkingTempUnavailable;
+
+  /// No description provided for @healthDrinkingLegendTemp.
+  ///
+  /// In zh, this message translates to:
+  /// **'瘤胃温度'**
+  String get healthDrinkingLegendTemp;
+
+  /// No description provided for @healthDrinkingLegendValley.
+  ///
+  /// In zh, this message translates to:
+  /// **'饮水谷（点=谷底）'**
+  String get healthDrinkingLegendValley;
+
+  /// No description provided for @healthDrinkingLegendBaseline.
+  ///
+  /// In zh, this message translates to:
+  /// **'基线'**
+  String get healthDrinkingLegendBaseline;
+
+  /// No description provided for @healthDrinkingLegendEvent.
+  ///
+  /// In zh, this message translates to:
+  /// **'饮水事件（谷底≈饮水结束）'**
+  String get healthDrinkingLegendEvent;
+
+  /// No description provided for @healthDrinkingLegendZone.
+  ///
+  /// In zh, this message translates to:
+  /// **'饲喂/挤奶时段'**
+  String get healthDrinkingLegendZone;
+
+  /// No description provided for @healthDrinkingZoneFeed.
+  ///
+  /// In zh, this message translates to:
+  /// **'饲喂后'**
+  String get healthDrinkingZoneFeed;
+
+  /// No description provided for @healthDrinkingZoneMilking.
+  ///
+  /// In zh, this message translates to:
+  /// **'挤奶后'**
+  String get healthDrinkingZoneMilking;
+
+  /// No description provided for @healthDrinkingZoneEvening.
+  ///
+  /// In zh, this message translates to:
+  /// **'傍晚高峰'**
+  String get healthDrinkingZoneEvening;
+
+  /// No description provided for @healthDrinkingAxisHour.
+  ///
+  /// In zh, this message translates to:
+  /// **'{h}时'**
+  String healthDrinkingAxisHour(int h);
+
+  /// No description provided for @healthDrinkingPeerCompareTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'同类成母牛均值对比'**
+  String get healthDrinkingPeerCompareTitle;
+
+  /// No description provided for @healthDrinkingPeerCompareSelf.
+  ///
+  /// In zh, this message translates to:
+  /// **'本牛近 7 日'**
+  String get healthDrinkingPeerCompareSelf;
+
+  /// No description provided for @healthDrinkingPeerComparePeer.
+  ///
+  /// In zh, this message translates to:
+  /// **'同类均值'**
+  String get healthDrinkingPeerComparePeer;
+
+  /// No description provided for @healthDrinkingPerDay.
+  ///
+  /// In zh, this message translates to:
+  /// **'{v} 次/日'**
+  String healthDrinkingPerDay(String v);
+
+  /// No description provided for @healthDrinkingPendingGroupTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'待标记（{n}）'**
+  String healthDrinkingPendingGroupTitle(int n);
+
+  /// No description provided for @healthDrinkingEventListTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'今日饮水事件（{n}）'**
+  String healthDrinkingEventListTitle(int n);
+
+  /// No description provided for @healthDrinkingConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认'**
+  String get healthDrinkingConfirm;
+
+  /// No description provided for @healthDrinkingReject.
+  ///
+  /// In zh, this message translates to:
+  /// **'误报'**
+  String get healthDrinkingReject;
+
+  /// No description provided for @healthDrinkingLabelConfirmed.
+  ///
+  /// In zh, this message translates to:
+  /// **'已确认'**
+  String get healthDrinkingLabelConfirmed;
+
+  /// No description provided for @healthDrinkingLabelRejected.
+  ///
+  /// In zh, this message translates to:
+  /// **'误报'**
+  String get healthDrinkingLabelRejected;
+
+  /// No description provided for @healthDrinkingLabelUnlabeled.
+  ///
+  /// In zh, this message translates to:
+  /// **'未标记'**
+  String get healthDrinkingLabelUnlabeled;
+
+  /// No description provided for @healthDrinkingNeedsVerification.
+  ///
+  /// In zh, this message translates to:
+  /// **'待核实'**
+  String get healthDrinkingNeedsVerification;
+
+  /// No description provided for @healthDrinkingSourceManual.
+  ///
+  /// In zh, this message translates to:
+  /// **'补录'**
+  String get healthDrinkingSourceManual;
+
+  /// No description provided for @healthDrinkingAddManual.
+  ///
+  /// In zh, this message translates to:
+  /// **'＋ 漏报补录'**
+  String get healthDrinkingAddManual;
+
+  /// No description provided for @healthDrinkingNoEventsToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'今日未检出饮水事件'**
+  String get healthDrinkingNoEventsToday;
+
+  /// No description provided for @healthDrinkingSaveFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存失败，请稍后重试'**
+  String get healthDrinkingSaveFailed;
+
+  /// No description provided for @healthDrinkingManualSheetTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'补录饮水事件'**
+  String get healthDrinkingManualSheetTitle;
+
+  /// No description provided for @healthDrinkingManualTimeLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'时刻'**
+  String get healthDrinkingManualTimeLabel;
+
+  /// No description provided for @healthDrinkingManualTimeHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'yyyy-MM-dd HH:mm（本地时间）'**
+  String get healthDrinkingManualTimeHint;
+
+  /// No description provided for @healthDrinkingManualTimeInvalid.
+  ///
+  /// In zh, this message translates to:
+  /// **'时刻格式不正确，应为 yyyy-MM-dd HH:mm'**
+  String get healthDrinkingManualTimeInvalid;
+
+  /// No description provided for @healthDrinkingManualTimeFuture.
+  ///
+  /// In zh, this message translates to:
+  /// **'时刻不能晚于现在'**
+  String get healthDrinkingManualTimeFuture;
+
+  /// No description provided for @healthDrinkingManualNoteHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'备注（选填，≤200 字）…'**
+  String get healthDrinkingManualNoteHint;
+
+  /// No description provided for @healthDrinkingTierBadge.
+  ///
+  /// In zh, this message translates to:
+  /// **'Premium+'**
+  String get healthDrinkingTierBadge;
+
+  /// No description provided for @healthDrinkingLockedMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'同类对比（按品种/月龄段分组）为 Premium 权益'**
+  String get healthDrinkingLockedMessage;
+
+  /// No description provided for @healthDrinkingUpgrade.
+  ///
+  /// In zh, this message translates to:
+  /// **'升级解锁'**
+  String get healthDrinkingUpgrade;
+
+  /// No description provided for @healthDrinkingLayerFever.
+  ///
+  /// In zh, this message translates to:
+  /// **'发热标记 ✓'**
+  String get healthDrinkingLayerFever;
+
+  /// No description provided for @healthDrinkingLayerDrinking.
+  ///
+  /// In zh, this message translates to:
+  /// **'饮水事件 ✓'**
+  String get healthDrinkingLayerDrinking;
+
+  /// No description provided for @healthDrinkingLayerBaseline.
+  ///
+  /// In zh, this message translates to:
+  /// **'基线 ✓'**
+  String get healthDrinkingLayerBaseline;
 }
 
 class _AppLocalizationsDelegate

@@ -5172,7 +5172,8 @@
   ,"workbenchImmediateSub": "Breach · epidemic · tamper"
   ,"@workbenchImmediateSub": {}
   ,"workbenchField": "Field check"
-  ,"@workbenchFieldSub": "Approach · battery · offline"
+  ,"@workbenchField": {}
+  ,"workbenchFieldSub": "Approach · battery · offline"
   ,"@workbenchFieldSub": {}
   ,"workbenchObserve": "Observe"
   ,"@workbenchObserve": {}
@@ -5402,4 +5403,225 @@
   ,"@healthPhysiologyIllnessNote": {}
   ,"healthPhysiologySaveFailed": "Save failed, please try again later"
   ,"@healthPhysiologySaveFailed": {}
+  ,"healthDrinkingTitle": "Drinking Behavior"
+  ,"@healthDrinkingTitle": {}
+  ,"healthDrinkingTodayCount": "{n} today"
+  ,"@healthDrinkingTodayCount": {
+      "placeholders": {
+        "n": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingTodayUnit": "visits / today"
+  ,"@healthDrinkingTodayUnit": {}
+  ,"healthDrinkingLastDrink": "Last drink"
+  ,"@healthDrinkingLastDrink": {}
+  ,"healthDrinkingMinutesAgo": "{n} min ago"
+  ,"@healthDrinkingMinutesAgo": {
+      "placeholders": {
+        "n": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingYesterdayAt": "yesterday {time}"
+  ,"@healthDrinkingYesterdayAt": {
+      "placeholders": {
+        "time": {"type": "String"}
+      }
+    }
+  ,"healthDrinkingWeekBars": "Last 7 days"
+  ,"@healthDrinkingWeekBars": {}
+  ,"healthDrinkingPeerBaseline": "{group} peer avg {n}/day"
+  ,"@healthDrinkingPeerBaseline": {
+      "placeholders": {
+        "group": {"type": "String"},
+        "n": {"type": "String"}
+      }
+    }
+  ,"healthDrinkingOwnBaseline": "own baseline {m}/day"
+  ,"@healthDrinkingOwnBaseline": {
+      "placeholders": {
+        "m": {"type": "String"}
+      }
+    }
+  ,"healthDrinkingPeerInsufficient": "Peer sample insufficient (needs ≥{minDays} qualifying sample days)"
+  ,"@healthDrinkingPeerInsufficient": {
+      "placeholders": {
+        "minDays": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingPeerGroupLactating": "cow"
+  ,"@healthDrinkingPeerGroupLactating": {}
+  ,"healthDrinkingPeerGroupDry": "dry"
+  ,"@healthDrinkingPeerGroupDry": {}
+  ,"healthDrinkingFeverContext": "{date}: {n} visits with ~{percent}% fever coverage — reduced drinking is expected during fever; fever data is excluded from anomaly detection and baselines"
+  ,"@healthDrinkingFeverContext": {
+      "placeholders": {
+        "date": {"type": "String"},
+        "n": {"type": "int"},
+        "percent": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingDayMon": "Mon"
+  ,"@healthDrinkingDayMon": {}
+  ,"healthDrinkingDayTue": "Tue"
+  ,"@healthDrinkingDayTue": {}
+  ,"healthDrinkingDayWed": "Wed"
+  ,"@healthDrinkingDayWed": {}
+  ,"healthDrinkingDayThu": "Thu"
+  ,"@healthDrinkingDayThu": {}
+  ,"healthDrinkingDayFri": "Fri"
+  ,"@healthDrinkingDayFri": {}
+  ,"healthDrinkingDaySat": "Sat"
+  ,"@healthDrinkingDaySat": {}
+  ,"healthDrinkingDaySun": "Sun"
+  ,"@healthDrinkingDaySun": {}
+  ,"healthDrinkingDayToday": "Today"
+  ,"@healthDrinkingDayToday": {}
+  ,"healthDrinkingWeekdayPrefix": ""
+  ,"@healthDrinkingWeekdayPrefix": {}
+  ,"healthDrinkingStateNoData": "No drinking data yet"
+  ,"@healthDrinkingStateNoData": {}
+  ,"healthDrinkingNoDataDesc": "This livestock has no rumen capsule bound; binding one establishes a baseline and starts statistics within ~24 hours"
+  ,"@healthDrinkingNoDataDesc": {}
+  ,"healthDrinkingNoDataChip": "No RBC capsule bound"
+  ,"@healthDrinkingNoDataChip": {}
+  ,"healthDrinkingStateBuilding": "Building baseline"
+  ,"@healthDrinkingStateBuilding": {}
+  ,"healthDrinkingBuildingDesc": "{n} day(s) collected so far — the detector needs ≥{min} valid days to reliably separate drinking valleys from temperature noise"
+  ,"@healthDrinkingBuildingDesc": {
+      "placeholders": {
+        "n": {"type": "int"},
+        "min": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingBuildingChip": "{n} / {min} days"
+  ,"@healthDrinkingBuildingChip": {
+      "placeholders": {
+        "n": {"type": "int"},
+        "min": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingStateBackfill": "Backfilling"
+  ,"@healthDrinkingStateBackfill": {}
+  ,"healthDrinkingStateError": "Drinking data temporarily unavailable"
+  ,"@healthDrinkingStateError": {}
+  ,"healthDrinkingErrorDesc": "The detection service is unreachable — your data is not lost; today's statistics will be recalculated automatically once it recovers (usually within minutes)."
+  ,"@healthDrinkingErrorDesc": {}
+  ,"healthDrinkingRetry": "Retry"
+  ,"@healthDrinkingRetry": {}
+  ,"healthDrinkingDetailTitle": "Drinking Behavior Detail"
+  ,"@healthDrinkingDetailTitle": {}
+  ,"healthDrinkingTimeDistribution": "Today's drinking timeline"
+  ,"@healthDrinkingTimeDistribution": {}
+  ,"healthDrinkingTotalToday": "{n} total"
+  ,"@healthDrinkingTotalToday": {
+      "placeholders": {
+        "n": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingConcentration": "{percent}% of drinks cluster after feeding/milking, consistent with this cow's routine"
+  ,"@healthDrinkingConcentration": {
+      "placeholders": {
+        "percent": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingTempOverlay": "48h temp × drinking"
+  ,"@healthDrinkingTempOverlay": {}
+  ,"healthDrinkingSegSelf": "Self"
+  ,"@healthDrinkingSegSelf": {}
+  ,"healthDrinkingSegPeer": "Peers"
+  ,"@healthDrinkingSegPeer": {}
+  ,"healthDrinkingHonestyNote": "Auto-detected from rumen temperature with ~30 min delay. Some drinks may be missed in summer when water is near body temperature (detected events are reliable). Fever data is excluded from anomaly detection and baselines."
+  ,"@healthDrinkingHonestyNote": {}
+  ,"healthDrinkingTempUnavailable": "No temperature data"
+  ,"@healthDrinkingTempUnavailable": {}
+  ,"healthDrinkingLegendTemp": "Rumen temperature"
+  ,"@healthDrinkingLegendTemp": {}
+  ,"healthDrinkingLegendValley": "Drinking valley (dot = trough)"
+  ,"@healthDrinkingLegendValley": {}
+  ,"healthDrinkingLegendBaseline": "Baseline"
+  ,"@healthDrinkingLegendBaseline": {}
+  ,"healthDrinkingLegendEvent": "Drinking event (trough ≈ drink end)"
+  ,"@healthDrinkingLegendEvent": {}
+  ,"healthDrinkingLegendZone": "Feeding / milking window"
+  ,"@healthDrinkingLegendZone": {}
+  ,"healthDrinkingZoneFeed": "After feeding"
+  ,"@healthDrinkingZoneFeed": {}
+  ,"healthDrinkingZoneMilking": "After milking"
+  ,"@healthDrinkingZoneMilking": {}
+  ,"healthDrinkingZoneEvening": "Evening peak"
+  ,"@healthDrinkingZoneEvening": {}
+  ,"healthDrinkingAxisHour": "{h}h"
+  ,"@healthDrinkingAxisHour": {
+      "placeholders": {
+        "h": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingPeerCompareTitle": "Peer cow average comparison"
+  ,"@healthDrinkingPeerCompareTitle": {}
+  ,"healthDrinkingPeerCompareSelf": "Own last 7 days"
+  ,"@healthDrinkingPeerCompareSelf": {}
+  ,"healthDrinkingPeerComparePeer": "Peer average"
+  ,"@healthDrinkingPeerComparePeer": {}
+  ,"healthDrinkingPerDay": "{v}/day"
+  ,"@healthDrinkingPerDay": {
+      "placeholders": {
+        "v": {"type": "String"}
+      }
+    }
+  ,"healthDrinkingPendingGroupTitle": "To be marked ({n})"
+  ,"@healthDrinkingPendingGroupTitle": {
+      "placeholders": {
+        "n": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingEventListTitle": "Today's events ({n})"
+  ,"@healthDrinkingEventListTitle": {
+      "placeholders": {
+        "n": {"type": "int"}
+      }
+    }
+  ,"healthDrinkingConfirm": "Confirm"
+  ,"@healthDrinkingConfirm": {}
+  ,"healthDrinkingReject": "False"
+  ,"@healthDrinkingReject": {}
+  ,"healthDrinkingLabelConfirmed": "Confirmed"
+  ,"@healthDrinkingLabelConfirmed": {}
+  ,"healthDrinkingLabelRejected": "Rejected"
+  ,"@healthDrinkingLabelRejected": {}
+  ,"healthDrinkingLabelUnlabeled": "Unlabeled"
+  ,"@healthDrinkingLabelUnlabeled": {}
+  ,"healthDrinkingNeedsVerification": "Verify"
+  ,"@healthDrinkingNeedsVerification": {}
+  ,"healthDrinkingSourceManual": "Back-filled"
+  ,"@healthDrinkingSourceManual": {}
+  ,"healthDrinkingAddManual": "+ Back-fill missed"
+  ,"@healthDrinkingAddManual": {}
+  ,"healthDrinkingNoEventsToday": "No drinking events detected today"
+  ,"@healthDrinkingNoEventsToday": {}
+  ,"healthDrinkingSaveFailed": "Save failed, please try again later"
+  ,"@healthDrinkingSaveFailed": {}
+  ,"healthDrinkingManualSheetTitle": "Back-fill drinking event"
+  ,"@healthDrinkingManualSheetTitle": {}
+  ,"healthDrinkingManualTimeLabel": "Time"
+  ,"@healthDrinkingManualTimeLabel": {}
+  ,"healthDrinkingManualTimeHint": "yyyy-MM-dd HH:mm (local time)"
+  ,"@healthDrinkingManualTimeHint": {}
+  ,"healthDrinkingManualTimeInvalid": "Invalid time format, expected yyyy-MM-dd HH:mm"
+  ,"@healthDrinkingManualTimeInvalid": {}
+  ,"healthDrinkingManualTimeFuture": "Time cannot be in the future"
+  ,"@healthDrinkingManualTimeFuture": {}
+  ,"healthDrinkingManualNoteHint": "Note (optional, ≤200 chars)…"
+  ,"@healthDrinkingManualNoteHint": {}
+  ,"healthDrinkingTierBadge": "Premium+"
+  ,"@healthDrinkingTierBadge": {}
+  ,"healthDrinkingLockedMessage": "Peer comparison (grouped by breed / stage) is a Premium feature"
+  ,"@healthDrinkingLockedMessage": {}
+  ,"healthDrinkingUpgrade": "Upgrade"
+  ,"@healthDrinkingUpgrade": {}
+  ,"healthDrinkingLayerFever": "Fever marks ✓"
+  ,"@healthDrinkingLayerFever": {}
+  ,"healthDrinkingLayerDrinking": "Drinking events ✓"
+  ,"@healthDrinkingLayerDrinking": {}
+  ,"healthDrinkingLayerBaseline": "Baseline ✓"
+  ,"@healthDrinkingLayerBaseline": {}
 }
