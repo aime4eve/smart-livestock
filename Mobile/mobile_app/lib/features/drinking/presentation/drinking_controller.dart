@@ -54,9 +54,13 @@ final drinkingSummaryControllerProvider = AsyncNotifierProvider.family<
   DrinkingSummaryController.new,
 );
 
-/// Drinking event rows for `[yesterday, today]` cow-days (inclusive) —
-/// today's rows feed the timeline chart + marking list, yesterday's cover
-/// the tail of the 48h overlay chart. Newest first from the backend.
+/// Drinking event rows for the `[D-2, D-1, today]` cow-days (inclusive) —
+/// today's rows feed the timeline chart + marking list, while the 48h
+/// overlay chart's valley window starts at now−48h, which reaches into
+/// D-2 for the first 12h of the day (e.g. at 08:00 the window covers
+/// [D-2 08:00, now]); fetching only yesterday would miss those valleys.
+/// The chart consumer filters to now−48h itself, so the extra tail rows
+/// are inert elsewhere. Newest first from the backend.
 class DrinkingEventsController extends FarmScopedAsyncNotifier<List<DrinkingEvent>> {
   DrinkingEventsController(this.livestockId);
 
@@ -68,7 +72,7 @@ class DrinkingEventsController extends FarmScopedAsyncNotifier<List<DrinkingEven
     final today = DateTime.now();
     return ref.read(drinkingRepositoryProvider).listEvents(
           livestockId,
-          from: drinkingWireDay(today.subtract(const Duration(days: 1))),
+          from: drinkingWireDay(today.subtract(const Duration(days: 2))),
           to: drinkingWireDay(today),
         );
   }

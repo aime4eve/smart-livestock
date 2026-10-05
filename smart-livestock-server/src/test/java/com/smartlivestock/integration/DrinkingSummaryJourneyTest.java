@@ -101,6 +101,13 @@ public class DrinkingSummaryJourneyTest extends AbstractJourneyTest {
 
     private Long insertEvent(LocalDate day, String startClock, String endClock,
                              String source, DrinkingEventLabel label, String algorithmVersion) {
+        return insertEvent(day, startClock, endClock, source, label, algorithmVersion,
+                new BigDecimal("0.850"));
+    }
+
+    private Long insertEvent(LocalDate day, String startClock, String endClock,
+                             String source, DrinkingEventLabel label, String algorithmVersion,
+                             BigDecimal confidence) {
         DrinkingEventJpaEntity entity = new DrinkingEventJpaEntity();
         entity.setDeviceId(deviceId);
         entity.setLivestockId(livestockId);
@@ -110,7 +117,7 @@ public class DrinkingSummaryJourneyTest extends AbstractJourneyTest {
         entity.setMinTemp(new BigDecimal("36.80"));
         entity.setSource(source);
         entity.setLabel(label);
-        entity.setConfidence(new BigDecimal("0.850"));
+        entity.setConfidence(confidence);
         entity.setAlgorithmVersion(algorithmVersion);
         DrinkingEventJpaEntity saved = eventRepository.save(entity);
         createdEventIds.add(saved.getId());
@@ -178,6 +185,9 @@ public class DrinkingSummaryJourneyTest extends AbstractJourneyTest {
         assertThat(daily.get("weekly")).isNull();
         assertThat(daily.get("rolling30dBaseline")).isNull();
         assertThat(daily.get("dayCounts")).isNull();
+        // Every layer variant carries the server-side baseline threshold
+        // (spec §4 baseline-min-days, M5) — the client chip reads this.
+        assertThat(daily.get("baselineMinDays")).isEqualTo(3);
         Map<String, Object> dailyLayer = (Map<String, Object>) daily.get("daily");
         assertThat(dailyLayer.get("count")).isEqualTo(4);
         List<Map<String, Object>> events = (List<Map<String, Object>>) dailyLayer.get("events");
@@ -191,6 +201,7 @@ public class DrinkingSummaryJourneyTest extends AbstractJourneyTest {
         // other six days have no events, so the week total is the day's 4.
         Map<String, Object> week = getData(getRaw(ownerToken,
                 base() + "/drinking-summary?date=" + fixtureDay + "&days=7"));
+        assertThat(week.get("baselineMinDays")).isEqualTo(3);
         Map<String, Object> weekly = (Map<String, Object>) week.get("weekly");
         assertThat(weekly.get("count")).isEqualTo(4);
         assertThat(new BigDecimal(String.valueOf(weekly.get("avgPerDay"))))
@@ -213,6 +224,7 @@ public class DrinkingSummaryJourneyTest extends AbstractJourneyTest {
         }
         Map<String, Object> month = getData(getRaw(ownerToken,
                 base() + "/drinking-summary?date=" + fixtureDay + "&days=30"));
+        assertThat(month.get("baselineMinDays")).isEqualTo(3);
         Map<String, Object> baseline = (Map<String, Object>) month.get("rolling30dBaseline");
         assertThat(baseline.get("sampleDays")).isEqualTo(expectedSampleDays);
         // Only the fixture day carries counted events → 4/sampleDays.
@@ -255,6 +267,29 @@ public class DrinkingSummaryJourneyTest extends AbstractJourneyTest {
                 HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
         assertError(getRaw(ownerToken, base() + "/drinking-events?to=" + LocalDate.now(ZONE).plusDays(2)),
                 HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
+    }
+
+    // ── 2b. Event list: server-derived lowConfidence flag (M5) ──
+
+    @Test
+    void eventsListServesDerivedLowConfidenceFlag() {
+        // 0.400 < health.drinking.low-confidence:0.5 → flagged; 0.850 → not.
+        insertEvent(fixtureDay, "09:00", "09:10", "DATAGEN",
+                DrinkingEventLabel.UNLABELED, DrinkingAlgorithmVersion.V1, new BigDecimal("0.400"));
+        insertEvent(fixtureDay, "10:00", "10:10", DrinkingEventSources.ALGORITHM_CANDIDATE,
+                DrinkingEventLabel.UNLABELED, DrinkingAlgorithmVersion.V1, new BigDecimal("0.850"));
+
+        List<Map<String, Object>> rows = getDataList(getRaw(ownerToken,
+                base() + "/drinking-events?from=" + fixtureDay + "&to=" + fixtureDay));
+        assertThat(rows).hasSize(2);
+        Map<String, Object> low = rows.stream()
+                .filter(r -> String.valueOf(r.get("eventStartAt")).equals(wall(fixtureDay, "09:00").toString()))
+                .findFirst().orElseThrow();
+        Map<String, Object> normal = rows.stream()
+                .filter(r -> String.valueOf(r.get("eventStartAt")).equals(wall(fixtureDay, "10:00").toString()))
+                .findFirst().orElseThrow();
+        assertThat(low.get("lowConfidence")).isEqualTo(true);
+        assertThat(normal.get("lowConfidence")).isEqualTo(false);
     }
 
     // ── 3. Premium 403 + bilingual message ──────────────────────

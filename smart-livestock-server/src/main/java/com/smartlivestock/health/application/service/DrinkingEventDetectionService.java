@@ -586,7 +586,10 @@ public class DrinkingEventDetectionService {
     }
 
     private Instant scanTo(Instant to) {
-        return to.plus(Duration.ofHours(1)).plus(recoveryLookahead(currentParams()));
+        // Symmetric with scanFrom: the same configurable overlap, so tuning
+        // health.drinking.recalc-overlap-hours keeps both window bounds in
+        // one piece (m-a) instead of skewing the right edge by a hard 1h.
+        return to.plus(Duration.ofHours(recalcOverlapHours)).plus(recoveryLookahead(currentParams()));
     }
 
     // ── Exclusion window assembly ────────────────────────────────

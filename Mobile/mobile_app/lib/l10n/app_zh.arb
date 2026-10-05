@@ -5400,6 +5400,14 @@
   ,"@healthPhysiologyIllnessNote": {}
   ,"healthPhysiologySaveFailed": "保存失败，请稍后重试"
   ,"@healthPhysiologySaveFailed": {}
+  ,"healthPhysiologyEditSheetTitle": "编辑生理记录"
+  ,"@healthPhysiologyEditSheetTitle": {}
+  ,"healthPhysiologyDeleteTitle": "删除生理记录"
+  ,"@healthPhysiologyDeleteTitle": {}
+  ,"healthPhysiologyDeleteConfirm": "删除后不可恢复，确定删除这条记录吗？"
+  ,"@healthPhysiologyDeleteConfirm": {}
+  ,"healthPhysiologyDelete": "删除"
+  ,"@healthPhysiologyDelete": {}
   ,"healthDrinkingTitle": "饮水行为"
   ,"@healthDrinkingTitle": {}
   ,"healthDrinkingTodayCount": "{n} 次 / 今日"
@@ -5424,8 +5432,6 @@
         "time": {"type": "String"}
       }
     }
-  ,"healthDrinkingWeekBars": "近 7 日"
-  ,"@healthDrinkingWeekBars": {}
   ,"healthDrinkingPeerBaseline": "同类{group}均值 {n} 次/日"
   ,"@healthDrinkingPeerBaseline": {
       "placeholders": {

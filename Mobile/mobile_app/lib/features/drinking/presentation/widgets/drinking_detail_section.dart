@@ -76,6 +76,8 @@ class _DrinkingDetailSectionState extends ConsumerState<DrinkingDetailSection> {
               ? DrinkingStateVariant.noData
               : DrinkingStateVariant.building,
           sampleDays: summaryAsync.value?.baselineSampleDays ?? 0,
+          baselineMinDays:
+              summaryAsync.value?.baselineMinDays ?? kDrinkingBaselineMinDays,
         );
       case DrinkingCardUiState.ready:
         body = _ReadySection(

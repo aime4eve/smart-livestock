@@ -6766,6 +6766,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get healthPhysiologySaveFailed => '保存失败，请稍后重试';
 
   @override
+  String get healthPhysiologyEditSheetTitle => '编辑生理记录';
+
+  @override
+  String get healthPhysiologyDeleteTitle => '删除生理记录';
+
+  @override
+  String get healthPhysiologyDeleteConfirm => '删除后不可恢复，确定删除这条记录吗？';
+
+  @override
+  String get healthPhysiologyDelete => '删除';
+
+  @override
   String get healthDrinkingTitle => '饮水行为';
 
   @override
@@ -6788,9 +6800,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String healthDrinkingYesterdayAt(String time) {
     return '昨天 $time';
   }
-
-  @override
-  String get healthDrinkingWeekBars => '近 7 日';
 
   @override
   String healthDrinkingPeerBaseline(String group, String n) {

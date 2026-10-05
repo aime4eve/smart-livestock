@@ -7,8 +7,14 @@ import 'package:hkt_livestock_agentic/features/physiology/presentation/physiolog
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 /// Opens the "new physiology record" bottom sheet with the dim overlay
-/// specified by the prototype (rgba(38,49,38,.35), C7).
-void showPhysiologyEntrySheet(BuildContext context, String livestockId) {
+/// specified by the prototype (rgba(38,49,38,.35), C7). Passing [editing]
+/// reopens the sheet in edit mode (M7): type chip locked, date / note
+/// prefilled from the row, save becomes an updateEvent call.
+void showPhysiologyEntrySheet(
+  BuildContext context,
+  String livestockId, {
+  PhysiologyEventItem? editing,
+}) {
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -17,7 +23,8 @@ void showPhysiologyEntrySheet(BuildContext context, String livestockId) {
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
     ),
-    builder: (ctx) => PhysiologyEntrySheet(livestockId: livestockId),
+    builder: (ctx) =>
+        PhysiologyEntrySheet(livestockId: livestockId, editing: editing),
   );
 }
 
@@ -25,10 +32,21 @@ void showPhysiologyEntrySheet(BuildContext context, String livestockId) {
 ///
 /// Semantics: recording「发病」has no end-date field — the window is closed
 /// later by logging a separate「康复」event (spec §8 A1, append-only).
+///
+/// Edit mode ([editing] non-null, MANUAL rows only): the event type is
+/// immutable server-side, so its chip is locked while the date / note
+/// stay editable.
 class PhysiologyEntrySheet extends ConsumerStatefulWidget {
-  const PhysiologyEntrySheet({super.key, required this.livestockId});
+  const PhysiologyEntrySheet({
+    super.key,
+    required this.livestockId,
+    this.editing,
+  });
 
   final String livestockId;
+
+  /// MANUAL row being edited; null in create mode.
+  final PhysiologyEventItem? editing;
 
   @override
   ConsumerState<PhysiologyEntrySheet> createState() =>
@@ -36,11 +54,27 @@ class PhysiologyEntrySheet extends ConsumerStatefulWidget {
 }
 
 class _PhysiologyEntrySheetState extends ConsumerState<PhysiologyEntrySheet> {
-  // Prototype default selection: 妊娠检查 (pregnancy check).
-  PhysiologyEventType _type = PhysiologyEventType.pregnancyCheck;
+  // Prototype default selection: 妊娠检查 (pregnancy check). Edit mode
+  // starts from the row's own type instead; the chip's onTap setter
+  // below stays reachable in create mode only.
+  late PhysiologyEventType _type =
+      widget.editing?.eventType ?? PhysiologyEventType.pregnancyCheck;
   DateTime _date = DateTime.now();
-  final TextEditingController _noteCtrl = TextEditingController();
+  late final TextEditingController _noteCtrl =
+      TextEditingController(text: widget.editing?.note);
   bool _saving = false;
+
+  bool get _isEditing => widget.editing != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isEditing) {
+      // Same render convention as the record card rows: the UTC instant
+      // in the device timezone (lesson #17 — no extra toUtc() round-trip).
+      _date = widget.editing!.occurredAt.toLocal();
+    }
+  }
 
   @override
   void dispose() {
@@ -67,14 +101,23 @@ class _PhysiologyEntrySheetState extends ConsumerState<PhysiologyEntrySheet> {
     if (_saving) return;
     setState(() => _saving = true);
     try {
-      await ref
-          .read(physiologyEventsControllerProvider(widget.livestockId).notifier)
-          .createEvent(
-            eventType: _type,
-            occurredAt: _date,
-            note: _noteCtrl.text.trim(),
-          );
-      // createEvent() already invalidates the list provider.
+      final notifier = ref.read(
+        physiologyEventsControllerProvider(widget.livestockId).notifier,
+      );
+      if (_isEditing) {
+        await notifier.updateEvent(
+          eventId: widget.editing!.id!,
+          occurredAt: _date,
+          note: _noteCtrl.text.trim(),
+        );
+      } else {
+        await notifier.createEvent(
+          eventType: _type,
+          occurredAt: _date,
+          note: _noteCtrl.text.trim(),
+        );
+      }
+      // The controller methods already invalidate the list provider.
       if (mounted) Navigator.of(context).pop();
     } on ApiException catch (e) {
       // Backend validation / 409 conflict: toString() returns the
@@ -125,7 +168,9 @@ class _PhysiologyEntrySheetState extends ConsumerState<PhysiologyEntrySheet> {
                 ),
               ),
               Text(
-                l10n.healthPhysiologySheetTitle,
+                _isEditing
+                    ? l10n.healthPhysiologyEditSheetTitle
+                    : l10n.healthPhysiologySheetTitle,
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -133,7 +178,8 @@ class _PhysiologyEntrySheetState extends ConsumerState<PhysiologyEntrySheet> {
                 ),
               ),
               const SizedBox(height: 10),
-              // type-grid: single-select chips (wrap, gap 6)
+              // type-grid: single-select chips (wrap, gap 6). Locked in
+              // edit mode — the type is immutable server-side.
               Wrap(
                 spacing: 6,
                 runSpacing: 6,
@@ -155,7 +201,9 @@ class _PhysiologyEntrySheetState extends ConsumerState<PhysiologyEntrySheet> {
                     _TypeChip(
                       label: entry.value,
                       selected: entry.key == _type,
-                      onTap: () => setState(() => _type = entry.key),
+                      onTap: _isEditing
+                          ? null
+                          : () => setState(() => _type = entry.key),
                     ),
                 ],
               ),
@@ -287,7 +335,8 @@ class _PhysiologyEntrySheetState extends ConsumerState<PhysiologyEntrySheet> {
   }
 }
 
-/// Single-select event type chip (type-grid .chip).
+/// Single-select event type chip (type-grid .chip). [onTap] is null in
+/// edit mode: the chip keeps its selection state but does not respond.
 class _TypeChip extends StatelessWidget {
   const _TypeChip({
     required this.label,
@@ -297,7 +346,7 @@ class _TypeChip extends StatelessWidget {
 
   final String label;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

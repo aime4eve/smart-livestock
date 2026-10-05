@@ -19,6 +19,7 @@ class DrinkingStateCard extends StatelessWidget {
     super.key,
     required this.variant,
     this.sampleDays = 0,
+    this.baselineMinDays = kDrinkingBaselineMinDays,
   });
 
   final DrinkingStateVariant variant;
@@ -26,6 +27,10 @@ class DrinkingStateCard extends StatelessWidget {
   /// Baseline sample days accumulated so far (drives the building chip
   /// "n / 3 天").
   final int sampleDays;
+
+  /// Server-delivered building threshold (summary response
+  /// `baselineMinDays`); the default is only a missing-field fallback.
+  final int baselineMinDays;
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +46,8 @@ class DrinkingStateCard extends StatelessWidget {
       DrinkingStateVariant.building => (
         '🧮',
         l10n.healthDrinkingStateBuilding,
-        l10n.healthDrinkingBuildingDesc(sampleDays, kDrinkingBaselineMinDays),
-        l10n.healthDrinkingBuildingChip(sampleDays, kDrinkingBaselineMinDays),
+        l10n.healthDrinkingBuildingDesc(sampleDays, baselineMinDays),
+        l10n.healthDrinkingBuildingChip(sampleDays, baselineMinDays),
         true,
       ),
     };

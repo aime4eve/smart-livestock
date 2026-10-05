@@ -37,6 +37,12 @@ public final class DrinkingDtos {
      */
     public record DrinkingRecalcResponse(String scope, Integer farms, int devices, int events, int failedFarms) {}
 
+    /**
+     * One drinking-event row. {@code lowConfidence} is a server-derived
+     * flag: {@code confidence < health.drinking.low-confidence} (spec §15.2
+     * "pending verification" marker); MANUAL rows carry confidence 1.0 and
+     * never flag.
+     */
     public record DrinkingEventResponse(
             Long id,
             Long livestockId,
@@ -51,7 +57,8 @@ public final class DrinkingDtos {
             String algorithmVersion,
             String note,
             Instant createdAt,
-            Instant updatedAt
+            Instant updatedAt,
+            boolean lowConfidence
     ) {}
 
     // ════════════════════════════════════════════════════════════
@@ -65,6 +72,9 @@ public final class DrinkingDtos {
      * only for {@code days=30} (independent computations, F4);
      * {@code dayCounts} (per-day count + fever coverage for the orange
      * fever-day bars) for days=7/30. All dates are Shanghai cow-days (F5).
+     * {@code baselineMinDays} rides on every layer variant (days=1/7/30)
+     * so the client's "baseline building n/{baselineMinDays}" chip reads
+     * the server-side threshold (spec §4, F3 — no front-end mirror).
      */
     public record DrinkingSummaryResponse(
             LocalDate date,
@@ -72,7 +82,8 @@ public final class DrinkingDtos {
             DrinkingDaily daily,
             DrinkingWeekly weekly,
             DrinkingRollingBaseline rolling30dBaseline,
-            List<DrinkingDayCount> dayCounts
+            List<DrinkingDayCount> dayCounts,
+            int baselineMinDays
     ) {}
 
     /**

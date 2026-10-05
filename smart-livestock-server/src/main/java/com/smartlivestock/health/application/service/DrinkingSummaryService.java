@@ -98,6 +98,15 @@ public class DrinkingSummaryService {
     @Value("${health.drinking.sample-day-min-points:24}")
     int sampleDayMinPoints = 24;
 
+    /**
+     * Sample days a cow needs before the 30-day baseline counts as
+     * established (spec §4 {@code baseline-min-days}); served on every
+     * summary response so the Flutter "baseline building n/3" chip reads
+     * the server threshold instead of a front-end mirror (F3).
+     */
+    @Value("${health.drinking.baseline-min-days:3}")
+    int baselineMinDays = 3;
+
     // ════════════════════════════════════════════════════════════
     // Kernel — package-visible static pure functions
     // ════════════════════════════════════════════════════════════
@@ -248,7 +257,8 @@ public class DrinkingSummaryService {
                     sampleDays);
             dayCounts = bars;
         }
-        return new DrinkingSummaryResponse(targetDay, resolvedDays, daily, weekly, baseline, dayCounts);
+        return new DrinkingSummaryResponse(targetDay, resolvedDays, daily, weekly, baseline, dayCounts,
+                baselineMinDays);
     }
 
     private static DrinkingDaily buildDaily(LocalDate day, List<DrinkingEventJpaEntity> rows) {
@@ -311,11 +321,12 @@ public class DrinkingSummaryService {
      * ({@code livestock.breed}) + same physiology stage
      * ({@code currentStage} type or null), each peer contributing its last
      * 30 days. A peer joins the average only with ≥{@value MIN_SAMPLE_DAYS}
-     * sample days; the target itself is never removed from the denominator
-     * (its own data stays in the average with whatever sample days it has).
+     * sample days (spec §4 group definition — no member is exempt, the
+     * target included): the pool is the qualified peers alone, so the
+     * "peer average" never contains the animal it is compared against.
      * With no qualifying peer the endpoint answers 200 with
      * {@code peerAvgPerDay=null, reason=INSUFFICIENT_PEERS} — a degraded
-     * state, not an error.
+     * state, not an error (the target's own data never rescues the group).
      */
     @Transactional(readOnly = true)
     public DrinkingPeerComparisonResponse peerComparison(Long farmId, Long livestockId) {
@@ -336,13 +347,15 @@ public class DrinkingSummaryService {
                 detectionService.feverWindowsByFarm(farmId, windowFrom, windowTo);
 
         List<MemberStats> qualifiedPeers = new ArrayList<>();
-        MemberStats targetStats = null;
         for (LivestockInfo member : group) {
+            // The target is not a peer of itself: its rows never enter the
+            // pool or the denominator ("同类均值" compares against others).
+            if (member.id().equals(livestockId)) {
+                continue;
+            }
             MemberStats stats = memberStats(member.id(), windowFrom, windowTo, today, firstDay,
                     feverWindowsByLivestock.getOrDefault(member.id(), List.of()));
-            if (member.id().equals(livestockId)) {
-                targetStats = stats;
-            } else if (stats.sampleDays() >= MIN_SAMPLE_DAYS) {
+            if (stats.sampleDays() >= MIN_SAMPLE_DAYS) {
                 qualifiedPeers.add(stats);
             }
         }
@@ -352,17 +365,13 @@ public class DrinkingSummaryService {
                     target.breed(), targetStage, 0, 0, MIN_SAMPLE_DAYS);
         }
 
-        // Pool = qualifying peers + the target (never removed from the
-        // denominator); a target with zero sample days contributes nothing.
-        List<MemberStats> pool = new ArrayList<>(qualifiedPeers);
-        if (targetStats != null && targetStats.sampleDays() > 0) {
-            pool.add(targetStats);
-        }
-        int sampleDaysTotal = pool.stream().mapToInt(MemberStats::sampleDays).sum();
-        int countedTotal = pool.stream().mapToInt(MemberStats::countedOnSampleDays).sum();
+        // Pool = qualified peers only; the target's own sample days never
+        // dilute or skew the average it is being compared against.
+        int sampleDaysTotal = qualifiedPeers.stream().mapToInt(MemberStats::sampleDays).sum();
+        int countedTotal = qualifiedPeers.stream().mapToInt(MemberStats::countedOnSampleDays).sum();
         BigDecimal peerAvgPerDay = scale(countedTotal / (double) sampleDaysTotal);
         return new DrinkingPeerComparisonResponse(peerAvgPerDay, null,
-                target.breed(), targetStage, pool.size(), sampleDaysTotal, MIN_SAMPLE_DAYS);
+                target.breed(), targetStage, qualifiedPeers.size(), sampleDaysTotal, MIN_SAMPLE_DAYS);
     }
 
     /** Per-member 30-day window statistics: sample days and counted events on them. */

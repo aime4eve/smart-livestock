@@ -94,6 +94,14 @@ health:
     candidate-tolerance: ${HEALTH_DRINKING_CANDIDATE_TOLERANCE:0.5}
     fever-buffer-hours: ${HEALTH_DRINKING_FEVER_BUFFER_HOURS:6}
     recalc-overlap-hours: ${HEALTH_DRINKING_RECALC_OVERLAP_HOURS:1}
+    # Sample days before the 30-day baseline counts as established (spec §4);
+    # served on every drinking-summary response as baselineMinDays so the
+    # Flutter "baseline building n/3" chip mirrors the server threshold (F3).
+    baseline-min-days: ${HEALTH_DRINKING_BASELINE_MIN_DAYS:3}
+    # Confidence below which a drinking-event row is served with
+    # lowConfidence=true (spec §15.2 "pending verification" marker);
+    # MANUAL rows never flag.
+    low-confidence: ${HEALTH_DRINKING_LOW_CONFIDENCE:0.5}
 
 ai:
   platform:

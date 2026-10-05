@@ -95,7 +95,7 @@ public class PhysiologyEventService {
         requireLivestockInFarm(farmId, livestockId);
         PhysiologyEventType eventType = parseEventType(request == null ? null : request.eventType());
         Instant occurredAt = parseOccurredAt(request == null ? null : request.occurredAt());
-        String note = request.note();
+        String note = request == null ? null : request.note();
         requireNoteLength(note);
 
         var existing = eventRepository.findByLivestockIdAndEventTypeAndOccurredAtAndSource(

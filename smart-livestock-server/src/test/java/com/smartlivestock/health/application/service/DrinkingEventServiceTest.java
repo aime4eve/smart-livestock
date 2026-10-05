@@ -1,9 +1,11 @@
 package com.smartlivestock.health.application.service;
 
 import com.smartlivestock.health.application.dto.DrinkingDtos.DrinkingEventResponse;
+import com.smartlivestock.health.domain.model.DrinkingAlgorithmVersion;
 import com.smartlivestock.health.domain.model.DrinkingEventLabel;
 import com.smartlivestock.health.domain.model.DrinkingEventSources;
 import com.smartlivestock.health.domain.port.DeviceQueryPort;
+import com.smartlivestock.health.domain.port.DeviceQueryPort.CapsuleBinding;
 import com.smartlivestock.health.domain.port.RanchQueryPort;
 import com.smartlivestock.health.domain.port.dto.LivestockInfo;
 import com.smartlivestock.health.infrastructure.persistence.entity.DrinkingEventJpaEntity;
@@ -12,6 +14,7 @@ import com.smartlivestock.shared.common.ApiException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -23,6 +26,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -36,13 +41,16 @@ class DrinkingEventServiceTest {
 
     private DrinkingEventJpaRepository eventRepository;
     private RanchQueryPort ranchQueryPort;
+    private DeviceQueryPort deviceQueryPort;
     private DrinkingEventService service;
 
     @BeforeEach
     void setUp() {
         eventRepository = mock(DrinkingEventJpaRepository.class);
         ranchQueryPort = mock(RanchQueryPort.class);
-        service = new DrinkingEventService(eventRepository, ranchQueryPort, mock(DeviceQueryPort.class));
+        deviceQueryPort = mock(DeviceQueryPort.class);
+        service = new DrinkingEventService(eventRepository, ranchQueryPort, deviceQueryPort);
+        service.lowConfidence = 0.5;
         when(ranchQueryPort.findLivestockById(5L))
                 .thenReturn(Optional.of(new LivestockInfo(5L, 1L, "SL-5", "F", "西门塔尔")));
     }
@@ -87,6 +95,25 @@ class DrinkingEventServiceTest {
     }
 
     // ── Task 5a list read: closed Shanghai day window ───────────
+
+    @Test
+    void listEventsFlagsRowsBelowLowConfidenceThreshold() {
+        // Server-derived §15.2 marker (M5): 0.400 < 0.5 flags; 0.850 and
+        // the human-asserted MANUAL row (confidence 1.0) never flag.
+        DrinkingEventJpaEntity low = row("DATAGEN", DrinkingEventLabel.UNLABELED);
+        low.setConfidence(new BigDecimal("0.400"));
+        DrinkingEventJpaEntity high = row("DATAGEN", DrinkingEventLabel.UNLABELED);
+        high.setConfidence(new BigDecimal("0.850"));
+        DrinkingEventJpaEntity manual = row(DrinkingEventSources.MANUAL, DrinkingEventLabel.CONFIRMED);
+        manual.setConfidence(new BigDecimal("0.100")); // even a low value must not flag MANUAL
+        when(eventRepository.findByLivestockIdAndEventStartAtGreaterThanEqualAndEventStartAtLessThanOrderByEventStartAtDesc(
+                eq(5L), any(), any())).thenReturn(List.of(low, high, manual));
+
+        List<DrinkingEventResponse> response = service.listEvents(1L, 5L, null, null);
+
+        assertThat(response).extracting(DrinkingEventResponse::lowConfidence)
+                .containsExactly(true, false, false);
+    }
 
     @Test
     void listEventsDefaultsToTheRecentSevenShanghaiDays() {
@@ -134,6 +161,33 @@ class DrinkingEventServiceTest {
                 .isInstanceOf(ApiException.class); // future to-day
         assertThatThrownBy(() -> service.listEvents(1L, 99L, null, null))
                 .isInstanceOf(ApiException.class); // livestock of another farm
+    }
+
+    // ── POST /manual idempotency (m-d) ──────────────────────────
+
+    @Test
+    void manualPostReturnsExistingRowOnRepeat() {
+        String wallStart = LocalDate.now(ZONE).minusDays(1) + " 09:00";
+        Instant startAt = LocalDate.now(ZONE).minusDays(1).atTime(9, 0).atZone(ZONE).toInstant();
+        when(deviceQueryPort.findActiveCapsuleBinding(5L))
+                .thenReturn(Optional.of(new CapsuleBinding(5L, 100L)));
+        DrinkingEventJpaEntity existing = row(DrinkingEventSources.MANUAL, DrinkingEventLabel.CONFIRMED);
+        existing.setDeviceId(100L);
+        existing.setLivestockId(5L);
+        existing.setEventStartAt(startAt);
+        existing.setEventEndAt(startAt);
+        existing.setAlgorithmVersion(DrinkingAlgorithmVersion.MANUAL);
+        when(eventRepository.findByDeviceIdAndEventStartAtAndAlgorithmVersion(
+                eq(100L), eq(startAt), eq(DrinkingAlgorithmVersion.MANUAL)))
+                .thenReturn(Optional.of(existing));
+
+        DrinkingEventResponse response = service.createManual(1L, 5L, wallStart, "repeat click");
+
+        // Same (device, start, manual) triple → the first row, no insert.
+        assertThat(response.source()).isEqualTo(DrinkingEventSources.MANUAL);
+        assertThat(response.eventStartAt()).isEqualTo(startAt);
+        assertThat(response.lowConfidence()).isFalse();
+        verify(eventRepository, never()).save(any());
     }
 
     private void verifyWindow(Instant expectedFrom, Instant expectedTo) {

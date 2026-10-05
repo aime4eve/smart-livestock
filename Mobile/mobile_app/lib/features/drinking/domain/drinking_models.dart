@@ -6,13 +6,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Front-end mirror of the backend config `health.drinking.baseline-min-days`
-/// (spec §14: 3) — not a magic number in the UI (F3).
+/// Response-default fallback for the server-delivered `baselineMinDays`
+/// (config `health.drinking.baseline-min-days`, spec §14: 3). The backend
+/// sends the live value on every summary layer; this constant only kicks
+/// in when the field is missing from the payload (e.g. an older backend).
 const int kDrinkingBaselineMinDays = 3;
-
-/// Front-end mirror of `health.drinking.low-confidence` (spec §15.2): rows
-/// below this render the "needs verification" badge.
-const double kDrinkingLowConfidence = 0.5;
 
 /// Label of one drinking event row (spec §15.1). Wire values come from the
 /// backend DrinkingEventLabel enum.
@@ -59,6 +57,7 @@ class DrinkingEvent {
     this.confidence,
     this.algorithmVersion,
     this.note,
+    this.lowConfidence = false,
   });
 
   final int id;
@@ -82,6 +81,12 @@ class DrinkingEvent {
   final String? algorithmVersion;
   final String? note;
 
+  /// Server-derived flag (spec §15.2): confidence < the server config
+  /// `health.drinking.low-confidence`. MANUAL rows carry confidence 1.0
+  /// and never flag. Consumed as-is — the client no longer mirrors the
+  /// threshold.
+  final bool lowConfidence;
+
   /// Borderline candidates do not count as events until confirmed (§15.2);
   /// they render under the "to be marked" group.
   bool get isCandidate => source == 'ALGORITHM_CANDIDATE';
@@ -89,9 +94,8 @@ class DrinkingEvent {
   bool get isManual => source == 'MANUAL';
 
   /// Low-confidence rows (spec §15.2) get the orange "needs verification"
-  /// badge.
-  bool get needsVerification =>
-      confidence != null && confidence! < kDrinkingLowConfidence;
+  /// badge — the server-side `lowConfidence` flag drives it.
+  bool get needsVerification => lowConfidence;
 
   factory DrinkingEvent.fromJson(Map<String, dynamic> m) {
     return DrinkingEvent(
@@ -107,6 +111,7 @@ class DrinkingEvent {
       confidence: (m['confidence'] as num?)?.toDouble(),
       algorithmVersion: m['algorithmVersion'] as String?,
       note: m['note'] as String?,
+      lowConfidence: m['lowConfidence'] as bool? ?? false,
     );
   }
 }
@@ -235,6 +240,7 @@ class DrinkingSummary {
     this.weekly,
     this.rolling30dBaseline,
     required this.dayCounts,
+    this.baselineMinDays = kDrinkingBaselineMinDays,
   });
 
   final String date;
@@ -243,6 +249,12 @@ class DrinkingSummary {
   final DrinkingWeekly? weekly;
   final DrinkingRollingBaseline? rolling30dBaseline;
   final List<DrinkingDayCount> dayCounts;
+
+  /// Server-delivered building threshold (config
+  /// `health.drinking.baseline-min-days`; rides on every summary layer
+  /// variant). Falls back to [kDrinkingBaselineMinDays] only when the
+  /// payload omits the field.
+  final int baselineMinDays;
 
   factory DrinkingSummary.fromJson(Map<String, dynamic> m) {
     return DrinkingSummary(
@@ -263,6 +275,8 @@ class DrinkingSummary {
           .whereType<Map<String, dynamic>>()
           .map(DrinkingDayCount.fromJson)
           .toList(),
+      baselineMinDays:
+          (m['baselineMinDays'] as num?)?.toInt() ?? kDrinkingBaselineMinDays,
     );
   }
 }
@@ -283,6 +297,12 @@ class DrinkingSummaryBundle {
 
   /// Sample days of the rolling 30-day baseline (0 when no baseline block).
   int get baselineSampleDays => rolling30dBaseline?.sampleDays ?? 0;
+
+  /// Server-delivered threshold the building state compares
+  /// [baselineSampleDays] against. Both layers carry it (backend rides it
+  /// on every summary variant); the days=30 layer drives the building
+  /// state, so its value wins.
+  int get baselineMinDays => summary30.baselineMinDays;
 
   DrinkingRollingBaseline? get rolling30dBaseline => summary30.rolling30dBaseline;
 
@@ -346,19 +366,19 @@ enum DrinkingCardUiState { loading, noData, building, error, ready }
 /// 1. summary loading → skeleton;
 /// 2. summary error (5xx/timeout) → red error card;
 /// 3. no bound rumen capsule → noData;
-/// 4. baseline sample days < [baselineMinDays] → building;
+/// 4. baseline sample days < the server-delivered `baselineMinDays`
+///    (model-default 3 when the payload omits it) → building;
 /// 5. otherwise → ready.
 DrinkingCardUiState resolveDrinkingCardUiState({
   required bool hasCapsule,
   required AsyncValue<DrinkingSummaryBundle> summary,
-  int baselineMinDays = kDrinkingBaselineMinDays,
 }) {
   if (summary.isLoading) return DrinkingCardUiState.loading;
   if (summary.hasError) return DrinkingCardUiState.error;
   final bundle = summary.value;
   if (bundle == null) return DrinkingCardUiState.loading;
   if (!hasCapsule) return DrinkingCardUiState.noData;
-  if (bundle.baselineSampleDays < baselineMinDays) {
+  if (bundle.baselineSampleDays < bundle.baselineMinDays) {
     return DrinkingCardUiState.building;
   }
   return DrinkingCardUiState.ready;

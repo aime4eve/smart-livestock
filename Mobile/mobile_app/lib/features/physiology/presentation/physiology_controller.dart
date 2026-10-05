@@ -47,6 +47,36 @@ class PhysiologyEventListController
         );
     ref.invalidateSelf();
   }
+
+  /// Updates a MANUAL row (date / note only — the type chip is locked in
+  /// the edit sheet; DISPOSITION / ALERT_CONFIRM rows get 409 from the
+  /// backend) and invalidates the list. Throws (ConflictException /
+  /// ValidationException with the server-side i18n message) so the sheet
+  /// can show it in a SnackBar.
+  Future<void> updateEvent({
+    required int eventId,
+    required DateTime occurredAt,
+    String? note,
+  }) async {
+    await ref.read(physiologyRepositoryProvider).updateEvent(
+          livestockId: livestockId,
+          eventId: eventId,
+          occurredAt: occurredAt,
+          note: note,
+        );
+    ref.invalidateSelf();
+  }
+
+  /// Deletes a MANUAL row (same 409 semantics for non-MANUAL rows) and
+  /// invalidates the list. Throws with the server-side i18n message so
+  /// the caller can surface it in a SnackBar.
+  Future<void> deleteEvent({required int eventId}) async {
+    await ref.read(physiologyRepositoryProvider).deleteEvent(
+          livestockId: livestockId,
+          eventId: eventId,
+        );
+    ref.invalidateSelf();
+  }
 }
 
 final physiologyEventsControllerProvider = AsyncNotifierProvider.family<

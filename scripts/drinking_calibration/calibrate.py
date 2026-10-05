@@ -4,7 +4,7 @@
 Reproduces the three detection methods of Aube et al. 2025 on the open
 dataset (DOI 10.57745/H2SPNR, licence Etalab 2.0), then grid-searches the
 combined detector of our spec (FallST slope AND per cow-day mu-k*sigma,
-with V-shape recovery confirmation and 30-min merge).
+with V-shape recovery confirmation; merge-gap configurable, default 15 min).
 
 Two dataset findings drive the harness (documented in the report):
 1. The drinking signal lives in the `ruminal_temperature` column; the
@@ -132,7 +132,8 @@ def run_paper_methods(series, obs_recs, temp_col, win):
     return results
 
 
-def run_combined(series, obs_recs, win, s_th, k, r_th):
+def run_combined(series, obs_recs, win, s_th, k, r_th,
+                 merge_gap_min=15.0, in_body_gate=False, depth_margin_c=0.0):
     """Run the combined detector with one grid point, then match."""
     per_series = []
     for sid, s in enumerate(series):
@@ -140,7 +141,9 @@ def run_combined(series, obs_recs, win, s_th, k, r_th):
         if sid in win:
             lo, hi = win[sid]
             for b in detect_combined(
-                s["ts"], s["T_raw"], s["day_mu"], s["day_sigma"], s_th, k, r_th
+                s["ts"], s["T_raw"], s["day_mu"], s["day_sigma"], s_th, k, r_th,
+                merge_gap_min=merge_gap_min, in_body_gate=in_body_gate,
+                depth_margin_c=depth_margin_c,
             ):
                 st = pd.Timestamp(b["start_ts"])
                 if lo <= st <= hi:
@@ -159,6 +162,12 @@ def main():
     parser.add_argument(
         "--out", default=os.path.join(repo, "output/drinking-l1/results")
     )
+    parser.add_argument("--merge-gap", type=float, default=15.0,
+                        help="merge gap minutes (spec 14 canonical 15; 30 = pre-sweep L1)")
+    parser.add_argument("--in-body-gate", action="store_true",
+                        help="apply the Java kernel 35-43C gate before detection (production parity)")
+    parser.add_argument("--depth-margin", type=float, default=0.0,
+                        help="extra depth margin below mu-k*sigma in degC (Java kernel 1.0; L1 semantics 0.0)")
     args = parser.parse_args()
 
     os.makedirs(args.out, exist_ok=True)
@@ -212,7 +221,9 @@ def main():
         for s_th in S_TH_GRID:
             for k in K_GRID:
                 for r_th in R_TH_GRID:
-                    m = run_combined(series, obs_recs, win, s_th, k, r_th)
+                    m = run_combined(series, obs_recs, win, s_th, k, r_th,
+                        merge_gap_min=args.merge_gap, in_body_gate=args.in_body_gate,
+                        depth_margin_c=args.depth_margin)
                     grid_rows.append(
                         {
                             "interval_min": interval,

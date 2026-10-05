@@ -90,6 +90,8 @@ class DrinkingCard extends ConsumerWidget {
           DrinkingCardUiState.building => DrinkingStateCard(
             variant: DrinkingStateVariant.building,
             sampleDays: summaryAsync.value?.baselineSampleDays ?? 0,
+            baselineMinDays:
+                summaryAsync.value?.baselineMinDays ?? kDrinkingBaselineMinDays,
           ),
           DrinkingCardUiState.ready => _ReadyContent(
             bundle: summaryAsync.value!,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/features/physiology/domain/physiology_models.dart';
@@ -96,13 +97,66 @@ class PhysiologyRecordCard extends ConsumerWidget {
           const _EmptyState()
         else
           for (var i = 0; i < recent.length && i < 3; i++)
-            _EventRow(item: recent[i], isLast: i == 2 || i == recent.length - 1),
+            _EventRow(
+              item: recent[i],
+              isLast: i == 2 || i == recent.length - 1,
+              // Row-level edit / delete: MANUAL rows only (M7). The
+              // backend rejects DISPOSITION / ALERT_CONFIRM rows with
+              // 409, so those rows get no actions at all.
+              canEdit: canWrite && recent[i].isEditableRow,
+              onEdit: () =>
+                  showPhysiologyEntrySheet(context, livestockId, editing: recent[i]),
+              onDelete: () => _confirmDelete(context, ref, recent[i]),
+            ),
         if (canWrite) ...[
           const SizedBox(height: 9),
           _AddRecordButton(livestockId: livestockId),
         ],
       ],
     );
+  }
+
+  /// Confirm-then-delete for one MANUAL row (M7). Shows the server-side
+  /// i18n message on API failures; never leaks raw technical strings
+  /// (lesson #25).
+  Future<void> _confirmDelete(
+    BuildContext context,
+    WidgetRef ref,
+    PhysiologyEventItem item,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.healthPhysiologyDeleteTitle),
+        content: Text(l10n.healthPhysiologyDeleteConfirm),
+        actions: [
+          TextButton(
+            key: const Key('physiology-delete-cancel'),
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          TextButton(
+            key: const Key('physiology-delete-confirm'),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.healthPhysiologyDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await ref
+          .read(physiologyEventsControllerProvider(livestockId).notifier)
+          .deleteEvent(eventId: item.id!);
+    } on ApiException catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.toString())));
+    } catch (_) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.healthPhysiologySaveFailed)),
+      );
+    }
   }
 }
 
@@ -223,11 +277,25 @@ class _StageChip extends StatelessWidget {
 }
 
 /// One event row (ev-row): 30×30 icon + name/source + date or window chip.
+/// MANUAL rows editable by the current role end with small edit / delete
+/// icon buttons (M7).
 class _EventRow extends StatelessWidget {
-  const _EventRow({required this.item, required this.isLast});
+  const _EventRow({
+    required this.item,
+    required this.isLast,
+    this.canEdit = false,
+    this.onEdit,
+    this.onDelete,
+  });
 
   final PhysiologyEventItem item;
   final bool isLast;
+
+  /// True when the row is MANUAL and the role may write — gates both
+  /// trailing actions.
+  final bool canEdit;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -307,6 +375,21 @@ class _EventRow extends StatelessWidget {
                 color: AppColors.textSecondary,
               ),
             ),
+          if (canEdit) ...[
+            const SizedBox(width: 6),
+            _RowIconButton(
+              key: Key('physiology-edit-${item.id}'),
+              icon: Icons.edit,
+              tooltip: l10n.healthPhysiologyEditSheetTitle,
+              onTap: onEdit,
+            ),
+            _RowIconButton(
+              key: Key('physiology-delete-${item.id}'),
+              icon: Icons.delete_outline,
+              tooltip: l10n.healthPhysiologyDeleteTitle,
+              onTap: onDelete,
+            ),
+          ],
         ],
       ),
     );
@@ -352,6 +435,37 @@ class _EventRow extends StatelessWidget {
     final m = local.month.toString().padLeft(2, '0');
     final d = local.day.toString().padLeft(2, '0');
     return '$y-$m-$d';
+  }
+}
+
+/// Small trailing row action (M7): 16px secondary-colored icon in a
+/// 24×24 tap target, lightweight like the drinking marking-loop buttons.
+class _RowIconButton extends StatelessWidget {
+  const _RowIconButton({
+    super.key,
+    required this.icon,
+    required this.tooltip,
+    this.onTap,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: SizedBox(
+          width: 24,
+          height: 24,
+          child: Icon(icon, size: 16, color: AppColors.textSecondary),
+        ),
+      ),
+    );
   }
 }
 

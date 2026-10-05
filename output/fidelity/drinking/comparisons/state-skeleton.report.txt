@@ -1,0 +1,49 @@
+============================================================
+  SCREENSHOT FIDELITY COMPARISON REPORT
+============================================================
+Baseline:  output/fidelity/drinking/prototype-elements/state-skeleton.png (390x196)
+Actual:    output/fidelity/drinking/flutter/state-skeleton.png (390x172)
+Threshold: 85% similarity required
+
+── OVERALL ──
+  Similarity:     86.1%
+  Avg pixel diff: 18.02
+  Max pixel diff: 247
+  Verdict:        PASS
+
+── PER-REGION ANALYSIS ──
+  [OK  ] status_bar        sim=100.0%  avg_diff=  8.98  mismatch=  0.0%
+  [OK  ] appbar            sim= 96.6%  avg_diff=  9.16  mismatch=  3.4%
+  [DIFF] summary_strip     sim= 84.5%  avg_diff= 21.78  mismatch= 15.5%
+  [OK  ] filter_bar        sim= 89.9%  avg_diff= 15.09  mismatch= 10.1%
+  [OK  ] content           sim= 86.2%  avg_diff= 16.86  mismatch= 13.8%
+  [DIFF] bottom_nav        sim= 69.0%  avg_diff= 36.60  mismatch= 31.0%
+
+── DOMINANT COLORS (baseline vs actual) ──
+  status_bar:
+    base: #FFFFFF(78.4%)  #F5F3ED(10.9%)  #FEFDFD(10.7%)
+    actu: #F8F6F0(100.0%)
+  appbar:
+    base: #FFFFFF(94.3%)  #F8F6F0(4.8%)  #F9F7F1(0.9%)
+    actu: #FFFFFF(67.7%)  #F8F6F0(22.1%)  #F7F5EF(10.2%)
+  summary_strip:
+    base: #FFFFFF(94.9%)  #F8F6F0(3.5%)  #FEFEFE(1.5%)
+    actu: #FFFFFF(93.3%)  #E2EDF4(5.5%)  #E1ECF4(1.2%)
+  filter_bar:
+    base: #FFFFFF(98.9%)  #FEFEFE(0.6%)  #FBFAF7(0.4%)
+    actu: #FFFFFF(90.7%)  #E2EDF4(7.4%)  #E0ECF3(1.8%)
+  content:
+    base: #FFFFFF(86.9%)  #F8F6F0(11.7%)  #F7F5EF(1.5%)
+    actu: #FFFFFF(90.8%)  #5A92B5(8.6%)  #FEFEFE(0.6%)
+  bottom_nav:
+    base: #FFFFFF(99.6%)  #F8F6F0(0.2%)  #EFEEE7(0.1%)
+    actu: #FFFFFF(71.6%)  #5A92B5(21.2%)  #FEFEFF(7.2%)
+
+── DIAGNOSIS ──
+  [!] bottom_nav below threshold (69.0% < 85%)
+      -> Check colors, spacing, and layout in this region
+  [!] summary_strip below threshold (84.5% < 85%)
+      -> Check colors, spacing, and layout in this region
+  All regions meet threshold. Visual fidelity likely acceptable.
+
+============================================================

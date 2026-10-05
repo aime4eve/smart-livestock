@@ -5403,6 +5403,14 @@
   ,"@healthPhysiologyIllnessNote": {}
   ,"healthPhysiologySaveFailed": "Save failed, please try again later"
   ,"@healthPhysiologySaveFailed": {}
+  ,"healthPhysiologyEditSheetTitle": "Edit physiology record"
+  ,"@healthPhysiologyEditSheetTitle": {}
+  ,"healthPhysiologyDeleteTitle": "Delete physiology record"
+  ,"@healthPhysiologyDeleteTitle": {}
+  ,"healthPhysiologyDeleteConfirm": "This cannot be undone. Delete this record?"
+  ,"@healthPhysiologyDeleteConfirm": {}
+  ,"healthPhysiologyDelete": "Delete"
+  ,"@healthPhysiologyDelete": {}
   ,"healthDrinkingTitle": "Drinking Behavior"
   ,"@healthDrinkingTitle": {}
   ,"healthDrinkingTodayCount": "{n} today"
@@ -5427,8 +5435,6 @@
         "time": {"type": "String"}
       }
     }
-  ,"healthDrinkingWeekBars": "Last 7 days"
-  ,"@healthDrinkingWeekBars": {}
   ,"healthDrinkingPeerBaseline": "{group} peer avg {n}/day"
   ,"@healthDrinkingPeerBaseline": {
       "placeholders": {

@@ -19,7 +19,7 @@ merged into a single event (earliest start kept).
 import numpy as np
 
 DEFAULT_RECOVERY_WINDOW_MIN = 120.0
-DEFAULT_MERGE_GAP_MIN = 30.0
+DEFAULT_MERGE_GAP_MIN = 15.0  # spec §14 canonical (was 30 before T2 sweep)
 
 
 def detect_combined(
@@ -32,12 +32,32 @@ def detect_combined(
     r_th,
     recovery_window_min=DEFAULT_RECOVERY_WINDOW_MIN,
     merge_gap_min=DEFAULT_MERGE_GAP_MIN,
+    in_body_gate=False,
+    depth_margin_c=0.0,
 ):
     """Run the combined detector on one series.
 
     ts: datetime64 array; T/day_mu/day_sigma: float arrays aligned with ts.
     Returns a list of confirmed bouts {start_ts, end_ts, temp_drop, min_temp}.
+
+    Production-parity switches (NIX-256 review B1/M1 closeout):
+    - in_body_gate: drop points outside 35-43C BEFORE detection (mirrors
+      the Java kernel's IN_BODY gate, applied to points and day stats).
+    - depth_margin_c: extra depth margin — the trough must sit at least
+      this many degC below mu-k*sigma (0.0 = L1 calibration semantics;
+      the Java kernel judges with an implicit 1.0C reference).
     """
+    if in_body_gate:
+        keep = (T >= 35.0) & (T <= 43.0)
+        ts, T = ts[keep], T[keep]
+        # Recompute per-day mu/sigma from gated points only — the Java
+        # kernel gates BEFORE day stats, so parity requires the same.
+        import pandas as pd
+        df = pd.DataFrame({"ts": ts, "T": T})
+        df["day"] = df["ts"].dt.strftime("%Y-%m-%d")
+        day_mu = df.groupby("day")["T"].transform("mean").to_numpy()
+        day_sigma = df.groupby("day")["T"].transform(lambda x: x.std(ddof=1)).to_numpy()
+
     n = len(T)
     t_sec = ts.astype("datetime64[s]").astype(np.int64)
     candidates = []
@@ -50,7 +70,7 @@ def detect_combined(
         fall = T[i] - T[i + 1]
         rate = fall / dt_min  # degC per minute, gap-normalised
         th = day_mu[i + 1] - k * day_sigma[i + 1]
-        if rate >= s_th and T[i + 1] < th:
+        if rate >= s_th and T[i + 1] < th - depth_margin_c:
             # Trough = end of the initial descending run after the onset.
             j = i + 1
             while j + 1 < n and T[j + 1] <= T[j]:

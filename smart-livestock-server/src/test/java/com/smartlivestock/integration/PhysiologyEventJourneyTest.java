@@ -1,14 +1,11 @@
 package com.smartlivestock.integration;
 
-import com.smartlivestock.health.domain.model.EpidemicDispositionAction;
 import com.smartlivestock.health.domain.model.EpidemicDispositionStatus;
-import com.smartlivestock.health.domain.model.EpidemicDispositionTier;
 import com.smartlivestock.health.domain.model.PhysiologyEventType;
 import com.smartlivestock.health.domain.model.PhysiologySource;
 import com.smartlivestock.health.domain.port.PhysiologyQueryPort;
 import com.smartlivestock.health.domain.port.PhysiologyQueryPort.PhysiologyStageType;
 import com.smartlivestock.health.domain.port.PhysiologyQueryPort.PhysiologyWindow;
-import com.smartlivestock.health.infrastructure.persistence.entity.EpidemicDispositionJpaEntity;
 import com.smartlivestock.health.infrastructure.persistence.entity.PhysiologyEventJpaEntity;
 import com.smartlivestock.health.infrastructure.persistence.jpa.EpidemicDispositionJpaRepository;
 import com.smartlivestock.health.infrastructure.persistence.jpa.PhysiologyEventJpaRepository;
@@ -21,13 +18,23 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,6 +58,9 @@ public class PhysiologyEventJourneyTest extends AbstractJourneyTest {
 
     @Autowired
     private PhysiologyQueryPort physiologyQueryPort;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     private Long firstLivestockId;
     private final List<Long> createdEventIds = new ArrayList<>();
@@ -91,22 +101,51 @@ public class PhysiologyEventJourneyTest extends AbstractJourneyTest {
         return saved;
     }
 
-    private EpidemicDispositionJpaEntity insertDisposition(Long livestockId, EpidemicDispositionStatus status,
-                                                           Instant createdAt, Instant completedAt, String cancelReason) {
-        EpidemicDispositionJpaEntity entity = new EpidemicDispositionJpaEntity();
-        entity.setFarmId(1L);
-        entity.setLivestockId(livestockId);
-        entity.setTier(EpidemicDispositionTier.OBSERVATION);
-        entity.setActionCode(EpidemicDispositionAction.HEALTH_RECHECK);
-        entity.setStatus(status);
-        entity.setReasonCodes(new ArrayList<>(List.of("DIRECT_SOURCE")));
-        entity.setCreatedAt(createdAt);
-        entity.setUpdatedAt(createdAt);
-        entity.setCompletedAt(completedAt);
-        entity.setCancelReasonCode(cancelReason);
-        EpidemicDispositionJpaEntity saved = dispositionRepository.save(entity);
-        createdDispositionIds.add(saved.getId());
-        return saved;
+    /**
+     * Raw-SQL disposition insert (B2). The JPA entity's {@code @PrePersist}
+     * stamps {@code createdAt}/{@code updatedAt} unconditionally, which
+     * would overwrite the historic fixture times the window assertions
+     * need — JdbcTemplate bypasses the callbacks and writes the columns
+     * verbatim (column set = V20260926100000 DDL). Callers pass
+     * second-truncated instants so the equality assertions survive
+     * Postgres' microsecond timestamp rounding untouched.
+     */
+    private Long insertDisposition(Long livestockId, EpidemicDispositionStatus status,
+                                   Instant createdAt, Instant completedAt, String cancelReason) {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(con -> {
+            PreparedStatement ps = con.prepareStatement(
+                    "INSERT INTO epidemic_dispositions (farm_id, livestock_id, tier, action_code, status, "
+                            + "reason_codes, created_at, updated_at, completed_at, cancel_reason_code) "
+                            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS);
+            ps.setLong(1, 1L);
+            ps.setLong(2, livestockId);
+            ps.setString(3, "OBSERVATION");
+            ps.setString(4, "HEALTH_RECHECK");
+            ps.setString(5, status.name());
+            ps.setArray(6, con.createArrayOf("text", new String[]{"DIRECT_SOURCE"}));
+            bindUtcTimestamp(ps, 7, createdAt);
+            bindUtcTimestamp(ps, 8, createdAt);
+            bindUtcTimestamp(ps, 9, completedAt);
+            ps.setString(10, cancelReason);
+            return ps;
+        }, keyHolder);
+        Number key = keyHolder.getKey();
+        assertThat(key).isNotNull();
+        Long id = key.longValue();
+        createdDispositionIds.add(id);
+        return id;
+    }
+
+    /**
+     * Bind an Instant into a TIMESTAMP (no tz) column the way Hibernate's
+     * UTC mapping does, so the value read back through the JPA entity
+     * equals the fixture instant exactly.
+     */
+    private static void bindUtcTimestamp(PreparedStatement ps, int index, Instant instant) throws SQLException {
+        ps.setTimestamp(index, instant == null ? null : Timestamp.from(instant),
+                Calendar.getInstance(TimeZone.getTimeZone("UTC")));
     }
 
     /** Farm-1 livestock that has no disposition rows yet (partial unique index). */
@@ -273,10 +312,12 @@ public class PhysiologyEventJourneyTest extends AbstractJourneyTest {
         Long pendingLivestock = ids.get(0);
         Long completedLivestock = ids.get(1);
         Long cancelledLivestock = ids.get(2);
-        Instant created = Instant.now().minusSeconds(3 * 24 * 3600);
-        Instant completedAt = Instant.now().minusSeconds(24 * 3600);
+        // Second precision: Postgres timestamps hold microseconds, so the
+        // equality assertions below need values that round-trip exactly.
+        Instant created = Instant.now().minusSeconds(3 * 24 * 3600).truncatedTo(ChronoUnit.SECONDS);
+        Instant completedAt = Instant.now().minusSeconds(24 * 3600).truncatedTo(ChronoUnit.SECONDS);
 
-        EpidemicDispositionJpaEntity pending = insertDisposition(
+        Long pendingId = insertDisposition(
                 pendingLivestock, EpidemicDispositionStatus.PENDING, created, null, null);
         insertDisposition(completedLivestock, EpidemicDispositionStatus.COMPLETED, created, completedAt, null);
         insertDisposition(cancelledLivestock, EpidemicDispositionStatus.CANCELLED, created, null, "SOURCE_UNMARKED");
@@ -289,7 +330,7 @@ public class PhysiologyEventJourneyTest extends AbstractJourneyTest {
         assertThat(pendingWindows).anySatisfy(w -> {
             assertThat(w.eventType()).isEqualTo(PhysiologyEventType.ILLNESS);
             assertThat(w.sourceType()).isEqualTo("DISPOSITION");
-            assertThat(w.refId()).isEqualTo(pending.getId());
+            assertThat(w.refId()).isEqualTo(pendingId);
             assertThat(w.occurredAt()).isEqualTo(created);
             assertThat(w.endedAt()).isNull();
         });
@@ -310,7 +351,7 @@ public class PhysiologyEventJourneyTest extends AbstractJourneyTest {
         var farmWindows = physiologyQueryPort.activeWindowsForFarm(1L, from, to);
         assertThat(farmWindows).containsKey(pendingLivestock);
         assertThat(farmWindows.get(pendingLivestock)).anySatisfy(
-                w -> assertThat(w.refId()).isEqualTo(pending.getId()));
+                w -> assertThat(w.refId()).isEqualTo(pendingId));
         assertThat(farmWindows).doesNotContainKey(cancelledLivestock);
     }
 
@@ -333,8 +374,8 @@ public class PhysiologyEventJourneyTest extends AbstractJourneyTest {
     @Test
     void listMergesActiveDispositionRowAndProjectsStage() {
         Long livestockId = farmLivestockWithoutDispositions(1).get(0);
-        Instant dispositionCreatedAt = Instant.now().minusSeconds(2 * 24 * 3600);
-        EpidemicDispositionJpaEntity pending = insertDisposition(
+        Instant dispositionCreatedAt = Instant.now().minusSeconds(2 * 24 * 3600).truncatedTo(ChronoUnit.SECONDS);
+        Long pendingId = insertDisposition(
                 livestockId, EpidemicDispositionStatus.PENDING, dispositionCreatedAt, null, null);
         // Older manual illness still ongoing.
         insertManualEvent(livestockId, PhysiologyEventType.ILLNESS,
@@ -351,7 +392,7 @@ public class PhysiologyEventJourneyTest extends AbstractJourneyTest {
         assertThat(first.get("source")).isEqualTo("DISPOSITION");
         assertThat(first.get("eventType")).isEqualTo("ILLNESS");
         assertThat(first.get("id")).isNull();
-        assertThat(((Number) first.get("refId")).longValue()).isEqualTo(pending.getId());
+        assertThat(((Number) first.get("refId")).longValue()).isEqualTo(pendingId);
         assertThat(first.get("active")).isEqualTo(true);
 
         // Manual unpaired illness row is flagged active too.

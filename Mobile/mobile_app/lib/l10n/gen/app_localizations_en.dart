@@ -6926,6 +6926,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Save failed, please try again later';
 
   @override
+  String get healthPhysiologyEditSheetTitle => 'Edit physiology record';
+
+  @override
+  String get healthPhysiologyDeleteTitle => 'Delete physiology record';
+
+  @override
+  String get healthPhysiologyDeleteConfirm =>
+      'This cannot be undone. Delete this record?';
+
+  @override
+  String get healthPhysiologyDelete => 'Delete';
+
+  @override
   String get healthDrinkingTitle => 'Drinking Behavior';
 
   @override
@@ -6948,9 +6961,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String healthDrinkingYesterdayAt(String time) {
     return 'yesterday $time';
   }
-
-  @override
-  String get healthDrinkingWeekBars => 'Last 7 days';
 
   @override
   String healthDrinkingPeerBaseline(String group, String n) {

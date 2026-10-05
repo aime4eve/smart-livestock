@@ -116,6 +116,12 @@ class PhysiologyEventItem {
   /// True while the illness window opened by this event is still open.
   final bool active;
 
+  /// Row-level edit / delete eligibility (M7): MANUAL rows only. The
+  /// backend rejects DISPOSITION / ALERT_CONFIRM rows with 409, and
+  /// disposition projection rows have no id to address anyway.
+  bool get isEditableRow =>
+      source == PhysiologySource.manual && id != null;
+
   factory PhysiologyEventItem.fromJson(Map<String, dynamic> m) {
     return PhysiologyEventItem(
       id: (m['id'] as num?)?.toInt(),

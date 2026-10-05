@@ -12515,6 +12515,30 @@ abstract class AppLocalizations {
   /// **'保存失败，请稍后重试'**
   String get healthPhysiologySaveFailed;
 
+  /// No description provided for @healthPhysiologyEditSheetTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑生理记录'**
+  String get healthPhysiologyEditSheetTitle;
+
+  /// No description provided for @healthPhysiologyDeleteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除生理记录'**
+  String get healthPhysiologyDeleteTitle;
+
+  /// No description provided for @healthPhysiologyDeleteConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除后不可恢复，确定删除这条记录吗？'**
+  String get healthPhysiologyDeleteConfirm;
+
+  /// No description provided for @healthPhysiologyDelete.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除'**
+  String get healthPhysiologyDelete;
+
   /// No description provided for @healthDrinkingTitle.
   ///
   /// In zh, this message translates to:
@@ -12550,12 +12574,6 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'昨天 {time}'**
   String healthDrinkingYesterdayAt(String time);
-
-  /// No description provided for @healthDrinkingWeekBars.
-  ///
-  /// In zh, this message translates to:
-  /// **'近 7 日'**
-  String get healthDrinkingWeekBars;
 
   /// No description provided for @healthDrinkingPeerBaseline.
   ///

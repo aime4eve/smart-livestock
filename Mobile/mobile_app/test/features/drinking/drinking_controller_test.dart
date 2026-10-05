@@ -156,6 +156,11 @@ void main() {
       expect(repo.summaryDaysCalls, containsAll([7, 30]));
       expect(state.value!.summary7.weekly!.count, 48);
       expect(state.value!.baselineSampleDays, 6);
+      // Fake repo omits baselineMinDays → model response-default 3.
+      expect(
+        state.value!.baselineMinDays,
+        kDrinkingBaselineMinDays,
+      );
       expect(state.value!.weekBars.length, 7);
     });
 
@@ -240,6 +245,50 @@ void main() {
         summary: AsyncValue<DrinkingSummaryBundle>.data(short),
       );
       expect(state, DrinkingCardUiState.building);
+    });
+
+    test('building threshold follows the server-delivered baselineMinDays', () {
+      // 4 sample days would clear the default 3, but the server says 5.
+      final raised = DrinkingSummaryBundle(
+        summary7: bundle.summary7,
+        summary30: const DrinkingSummary(
+          date: '2026-10-04',
+          days: 30,
+          daily: DrinkingDaily(count: 7, events: [], lastDrinkEndAt: null),
+          rolling30dBaseline:
+              DrinkingRollingBaseline(avgPerDay: null, sampleDays: 4),
+          dayCounts: [],
+          baselineMinDays: 5,
+        ),
+      );
+      expect(
+        resolveDrinkingCardUiState(
+          hasCapsule: true,
+          summary: AsyncValue<DrinkingSummaryBundle>.data(raised),
+        ),
+        DrinkingCardUiState.building,
+      );
+
+      // Same 4 sample days pass once the server lowers the bar to 4.
+      final met = DrinkingSummaryBundle(
+        summary7: bundle.summary7,
+        summary30: const DrinkingSummary(
+          date: '2026-10-04',
+          days: 30,
+          daily: DrinkingDaily(count: 7, events: [], lastDrinkEndAt: null),
+          rolling30dBaseline:
+              DrinkingRollingBaseline(avgPerDay: null, sampleDays: 4),
+          dayCounts: [],
+          baselineMinDays: 4,
+        ),
+      );
+      expect(
+        resolveDrinkingCardUiState(
+          hasCapsule: true,
+          summary: AsyncValue<DrinkingSummaryBundle>.data(met),
+        ),
+        DrinkingCardUiState.ready,
+      );
     });
 
     test('ready once ≥3 sample days exist', () {

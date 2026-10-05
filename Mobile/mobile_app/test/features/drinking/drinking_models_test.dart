@@ -46,6 +46,8 @@ void main() {
       expect(s.dayCounts.length, 7);
       expect(s.dayCounts[4].isFeverDay, isTrue);
       expect(s.dayCounts[1].isFeverDay, isFalse); // null percent → not fever
+      // Missing baselineMinDays falls back to the response-default 3.
+      expect(s.baselineMinDays, kDrinkingBaselineMinDays);
     });
 
     test('days=30 payload parses rolling baseline', () {
@@ -60,6 +62,7 @@ void main() {
         'weekly': null,
         'rolling30dBaseline': {'avgPerDay': 7.6, 'sampleDays': 6},
         'dayCounts': const [],
+        'baselineMinDays': 5,
       };
 
       final s = DrinkingSummary.fromJson(m);
@@ -67,6 +70,8 @@ void main() {
       expect(s.weekly, isNull);
       expect(s.rolling30dBaseline!.avgPerDay, 7.6);
       expect(s.rolling30dBaseline!.sampleDays, 6);
+      // Server-delivered threshold is consumed as-is (no front-end mirror).
+      expect(s.baselineMinDays, 5);
     });
   });
 
@@ -123,6 +128,24 @@ void main() {
       );
       expect(bundle.baselineSampleDays, 0);
     });
+
+    test('baselineMinDays is exposed from the days=30 layer', () {
+      final bundle = DrinkingSummaryBundle(
+        summary7: summary7WithCounts([8, 7, 9, 6, 3, 8, 7]),
+        summary30: const DrinkingSummary(
+          date: '2026-10-04',
+          days: 30,
+          daily: DrinkingDaily(count: 7, events: [], lastDrinkEndAt: null),
+          rolling30dBaseline: DrinkingRollingBaseline(
+            avgPerDay: 7.6,
+            sampleDays: 6,
+          ),
+          dayCounts: [],
+          baselineMinDays: 5,
+        ),
+      );
+      expect(bundle.baselineMinDays, 5);
+    });
   });
 
   group('DrinkingEvent.fromJson', () {
@@ -140,10 +163,13 @@ void main() {
         'confidence': 0.42,
         'algorithmVersion': 'v1',
         'note': null,
+        'lowConfidence': true,
       });
       expect(candidate.isCandidate, isTrue);
       expect(candidate.isManual, isFalse);
-      expect(candidate.needsVerification, isTrue); // 0.42 < 0.5
+      // The server-derived flag drives the badge (0.42 < 0.5 server-side).
+      expect(candidate.lowConfidence, isTrue);
+      expect(candidate.needsVerification, isTrue);
 
       final manual = DrinkingEvent.fromJson({
         'id': 12,
@@ -153,10 +179,26 @@ void main() {
         'source': 'MANUAL',
         'label': 'CONFIRMED',
         'confidence': null,
+        'lowConfidence': false,
       });
       expect(manual.isManual, isTrue);
       expect(manual.label, DrinkingLabel.confirmed);
-      expect(manual.needsVerification, isFalse); // null confidence
+      expect(manual.lowConfidence, isFalse);
+      expect(manual.needsVerification, isFalse);
+    });
+
+    test('missing lowConfidence defaults to false', () {
+      final legacy = DrinkingEvent.fromJson({
+        'id': 13,
+        'livestockId': 4,
+        'eventStartAt': '2026-10-04T04:00:00Z',
+        'eventEndAt': '2026-10-04T04:06:00Z',
+        'source': 'THINGSBOARD',
+        'label': 'CONFIRMED',
+        'confidence': 0.42,
+      });
+      expect(legacy.lowConfidence, isFalse);
+      expect(legacy.needsVerification, isFalse);
     });
   });
 

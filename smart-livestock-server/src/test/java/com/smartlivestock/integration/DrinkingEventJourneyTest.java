@@ -21,19 +21,31 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 
 import java.math.BigDecimal;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -44,12 +56,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  * machines without Docker — compile-only here, executed in CI/dev).
  * Covers: DATAGEN points producing source-tagged events through
  * {@code recalculateDevice}, PATCH label flips with bilingual validation,
- * POST /manual (happy path / future rejection / no-device rejection), the
- * F6+§15.4 recalc semantics (MANUAL rows never deleted, CONFIRMED/REJECTED
- * labels restored onto re-derived rows, labeled rows that are no longer
- * detected come back), and the candidate row data feeding the counting
- * contract (the isCounted predicate itself is unit-tested in
- * {@code DrinkingEventServiceTest} — it is package-visible).
+ * POST /manual (happy path / idempotent repeat / future rejection /
+ * no-device rejection), the F6+§15.4 recalc semantics (MANUAL rows never
+ * deleted, CONFIRMED/REJECTED labels restored onto re-derived rows,
+ * labeled rows that are no longer detected come back), the candidate row
+ * data feeding the counting contract (the isCounted predicate itself is
+ * unit-tested in {@code DrinkingEventServiceTest} — it is package-visible),
+ * and the fever exclusion windows end to end (ACTIVE TEMPERATURE_ABNORMAL
+ * alert + the 6h defervescence buffer over a resolved one, M8).
  */
 public class DrinkingEventJourneyTest extends AbstractJourneyTest {
 
@@ -72,6 +86,9 @@ public class DrinkingEventJourneyTest extends AbstractJourneyTest {
     @Autowired
     private RanchQueryPort ranchQueryPort;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     private Long boundLivestockId;
     private Long capsuleDeviceId;
     private Long unboundLivestockId;
@@ -81,6 +98,7 @@ public class DrinkingEventJourneyTest extends AbstractJourneyTest {
 
     private final List<Long> createdEventIds = new ArrayList<>();
     private final List<TemperatureLogJpaEntity> createdTemperatureLogs = new ArrayList<>();
+    private final List<Long> createdAlertIds = new ArrayList<>();
 
     @BeforeEach
     void setUpDrinking() {
@@ -121,6 +139,8 @@ public class DrinkingEventJourneyTest extends AbstractJourneyTest {
         createdEventIds.clear();
         temperatureLogRepository.deleteAll(createdTemperatureLogs);
         createdTemperatureLogs.clear();
+        createdAlertIds.forEach(id -> jdbcTemplate.update("DELETE FROM alerts WHERE id = ?", id));
+        createdAlertIds.clear();
     }
 
     private String base(Long livestockId) {
@@ -197,6 +217,46 @@ public class DrinkingEventJourneyTest extends AbstractJourneyTest {
     private void recalcFixtureDay() {
         Instant dayStart = fixtureDay.atStartOfDay(ZONE).toInstant();
         detectionService.recalculateDevice(capsuleDeviceId, dayStart, dayStart.plus(Duration.ofDays(1)));
+    }
+
+    /**
+     * Raw-SQL TEMPERATURE_ABNORMAL alert insert (M8): the alert is fixture
+     * data owned by this test and stamped at exact fixture-day times — the
+     * JPA entity's {@code @PrePersist} would overwrite {@code created_at}
+     * with now(). {@code created_at} binds with a UTC calendar (matching
+     * Hibernate's Instant mapping into the tz-less column);
+     * {@code resolved_at} is timestamptz and binds as an absolute instant.
+     */
+    private void insertFeverAlert(String status, Instant createdAt, Instant resolvedAt) {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(con -> {
+            PreparedStatement ps = con.prepareStatement(
+                    "INSERT INTO alerts (farm_id, livestock_id, type, status, severity, message, "
+                            + "resolved_type, resolved_at, created_at, updated_at) "
+                            + "VALUES (?, ?, 'TEMPERATURE_ABNORMAL', ?, 'WARNING', ?, ?, ?, ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS);
+            ps.setLong(1, 1L);
+            ps.setLong(2, boundLivestockId);
+            ps.setString(3, status);
+            ps.setString(4, "journey fixture fever alert");
+            ps.setString(5, resolvedAt == null ? null : "AUTO");
+            if (resolvedAt == null) {
+                ps.setNull(6, Types.TIMESTAMP_WITH_TIMEZONE);
+            } else {
+                ps.setObject(6, OffsetDateTime.ofInstant(resolvedAt, ZoneOffset.UTC));
+            }
+            bindUtcTimestamp(ps, 7, createdAt);
+            bindUtcTimestamp(ps, 8, createdAt);
+            return ps;
+        }, keyHolder);
+        Number key = keyHolder.getKey();
+        assertThat(key).isNotNull();
+        createdAlertIds.add(key.longValue());
+    }
+
+    private static void bindUtcTimestamp(PreparedStatement ps, int index, Instant instant) throws SQLException {
+        ps.setTimestamp(index, Timestamp.from(instant),
+                Calendar.getInstance(TimeZone.getTimeZone("UTC")));
     }
 
     private List<DrinkingEventJpaEntity> fixtureDayRows() {
@@ -315,6 +375,11 @@ public class DrinkingEventJourneyTest extends AbstractJourneyTest {
         assertOk(created);
         Long id = createdId(created);
         createdEventIds.add(id);
+        // MANUAL rows are human-asserted: confidence 1.0 never flags low.
+        assertThat(created.getBody().get("data")).isNotNull();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> createdData = (Map<String, Object>) created.getBody().get("data");
+        assertThat(createdData.get("lowConfidence")).isEqualTo(false);
 
         DrinkingEventJpaEntity row = eventRepository.findById(id).orElseThrow();
         assertThat(row.getSource()).isEqualTo(DrinkingEventSources.MANUAL);
@@ -326,6 +391,14 @@ public class DrinkingEventJourneyTest extends AbstractJourneyTest {
         assertThat(row.getTempDrop()).isNull();                               // no temperature observation
         assertThat(row.getMinTemp()).isNull();
         assertThat(row.getNote()).isEqualTo("morning drink missed");
+
+        // Same (device, start, manual) POST again → the existing row, not a
+        // duplicate and not a 500 (m-d idempotency, physiology convention).
+        ResponseEntity<Map> repeat = postManual(boundLivestockId, fixtureWall("T09:00"), null);
+        assertOk(repeat);
+        assertThat(createdId(repeat)).isEqualTo(id);
+        assertThat(eventRepository.findByDeviceIdAndEventStartAtAndAlgorithmVersion(
+                capsuleDeviceId, wall(fixtureWall("T09:00")), DrinkingAlgorithmVersion.MANUAL)).isPresent();
 
         // Future time → 400 error.drinking.futureDate (zh default)
         String future = LocalDate.now(ZONE).plusDays(1) + " 09:00";
@@ -426,5 +499,44 @@ public class DrinkingEventJourneyTest extends AbstractJourneyTest {
         DrinkingEventJpaEntity promoted = eventRepository.findById(candidateId).orElseThrow();
         assertThat(promoted.getLabel()).isEqualTo(DrinkingEventLabel.CONFIRMED);
         assertThat(promoted.getSource()).isEqualTo(DrinkingEventSources.ALGORITHM_CANDIDATE);
+    }
+
+    // ── 6. Fever exclusion windows end to end (spec §4, M8) ──────
+
+    @Test
+    void feverAlertActiveExcludesDetection() {
+        // The same detectable valley shape as test 1, but an ACTIVE
+        // TEMPERATURE_ABNORMAL alert created mid-day opens an exclusion
+        // window [created_at, ∞) — the buffered window swallows the valley
+        // and the whole recalculation must yield zero rows for the day.
+        insertSeries("T08:00", "T12:00", 39.0, Map.of(
+                "T09:30", 39.0, "T09:35", 37.5, "T09:40", 36.8,
+                "T09:45", 37.3, "T09:50", 38.2, "T10:00", 39.0), "DATAGEN", null, null);
+        insertFeverAlert("ACTIVE", wall(fixtureWall("T09:00")), null);
+        recalcFixtureDay();
+
+        assertThat(fixtureDayRows()).isEmpty();
+    }
+
+    @Test
+    void defervescenceBufferExtendsExclusion() {
+        // AUTO_RESOLVED alert closes at 12:00 inside the fixture day: the
+        // raw alert window ends there, but the 6h defervescence buffer
+        // keeps exclusion open until 18:00. The 14:00 valley starts 2h
+        // after resolution — inside the buffered window, dropped; the
+        // 20:00 valley is outside it and survives, proving the exclusion
+        // is window-bounded rather than whole-day.
+        insertFeverAlert("AUTO_RESOLVED", wall(fixtureWall("T06:00")), wall(fixtureWall("T12:00")));
+        insertSeries("T08:00", "T22:00", 39.0, Map.ofEntries(
+                Map.entry("T14:00", 39.0), Map.entry("T14:05", 37.5), Map.entry("T14:10", 36.8),
+                Map.entry("T14:15", 37.3), Map.entry("T14:20", 38.2), Map.entry("T14:30", 39.0),
+                Map.entry("T20:00", 39.0), Map.entry("T20:05", 37.5), Map.entry("T20:10", 36.8),
+                Map.entry("T20:15", 37.3), Map.entry("T20:20", 38.2), Map.entry("T20:30", 39.0)),
+                "DATAGEN", null, null);
+        recalcFixtureDay();
+
+        List<DrinkingEventJpaEntity> rows = fixtureDayRows();
+        assertThat(rows).extracting(DrinkingEventJpaEntity::getEventStartAt)
+                .containsExactly(wall(fixtureWall("T20:00")));
     }
 }

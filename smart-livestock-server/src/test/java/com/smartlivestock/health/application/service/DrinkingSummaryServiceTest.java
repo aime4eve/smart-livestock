@@ -74,6 +74,7 @@ class DrinkingSummaryServiceTest {
         service = new DrinkingSummaryService(eventRepository, temperatureLogRepository,
                 detectionService, peerAccessGuard, ranchQueryPort, physiologyQueryPort);
         service.sampleDayMinPoints = 24;
+        service.baselineMinDays = 3;
 
         today = LocalDate.now(ZONE);
         when(ranchQueryPort.findLivestockById(TARGET_ID))
@@ -165,6 +166,8 @@ class DrinkingSummaryServiceTest {
         assertThat(response.dayCounts()).isNull();
         assertThat(response.date()).isEqualTo(today);
         assertThat(response.days()).isEqualTo(1);
+        // Every layer variant carries the server-side threshold (M5).
+        assertThat(response.baselineMinDays()).isEqualTo(3);
     }
 
     // ── 2. weekly: direct sum, fever days stay (F4 layer 1) ─────
@@ -361,7 +364,7 @@ class DrinkingSummaryServiceTest {
     }
 
     @Test
-    void peerComparisonAveragesGroupAndKeepsTargetInTheDenominator() {
+    void peerComparisonAveragesQualifiedPeersAndExcludesTarget() {
         // Same breed+stage peers 6 and 7; livestock 8 differs in breed and 9
         // in stage — both filtered out of the group.
         when(ranchQueryPort.findAllByFarmId(FARM_ID)).thenReturn(List.of(
@@ -385,25 +388,27 @@ class DrinkingSummaryServiceTest {
                         at(today.minusDays(30), "00:00"))));
         when(detectionService.feverWindowsByFarm(eq(FARM_ID), any(), any())).thenReturn(Map.of());
 
-        // Peers: 30 sample days; target: only 3 sample days (device fitted
-        // late) — it still stays in the denominator per the spec.
+        // Peers: 30 sample days each; target: 3 sample days carrying a
+        // pathological 15 events per day. Spec §4 (M2): the target is never
+        // a peer of itself — its counts must not move the average.
         stubPointCounts(0, Map.of(
                 TARGET_ID, pointsOnDays(3),
                 6L, pointsOnDays(30),
                 7L, pointsOnDays(30)));
         stubEventsPerLivestock(Map.of(
-                TARGET_ID, eventsOnDays(3, 8),   // 24 counted on its sample days
-                6L, eventsOnDays(30, 7),         // 210
-                7L, eventsOnDays(30, 6)));       // 180
+                TARGET_ID, eventsOnDays(3, 15),   // 45 counted — ignored below
+                6L, eventsOnDays(30, 7),          // 210
+                7L, eventsOnDays(30, 6)));        // 180
 
         DrinkingPeerComparisonResponse response = service.peerComparison(FARM_ID, TARGET_ID);
 
         assertThat(response.reason()).isNull();
         assertThat(response.groupBreed()).isEqualTo("西门塔尔");
         assertThat(response.groupStage()).isEqualTo("LACTATING");
-        assertThat(response.peerCount()).isEqualTo(3);
-        assertThat(response.sampleDaysTotal()).isEqualTo(63); // 30 + 30 + target's 3
-        assertThat(response.peerAvgPerDay()).isEqualByComparingTo(new BigDecimal("6.57")); // 414/63
+        assertThat(response.peerCount()).isEqualTo(2);
+        assertThat(response.sampleDaysTotal()).isEqualTo(60); // peers only: 30 + 30
+        // 390/60 = 6.50 — the target's 45 events on 3 days stay outside.
+        assertThat(response.peerAvgPerDay()).isEqualByComparingTo(new BigDecimal("6.50"));
     }
 
     @Test

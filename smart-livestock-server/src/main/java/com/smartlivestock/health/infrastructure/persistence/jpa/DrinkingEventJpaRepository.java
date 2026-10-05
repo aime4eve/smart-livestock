@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 public interface DrinkingEventJpaRepository extends JpaRepository<DrinkingEventJpaEntity, Long> {
 
@@ -27,6 +28,14 @@ public interface DrinkingEventJpaRepository extends JpaRepository<DrinkingEventJ
      */
     List<DrinkingEventJpaEntity> findByLivestockIdAndEventStartAtGreaterThanEqualAndEventStartAtLessThanOrderByEventStartAtDesc(
             Long livestockId, Instant from, Instant to);
+
+    /**
+     * The UNIQUE-key lookup for the manual back-fill idempotency
+     * (device, event_start_at, algorithm_version='manual'): a repeat POST
+     * of the same instant re-reads and returns the existing row.
+     */
+    Optional<DrinkingEventJpaEntity> findByDeviceIdAndEventStartAtAndAlgorithmVersion(
+            Long deviceId, Instant eventStartAt, String algorithmVersion);
 
     /**
      * F6 recalc delete: algorithm-produced rows only ({@code source != MANUAL})

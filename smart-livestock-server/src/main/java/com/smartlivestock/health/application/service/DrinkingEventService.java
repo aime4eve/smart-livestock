@@ -12,6 +12,8 @@ import com.smartlivestock.health.infrastructure.persistence.jpa.DrinkingEventJpa
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +45,14 @@ public class DrinkingEventService {
     private final DrinkingEventJpaRepository eventRepository;
     private final RanchQueryPort ranchQueryPort;
     private final DeviceQueryPort deviceQueryPort;
+
+    /**
+     * Confidence below which a row is served with {@code lowConfidence=true}
+     * (spec §15.2 "pending verification" marker); MANUAL rows are
+     * human-asserted and never flag.
+     */
+    @Value("${health.drinking.low-confidence:0.5}")
+    double lowConfidence;
 
     /**
      * Statistics filter shared by every counting view (revised spec §15.3,
@@ -78,8 +88,14 @@ public class DrinkingEventService {
      * label=CONFIRMED, confidence=1.0, algorithm_version=manual (so it never
      * collides with algorithm rows on the UNIQUE key and is never deleted by
      * a recalculation), event_end_at=start, no temperature observation.
+     * Idempotent on (device, event_start_at, manual): an existing row is
+     * returned as-is; a concurrent double click that slips past the
+     * pre-check is caught on the unique index and resolved by re-reading
+     * the winning row — same convention as physiology events. Deliberately
+     * NOT wrapped in a service transaction: save() must own its transaction
+     * so the integrity violation rolls back only the insert, leaving the
+     * fallback lookup a clean read.
      */
-    @Transactional
     public DrinkingEventResponse createManual(Long farmId, Long livestockId, String eventStartAt, String note) {
         requireLivestockInFarm(farmId, livestockId);
         Instant startAt = parseEventStartAt(eventStartAt);
@@ -87,6 +103,11 @@ public class DrinkingEventService {
         CapsuleBinding binding = deviceQueryPort.findActiveCapsuleBinding(livestockId)
                 .orElseThrow(() -> new ApiException(ErrorCode.VALIDATION_ERROR, "error.drinking.noDevice"));
 
+        var existing = eventRepository.findByDeviceIdAndEventStartAtAndAlgorithmVersion(
+                binding.deviceId(), startAt, DrinkingAlgorithmVersion.MANUAL);
+        if (existing.isPresent()) {
+            return toResponse(existing.get());
+        }
         DrinkingEventJpaEntity entity = new DrinkingEventJpaEntity();
         entity.setDeviceId(binding.deviceId());
         entity.setLivestockId(livestockId);
@@ -99,8 +120,19 @@ public class DrinkingEventService {
         entity.setConfidence(BigDecimal.ONE);
         entity.setAlgorithmVersion(DrinkingAlgorithmVersion.MANUAL);
         entity.setNote(note);
-        DrinkingEventJpaEntity saved = eventRepository.save(entity);
-        return toResponse(saved);
+        try {
+            DrinkingEventJpaEntity saved = eventRepository.save(entity);
+            return toResponse(saved);
+        } catch (DataIntegrityViolationException race) {
+            // Lost a concurrent insert on UNIQUE (device_id, event_start_at,
+            // algorithm_version): the winner is committed (Postgres unique
+            // waits for the other tx), so the re-read always finds it — the
+            // double click answers the first row instead of a 500.
+            return eventRepository.findByDeviceIdAndEventStartAtAndAlgorithmVersion(
+                            binding.deviceId(), startAt, DrinkingAlgorithmVersion.MANUAL)
+                    .map(this::toResponse)
+                    .orElseThrow(() -> race);
+        }
     }
 
     // ── Read path (Task 5a, endpoint 1) ────────────────────────
@@ -131,7 +163,7 @@ public class DrinkingEventService {
                 .findByLivestockIdAndEventStartAtGreaterThanEqualAndEventStartAtLessThanOrderByEventStartAtDesc(
                         livestockId, windowFrom, windowTo)
                 .stream()
-                .map(DrinkingEventService::toResponse)
+                .map(this::toResponse)
                 .toList();
     }
 
@@ -202,7 +234,15 @@ public class DrinkingEventService {
         }
     }
 
-    private static DrinkingEventResponse toResponse(DrinkingEventJpaEntity entity) {
+    /** Spec §15.2 marker: a detected row below the threshold flags low. */
+    private boolean isLowConfidence(DrinkingEventJpaEntity entity) {
+        if (DrinkingEventSources.MANUAL.equals(entity.getSource())) {
+            return false; // human-asserted back-fills are never "pending verification"
+        }
+        return entity.getConfidence() != null && entity.getConfidence().doubleValue() < lowConfidence;
+    }
+
+    private DrinkingEventResponse toResponse(DrinkingEventJpaEntity entity) {
         return new DrinkingEventResponse(
                 entity.getId(),
                 entity.getLivestockId(),
@@ -217,7 +257,8 @@ public class DrinkingEventService {
                 entity.getAlgorithmVersion(),
                 entity.getNote(),
                 entity.getCreatedAt(),
-                entity.getUpdatedAt()
+                entity.getUpdatedAt(),
+                isLowConfidence(entity)
         );
     }
 }
