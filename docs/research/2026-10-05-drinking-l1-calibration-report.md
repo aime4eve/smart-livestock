@@ -113,7 +113,7 @@
 
 （明细 = TP/FP/FN；完整数据 `merge_gap_sweep.txt`）
 
-结论：**gap=15 为两间隔共同最优**（5-min 94.00、6-min 93.90），较 30min 提升 F 1.35/1.49pp、Se 2.7/2.6pp，代价仅 FP 3/0 个；gap=0 的 FP 洪水（211/212 个）证明合并必须存在。**gap=15 下全网格复跑**（125 组合×3 间隔，`grid_results_gap15.csv`）确认选定参数 (0.06, 0.5, 0.7) 仍为最优稳健选择：5/6/10-min F = **0.9400/0.9390/0.9270**（5-min TP 650/FP 3，Se 89.0%/PPV 99.5%），Top-10 内差距 ≤0.7pp；单轴敏感性（5-min，gap=15）：k 轴 0.5→0.9400、1→0.9346、2→0.9010、3→0.8317（破门禁档从 gap=30 的 k=2 移到 k=3）；S_th 轴 0.06→0.9400 … 0.15→0.9369；R_th 轴 0.5/0.6→0.9408、0.7/0.75→0.9400、0.8→0.9392（差 ≤0.15pp，不再完全并列——合并语义与回升比轻微交互）。
+结论：**gap=15 为两间隔共同最优**（5-min 94.00、6-min 93.90），较 30min 提升 F 1.35/1.49pp、Se 2.7/2.6pp，代价仅 FP 3/0 个；gap=0 的 FP 洪水（211/212 个）证明合并必须存在。**gap=15 下全网格复跑**（125 组合×3 间隔；`grid_results_gap15.csv` 为当时快照、非终版定本产物，由 `calibrate.py --merge-gap 15 --out <dir>` 可再生）确认选定参数 (0.06, 0.5, 0.7) 仍为最优稳健选择：5/6/10-min F = **0.9400/0.9390/0.9270**（5-min TP 650/FP 3，Se 89.0%/PPV 99.5%），Top-10 内差距 ≤0.7pp；单轴敏感性（5-min，gap=15）：k 轴 0.5→0.9400、1→0.9346、2→0.9010、3→0.8317（破门禁档从 gap=30 的 k=2 移到 k=3）；S_th 轴 0.06→0.9400 … 0.15→0.9369；R_th 轴 0.5/0.6→0.9408、0.7/0.75→0.9400、0.8→0.9392（差 ≤0.15pp，不再完全并列——合并语义与回升比轻微交互）。
 
 ## 5. 参数选定与稳健性
 
@@ -171,6 +171,8 @@
 - `scripts/drinking_calibration/combined_detector.py`——组合检测器
 - `scripts/drinking_calibration/matching.py`——四步匹配协议+指标
 - `scripts/drinking_calibration/merge_gap_sweep.py`——§4b 敏感性扫描（主智能体补充）
-- `output/drinking-l1/results/reproduction.txt`、`grid_results.csv`（gap=30 初版 375 行）、`grid_results_gap15.csv`（gap=15 终版 375 行）、`merge_gap_sweep.txt`、`selection.json`
+- `output/drinking-l1/results/`——**L1 原始标定正典**（gap=30 初版语义，2026-10-06 已按 d416af19 恢复）：`reproduction.txt`、`grid_results.csv`（375 行）、`merge_gap_sweep.txt`、`selection.json`（含 gap 30→15 spec 改定注记与口径元数据键）
+- `output/drinking-l1/results-production/`——**生产口径正典**（`calibrate.py --merge-gap 15 --in-body-gate --depth-margin 1.0 --out output/drinking-l1/results-production`）；注意其 6-min 档为合并锚定修复前的 chain-first 产物，数字差异以 spec §14.1 勘误为准
+- `grid_results_gap15.csv`（`results/` 内，gap=15 全网格 375 行）——历史快照、非终版定本产物，由 `calibrate.py --merge-gap 15 --out <dir>` 可再生
 
 复现命令：`python3 scripts/drinking_calibration/calibrate.py`（依赖见 requirements.txt：pandas/numpy）。

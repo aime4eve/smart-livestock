@@ -8,7 +8,12 @@ Lanes exercised:
 - ALGORITHM_CANDIDATE matching nothing     -> PATCH REJECTED
 - 3 missed planted bouts (the "other-FN" set) -> POST manual (source=MANUAL)
 
-Usage: label_drill.py <export.csv> <truth.csv> <livestock_by_device.csv>
+Usage: label_drill.py <export.csv> <truth.csv>
+
+Execution note (2026-10-05): in the actual drill the 3 MANUAL entries were
+posted by an ad-hoc script of identical logic (same [:16] minute-precision
+timestamp format); this file is the reproducible version retroactively
+placed here after the drill.
 """
 import csv
 import json
@@ -111,7 +116,9 @@ def main():
         if near:
             continue
         code, resp = api("POST", f"/farms/1/livestock/{t['livestock_id']}/drinking-events/manual",
-                         token, {"eventStartAt": t["start"] + ":00", "note": "T6 drill: missed bout backfill"})
+                         # [:16] -> minute precision, matches the backend's
+                         # yyyy-MM-dd HH:mm expectation (N4).
+                         token, {"eventStartAt": t["start"][:16], "note": "T6 drill: missed bout backfill"})
         if code == 200:
             stats["manual"] += 1
             picked += 1

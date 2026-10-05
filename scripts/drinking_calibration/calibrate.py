@@ -67,11 +67,17 @@ SECONDARY_COL = "corrected"
 # Re-runs the combined-detector grid on platform-exported drinking labels
 # (GET /api/v1/admin/drinking-labels/export) against the raw temperature
 # series, scoring Se/PPV/F under spec §15.3 offline semantics:
-#   CONFIRMED (incl. source=MANUAL back-fills) = TP ground truth,
-#   REJECTED = FP ground truth, MANUAL = missed-event (FN) ground truth.
+#   CONFIRMED (incl. source=MANUAL back-fills) = positive truth,
+#   REJECTED = negative truth. A MANUAL back-fill therefore counts TP
+#   when a detection matches it (the missed event was recovered) and FN
+#   when nothing matches it — it is not automatically FN.
 RANCH_ZONE = "Asia/Shanghai"
 LABELS_GAP_GRID = [10, 15, 20, 25, 30]  # merge-gap axis; production 15 included
 PRODUCTION_POINT = {"S_th": 0.06, "k": 0.5, "R_th": 0.7, "gap": 15}
+# N7 acceptance guardrail: the grid best must beat the CURRENT production
+# point by >= ACCEPT_EPS in F (0.5pp) before a formal parameter change is
+# recommended; exact F ties keep the production point.
+ACCEPT_EPS = 0.005
 # Production-parity gating, FIXED in labels mode (kernel constants, not
 # grid axes): in-body gate 35-43C + depth margin 1.0C below mu-k*sigma.
 LABELS_IN_BODY_GATE = True
@@ -340,8 +346,37 @@ def run_labels_grid(devices, labels_df):
     return rows
 
 
+def labels_acceptance_decision(best, prod_row):
+    """N7 guardrail: which point to formally suggest.
+
+    The grid best must beat the current production point by >= ACCEPT_EPS
+    in F (0.5pp) to warrant a parameter change; exact F ties keep the
+    production point. N13: when there is no scorable best (no positive
+    labels / empty series) the decision is "none" and callers must not
+    quote any best point.
+    """
+    prod_f = prod_row["F"] if prod_row["F"] != "" else 0.0
+    if best is None:
+        return {"decision": "none", "reason": "no scorable positive labels"}
+    best_is_prod = (best["S_th"], best["k"], best["R_th"], best["gap"]) == (
+        PRODUCTION_POINT["S_th"], PRODUCTION_POINT["k"],
+        PRODUCTION_POINT["R_th"], PRODUCTION_POINT["gap"],
+    )
+    delta_f = round(best["F"] - prod_f, 4)
+    keep = best_is_prod or delta_f < ACCEPT_EPS
+    point = PRODUCTION_POINT if keep else best
+    return {
+        "decision": "keep_production" if keep else "change",
+        "S_th": point["S_th"], "k": point["k"], "R_th": point["R_th"],
+        "gap": point["gap"],
+        "F": prod_row["F"] if keep else best["F"],
+        "delta_F_vs_production": delta_f,
+        "accept_epsilon": ACCEPT_EPS,
+    }
+
+
 def labels_report_lines(rows, labels_df, series_path, labels_path, skipped_devices):
-    """Render labels_suggestion.txt content."""
+    """Render labels_suggestion.txt content; returns (lines, selection)."""
     L = []
     L.append("Drinking-event label-mode calibration report (NIX-256 Task 6, spec §15.4)")
     L.append("=" * 72)
@@ -421,11 +456,28 @@ def labels_report_lines(rows, labels_df, series_path, labels_path, skipped_devic
     L.append("")
     if not farms_with_verdicts:
         per_farm_ok = False
-    if per_farm_ok:
-        L.append(f"采信判定：通过。建议参数（供运维修改 health.drinking.* 配置）：")
-        L.append(f"  fall-threshold={best['S_th']}  k-sigma={best['k']}  "
-                 f"recovery-ratio={best['R_th']}  merge-gap-min={best['gap']}")
-        L.append(f"  样本量：见上方分牧场统计。")
+    decision = labels_acceptance_decision(best, p)
+    if not valid:
+        # N13: F is undefined on every grid point (no positive labels or
+        # no detections) — never quote the grid best here.
+        L.append("采信判定：无可评估的正样本标签，不出建议。")
+    elif per_farm_ok:
+        if decision["decision"] == "keep_production":
+            L.append(f"采信判定：通过。维持现产参数（最优提升 ΔF="
+                     f"{decision['delta_F_vs_production']:.4f} 低于采信阈值 "
+                     f"{ACCEPT_EPS}）。")
+            L.append(f"  fall-threshold={PRODUCTION_POINT['S_th']}  "
+                     f"k-sigma={PRODUCTION_POINT['k']}  "
+                     f"recovery-ratio={PRODUCTION_POINT['R_th']}  "
+                     f"merge-gap-min={PRODUCTION_POINT['gap']}")
+        else:
+            L.append("采信判定：通过。建议参数（供运维修改 health.drinking.* 配置）：")
+            L.append(f"  fall-threshold={decision['S_th']}  k-sigma={decision['k']}  "
+                     f"recovery-ratio={decision['R_th']}  merge-gap-min={decision['gap']}")
+            L.append(f"  （相对现产参数 F 提升 ΔF={decision['delta_F_vs_production']:.4f} "
+                     f"≥ 采信阈值 {ACCEPT_EPS}）")
+        L.append(f"  样本量：CONFIRMED+MANUAL {pos}（含 MANUAL 补录 {manual}）、"
+                 f"REJECTED {neg}；分牧场样本见上方统计。")
     else:
         L.append("采信判定：样本量不足，仅供参考，不出正式建议。")
         L.append("  (spec §15.4: 单牧场 CONFIRMED+REJECTED 合计 ≥ "
@@ -438,7 +490,26 @@ def labels_report_lines(rows, labels_df, series_path, labels_path, skipped_devic
     L.append("- UNLABELED rows are ignored; MANUAL back-fills are positive truth.")
     L.append("- Matching is per-device interval overlap, greedy nearest-center")
     L.append("  (matching.match_labels_overlap).")
-    return L
+
+    # Selection record for labels_selection.json (N10: carries the caliber
+    # keys like the Aube-flow selection.json; labels-mode gating is FIXED
+    # at production parity and the merge anchor is the current detector
+    # semantics, i.e. rolling).
+    sel = dict(decision)
+    if valid and not per_farm_ok:
+        sel["decision"] = "insufficient_sample"  # params above are reference-only
+    sel["mode"] = "labels"
+    sel["in_body_gate"] = LABELS_IN_BODY_GATE
+    sel["depth_margin_c"] = LABELS_DEPTH_MARGIN_C
+    sel["merge_gap_min"] = sel.get("gap", PRODUCTION_POINT["gap"])
+    sel["merge_anchor"] = "rolling"
+    sel["sample"] = {
+        "positive_confirmed_manual": pos,
+        "of_which_manual": manual,
+        "rejected": neg,
+        "total_rows": total,
+    }
+    return L, sel
 
 
 def run_labels_mode(args, repo):
@@ -461,14 +532,20 @@ def run_labels_mode(args, repo):
     grid_path = os.path.join(out, "labels_grid_results.csv")
     grid.to_csv(grid_path, index=False)
 
-    report = labels_report_lines(rows, labels_df, args.series, args.labels, skipped)
+    report, sel = labels_report_lines(
+        rows, labels_df, args.series, args.labels, skipped
+    )
     report_path = os.path.join(out, "labels_suggestion.txt")
     with open(report_path, "w") as f:
         f.write("\n".join(report) + "\n")
+    sel_path = os.path.join(out, "labels_selection.json")
+    with open(sel_path, "w") as f:
+        json.dump(sel, f, indent=2, default=str)
 
     print("\n".join(report))
     print(f"\n[labels] wrote {grid_path}")
     print(f"[labels] wrote {report_path}")
+    print(f"[labels] wrote {sel_path}")
 
 
 def main():
@@ -606,6 +683,14 @@ def main():
         "R_th": float(best["R_th"]),
         "gate_met": bool(gate_met),
     }
+    # N10: caliber metadata — every selection.json must self-describe the
+    # kernel semantics it was produced under. Current detector merges with
+    # a rolling anchor; pre-2026-10-05 legacy files were chain_first and
+    # are annotated by hand.
+    sel["in_body_gate"] = bool(args.in_body_gate)
+    sel["depth_margin_c"] = float(args.depth_margin)
+    sel["merge_gap_min"] = int(args.merge_gap)
+    sel["merge_anchor"] = "rolling"
 
     def f_at(interval, s_th, k, r_th):
         row = grid[

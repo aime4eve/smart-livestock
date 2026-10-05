@@ -1,6 +1,6 @@
 Drinking-event label-mode calibration report (NIX-256 Task 6, spec §15.4)
 ========================================================================
-labels : /tmp/labels-export-2.csv
+labels : output/drinking-l2/labels-mode/labels-export-2.csv
 series : output/drinking-l2/backfill/series.csv
 gating : in-body gate ON, depth margin 1.0 degC (production parity, fixed; merge-gap is a grid axis)
 grid   : S_th [0.06, 0.08, 0.1, 0.12, 0.15] x k [0.5, 1, 2, 3, 5] x R_th [0.5, 0.6, 0.7, 0.75, 0.8] x gap [10, 15, 20, 25, 30]
@@ -37,9 +37,9 @@ S_th=0.06|k=0.5|R_th=0.8|gap=15     1595   40  399  0.7999  0.9755   0.879
 == Acceptance (spec §15.4: per-farm CONFIRMED+REJECTED >= 100) ==
 farm 1: CONFIRMED+REJECTED=2101 -> sufficient
 
-采信判定：通过。建议参数（供运维修改 health.drinking.* 配置）：
-  fall-threshold=0.06  k-sigma=0.5  recovery-ratio=0.5  merge-gap-min=10
-  样本量：见上方分牧场统计。
+采信判定：通过。维持现产参数（最优提升 ΔF=0.0003 低于采信阈值 0.005）。
+  fall-threshold=0.06  k-sigma=0.5  recovery-ratio=0.7  merge-gap-min=15
+  样本量：CONFIRMED+MANUAL 1994（含 MANUAL 补录 3）、REJECTED 107；分牧场样本见上方统计。
 
 == Caveats ==
 - Detections with no overlapping label count neither TP nor FP:

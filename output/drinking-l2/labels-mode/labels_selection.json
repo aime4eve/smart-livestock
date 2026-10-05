@@ -1,0 +1,21 @@
+{
+  "decision": "keep_production",
+  "S_th": 0.06,
+  "k": 0.5,
+  "R_th": 0.7,
+  "gap": 15,
+  "F": 0.879,
+  "delta_F_vs_production": 0.0003,
+  "accept_epsilon": 0.005,
+  "mode": "labels",
+  "in_body_gate": true,
+  "depth_margin_c": 1.0,
+  "merge_gap_min": 15,
+  "merge_anchor": "rolling",
+  "sample": {
+    "positive_confirmed_manual": 1994,
+    "of_which_manual": 3,
+    "rejected": 107,
+    "total_rows": 2101
+  }
+}

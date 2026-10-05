@@ -43,5 +43,9 @@
       "Se": 0.7808,
       "PPV": 0.9965
     }
-  }
+  },
+  "in_body_gate": true,
+  "depth_margin_c": 1.0,
+  "merge_gap_min": 15,
+  "merge_anchor": "chain_first"
 }

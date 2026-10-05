@@ -12,8 +12,9 @@ trough the temperature must rebound by >= R_th * D, where D is the total
 drop from onset to trough. Candidates failing the recovery check are
 discarded (fever-like or artefact shapes).
 
-Confirmed events closer than `merge_gap_min` (30 min, fixed by spec) are
-merged into a single event (earliest start kept).
+Confirmed events closer than `merge_gap_min` (default 15 min, revised from
+30 by the L1 sensitivity sweep — see spec §14) are merged into a single
+event (earliest start kept).
 """
 
 import numpy as np
@@ -48,6 +49,8 @@ def detect_combined(
       the Java kernel judges with an implicit 1.0C reference).
     """
     if in_body_gate:
+        # Parity twin of IN_BODY_MIN/IN_BODY_MAX_TEMP in
+        # DrinkingEventDetectionService.java — change both together.
         keep = (T >= 35.0) & (T <= 43.0)
         ts, T = ts[keep], T[keep]
         # Recompute per-day mu/sigma from gated points only — the Java

@@ -257,7 +257,7 @@ public enum PhysiologyStageType { LACTATING, DRY }   // P1 只推导这两态；
 
 ### §14.1 生产口径转正（评审 B1/M1/M3 收口，2026-10-05）
 
-L1 标定口径（上表）与生产内核（Java）存在三处实现差异：①深度判据——标定为"低于 μ−kσ 即过（任意裕度）"，内核为"谷底低于 μ−kσ **再低 ≥1.0°C**"（rDepth≥1）；②内核带 35–43°C 离体门卫（Aubé 深谷 4.47% 点 <35°C，谷底被截断）；③斜率取下降段内最大速率而非触发对速率。**生产口径全网格重跑**（`calibrate.py --merge-gap 15 --in-body-gate --depth-margin 1.0`，结果 `output/drinking-l1/results-production/`）：
+L1 标定口径（上表）与生产内核（Java）存在三处实现差异：①深度判据——标定为"低于 μ−kσ 即过（任意裕度）"，内核为"谷底低于 μ−kσ **再低 ≥1.0°C**"（rDepth≥1）；②内核带 35–43°C 离体门卫（Aubé 深谷 4.47% 点 <35°C，谷底被截断）；③斜率取下降段内最大速率而非触发对速率。**生产口径全网格重跑**（`calibrate.py --merge-gap 15 --in-body-gate --depth-margin 1.0 --out output/drinking-l1/results-production`）：
 
 | 间隔 | 生产口径 F | 门禁 |
 |---|---|---|
@@ -265,9 +265,9 @@ L1 标定口径（上表）与生产内核（Java）存在三处实现差异：�
 | 6-min | **0.9209** | ✓（平台有效分辨率档） |
 | 10-min | 0.8756 | ✗（低于门禁；平台无此粗档，如实记录） |
 
-**裁决：内核判据保留**（5/6-min 平台运行档门禁通过）；1.0°C 深度门槛与离体门卫自此为正典判据的一部分；Se 由 89.0% 降至 86.6%（裕度+门卫的量化代价）。复现命令入库可重跑（M3 一并收口：`grid_results_gap15.csv` 的内联生成器已被 `--merge-gap` 参数取代）。R_th 在生产口径下 0.5 略优（0.928 vs 0.9153@0.7），维持 0.7 不变（邻域内差异 1.3pp，防御性中心档）。
+**裁决：内核判据保留**（5/6-min 平台运行档门禁通过）；1.0°C 深度门槛与离体门卫自此为正典判据的一部分；Se 由 89.0% 降至 86.6%（裕度+门卫的量化代价）。复现命令入库可重跑，**务必显式带 `--out output/drinking-l1/results-production`——缺省 `--out` 会写 `output/drinking-l1/results/`，那是 L1 原始标定正典，勿覆盖**（M3 一并收口：`grid_results_gap15.csv` 的内联生成器已被 `--merge-gap` 参数取代）。R_th 在生产口径下 0.5 略优（0.928 vs 0.9153@0.7），维持 0.7 不变（邻域内差异 1.3pp，防御性中心档）。
 
-> **合并锚定勘误（T6 回放发现，2026-10-05）**：`mergeEvents` 的 javadoc 自述 "consecutive starts"，实现却把间距比较锚在**合并链首 start** 上——长缓降谷（下跌段 >merge-gap）会被按 merge-gap 整数倍机械切成幻影次事件（+15min、共享谷底、drop 显著小）。已改为**滚动锚定**（比较上一成员自身 start，Java 与 Python 检测器双侧同修）；Aubé 数据全网格重跑逐数一致（陡降单谷对此语义不敏感，故 B1 平价未曾暴露），30 天仿真回放（docs/research/2026-10-05-drinking-l2pre-replay-report.md）中该缺陷曾致 PPV 0.795 → 修复后见报告。
+> **合并锚定勘误（T6 回放发现，2026-10-05）**：`mergeEvents` 的 javadoc 自述 "consecutive starts"，实现却把间距比较锚在**合并链首 start** 上——长缓降谷（下跌段 >merge-gap）会被按 merge-gap 整数倍机械切成幻影次事件（+15min、共享谷底、drop 显著小）。已改为**滚动锚定**（比较上一成员自身 start，Java 与 Python 检测器双侧同修）；Aubé 数据全网格重跑实测：5/10-min 档逐数一致，6-min 档 15 行全部 TP−1（滚动锚定在 6-min 重采样下合并了跨 15min 的链，选定行 F 0.9209→0.9201，门禁 ≥0.90 不变，差异仅现于 6-min 档故 B1 平价未曾暴露）；正典表 0.9209 为修复前 chain-first 产物，保留作历史记录。30 天仿真回放（docs/research/2026-10-05-drinking-l2pre-replay-report.md）中该缺陷曾致 PPV 0.795 → 修复后见报告。
 
 ## 15. 反馈标定闭环（用户裁决 2026-10-05：仿真实现 + 标记修正参数）
 
