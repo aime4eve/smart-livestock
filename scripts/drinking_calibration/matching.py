@@ -21,6 +21,53 @@ ASSOC_WINDOW_SEC = 30 * 60
 MATCH_WINDOW_SEC = 10 * 60
 
 
+def match_labels_overlap(detections, labels):
+    """Platform-label matching for `calibrate.py --labels` (NIX-256 Task 6).
+
+    Protocol (spec §15.3 offline semantics):
+    - A detection matches a label of the same device when their intervals
+      overlap (positive IoU); competing pairs resolve greedy nearest-center
+      distance, each detection and each label used at most once — mirroring
+      step 4 of the Aube protocol above.
+    - Interval overlap replaces the +/-10 min start window deliberately:
+      the production-parity kernel (depth margin 1.0C) only qualifies a pair
+      once the descending point sits below mu-k*sigma-1.0, so detection
+      starts lag label starts by a fraction of the descent; a start-distance
+      window would systematically penalise deep, slow descents.
+
+    detections: [{device_id, start_sec, end_sec}, ...]
+    labels:     [{device_id, start_sec, end_sec, ...}, ...]
+
+    Returns (det_match, label_match): per-element index of the counterpart
+    or None. The caller maps matches to TP/FP/FN via label polarity.
+    """
+    det_match = [None] * len(detections)
+    label_match = [None] * len(labels)
+    labels_by_dev = {}
+    for li, lab in enumerate(labels):
+        labels_by_dev.setdefault(lab["device_id"], []).append(li)
+    cand = []
+    for di, det in enumerate(detections):
+        for li in labels_by_dev.get(det["device_id"], []):
+            lab = labels[li]
+            lo = max(det["start_sec"], lab["start_sec"])
+            hi = min(det["end_sec"], lab["end_sec"])
+            if hi > lo:
+                det_c = (det["start_sec"] + det["end_sec"]) / 2.0
+                lab_c = (lab["start_sec"] + lab["end_sec"]) / 2.0
+                cand.append((abs(det_c - lab_c), di, li))
+    cand.sort()
+    used_d, used_l = set(), set()
+    for _, di, li in cand:
+        if di in used_d or li in used_l:
+            continue
+        used_d.add(di)
+        used_l.add(li)
+        det_match[di] = li
+        label_match[li] = di
+    return det_match, label_match
+
+
 def bouts_from_series(all_bouts):
     """Flatten per-series bout dicts into records with cow/start/series."""
     records = []

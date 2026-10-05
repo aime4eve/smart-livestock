@@ -19,8 +19,11 @@ Outputs (under <repo>/output/drinking-l1/results/):
 - grid_results.csv : all grid combinations x sampling intervals
 - selection.json   : selected parameters + neighbourhood robustness
 
-Usage:
+Usage (Aube calibration, default):
     python3 calibrate.py [--data DIR] [--out DIR]
+
+Usage (platform-label mode, NIX-256 Task 6 / spec §15.4):
+    python3 calibrate.py --labels export.csv --series series.csv [--out DIR]
 """
 
 import argparse
@@ -59,6 +62,21 @@ F_GATE = 0.90
 EVAL_MARGIN_MIN = 30  # evaluation window margin around observation coverage
 PRIMARY_COL = "ruminal"  # column carrying the drinking signal (see docstring)
 SECONDARY_COL = "corrected"
+
+# ── Platform-label mode (NIX-256 Task 6, spec §15.4) ─────────────────────
+# Re-runs the combined-detector grid on platform-exported drinking labels
+# (GET /api/v1/admin/drinking-labels/export) against the raw temperature
+# series, scoring Se/PPV/F under spec §15.3 offline semantics:
+#   CONFIRMED (incl. source=MANUAL back-fills) = TP ground truth,
+#   REJECTED = FP ground truth, MANUAL = missed-event (FN) ground truth.
+RANCH_ZONE = "Asia/Shanghai"
+LABELS_GAP_GRID = [10, 15, 20, 25, 30]  # merge-gap axis; production 15 included
+PRODUCTION_POINT = {"S_th": 0.06, "k": 0.5, "R_th": 0.7, "gap": 15}
+# Production-parity gating, FIXED in labels mode (kernel constants, not
+# grid axes): in-body gate 35-43C + depth margin 1.0C below mu-k*sigma.
+LABELS_IN_BODY_GATE = True
+LABELS_DEPTH_MARGIN_C = 1.0
+FARM_ACCEPT_MIN = 100  # spec §15.4: per-farm CONFIRMED+REJECTED >= 100
 
 
 def prepare_series(df):
@@ -153,6 +171,306 @@ def run_combined(series, obs_recs, win, s_th, k, r_th,
     return matching.match(det, obs_recs)
 
 
+# ════════════════════════════════════════════════════════════════════════
+# Platform-label mode (NIX-256 Task 6, spec §15.4)
+# ════════════════════════════════════════════════════════════════════════
+
+def to_ranch_naive(raw):
+    """Parse ISO-8601 strings to naive Asia/Shanghai wall-clock datetimes.
+
+    Accepts offset-carrying values (platform export: '+08:00'), naive wall
+    clock (backfill tools), or a mix; offset-carrying values are converted,
+    naive ones are taken as ranch wall clock as-is.
+    """
+    s = raw.astype(str).str.strip()
+    has_off = s.str.contains(r"(Z|[+-]\d{2}:?\d{2})$", regex=True)
+    out = pd.Series(pd.NaT, index=s.index, dtype="datetime64[ns]")
+    if (has_off).any():
+        out[has_off] = pd.to_datetime(s[has_off], format="ISO8601", utc=True).dt.tz_convert(
+            RANCH_ZONE).dt.tz_localize(None)
+    if (~has_off).any():
+        out[~has_off] = pd.to_datetime(s[~has_off], format="ISO8601")
+    return out
+
+
+def load_platform_labels(path):
+    """Load the §15.4 export CSV (UTF-8 BOM + CRLF tolerant).
+
+    Returns a DataFrame keyed on device_id (str) with naive ranch-wall-clock
+    event_start_at/event_end_at plus source/label/farm_id.
+    """
+    df = pd.read_csv(path, encoding="utf-8-sig")
+    need = {"device_id", "event_start_at", "event_end_at", "source", "label"}
+    missing = need - set(df.columns)
+    if missing:
+        raise SystemExit(f"[labels] missing expected columns: {sorted(missing)}")
+    df["device_id"] = df["device_id"].astype(str).str.strip()
+    df["start"] = to_ranch_naive(df["event_start_at"])
+    df["end"] = to_ranch_naive(df["event_end_at"])
+    df["farm_id"] = df.get("farm_id", pd.Series(index=df.index, dtype="object"))
+    df["farm_key"] = df["farm_id"].map(
+        lambda v: "unknown" if pd.isna(v) or str(v).strip() in ("", "nan") else str(int(float(v)))
+    )
+    # Positive truth: CONFIRMED verdicts plus MANUAL back-fills (§15.3).
+    df["polarity"] = np.select(
+        [
+            (df["label"] == "CONFIRMED") | (df["source"] == "MANUAL"),
+            df["label"] == "REJECTED",
+        ],
+        ["positive", "negative"],
+        default="unlabeled",
+    )
+    return df
+
+
+def load_platform_series(path):
+    """Load the raw series CSV (device_id, recorded_at, temperature)."""
+    df = pd.read_csv(path)
+    df["device_id"] = df["device_id"].astype(str).str.strip()
+    df["recorded_at"] = to_ranch_naive(df["recorded_at"])
+    return df.sort_values(["device_id", "recorded_at"]).reset_index(drop=True)
+
+
+def prepare_device_arrays(series_df):
+    """Pre-gate each device's series and precompute per-day mu/sigma.
+
+    This is exactly what detect_combined(in_body_gate=True) recomputes
+    internally at every call; doing it once here keeps the 625-point grid
+    affordable while preserving production-parity semantics bit for bit
+    (gate applied to points AND day statistics, sigma ddof=1).
+    """
+    devices = {}
+    for dev, sub in series_df.groupby("device_id", sort=True):
+        sub = sub.sort_values("recorded_at")
+        T = sub["temperature"].to_numpy(dtype=float)
+        keep = (T >= 35.0) & (T <= 43.0)
+        sub = sub.loc[keep]
+        T = T[keep]
+        ts = sub["recorded_at"].to_numpy()
+        if len(ts) < 2:
+            continue
+        day = pd.Series(ts).dt.date
+        mu = pd.Series(T).groupby(day).transform("mean").to_numpy()
+        sig = pd.Series(T).groupby(day).transform(lambda x: x.std(ddof=1)).to_numpy()
+        devices[dev] = {"ts": ts, "T": T, "day_mu": mu, "day_sigma": sig}
+    return devices
+
+
+def _naive_sec(x):
+    """Naive datetime -> epoch-like seconds WITHOUT machine-TZ interpretation.
+
+    Both labels and series are naive ranch wall clock; converting through
+    .timestamp() would drag the host timezone in, so subtract the naive
+    epoch directly — comparisons stay consistent on any host.
+    """
+    return int((pd.Timestamp(x) - pd.Timestamp("1970-01-01")).total_seconds())
+
+
+def run_labels_grid(devices, labels_df):
+    """Run the full S_th x k x R_th x merge-gap grid over the label set.
+
+    Returns a list of result dicts (params + TP/FP/FN/Se/PPV/F). Detections
+    are matched to labels per device via interval overlap (matching.py);
+    unmatched detections count neither TP nor FP (ops label a subset — see
+    the report caveat), unmatched REJECTED labels count nothing (TN-like).
+    """
+    scored = labels_df[labels_df["polarity"] != "unlabeled"].copy()
+    scored = scored[scored["device_id"].isin(devices)]
+    label_records = [
+        {
+            "device_id": r.device_id,
+            "start_sec": _naive_sec(r.start),
+            "end_sec": _naive_sec(r.end),
+            "polarity": r.polarity,
+        }
+        for r in scored.itertuples()
+    ]
+    n_pos = sum(1 for x in label_records if x["polarity"] == "positive")
+    n_neg = len(label_records) - n_pos
+
+    def evaluate(s_th, k, r_th, gap):
+        detections = []
+        for dev, arr in devices.items():
+            for b in detect_combined(
+                arr["ts"], arr["T"], arr["day_mu"], arr["day_sigma"],
+                s_th, k, r_th, merge_gap_min=gap,
+                in_body_gate=False,  # arrays pre-gated (see prepare_device_arrays)
+                depth_margin_c=LABELS_DEPTH_MARGIN_C,
+            ):
+                detections.append(
+                    {
+                        "device_id": dev,
+                        "start_sec": _naive_sec(b["start_ts"]),
+                        "end_sec": _naive_sec(b["end_ts"]),
+                    }
+                )
+        det_match, label_match = matching.match_labels_overlap(detections, label_records)
+        tp = fp = 0
+        for di, li in enumerate(det_match):
+            if li is not None:
+                if label_records[li]["polarity"] == "positive":
+                    tp += 1
+                else:
+                    fp += 1
+        fn = sum(
+            1
+            for li, matched in enumerate(label_match)
+            if matched is None and label_records[li]["polarity"] == "positive"
+        )
+        se = tp / n_pos if n_pos else float("nan")
+        ppv = tp / (tp + fp) if (tp + fp) else float("nan")
+        f = 2 * se * ppv / (se + ppv) if se + ppv and n_pos else float("nan")
+        return {
+            "params": f"S_th={s_th}|k={k}|R_th={r_th}|gap={gap}",
+            "S_th": s_th, "k": k, "R_th": r_th, "gap": gap,
+            "TP": tp, "FP": fp, "FN": fn,
+            "n_pos": n_pos, "n_neg": n_neg, "n_detected": len(detections),
+            "Se": round(se, 4) if se == se else "",
+            "PPV": round(ppv, 4) if ppv == ppv else "",
+            "F": round(f, 4) if f == f else "",
+        }
+
+    rows = []
+    for s_th in S_TH_GRID:
+        for k in K_GRID:
+            for r_th in R_TH_GRID:
+                for gap in LABELS_GAP_GRID:
+                    rows.append(evaluate(s_th, k, r_th, gap))
+        print(f"[labels-grid] S_th={s_th} done ({len(rows)} points)", flush=True)
+    return rows
+
+
+def labels_report_lines(rows, labels_df, series_path, labels_path, skipped_devices):
+    """Render labels_suggestion.txt content."""
+    L = []
+    L.append("Drinking-event label-mode calibration report (NIX-256 Task 6, spec §15.4)")
+    L.append("=" * 72)
+    L.append(f"labels : {labels_path}")
+    L.append(f"series : {series_path}")
+    L.append(f"gating : in-body gate ON, depth margin {LABELS_DEPTH_MARGIN_C} degC "
+             f"(production parity, fixed; merge-gap is a grid axis)")
+    L.append(f"grid   : S_th {S_TH_GRID} x k {K_GRID} x R_th {R_TH_GRID} x gap {LABELS_GAP_GRID}")
+    L.append("")
+    L.append("== Label sample ==")
+    total = len(labels_df)
+    pos = int((labels_df["polarity"] == "positive").sum())
+    neg = int((labels_df["polarity"] == "negative").sum())
+    unl = int((labels_df["polarity"] == "unlabeled").sum())
+    manual = int((labels_df["source"] == "MANUAL").sum())
+    L.append(f"total rows          : {total}")
+    L.append(f"CONFIRMED (pos.)    : {pos}  (incl. MANUAL back-fills: {manual})")
+    L.append(f"REJECTED (neg.)     : {neg}")
+    L.append(f"UNLABELED (ignored) : {unl}")
+    L.append("per farm:")
+    for farm, grp in labels_df.groupby("farm_key", sort=True):
+        c = int((grp["polarity"] == "positive").sum())
+        r = int((grp["polarity"] == "negative").sum())
+        L.append(f"  farm {farm}: positives={c}, REJECTED={r}, "
+                 f"CONFIRMED+REJECTED={c + r}")
+    if skipped_devices:
+        L.append(f"[warn] labels of devices absent from the series were excluded from "
+                 f"scoring: {sorted(skipped_devices)}")
+    L.append("")
+
+    def row_of(point):
+        for r in rows:
+            if (r["S_th"], r["k"], r["R_th"], r["gap"]) == (
+                point["S_th"], point["k"], point["R_th"], point["gap"]
+            ):
+                return r
+        return None
+
+    L.append("== Current production parameters on this label set ==")
+    p = row_of(PRODUCTION_POINT)
+    if p is None:
+        raise SystemExit("[labels] internal error: production point not on the grid")
+    L.append(f"S_th={PRODUCTION_POINT['S_th']}, k={PRODUCTION_POINT['k']}, "
+             f"R_th={PRODUCTION_POINT['R_th']}, merge-gap={PRODUCTION_POINT['gap']}")
+    L.append(f"TP={p['TP']}  FP={p['FP']}  FN={p['FN']}  "
+             f"Se={p['Se']}  PPV={p['PPV']}  F={p['F']}")
+    L.append("")
+
+    valid = [r for r in rows if r["F"] != ""]
+    best = max(valid, key=lambda r: r["F"]) if valid else None
+    L.append("== Grid best (F desc) ==")
+    if best:
+        L.append(f"S_th={best['S_th']}, k={best['k']}, R_th={best['R_th']}, "
+                 f"merge-gap={best['gap']}")
+        L.append(f"TP={best['TP']}  FP={best['FP']}  FN={best['FN']}  "
+                 f"Se={best['Se']}  PPV={best['PPV']}  F={best['F']}")
+    L.append("")
+    L.append("Top-10 grid points:")
+    L.append("params                               TP   FP   FN   Se      PPV     F")
+    for r in sorted(valid, key=lambda x: x["F"], reverse=True)[:10]:
+        L.append(f"{r['params']:<35} {r['TP']:>4} {r['FP']:>4} {r['FN']:>4} "
+                 f"{r['Se']:>7} {r['PPV']:>7} {r['F']:>7}")
+    L.append("")
+
+    L.append("== Acceptance (spec §15.4: per-farm CONFIRMED+REJECTED >= "
+             f"{FARM_ACCEPT_MIN}) ==")
+    per_farm_ok = True
+    farms_with_verdicts = []
+    for farm, grp in labels_df.groupby("farm_key", sort=True):
+        c = int((grp["polarity"] == "positive").sum())
+        r = int((grp["polarity"] == "negative").sum())
+        ok = c + r >= FARM_ACCEPT_MIN
+        per_farm_ok = per_farm_ok and ok
+        farms_with_verdicts.append((farm, c + r, ok))
+        L.append(f"farm {farm}: CONFIRMED+REJECTED={c + r} -> "
+                 f"{'sufficient' if ok else 'INSUFFICIENT'}")
+    L.append("")
+    if not farms_with_verdicts:
+        per_farm_ok = False
+    if per_farm_ok:
+        L.append(f"采信判定：通过。建议参数（供运维修改 health.drinking.* 配置）：")
+        L.append(f"  fall-threshold={best['S_th']}  k-sigma={best['k']}  "
+                 f"recovery-ratio={best['R_th']}  merge-gap-min={best['gap']}")
+        L.append(f"  样本量：见上方分牧场统计。")
+    else:
+        L.append("采信判定：样本量不足，仅供参考，不出正式建议。")
+        L.append("  (spec §15.4: 单牧场 CONFIRMED+REJECTED 合计 ≥ "
+                 f"{FARM_ACCEPT_MIN} 方出建议参数)")
+    L.append("")
+    L.append("== Caveats ==")
+    L.append("- Detections with no overlapping label count neither TP nor FP:")
+    L.append("  operators label a subset, so unmatched detections have unknown")
+    L.append("  polarity; PPV is conditional on labelled regions.")
+    L.append("- UNLABELED rows are ignored; MANUAL back-fills are positive truth.")
+    L.append("- Matching is per-device interval overlap, greedy nearest-center")
+    L.append("  (matching.match_labels_overlap).")
+    return L
+
+
+def run_labels_mode(args, repo):
+    out = args.out or os.path.join(repo, "output/drinking-l2/labels-mode")
+    os.makedirs(out, exist_ok=True)
+    labels_df = load_platform_labels(args.labels)
+    series_df = load_platform_series(args.series)
+    devices = prepare_device_arrays(series_df)
+    scored_devs = set(labels_df.loc[labels_df["polarity"] != "unlabeled", "device_id"])
+    skipped = scored_devs - set(devices)
+    if skipped:
+        print(f"[labels] WARNING: {len(skipped)} labeled device(s) missing from series, "
+              f"their labels are excluded from scoring: {sorted(skipped)}")
+    if not (scored_devs - skipped):
+        raise SystemExit("[labels] no scorable labels: none of the labeled devices "
+                         "appear in the series file")
+
+    rows = run_labels_grid(devices, labels_df)
+    grid = pd.DataFrame(rows)
+    grid_path = os.path.join(out, "labels_grid_results.csv")
+    grid.to_csv(grid_path, index=False)
+
+    report = labels_report_lines(rows, labels_df, args.series, args.labels, skipped)
+    report_path = os.path.join(out, "labels_suggestion.txt")
+    with open(report_path, "w") as f:
+        f.write("\n".join(report) + "\n")
+
+    print("\n".join(report))
+    print(f"\n[labels] wrote {grid_path}")
+    print(f"[labels] wrote {report_path}")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     repo = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -160,7 +478,9 @@ def main():
         "--data", default=os.path.join(repo, "output/drinking-l1/dataset")
     )
     parser.add_argument(
-        "--out", default=os.path.join(repo, "output/drinking-l1/results")
+        "--out", default=None,
+        help="output dir (default: output/drinking-l1/results for the Aube flow, "
+             "output/drinking-l2/labels-mode for --labels)"
     )
     parser.add_argument("--merge-gap", type=float, default=15.0,
                         help="merge gap minutes (spec 14 canonical 15; 30 = pre-sweep L1)")
@@ -168,8 +488,22 @@ def main():
                         help="apply the Java kernel 35-43C gate before detection (production parity)")
     parser.add_argument("--depth-margin", type=float, default=0.0,
                         help="extra depth margin below mu-k*sigma in degC (Java kernel 1.0; L1 semantics 0.0)")
+    parser.add_argument("--labels", default=None,
+                        help="platform label export CSV (GET /api/v1/admin/drinking-labels/export); "
+                             "enables the spec §15.4 label-mode grid")
+    parser.add_argument("--series", default=None,
+                        help="raw temperature series CSV (device_id,recorded_at,temperature), "
+                             "required with --labels")
     args = parser.parse_args()
 
+    if args.labels:
+        if not args.series:
+            parser.error("--labels requires --series (device_id,recorded_at,temperature)")
+        run_labels_mode(args, repo)
+        return
+
+    if args.out is None:
+        args.out = os.path.join(repo, "output/drinking-l1/results")
     os.makedirs(args.out, exist_ok=True)
     df5 = load_temperatures(os.path.join(args.data, "temperature_bolus.tab"))
     obs = load_observations(os.path.join(args.data, "observed_drinking_bouts.tab"))
