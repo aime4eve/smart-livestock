@@ -39,8 +39,9 @@ public class DrinkingLabelExportService {
     private static final ZoneId EXPORT_ZONE = DrinkingEventDetectionService.COW_DAY_ZONE;
     /**
      * ISO-8601 with the Asia/Shanghai offset; whole-minute instants drop
-     * the seconds ("2026-10-01T14:30+08:00", the spec §15.4 example) —
-     * drinking windows live on the minute grid, so most rows print short.
+     * the seconds ("2026-10-01T14:30+08:00", the minute-precision export
+     * format — drinking windows live on the minute grid), so most rows
+     * print short.
      */
     private static final DateTimeFormatter MINUTE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mmXXX");
     private static final DateTimeFormatter FULL_TIME = DateTimeFormatter.ISO_OFFSET_DATE_TIME;

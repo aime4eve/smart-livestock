@@ -15,7 +15,11 @@ public final class PhysiologyDtos {
     /** POST body: {eventType, occurredAt: "yyyy-MM-dd", note?}. */
     public record PhysiologyEventRequest(String eventType, String occurredAt, String note) {}
 
-    /** PUT body: {occurredAt: "yyyy-MM-dd", note?}. */
+    /**
+     * PUT body: {occurredAt: "yyyy-MM-dd", note?}. Note semantics (N17):
+     * key absent or JSON null keeps the stored note; a present blank value
+     * ("", whitespace) clears it to NULL; non-blank replaces it.
+     */
     public record PhysiologyEventUpdateRequest(String occurredAt, String note) {}
 
     public record PhysiologyEventResponse(

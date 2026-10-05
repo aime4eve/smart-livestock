@@ -11,6 +11,7 @@ import com.smartlivestock.health.domain.port.dto.LivestockInfo;
 import com.smartlivestock.health.infrastructure.persistence.entity.DrinkingEventJpaEntity;
 import com.smartlivestock.health.infrastructure.persistence.jpa.DrinkingEventJpaRepository;
 import com.smartlivestock.shared.common.ApiException;
+import com.smartlivestock.shared.common.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -161,6 +162,39 @@ class DrinkingEventServiceTest {
                 .isInstanceOf(ApiException.class); // future to-day
         assertThatThrownBy(() -> service.listEvents(1L, 99L, null, null))
                 .isInstanceOf(ApiException.class); // livestock of another farm
+    }
+
+    // ── PATCH label whitelist (spec §15.2, m-c) ─────────────────
+
+    @Test
+    void patchLabelAcceptsOnlyConfirmedAndRejected() {
+        DrinkingEventJpaEntity row = row("DATAGEN", DrinkingEventLabel.UNLABELED);
+        row.setLivestockId(5L);
+        when(eventRepository.findById(7L)).thenReturn(Optional.of(row));
+        when(eventRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        assertThat(service.updateLabel(1L, 5L, 7L, "CONFIRMED").label()).isEqualTo("CONFIRMED");
+        assertThat(service.updateLabel(1L, 5L, 7L, "rejected").label()).isEqualTo("REJECTED");
+    }
+
+    @Test
+    void patchLabelRejectsUnlabeledAndGarbage() {
+        DrinkingEventJpaEntity row = row("DATAGEN", DrinkingEventLabel.UNLABELED);
+        row.setLivestockId(5L);
+        when(eventRepository.findById(7L)).thenReturn(Optional.of(row));
+
+        // UNLABELED is the algorithm default, not a §15.2 PATCH value —
+        // the marking loop has no "reset" operation.
+        assertThatThrownBy(() -> service.updateLabel(1L, 5L, 7L, "UNLABELED"))
+                .isInstanceOf(ApiException.class)
+                .hasMessage("error.drinking.labelInvalid")
+                .extracting("code")
+                .isEqualTo(ErrorCode.VALIDATION_ERROR);
+        assertThatThrownBy(() -> service.updateLabel(1L, 5L, 7L, "MAYBE"))
+                .isInstanceOf(ApiException.class)
+                .hasMessage("error.drinking.labelInvalid");
+        assertThat(row.getLabel()).isEqualTo(DrinkingEventLabel.UNLABELED); // row untouched
+        verify(eventRepository, never()).save(any());
     }
 
     // ── POST /manual idempotency (m-d) ──────────────────────────

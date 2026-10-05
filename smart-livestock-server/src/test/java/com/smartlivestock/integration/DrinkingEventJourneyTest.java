@@ -52,8 +52,11 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * NIX-256 Task 3 — drinking event journey (Testcontainers; not runnable on
- * machines without Docker — compile-only here, executed in CI/dev).
+ * NIX-256 Task 3 — drinking event journey (Testcontainers; compile-only on
+ * machines without Docker — GitHub CI excludes the integration package via
+ * -PexcludeIntegrationTests=true, so actual execution happens in Docker
+ * environments: local Docker runs / post-dev-deploy smoke, bound to the
+ * NIX-256 T7 checklist).
  * Covers: DATAGEN points producing source-tagged events through
  * {@code recalculateDevice}, PATCH label flips with bilingual validation,
  * POST /manual (happy path / idempotent repeat / future rejection /
@@ -333,10 +336,10 @@ public class DrinkingEventJourneyTest extends AbstractJourneyTest {
         assertThat(row.getConfidence()).isBetween(new BigDecimal("0.000"), new BigDecimal("1.000"));
     }
 
-    // ── 2. PATCH label: flips, resets, validation ────────────────
+    // ── 2. PATCH label: flips, whitelist, validation ────────────
 
     @Test
-    void patchLabelFlipsResetsAndValidates() {
+    void patchLabelFlipsWhitelistAndValidates() {
         Long eventId = insertEventRow(wall(fixtureWall("T09:30")), wall(fixtureWall("T09:40")),
                 "DATAGEN", DrinkingEventLabel.UNLABELED, DrinkingAlgorithmVersion.V1);
 
@@ -346,11 +349,19 @@ public class DrinkingEventJourneyTest extends AbstractJourneyTest {
         assertThat(eventRepository.findById(eventId).orElseThrow().getLabel())
                 .isEqualTo(DrinkingEventLabel.CONFIRMED);
 
-        // Reset
-        ResponseEntity<Map> reset = patchLabel(boundLivestockId, eventId, "UNLABELED", null);
-        assertOk(reset);
+        // Reject
+        ResponseEntity<Map> rejectedResp = patchLabel(boundLivestockId, eventId, "REJECTED", null);
+        assertOk(rejectedResp);
         assertThat(eventRepository.findById(eventId).orElseThrow().getLabel())
-                .isEqualTo(DrinkingEventLabel.UNLABELED);
+                .isEqualTo(DrinkingEventLabel.REJECTED);
+
+        // Reset to UNLABELED is outside the §15.2 body contract: the PATCH
+        // whitelist accepts CONFIRMED/REJECTED only (m-c), the algorithm
+        // default cannot be PATCHed back and the row stays untouched.
+        ResponseEntity<Map> reset = patchLabel(boundLivestockId, eventId, "UNLABELED", null);
+        assertError(reset, HttpStatus.BAD_REQUEST, "VALIDATION_ERROR");
+        assertThat(eventRepository.findById(eventId).orElseThrow().getLabel())
+                .isEqualTo(DrinkingEventLabel.REJECTED);
 
         // Invalid label → 400 with localized message
         HttpHeaders headers = authHeaders(ownerToken);

@@ -69,8 +69,10 @@ public class DrinkingEventService {
     }
 
     /**
-     * PATCH label: confirm / reject / reset a drinking event. An
-     * ALGORITHM_CANDIDATE row keeps its source when confirmed — the
+     * PATCH label: confirm / reject a drinking event (spec §15.2 body
+     * contract — CONFIRMED or REJECTED only; UNLABELED is the algorithm
+     * default and cannot be PATCHed back, see {@link #parsePatchLabel}).
+     * An ALGORITHM_CANDIDATE row keeps its source when confirmed — the
      * statistics contract reads the label/source pair (isCounted), so no
      * source rewrite is needed to "promote" it.
      */
@@ -78,7 +80,7 @@ public class DrinkingEventService {
     public DrinkingEventResponse updateLabel(Long farmId, Long livestockId, Long eventId, String label) {
         requireLivestockInFarm(farmId, livestockId);
         DrinkingEventJpaEntity entity = requireEvent(livestockId, eventId);
-        entity.setLabel(parseLabel(label));
+        entity.setLabel(parsePatchLabel(label));
         DrinkingEventJpaEntity saved = eventRepository.save(entity);
         return toResponse(saved);
     }
@@ -204,6 +206,20 @@ public class DrinkingEventService {
         } catch (IllegalArgumentException exception) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.drinking.labelInvalid");
         }
+    }
+
+    /**
+     * Spec §15.2 PATCH contract whitelist: the marking loop accepts
+     * CONFIRMED / REJECTED only. Any other enum value — notably UNLABELED,
+     * the algorithm default — or garbage is a validation error; "reset"
+     * is not a PATCH operation.
+     */
+    private static DrinkingEventLabel parsePatchLabel(String value) {
+        DrinkingEventLabel parsed = parseLabel(value);
+        if (parsed != DrinkingEventLabel.CONFIRMED && parsed != DrinkingEventLabel.REJECTED) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.drinking.labelInvalid");
+        }
+        return parsed;
     }
 
     /** Manual entry format: wall-clock "yyyy-MM-dd HH:mm" (ISO 'T' also accepted). */

@@ -128,7 +128,15 @@ public class PhysiologyEventService {
         }
     }
 
-    /** Update occurredAt/note; MANUAL rows only. */
+    /**
+     * Update occurredAt/note; MANUAL rows only. Note clearing is explicit
+     * (N17): Jackson binds an absent key and an explicit JSON null to the
+     * same {@code null} — both keep the stored note; a present-but-blank
+     * note ("", whitespace) clears the column to NULL; a non-blank note
+     * replaces it (length still capped at 500). No JsonNullable / Optional
+     * wrapper is needed: the two "keep" cases are intentionally
+     * indistinguishable, so the plain record binding carries the contract.
+     */
     @Transactional
     public PhysiologyEventResponse updateEvent(Long farmId, Long livestockId, Long eventId,
                                                PhysiologyEventUpdateRequest request, Long userId) {
@@ -153,7 +161,9 @@ public class PhysiologyEventService {
 
         entity.setOccurredAt(occurredAt);
         if (note != null) {
-            entity.setNote(note);
+            // Explicit note key: blank (trim-empty) clears the column,
+            // non-blank replaces it; absent/null keeps the stored value.
+            entity.setNote(note.isBlank() ? null : note);
         }
         entity.setUpdatedBy(userId);
         PhysiologyEventJpaEntity saved = eventRepository.save(entity);

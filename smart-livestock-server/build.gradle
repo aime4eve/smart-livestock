@@ -112,6 +112,9 @@ tasks.named('test') {
     useJUnitPlatform()
     // Docker-capable local/dev environments run this package with the full suite.
     // GitHub CI is a fast unit gate until the Testcontainers journey setup is fixed.
+    // NIX-256 R2 N1 execution debt: the excluded journey tests are compile-only
+    // on Docker-less machines; they actually execute in Docker environments
+    // (local full runs / post-dev-deploy smoke, tracked on the NIX-256 T7 checklist).
     if (project.hasProperty('excludeIntegrationTests')) {
         exclude 'com/smartlivestock/integration/**'
     }

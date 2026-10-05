@@ -31,9 +31,12 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * NIX-256 Task 5a — drinking read endpoints journey (Testcontainers; not
- * runnable on machines without Docker — compile-only here, executed in
- * CI/dev). Covers the three farm-scoped GET endpoints end to end:
+ * NIX-256 Task 5a — drinking read endpoints journey (Testcontainers;
+ * compile-only on machines without Docker — GitHub CI excludes the
+ * integration package via -PexcludeIntegrationTests=true, so actual
+ * execution happens in Docker environments: local Docker runs /
+ * post-dev-deploy smoke, bound to the NIX-256 T7 checklist). Covers the
+ * three farm-scoped GET endpoints end to end:
  * the event list with the closed Shanghai date range, the three-layer
  * summary (daily §15.3 filtering, weekly direct sum, 30-day baseline over
  * sample days — expected values recomputed from the repositories), the

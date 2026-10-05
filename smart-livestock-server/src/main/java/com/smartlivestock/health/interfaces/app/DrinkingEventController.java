@@ -90,7 +90,10 @@ public class DrinkingEventController {
 
     // ── Task 3 marking loop (write) ────────────────────────────
 
-    /** Confirm / reject / reset the label of one drinking event row. */
+    /**
+     * Flip the label of one drinking event row. Spec §15.2 body contract:
+     * CONFIRMED | REJECTED only (no reset to UNLABELED).
+     */
     @PatchMapping("/drinking-events/{eventId}/label")
     public ResponseEntity<ApiResponse<DrinkingEventResponse>> updateLabel(
             @PathVariable Long farmId, @PathVariable Long livestockId, @PathVariable Long eventId,

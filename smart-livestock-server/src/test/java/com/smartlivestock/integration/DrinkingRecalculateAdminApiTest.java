@@ -24,9 +24,12 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * NIX-256 Task 4 — admin manual recalculation API (Testcontainers; not
- * runnable on machines without Docker — compile-only here, executed in
- * CI/dev). Covers: PLATFORM_ADMIN single-device and all-farms bodies,
+ * NIX-256 Task 4 — admin manual recalculation API (Testcontainers;
+ * compile-only on machines without Docker — GitHub CI excludes the
+ * integration package via -PexcludeIntegrationTests=true, so actual
+ * execution happens in Docker environments: local Docker runs /
+ * post-dev-deploy smoke, bound to the NIX-256 T7 checklist). Covers:
+ * PLATFORM_ADMIN single-device and all-farms bodies,
  * B2B_ADMIN access, OWNER/WORKER 403, the closed-date-range validations
  * (missing / inverted range → rangeInvalid, future "to" → futureDate) and
  * the unknown-device 404. The endpoint is synchronous; response stats are
