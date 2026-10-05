@@ -48,7 +48,7 @@
 ## Task 3 · drinking_events + 检测内核
 
 1. Flyway 迁移：`drinking_events` 表——**DDL 惯例五项**（`TIMESTAMP`、`REFERENCES devices/livestock` 外键、`temp_drop/min_temp NUMERIC(10,2)`、`updated_at`；source 沿用动态口径不加 CHECK）——完整 DDL 见技术方案 §6.1（已按仓库范本修订）。
-2. `DrinkingEventDetectionService`（health.application.service）：纯函数核心（输入温度点列 → 事件列表）+ 两判据（FallST 斜率 ∧ μ−kσ）+ 2h 回升确认 + 30min 合并；参数读 `health.drinking.*` 配置（**全部配置化，四轮 F3**：`baseline-min-days:3`/`recalc-overlap-hours:1`/`recovery-window-min:120`/`merge-gap-min:30`/`k-sigma:10`/`fall-threshold:<T2>`）；**牛日边界 = Asia/Shanghai 日历日**（F5，跨午夜按本地日归属）。温度点列直接复用 `TemperatureLogJpaRepository.findByDeviceIdAndRecordedAtBetweenOrderByRecordedAtAsc`（已核实现成）。
+2. `DrinkingEventDetectionService`（health.application.service）：纯函数核心（输入温度点列 → 事件列表）+ 两判据（FallST 斜率 ∧ μ−kσ）+ 2h 回升确认 + 15min 合并；参数读 `health.drinking.*` 配置（**全部配置化，四轮 F3**，定值见 spec §14/T2 标定：`baseline-min-days:3`/`recalc-overlap-hours:1`/`recovery-window-min:120`/`merge-gap-min:15`/`k-sigma:0.5`/`fall-threshold:0.06`/`recovery-ratio:0.7`）；**牛日边界 = Asia/Shanghai 日历日**（F5，跨午夜按本地日归属）。温度点列直接复用 `TemperatureLogJpaRepository.findByDeviceIdAndRecordedAtBetweenOrderByRecordedAtAsc`（已核实现成）。
 3. 排除窗口：`PhysiologyQueryPort.activeWindowsForFarm`（读时合并，含处置单路）∪ `TEMPERATURE_ABNORMAL` 告警窗口（`AlertBrief.createdAt/resolvedAt` 拼装，已核实零 DTO 改动）；离体过滤（35–43°C 门卫）+ source 过滤（排除 DATAGEN）。
 4. 输入查询：`temperature_logs` 按 device 分组取当日+前 2h 点列（复用现有仓储查询，不新造轮子）。
 5. 真库集成测试（Testcontainers，教训 #19）：正常 V 形谷两连发合并为一、发烧序列不产假阳性（排除窗口生效）、离体点丢弃、DATAGEN 不入库、跨日边界。
@@ -101,4 +101,5 @@
 
 ## 附录（T2 完成后回填）
 
-- 定参：`S_th = <待 T2>` °C/步（Δt 归一）、`k = <待 T2>`、`R_th = <待 T2>`、退热缓冲 6h（L2 复核）。
+- 定参（2026-10-05 L1 标定，merge-gap=15 终版口径，门禁 F≥0.90 达成）：`S_th = 0.06 °C/min`（Δt 归一；5-min 数据等效 0.30°C/步，6-min 0.36°C，10-min 0.60°C）、`k = 0.5`（k 轴单调：k=1→0.9346、k=2→0.9010、k=3→0.8317 破门禁，配置防误设大值）、`R_th = 0.7`（L1 近乎不敏感 0.5~0.8 差 ≤0.15pp，防御性默认）、`merge-gap = 15min`（**改定**：敏感性扫描 gap={0,10,15,20,25,30}→F={82.45,93.76,94.00,93.90,93.27,92.65}；原 30 系对 Aubé"30 min apart"分辨下限句的误读，把 Se 压在 86.7% 天花板；gap=0 FP 211 个证明合并必须存在）、退热缓冲 6h（L2 复核）。选定参数 F：5/6/10-min = **0.9400**/0.9390/0.9270（5-min：TP 650/FP 3，Se 89.0%/PPV 99.5%）。详见 `docs/research/2026-10-05-drinking-l1-calibration-report.md`。
+- 勘误：Aubé 数据集温度为 5-min 间隔（非 10-min）；饮水信号在 `ruminal_temperature` 列（`corrected_temperature` 列已被平滑，F≈1%）——平台 `temperature_logs` 存原始通道温度，同口径无此问题。

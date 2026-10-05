@@ -1,0 +1,58 @@
+{
+  "S_th": 0.06,
+  "k": 0.5,
+  "R_th": 0.7,
+  "gate_met": true,
+  "F_5min": 0.94,
+  "neighborhood_F": {
+    "S_th=0.08": 0.9257,
+    "k=1": 0.9193,
+    "R_th=0.6": 0.9265,
+    "R_th=0.75": 0.9265
+  },
+  "neighborhood_min": 0.9193,
+  "neighborhood_max": 0.9265,
+  "neighborhood_range_pp": 0.72,
+  "F_by_interval": {
+    "5": 0.939986,
+    "6": 0.938953,
+    "10": 0.927007
+  },
+  "cross_interval_range_pp": 0.52,
+  "best_per_interval": {
+    "5": {
+      "S_th": 0.06,
+      "k": 0.5,
+      "R_th": 0.5,
+      "F": 0.9265,
+      "Se": 0.863,
+      "PPV": 1.0
+    },
+    "6": {
+      "S_th": 0.06,
+      "k": 0.5,
+      "R_th": 0.5,
+      "F": 0.9249,
+      "Se": 0.8603,
+      "PPV": 1.0
+    },
+    "10": {
+      "S_th": 0.06,
+      "k": 0.5,
+      "R_th": 0.5,
+      "F": 0.9243,
+      "Se": 0.8616,
+      "PPV": 0.9968
+    }
+  },
+  "merge_gap_min": 15,
+  "merge_gap_note": "spec default changed 30->15 by sensitivity sweep (see report 4b); gap=0 FP flood proves merging is required",
+  "F_6min": 0.939,
+  "F_10min": 0.927,
+  "neighborhood_F_gap15": {
+    "S_th=0.08": 0.939219,
+    "k=1": 0.934593,
+    "R_th=0.6": 0.940751,
+    "R_th=0.75": 0.939986
+  }
+}

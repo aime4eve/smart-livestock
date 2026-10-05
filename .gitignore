@@ -140,3 +140,4 @@ data/datasets/**
 # Local agent runtime and browser verification artifacts
 .codex/
 /output/playwright/
+output/drinking-l1/dataset/

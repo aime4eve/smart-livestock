@@ -81,7 +81,7 @@
   - 30 日基线与同类均值 = **剔除发热窗口覆盖 ≥50% 的日**后计算（发热期检出数被排除机制压低，不具统计代表性），`sampleDays` 记录有效样本天数。
 - **牛日边界（F5）**：检测器的 μ/σ 按"日"切——**牛日 = Asia/Shanghai 日历日**（与 B3 手动录入时区一致），夜间跨午夜饮水按本地日归属，不按 UTC 劈日。
 - **重算删除语义（F6）**：日批重跑与手动回算 = 先 `DELETE WHERE device_id=? AND event_start_at >= from−1h AND event_start_at < to+1h` 再插入（1h 漂移余量，配置 `health.drinking.recalc-overlap-hours:1`）——防补传 recordedAt 漂移绕过 UNIQUE 键产生重复行。
-- 检测器与统计参数**全部配置化**（`health.drinking.*`，F3：魔法数不入 UI 当权威）：`baseline-min-days:3`（基线最少有效天数，默认 3，标定复核）、`recalc-overlap-hours:1`、`recovery-window-min:120`、`merge-gap-min:30`、`k-sigma:10`、`fall-threshold:<T2 定值>`；两判据组合（FallST 斜率 ∧ 逐牛逐日 μ−kσ）+ 回升确认 + 30min 合并；参数经 Aubé 开放数据集 L1 标定后定值入本 spec 附录。
+- 检测器与统计参数**全部配置化**（`health.drinking.*`，F3：魔法数不入 UI 当权威）：`baseline-min-days:3`（基线最少有效天数，默认 3，标定复核）、`recalc-overlap-hours:1`、`recovery-window-min:120`、`merge-gap-min:15`、`k-sigma:0.5`、`fall-threshold:0.06`（°C/min，Δt 归一）、`recovery-ratio:0.7`；两判据组合（FallST 斜率 ∧ 逐牛逐日 μ−kσ）+ 回升确认 + 15min 合并；参数定值见 §14（Aubé 开放数据集 L1 标定，2026-10-05）。
 - 排除窗口：发热 episode/退热 6h 缓冲——由 `PhysiologyQueryPort.activeWindows` 读时合并产出（处置单侧）∪ `TEMPERATURE_ABNORMAL` 告警窗口拼装（`AlertBrief` 已自带 `createdAt/resolvedAt`，RanchQueryPort:41，**零 DTO 改动**）。
 - 调度：`DrinkingEventScheduler` cron 默认 `0 40 3 * * *` + enabled 开关，**走共享调度池**（`SchedulerPoolConfig` 全局唯一显式 taskScheduler 8 线程 + 心跳探针兜底；不新建 scheduler bean——多 bean 混杂正是 09-30 静默死亡根因注释点名的模式，且 `@Scheduled` 无法路由第二个 bean）。
 
@@ -237,3 +237,19 @@ public enum PhysiologyStageType { LACTATING, DRY }   // P1 只推导这两态；
 ## 13. Linear 工单
 
 合并单：**NIX-256**（https://linear.app/nix-agentic/issue/NIX-256 ，priority High，Backlog）——范围/约束/文档索引见工单描述；spec 确认后进 plan。
+
+## 14. 参数定值（T2 L1 标定回填，2026-10-05）
+
+数据集：Aubé et al. 2025（DOI 10.57745/H2SPNR，Etalab 2.0 许可，28 牛 × 96h × **5-min** 采样 + 730 视频标注）。三方法复现 |ΔF| ≤ 1pp 贴住论文后完成网格标定。报告：`docs/research/2026-10-05-drinking-l1-calibration-report.md`。
+
+| 配置键 | 定值 | 依据（5-min，N=730） |
+|---|---|---|
+| `fall-threshold` | **0.06** °C/min（Δt 归一：`fall/Δt_min ≥ 0.06`；等效步降幅 5-min 0.30°C / 6-min 0.36°C / 10-min 0.60°C） | 网格下限最优 F=0.9400；Δt 归一后 6/10-min 迁移损失 0.10pp/1.30pp |
+| `k-sigma` | **0.5** | k 轴单调下降（0.5→0.9400、1→0.9346、2→0.9010、3→0.8317）；原"k=10（Vázquez 2019）"为活动判定语境值，已废弃；k>2 告警 |
+| `recovery-ratio` | **0.7** | L1 近乎不敏感（0.5~0.8 差 ≤0.15pp），防御性默认；L2 发烧/离体"降而不回"形态主防线 |
+| `recovery-window-min` | **120** | Cantor 最冷组恢复 103min |
+| `merge-gap-min` | **15**（原 30 改定） | 敏感性扫描 gap={0,10,15,20,25,30}→F={82.45,93.76,**94.00**,93.90,93.27,92.65}；原 30 系对 Aubé"30 min apart"（分辨下限）的误读，压 Se 于 86.7% 天花板；gap=0 FP 洪水（211）证明合并必须存在 |
+| `baseline-min-days` | **3** | 维持原值，标定复核通过 |
+| `recalc-overlap-hours` | **1** | 维持原值（F6） |
+
+组合检测器（FallST ∧ μ−kσ + 回升确认 + 15min 合并）：**5-min F=0.9400**（TP 650/FP 3，Se 89.0%/PPV 99.5%）、6-min 0.9390、10-min 0.9270——门禁 F≥0.90 达成。数据勘误：饮水信号在 `ruminal_temperature` 列（corrected 列已被平滑）；我们平台 `temperature_logs` 存原始通道温度，同口径无此问题。
