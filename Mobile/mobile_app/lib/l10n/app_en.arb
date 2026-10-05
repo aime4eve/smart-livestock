@@ -5616,7 +5616,7 @@
   ,"@healthDrinkingManualTimeInvalid": {}
   ,"healthDrinkingManualTimeFuture": "Time cannot be in the future"
   ,"@healthDrinkingManualTimeFuture": {}
-  ,"healthDrinkingManualNoteHint": "Note (optional, ≤200 chars)…"
+  ,"healthDrinkingManualNoteHint": "Note (optional, ≤500 chars)…"
   ,"@healthDrinkingManualNoteHint": {}
   ,"healthDrinkingTierBadge": "Premium+"
   ,"@healthDrinkingTierBadge": {}

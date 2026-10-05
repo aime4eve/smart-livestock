@@ -7020,7 +7020,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get healthDrinkingManualTimeFuture => '时刻不能晚于现在';
 
   @override
-  String get healthDrinkingManualNoteHint => '备注（选填，≤200 字）…';
+  String get healthDrinkingManualNoteHint => '备注（选填，≤500 字）…';
 
   @override
   String get healthDrinkingTierBadge => 'Premium+';

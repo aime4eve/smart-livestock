@@ -12962,7 +12962,7 @@ abstract class AppLocalizations {
   /// No description provided for @healthDrinkingManualNoteHint.
   ///
   /// In zh, this message translates to:
-  /// **'备注（选填，≤200 字）…'**
+  /// **'备注（选填，≤500 字）…'**
   String get healthDrinkingManualNoteHint;
 
   /// No description provided for @healthDrinkingTierBadge.

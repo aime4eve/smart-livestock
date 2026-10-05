@@ -7184,7 +7184,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get healthDrinkingManualTimeFuture => 'Time cannot be in the future';
 
   @override
-  String get healthDrinkingManualNoteHint => 'Note (optional, ≤200 chars)…';
+  String get healthDrinkingManualNoteHint => 'Note (optional, ≤500 chars)…';
 
   @override
   String get healthDrinkingTierBadge => 'Premium+';

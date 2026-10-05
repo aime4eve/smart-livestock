@@ -59,16 +59,29 @@ class DrinkingEventList extends ConsumerWidget {
     final counted = todayEvents.where((e) => !e.isCandidate).toList();
 
     if (todayEvents.isEmpty) {
+      // Empty state keeps the manual back-fill button (integration-testing
+      // finding 2026-10-06): today with no events is exactly when a missed
+      // bout needs back-filling — hiding the entry there made it unreachable
+      // for fresh/quiet cows.
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Text(
-          l10n.healthDrinkingNoEventsToday,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 10,
-            height: 1.5,
-            color: AppColors.textSecondary,
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.healthDrinkingNoEventsToday,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 10,
+                height: 1.5,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            if (canWrite) ...[
+              const SizedBox(height: 9),
+              _manualButton(context, l10n),
+            ],
+          ],
         ),
       );
     }
@@ -115,29 +128,34 @@ class DrinkingEventList extends ConsumerWidget {
         ],
         if (canWrite) ...[
           const SizedBox(height: 9),
-          Material(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(8),
-            child: InkWell(
-              key: const Key('drinking-add-manual'),
-              borderRadius: BorderRadius.circular(8),
-              onTap: () => showDrinkingManualSheet(context, livestockId),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                alignment: Alignment.center,
-                child: Text(
-                  l10n.healthDrinkingAddManual,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ),
+          _manualButton(context, l10n),
         ],
       ],
+    );
+  }
+
+  /// "漏报补录" entry button — shared by the empty and list states.
+  Widget _manualButton(BuildContext context, AppLocalizations l10n) {
+    return Material(
+      color: AppColors.primary,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        key: const Key('drinking-add-manual'),
+        borderRadius: BorderRadius.circular(8),
+        onTap: () => showDrinkingManualSheet(context, livestockId),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          alignment: Alignment.center,
+          child: Text(
+            l10n.healthDrinkingAddManual,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
     );
   }
 

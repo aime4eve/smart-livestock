@@ -193,7 +193,7 @@ class _DrinkingManualSheetState extends ConsumerState<DrinkingManualSheet> {
               TextField(
                 key: const Key('drinking-manual-note'),
                 controller: _noteCtrl,
-                maxLength: 200,
+                maxLength: 500,
                 minLines: 2,
                 maxLines: 4,
                 style: const TextStyle(
