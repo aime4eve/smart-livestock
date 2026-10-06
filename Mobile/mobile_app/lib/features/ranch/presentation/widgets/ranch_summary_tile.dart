@@ -53,57 +53,68 @@ class RanchSummaryTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-        decoration: colored ? coloredStyle : plainStyle,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (badge != null && badge! > 0)
-              Align(
-                alignment: Alignment.topRight,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                  decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(7)),
-                  child: Text('$badge',
-                      style: const TextStyle(
-                          fontSize: 8,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.danger)),
-                ),
+      // StackFit.expand forces the decorated container to fill the tile:
+      // with the default loose fit it shrinks to the text column width and
+      // the gradient/border only paints over the left half of the tile.
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+            decoration: colored ? coloredStyle : plainStyle,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.3,
+                        color: colored
+                            ? Colors.white
+                            : AppColors.textSecondary)),
+                const SizedBox(height: 2),
+                Text(big,
+                    style: TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w800,
+                        height: 1.15,
+                        color:
+                            colored ? Colors.white : AppColors.textPrimary)),
+                const SizedBox(height: 2),
+                Text(sub,
+                    style: TextStyle(
+                        fontSize: 8,
+                        height: 1.3,
+                        fontWeight: !colored && subColor == AppColors.success
+                            ? FontWeight.w700
+                            : FontWeight.w400,
+                        color: colored
+                            ? Colors.white.withValues(alpha: 0.85)
+                            : subColor)),
+              ],
+            ),
+          ),
+          // The unread badge overlays the corner instead of taking a layout
+          // slot, so tiles with and without a badge keep identical text rows.
+          if (badge != null && badge! > 0)
+            Positioned(
+              top: 5,
+              right: 6,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(7)),
+                child: Text('$badge',
+                    style: const TextStyle(
+                        fontSize: 8,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.danger)),
               ),
-            Text(label,
-                style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.3,
-                    color: colored
-                        ? Colors.white
-                        : AppColors.textSecondary)),
-            const SizedBox(height: 2),
-            Text(big,
-                style: TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.w800,
-                    height: 1.15,
-                    color:
-                        colored ? Colors.white : AppColors.textPrimary)),
-            const SizedBox(height: 2),
-            Text(sub,
-                style: TextStyle(
-                    fontSize: 8,
-                    height: 1.3,
-                    fontWeight: !colored && subColor == AppColors.success
-                        ? FontWeight.w700
-                        : FontWeight.w400,
-                    color: colored
-                        ? Colors.white.withValues(alpha: 0.85)
-                        : subColor)),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }

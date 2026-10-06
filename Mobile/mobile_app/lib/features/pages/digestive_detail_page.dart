@@ -386,16 +386,19 @@ class DigestiveDetailPage extends ConsumerWidget {
   Widget _buildChart(DigestiveDetailData detail, AppLocalizations l10n) {
     final readings = detail.recent24h;
     if (readings.isEmpty) return const SizedBox.shrink();
-    final spots = readings
-        .where((reading) => reading.frequency != null)
-        .toList()
+    // Real TB capsule telemetry may report frequency=null for the whole
+    // window (counter-only motility). Hiding the chart on that shape is the
+    // designed empty path — any unguarded lastWhere here white-screens the
+    // page in release builds.
+    final recentWithFrequency =
+        readings.where((reading) => reading.frequency != null).toList();
+    if (recentWithFrequency.isEmpty) return const SizedBox.shrink();
+    final spots = recentWithFrequency
         .asMap()
         .entries
         .map((e) => FlSpot(e.key.toDouble(), e.value.frequency!))
         .toList();
-    final latestWithFrequency = readings.lastWhere(
-      (reading) => reading.frequency != null,
-    );
+    final latestWithFrequency = recentWithFrequency.last;
 
     return Card(
       child: Padding(

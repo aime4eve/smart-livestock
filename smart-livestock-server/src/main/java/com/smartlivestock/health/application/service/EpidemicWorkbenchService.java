@@ -161,7 +161,7 @@ public class EpidemicWorkbenchService {
                         farmId, request.livestockId(),
                         List.of(EpidemicDispositionStatus.PENDING, EpidemicDispositionStatus.IN_PROGRESS));
         if (active.isPresent()) {
-            return toResponse(active.get());
+            return toResponse(active.get(), false);
         }
 
         var workbench = workbench(farmId, request.sourceLivestockId(), 72, 2, null);
@@ -185,7 +185,7 @@ public class EpidemicWorkbenchService {
         entity.setStatus(EpidemicDispositionStatus.PENDING);
         entity.setReasonCodes(new ArrayList<>(item.reasonCodes()));
         entity.setDueAt(item.dueAt());
-        return toResponse(dispositionRepository.save(entity));
+        return toResponse(dispositionRepository.save(entity), true);
     }
 
     @Transactional
@@ -200,7 +200,7 @@ public class EpidemicWorkbenchService {
         entity.setStatus(EpidemicDispositionStatus.COMPLETED);
         entity.setCompletedAt(Instant.now());
         entity.setCompletedBy(userId);
-        return toResponse(dispositionRepository.save(entity));
+        return toResponse(dispositionRepository.save(entity), true);
     }
 
     @Transactional
@@ -210,7 +210,7 @@ public class EpidemicWorkbenchService {
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "error.epidemicDispositionNotFound"));
         entity.setStatus(EpidemicDispositionStatus.CANCELLED);
         entity.setCancelReasonCode(reasonCode == null || reasonCode.isBlank() ? "USER_CANCELLED" : reasonCode);
-        return toResponse(dispositionRepository.save(entity));
+        return toResponse(dispositionRepository.save(entity), true);
     }
 
     @Transactional
@@ -459,11 +459,15 @@ public class EpidemicWorkbenchService {
     }
 
     private EpidemicDispositionResponse toResponse(EpidemicDispositionJpaEntity entity) {
+        return toResponse(entity, false);
+    }
+
+    private EpidemicDispositionResponse toResponse(EpidemicDispositionJpaEntity entity, boolean created) {
         return new EpidemicDispositionResponse(
                 entity.getId(), entity.getLivestockId().toString(),
                 entity.getSourceLivestockId() == null ? null : entity.getSourceLivestockId().toString(),
                 entity.getTier().name(), entity.getActionCode().name(), entity.getStatus().name(),
-                entity.getReasonCodes(), entity.getDueAt(), entity.getCompletedAt()
+                entity.getReasonCodes(), entity.getDueAt(), entity.getCompletedAt(), created
         );
     }
 

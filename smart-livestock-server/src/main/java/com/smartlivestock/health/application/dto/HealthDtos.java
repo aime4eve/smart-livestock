@@ -163,7 +163,8 @@ public final class HealthDtos {
     public record SceneSummaryFever(int abnormalCount, int criticalCount, int elevatedCount, int activeAlertCount) {}
     public record SceneSummaryDigestive(int abnormalCount, int watchCount, int activeAlertCount) {}
     public record SceneSummaryEstrus(int highScoreCount, boolean breedingAdvice, int activeAlertCount) {}
-    public record SceneSummaryEpidemic(String status, double abnormalRate, int activeAlertCount) {}
+    public record SceneSummaryEpidemic(String status, double abnormalRate, int activeAlertCount,
+                                       boolean hasMarkedSource) {}
     public record SceneSummaryAi(int anomalyCount, int highScoreCount, double avgScore, int activeAlertCount) {}
 
     public record SceneSummary(
@@ -251,7 +252,18 @@ public final class HealthDtos {
     ) {}
 
     public record MarkDiseaseRequest(
-            Long livestockId, String diseaseType
+            Long livestockId, String diseaseType, Integer windowHours
+    ) {}
+
+    /**
+     * Mark-diseased response (spec §4.2/§4.3): how many contact rows the
+     * instant analysis track generated or refreshed, plus a machine-readable
+     * warning code when no GPS trajectory existed in the window
+     * ({@code error.epidemicNoGpsWindow}); HTTP stays 200 either way.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record MarkDiseaseResponse(
+            int contactsGenerated, String warning
     ) {}
 
     // ── Epidemic workbench (three-view contact tracing) ─────────
@@ -397,7 +409,11 @@ public final class HealthDtos {
             String status,
             List<String> reasonCodes,
             Instant dueAt,
-            Instant completedAt
+            Instant completedAt,
+            // False when an active disposition already existed and was
+            // returned as-is (idempotent create) — the client uses it to
+            // phrase the toast correctly ("registered" vs "already running").
+            boolean created
     ) {}
 
 // ── Stats / Trends ─────────────────────────────────────────

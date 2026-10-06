@@ -11885,6 +11885,18 @@ abstract class AppLocalizations {
   /// **'7 日异常率 {rate}%，已超警戒线'**
   String sceneEpidemicFootAbove(String rate);
 
+  /// No description provided for @sceneEpidemicFootNoSource.
+  ///
+  /// In zh, this message translates to:
+  /// **'7 日异常率 {rate}% · '**
+  String sceneEpidemicFootNoSource(String rate);
+
+  /// No description provided for @sceneEpidemicFootNoSourceTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'未标记源头'**
+  String get sceneEpidemicFootNoSourceTag;
+
   /// No description provided for @aiSummaryWatching.
   ///
   /// In zh, this message translates to:
@@ -12370,6 +12382,316 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'立即重试'**
   String get signalSyncRetry;
+
+  /// No description provided for @epidemicNoSourceTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无标记的疑似源头'**
+  String get epidemicNoSourceTitle;
+
+  /// No description provided for @epidemicNoSourceBodyV2.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前牧场还没有确认染病的牲畜。从围栏页选择牛只，在详情页即可标记疑似患病，系统将自动生成接触追踪与处置建议。'**
+  String get epidemicNoSourceBodyV2;
+
+  /// No description provided for @epidemicGoPickLivestock.
+  ///
+  /// In zh, this message translates to:
+  /// **'去选择病牛'**
+  String get epidemicGoPickLivestock;
+
+  /// No description provided for @markDiseasedFromAlarm.
+  ///
+  /// In zh, this message translates to:
+  /// **'来自告警'**
+  String get markDiseasedFromAlarm;
+
+  /// No description provided for @alertsMarkAsSource.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记为源头'**
+  String get alertsMarkAsSource;
+
+  /// No description provided for @markDiseasedTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记疑似患病源头'**
+  String get markDiseasedTitle;
+
+  /// No description provided for @markDiseasedDiseaseLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'病种（单选）'**
+  String get markDiseasedDiseaseLabel;
+
+  /// No description provided for @markDiseasedFootMouth.
+  ///
+  /// In zh, this message translates to:
+  /// **'口蹄疫疑似'**
+  String get markDiseasedFootMouth;
+
+  /// No description provided for @markDiseasedTuberculosis.
+  ///
+  /// In zh, this message translates to:
+  /// **'牛结核疑似'**
+  String get markDiseasedTuberculosis;
+
+  /// No description provided for @markDiseasedBrucellosis.
+  ///
+  /// In zh, this message translates to:
+  /// **'布病疑似'**
+  String get markDiseasedBrucellosis;
+
+  /// No description provided for @markDiseasedDiarrhea.
+  ///
+  /// In zh, this message translates to:
+  /// **'腹泻类疾病'**
+  String get markDiseasedDiarrhea;
+
+  /// No description provided for @markDiseasedOther.
+  ///
+  /// In zh, this message translates to:
+  /// **'其他'**
+  String get markDiseasedOther;
+
+  /// No description provided for @markDiseasedOtherHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入病种名称（必填）'**
+  String get markDiseasedOtherHint;
+
+  /// No description provided for @markDiseasedHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记后将立即分析该牛近 72 小时的接触轨迹，生成接触追踪与处置建议。'**
+  String get markDiseasedHint;
+
+  /// No description provided for @markDiseasedConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认标记'**
+  String get markDiseasedConfirm;
+
+  /// No description provided for @markDiseasedDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'已标记，接触分析完成（{contacts} 次接触）'**
+  String markDiseasedDone(int contacts);
+
+  /// No description provided for @markDiseasedNoGps.
+  ///
+  /// In zh, this message translates to:
+  /// **'已标记，但近 72 小时无定位轨迹，接触网络为空'**
+  String get markDiseasedNoGps;
+
+  /// No description provided for @markDiseasedFailedTryAgain.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记失败，请重试'**
+  String get markDiseasedFailedTryAgain;
+
+  /// No description provided for @markDiseasedEntryButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'🦠 标记疑似患病'**
+  String get markDiseasedEntryButton;
+
+  /// No description provided for @unmarkDiseasedButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消染病标记'**
+  String get unmarkDiseasedButton;
+
+  /// No description provided for @viewWorkbenchButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看疫病防控'**
+  String get viewWorkbenchButton;
+
+  /// No description provided for @markedSourceDuration.
+  ///
+  /// In zh, this message translates to:
+  /// **'已标记 {duration}'**
+  String markedSourceDuration(String duration);
+
+  /// No description provided for @markedSourceContacts.
+  ///
+  /// In zh, this message translates to:
+  /// **'接触 {count} 头 · 见「疫病防控」工作台'**
+  String markedSourceContacts(int count);
+
+  /// No description provided for @unmarkConfirmTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消染病标记？'**
+  String get unmarkConfirmTitle;
+
+  /// No description provided for @unmarkConfirmBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'将同时取消 {livestockCode} 作为源头的全部未完成处置单。'**
+  String unmarkConfirmBody(String livestockCode);
+
+  /// No description provided for @unmarkKeep.
+  ///
+  /// In zh, this message translates to:
+  /// **'保留标记'**
+  String get unmarkKeep;
+
+  /// No description provided for @unmarkConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认取消'**
+  String get unmarkConfirm;
+
+  /// No description provided for @unmarkDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'已取消染病标记'**
+  String get unmarkDone;
+
+  /// No description provided for @upsellTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'疫病防控需要 Premium'**
+  String get upsellTitle;
+
+  /// No description provided for @upsellBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记疑似患病、接触追踪与四级处置属于 Premium 功能（epidemic_alert）。'**
+  String get upsellBody;
+
+  /// No description provided for @upsellLater.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂不升级'**
+  String get upsellLater;
+
+  /// No description provided for @upsellLearnMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'了解 Premium'**
+  String get upsellLearnMore;
+
+  /// No description provided for @durationMinutesShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'{minutes} 分钟'**
+  String durationMinutesShort(int minutes);
+
+  /// No description provided for @durationHoursShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'{hours} 小时'**
+  String durationHoursShort(int hours);
+
+  /// No description provided for @durationDaysShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'{days} 天'**
+  String durationDaysShort(int days);
+
+  /// No description provided for @fenceEditTargetMissing.
+  ///
+  /// In zh, this message translates to:
+  /// **'该围栏已被删除，编辑已取消'**
+  String get fenceEditTargetMissing;
+
+  /// No description provided for @epidemicPathRiskHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'按接触事件风险分累加（0-100），仅显示 ≥70 的高风险路径'**
+  String get epidemicPathRiskHint;
+
+  /// No description provided for @epidemicPathSourceTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'源头'**
+  String get epidemicPathSourceTag;
+
+  /// No description provided for @epidemicDispositionRegistered.
+  ///
+  /// In zh, this message translates to:
+  /// **'已为 {livestock} 登记「{action}」任务{due}'**
+  String epidemicDispositionRegistered(
+    String livestock,
+    String action,
+    String due,
+  );
+
+  /// No description provided for @epidemicDispositionExisting.
+  ///
+  /// In zh, this message translates to:
+  /// **'{livestock} 已有进行中的「{action}」任务'**
+  String epidemicDispositionExisting(Object action, Object livestock);
+
+  /// No description provided for @epidemicDispositionDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'{livestock} 的「{action}」任务已完成'**
+  String epidemicDispositionDone(Object action, Object livestock);
+
+  /// No description provided for @epidemicDispositionCancelled.
+  ///
+  /// In zh, this message translates to:
+  /// **'{livestock} 的「{action}」任务已取消'**
+  String epidemicDispositionCancelled(Object action, Object livestock);
+
+  /// No description provided for @epidemicDispositionRegisterFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'登记失败，请重试'**
+  String get epidemicDispositionRegisterFailed;
+
+  /// No description provided for @epidemicCompleteAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'完成'**
+  String get epidemicCompleteAction;
+
+  /// No description provided for @epidemicCancelAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消'**
+  String get epidemicCancelAction;
+
+  /// No description provided for @epidemicCompleteConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认将 {livestock} 的「{action}」任务标记为已完成？'**
+  String epidemicCompleteConfirm(Object action, Object livestock);
+
+  /// No description provided for @epidemicCancelConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认取消 {livestock} 的「{action}」任务？取消后可重新登记。'**
+  String epidemicCancelConfirm(Object action, Object livestock);
+
+  /// No description provided for @epidemicDispRegisteredTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'已登记'**
+  String get epidemicDispRegisteredTag;
+
+  /// No description provided for @epidemicDispositionDueBy.
+  ///
+  /// In zh, this message translates to:
+  /// **'，请在 {due} 前完成'**
+  String epidemicDispositionDueBy(Object due);
+
+  /// No description provided for @epidemicDispCompletedTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'已完成'**
+  String get epidemicDispCompletedTag;
+
+  /// No description provided for @epidemicDispCancelledTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'已取消'**
+  String get epidemicDispCancelledTag;
 
   /// No description provided for @healthPhysiologyTitle.
   ///

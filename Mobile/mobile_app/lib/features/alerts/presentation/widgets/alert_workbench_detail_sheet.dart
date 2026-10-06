@@ -14,6 +14,7 @@ Future<void> showAlertWorkbenchDetailSheet(
   required Future<void> Function(WorkbenchItem item) onDismiss,
   required void Function(String route) onNavigate,
   required void Function(WorkbenchItem item) onTrajectory,
+  void Function(WorkbenchItem item)? onMarkSource,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -26,6 +27,7 @@ Future<void> showAlertWorkbenchDetailSheet(
       onDismiss: onDismiss,
       onNavigate: onNavigate,
       onTrajectory: onTrajectory,
+      onMarkSource: onMarkSource,
     ),
   );
 }
@@ -39,6 +41,7 @@ class AlertWorkbenchDetailSheet extends StatelessWidget {
     required this.onDismiss,
     required this.onNavigate,
     required this.onTrajectory,
+    this.onMarkSource,
   });
 
   final WorkbenchItem item;
@@ -47,6 +50,10 @@ class AlertWorkbenchDetailSheet extends StatelessWidget {
   final Future<void> Function(WorkbenchItem item) onDismiss;
   final void Function(String route) onNavigate;
   final void Function(WorkbenchItem item) onTrajectory;
+
+  /// "Mark as source" quick action for EPIDEMIC livestock items (epidemic
+  /// spec §5.2 entry ③, prototype P5). Null hides the trigger.
+  final void Function(WorkbenchItem item)? onMarkSource;
 
   @override
   Widget build(BuildContext context) {
@@ -144,6 +151,7 @@ class AlertWorkbenchDetailSheet extends StatelessWidget {
             },
             onNavigate: onNavigate,
             onTrajectory: onTrajectory,
+            onMarkSource: onMarkSource,
           ),
         ],
       ),
@@ -747,6 +755,7 @@ class _ActionBar extends StatelessWidget {
     required this.onDismiss,
     required this.onNavigate,
     required this.onTrajectory,
+    this.onMarkSource,
   });
 
   final WorkbenchItem item;
@@ -755,76 +764,114 @@ class _ActionBar extends StatelessWidget {
   final Future<void> Function(WorkbenchItem item) onDismiss;
   final void Function(String route) onNavigate;
   final void Function(WorkbenchItem item) onTrajectory;
+  final void Function(WorkbenchItem item)? onMarkSource;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final canDismiss = RolePermission.canHandleAlert(role) && !item.isResolved;
     final (primaryLabel, primaryRoute) = _primaryAction(context);
+    final showMarkSource = onMarkSource != null && item.canMarkDiseasedSource;
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 7, 10, 10),
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(top: BorderSide(color: AppColors.border)),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            flex: 3,
-            child: _button(
-              context,
-              label: primaryLabel,
-              color: AppColors.primary,
-              foreground: Colors.white,
-              onTap: primaryRoute == null
-                  ? null
-                  : () {
-                      onNavigate(primaryRoute);
-                    },
-            ),
-          ),
-          if (_canTrajectory) ...[
-            const SizedBox(width: 5),
-            Expanded(
-              flex: 2,
-              child: _button(
-                context,
-                label: l10n.workbenchActionTrajectory,
-                color: AppColors.surfaceAlt,
-                foreground: AppColors.textPrimary,
-                border: true,
-                onTap: () {
+          // Mark-as-source quick action (prototype P5): full-width small
+          // danger-solid button above the regular row. It pops this detail
+          // sheet first so the mark sheet never stacks on another modal.
+          if (showMarkSource) ...[
+            SizedBox(
+              key: Key('alert-mark-source-${item.id}'),
+              width: double.infinity,
+              height: 32,
+              child: TextButton(
+                onPressed: () {
                   Navigator.of(context).pop();
-                  onTrajectory(item);
+                  onMarkSource!(item);
                 },
+                style: TextButton.styleFrom(
+                  backgroundColor: AppColors.danger,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(9),
+                  ),
+                ),
+                child: Text(
+                  l10n.alertsMarkAsSource,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
+            const SizedBox(height: 5),
           ],
-          if (!item.isResolved) ...[
-            const SizedBox(width: 5),
-            Expanded(
-              flex: 2,
-              child: _button(
-                context,
-                label: l10n.workbenchActionMarkRead,
-                color: AppColors.surfaceAlt,
-                foreground: AppColors.textPrimary,
-                border: true,
-                onTap: item.unread ? () => onMarkRead(item) : null,
+          Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: _button(
+                  context,
+                  label: primaryLabel,
+                  color: AppColors.primary,
+                  foreground: Colors.white,
+                  onTap: primaryRoute == null
+                      ? null
+                      : () {
+                          onNavigate(primaryRoute);
+                        },
+                ),
               ),
-            ),
-            const SizedBox(width: 5),
-            Expanded(
-              flex: 2,
-              child: _button(
-                context,
-                label: l10n.workbenchActionProcess,
-                color: AppColors.danger,
-                foreground: Colors.white,
-                onTap: canDismiss ? () => onDismiss(item) : null,
-              ),
-            ),
-          ],
+              if (_canTrajectory) ...[
+                const SizedBox(width: 5),
+                Expanded(
+                  flex: 2,
+                  child: _button(
+                    context,
+                    label: l10n.workbenchActionTrajectory,
+                    color: AppColors.surfaceAlt,
+                    foreground: AppColors.textPrimary,
+                    border: true,
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      onTrajectory(item);
+                    },
+                  ),
+                ),
+              ],
+              if (!item.isResolved) ...[
+                const SizedBox(width: 5),
+                Expanded(
+                  flex: 2,
+                  child: _button(
+                    context,
+                    label: l10n.workbenchActionMarkRead,
+                    color: AppColors.surfaceAlt,
+                    foreground: AppColors.textPrimary,
+                    border: true,
+                    onTap: item.unread ? () => onMarkRead(item) : null,
+                  ),
+                ),
+                const SizedBox(width: 5),
+                Expanded(
+                  flex: 2,
+                  child: _button(
+                    context,
+                    label: l10n.workbenchActionProcess,
+                    color: AppColors.danger,
+                    foreground: Colors.white,
+                    onTap: canDismiss ? () => onDismiss(item) : null,
+                  ),
+                ),
+              ],
+            ],
+          ),
         ],
       ),
     );

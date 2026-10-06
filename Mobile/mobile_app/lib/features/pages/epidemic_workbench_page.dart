@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
+import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
 import 'package:hkt_livestock_agentic/core/models/health_models.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
 import 'package:hkt_livestock_agentic/features/epidemic/presentation/epidemic_controller.dart';
+import 'package:hkt_livestock_agentic/features/epidemic/presentation/widgets/epidemic_upsell_sheet.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
@@ -39,17 +41,117 @@ class _EpidemicWorkbenchPageState extends ConsumerState<EpidemicWorkbenchPage> {
     view = widget.initialView;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.sourceLivestockId?.isNotEmpty == true) {
-        ref.read(epidemicWorkbenchControllerProvider.notifier).setSource(
-              widget.sourceLivestockId,
-            );
+        ref
+            .read(epidemicWorkbenchControllerProvider.notifier)
+            .setSource(widget.sourceLivestockId);
       }
     });
+  }
+
+  /// Registers the recommended disposition task for [item] and toasts what
+  /// actually happened — a fresh registration (with the due time) or the
+  /// idempotent "task already running" case. Registration alone has no other
+  /// visible effect, so without this feedback the tap looks like a no-op.
+  Future<void> _registerDisposition(EpidemicLivestockItem item) async {
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final registration = await ref
+          .read(epidemicWorkbenchControllerProvider.notifier)
+          .markDisposition(item);
+      if (!mounted) return;
+      final action = _epidemicActionLabel(l10n, item.recommendedAction);
+      final code = item.livestockCode;
+      final due = item.dueAt == null
+          ? ''
+          : l10n.epidemicDispositionDueBy(formatMdhm(item.dueAt!));
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            registration.created
+                ? l10n.epidemicDispositionRegistered(code, action, due)
+                : l10n.epidemicDispositionExisting(code, action),
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.epidemicDispositionRegisterFailed)),
+      );
+    }
+  }
+
+  /// Completes or cancels the registered disposition task on [item] after a
+  /// confirmation dialog, then toasts the outcome. Closes the disposition
+  /// loop: until now a registered task could never be finished in the UI.
+  Future<void> _settleDisposition(
+    EpidemicLivestockItem item, {
+    required bool complete,
+  }) async {
+    final l10n = AppLocalizations.of(context)!;
+    final code = item.livestockCode;
+    final action = _epidemicActionLabel(l10n, item.recommendedAction);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        content: Text(
+          complete
+              ? l10n.epidemicCompleteConfirm(code, action)
+              : l10n.epidemicCancelConfirm(code, action),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(
+              complete
+                  ? l10n.epidemicCompleteAction
+                  : l10n.epidemicCancelAction,
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryDark,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final controller = ref.read(epidemicWorkbenchControllerProvider.notifier);
+      if (complete) {
+        await controller.completeDisposition(item);
+      } else {
+        await controller.cancelDisposition(item);
+      }
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            complete
+                ? l10n.epidemicDispositionDone(code, action)
+                : l10n.epidemicDispositionCancelled(code, action),
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.epidemicDispositionRegisterFailed)),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final tier = ref.watch(subscriptionControllerProvider).value?.tier ??
+    final tier =
+        ref.watch(subscriptionControllerProvider).value?.tier ??
         SubscriptionTier.basic;
     final unlocked = checkTierAccess(tier, FeatureFlags.epidemicAlert);
     final async = ref.watch(epidemicWorkbenchControllerProvider);
@@ -77,14 +179,26 @@ class _EpidemicWorkbenchPageState extends ConsumerState<EpidemicWorkbenchPage> {
           ? _LockedState(l10n: l10n)
           : async.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => _ErrorState(
-                message: '${l10n.commonLoadFailed}: $error',
-                onRetry: () =>
-                    ref.read(epidemicWorkbenchControllerProvider.notifier).refresh(),
-              ),
+              error: (error, _) =>
+                  // No marked source yet is an expected state on ranches that
+                  // never marked a diseased animal, not a load failure — the
+                  // workbench API returns 404 until a source exists.
+                  error is NotFoundException && widget.sourceLivestockId == null
+                  ? _NoSourceState(
+                      onRetry: () => ref
+                          .read(epidemicWorkbenchControllerProvider.notifier)
+                          .refresh(),
+                    )
+                  : _ErrorState(
+                      message: '${l10n.commonLoadFailed}: $error',
+                      onRetry: () => ref
+                          .read(epidemicWorkbenchControllerProvider.notifier)
+                          .refresh(),
+                    ),
               data: (data) => RefreshIndicator(
-                onRefresh: () =>
-                    ref.read(epidemicWorkbenchControllerProvider.notifier).refresh(),
+                onRefresh: () => ref
+                    .read(epidemicWorkbenchControllerProvider.notifier)
+                    .refresh(),
                 child: Column(
                   children: [
                     _ModeTabs(
@@ -107,19 +221,24 @@ class _EpidemicWorkbenchPageState extends ConsumerState<EpidemicWorkbenchPage> {
                                     : expandedEvidence.add(id);
                               }),
                               onOpenNetwork: () => setState(
-                                  () => view = EpidemicWorkbenchView.network),
-                              onMark: (item) => ref
-                                  .read(epidemicWorkbenchControllerProvider.notifier)
-                                  .markDisposition(item),
+                                () => view = EpidemicWorkbenchView.network,
+                              ),
+                              onMark: (item) => _registerDisposition(item),
+                              onSettle: (item, {required complete}) =>
+                                  _settleDisposition(item, complete: complete),
                             ),
                           if (view == EpidemicWorkbenchView.records)
                             _RecordsView(
                               data: data,
                               onWindowChanged: (hours) => ref
-                                  .read(epidemicWorkbenchControllerProvider.notifier)
+                                  .read(
+                                    epidemicWorkbenchControllerProvider
+                                        .notifier,
+                                  )
                                   .setWindowHours(hours),
                               onOpenDisposition: () => setState(
-                                  () => view = EpidemicWorkbenchView.disposition),
+                                () => view = EpidemicWorkbenchView.disposition,
+                              ),
                             ),
                           if (view == EpidemicWorkbenchView.network)
                             _NetworkView(data: data),
@@ -155,12 +274,17 @@ class _LockedState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.lock_outline,
-                size: 48, color: AppColors.textSecondary),
+            const Icon(
+              Icons.lock_outline,
+              size: 48,
+              color: AppColors.textSecondary,
+            ),
             const SizedBox(height: 16),
-            Text(l10n.epidemicContactLockedMsg,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.textSecondary)),
+            Text(
+              l10n.epidemicContactLockedMsg,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.textSecondary),
+            ),
             const SizedBox(height: 16),
             FilledButton(
               onPressed: () => context.go(AppRoute.subscription.path),
@@ -197,6 +321,124 @@ class _ErrorState extends StatelessWidget {
   }
 }
 
+/// Expected empty state (prototype P4): no diseased livestock has been marked
+/// on this ranch, so there is no suspected source and no contact graph yet.
+/// The body copy walks the real marking path and the primary button jumps to
+/// the livestock list where an animal can be picked (its detail page carries
+/// the mark entry). Retry stays for genuine network failures — the same
+/// 404-vs-error fork above decides which state renders.
+class _NoSourceState extends ConsumerWidget {
+  const _NoSourceState({required this.onRetry});
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    return Center(
+      child: Padding(
+        // Prototype P4: empty column padded 0 36.
+        padding: const EdgeInsets.symmetric(horizontal: 36),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.pets_outlined,
+              size: 40,
+              color: AppColors.textSecondary.withValues(alpha: 0.55),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              l10n.epidemicNoSourceTitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              l10n.epidemicNoSourceBodyV2,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 10,
+                height: 1.7,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Primary: ranch green (NOT danger) per prototype P4, intrinsic
+            // width (padding 0 22), height 36, radius-sm.
+            Material(
+              key: const Key('epidemic-go-pick-livestock'),
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(8),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () => _onPickTapped(context, ref),
+                child: SizedBox(
+                  height: 36,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 22),
+                    child: Center(
+                      child: Text(
+                        l10n.epidemicGoPickLivestock,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Retry: neutral (surface-muted bg / secondary text), height 32.
+            Material(
+              color: AppColors.surfaceMuted,
+              borderRadius: BorderRadius.circular(8),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: onRetry,
+                child: SizedBox(
+                  height: 32,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 22),
+                    child: Center(
+                      child: Text(
+                        l10n.commonRetry,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _onPickTapped(BuildContext context, WidgetRef ref) {
+    final tier =
+        ref.read(subscriptionControllerProvider).value?.tier ??
+        SubscriptionTier.basic;
+    if (!checkTierAccess(tier, FeatureFlags.epidemicAlert)) {
+      // Free tier: guide to Premium instead of navigating (prototype P6).
+      EpidemicUpsellSheet.show(context);
+      return;
+    }
+    // The ranch fence tab is not an addressable route (RanchPage ignores
+    // ?tab=), so jump to the livestock list — the established "pick an
+    // animal, land on its detail page" route (same target as the alert
+    // workbench herd action).
+    context.go(AppRoute.livestockList.path);
+  }
+}
+
 class _ModeTabs extends StatelessWidget {
   const _ModeTabs({required this.selected, required this.onChanged});
   final EpidemicWorkbenchView selected;
@@ -213,12 +455,21 @@ class _ModeTabs extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _tab(l10n.epidemicTabDisposition, Icons.fact_check_outlined,
-              EpidemicWorkbenchView.disposition),
-          _tab(l10n.epidemicTabRecords, Icons.filter_list,
-              EpidemicWorkbenchView.records),
-          _tab(l10n.epidemicTabNetwork, Icons.account_tree_outlined,
-              EpidemicWorkbenchView.network),
+          _tab(
+            l10n.epidemicTabDisposition,
+            Icons.fact_check_outlined,
+            EpidemicWorkbenchView.disposition,
+          ),
+          _tab(
+            l10n.epidemicTabRecords,
+            Icons.filter_list,
+            EpidemicWorkbenchView.records,
+          ),
+          _tab(
+            l10n.epidemicTabNetwork,
+            Icons.account_tree_outlined,
+            EpidemicWorkbenchView.network,
+          ),
         ],
       ),
     );
@@ -241,9 +492,13 @@ class _ModeTabs extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(icon,
-                      size: 16,
-                      color: active ? AppColors.primaryDark : AppColors.textSecondary),
+                  Icon(
+                    icon,
+                    size: 16,
+                    color: active
+                        ? AppColors.primaryDark
+                        : AppColors.textSecondary,
+                  ),
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
@@ -252,7 +507,9 @@ class _ModeTabs extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: active ? AppColors.primaryDark : AppColors.textSecondary,
+                        color: active
+                            ? AppColors.primaryDark
+                            : AppColors.textSecondary,
                       ),
                     ),
                   ),
@@ -282,7 +539,10 @@ class _SourceSummary extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
         gradient: LinearGradient(
-          colors: [AppColors.danger.withValues(alpha: .14), AppColors.danger.withValues(alpha: .04)],
+          colors: [
+            AppColors.danger.withValues(alpha: .14),
+            AppColors.danger.withValues(alpha: .04),
+          ],
         ),
         border: Border.all(color: AppColors.danger.withValues(alpha: .18)),
       ),
@@ -297,7 +557,10 @@ class _SourceSummary extends StatelessWidget {
                   color: AppColors.danger.withValues(alpha: .14),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.emergency, color: AppColors.dangerStrong),
+                child: const Icon(
+                  Icons.emergency,
+                  color: AppColors.dangerStrong,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -317,7 +580,10 @@ class _SourceSummary extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       '${contextData.source.diseaseType ?? l10n.epidemicNotMarked} · ${formatMdhm(contextData.source.markedAt ?? contextData.generatedAt)}',
-                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -329,7 +595,9 @@ class _SourceSummary extends StatelessWidget {
             children: [
               _summary(
                 l10n.epidemicContactLivestockCount,
-                data.network.nodes.where((node) => node.kind == 'CONTACT').length,
+                data.network.nodes
+                    .where((node) => node.kind == 'CONTACT')
+                    .length,
               ),
               const SizedBox(width: 8),
               _summary(l10n.epidemicCriticalDispositionCount, critical),
@@ -357,10 +625,15 @@ class _SourceSummary extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 10,
+                color: AppColors.textSecondary,
+              ),
+            ),
             const SizedBox(height: 4),
             Text(
               value < 0 ? '--' : '$value${unit ?? ''}',
@@ -380,6 +653,7 @@ class _DispositionView extends StatelessWidget {
     required this.onToggle,
     required this.onOpenNetwork,
     required this.onMark,
+    required this.onSettle,
   });
 
   final EpidemicWorkbenchData data;
@@ -387,6 +661,8 @@ class _DispositionView extends StatelessWidget {
   final ValueChanged<int> onToggle;
   final VoidCallback onOpenNetwork;
   final ValueChanged<EpidemicLivestockItem> onMark;
+  final void Function(EpidemicLivestockItem item, {required bool complete})
+      onSettle;
 
   @override
   Widget build(BuildContext context) {
@@ -394,12 +670,14 @@ class _DispositionView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeading(l10n.epidemicDispositionQueueTitle, l10n.epidemicTierSortHint),
+        _sectionHeading(
+          l10n.epidemicDispositionQueueTitle,
+          l10n.epidemicTierSortHint,
+        ),
         const SizedBox(height: 8),
         _TierGrid(tiers: data.tiers),
         const SizedBox(height: 12),
-        for (var rank = 1; rank <= 4; rank++)
-          ..._tierGroup(context, rank),
+        for (var rank = 1; rank <= 4; rank++) ..._tierGroup(context, rank),
       ],
     );
   }
@@ -421,21 +699,33 @@ class _DispositionView extends StatelessWidget {
                   3 => l10n.epidemicTierTracking,
                   _ => l10n.epidemicTierArchive,
                 },
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
-            Text('${items.length}${l10n.epidemicHeadSuffix}',
-                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+            Text(
+              '${items.length}${l10n.epidemicHeadSuffix}',
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.textSecondary,
+              ),
+            ),
           ],
         ),
       ),
       for (final item in items)
         _LivestockCard(
           item: item,
-          expanded: expanded.contains(item.maxRiskScore + item.livestockCode.hashCode),
-          onToggle: () => onToggle(item.maxRiskScore + item.livestockCode.hashCode),
+          expanded: expanded.contains(
+            item.maxRiskScore + item.livestockCode.hashCode,
+          ),
+          onToggle: () =>
+              onToggle(item.maxRiskScore + item.livestockCode.hashCode),
           onOpenNetwork: onOpenNetwork,
           onMark: () => onMark(item),
+          onSettle: onSettle,
         ),
     ];
   }
@@ -484,7 +774,11 @@ class _TierGrid extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             border: Border(left: BorderSide(color: color, width: 4)),
             boxShadow: const [
-              BoxShadow(color: Color(0x0F263126), blurRadius: 2, offset: Offset(0, 1)),
+              BoxShadow(
+                color: Color(0x0F263126),
+                blurRadius: 2,
+                offset: Offset(0, 1),
+              ),
             ],
           ),
           child: Column(
@@ -493,29 +787,38 @@ class _TierGrid extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text(names[tier.key] ?? tier.key,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            height: 1.15)),
-                  ),
-                  Text('${tier.count}${l10n.epidemicHeadSuffix}',
+                    child: Text(
+                      names[tier.key] ?? tier.key,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textSecondary,
-                          height: 1.15)),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        height: 1.15,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '${tier.count}${l10n.epidemicHeadSuffix}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                      height: 1.15,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 2),
-              Text(actions[tier.key] ?? '',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontSize: 10,
-                      color: AppColors.textSecondary,
-                      height: 1.15)),
+              Text(
+                actions[tier.key] ?? '',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: AppColors.textSecondary,
+                  height: 1.15,
+                ),
+              ),
             ],
           ),
         );
@@ -531,6 +834,7 @@ class _LivestockCard extends StatelessWidget {
     required this.onToggle,
     required this.onOpenNetwork,
     required this.onMark,
+    required this.onSettle,
   });
 
   final EpidemicLivestockItem item;
@@ -538,12 +842,38 @@ class _LivestockCard extends StatelessWidget {
   final VoidCallback onToggle;
   final VoidCallback onOpenNetwork;
   final VoidCallback onMark;
+  final void Function(EpidemicLivestockItem item, {required bool complete})
+      onSettle;
+
+  /// Compact inline action chip on the disposition status row.
+  Widget _settleChip(String label, {required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(7),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: AppColors.primaryDark,
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final primary = item.rank == 1 ? AppColors.danger : AppColors.warning;
-    final primarySoft = item.rank == 1 ? AppColors.dangerSoft : AppColors.warningSoft;
+    final primarySoft = item.rank == 1
+        ? AppColors.dangerSoft
+        : AppColors.warningSoft;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -551,7 +881,11 @@ class _LivestockCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border(left: BorderSide(color: primary, width: 4)),
         boxShadow: const [
-          BoxShadow(color: Color(0x0F263126), blurRadius: 2, offset: Offset(0, 1)),
+          BoxShadow(
+            color: Color(0x0F263126),
+            blurRadius: 2,
+            offset: Offset(0, 1),
+          ),
         ],
       ),
       child: Column(
@@ -568,33 +902,53 @@ class _LivestockCard extends StatelessWidget {
                     color: primarySoft,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(_shortCode(item.livestockCode),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.w700, color: primary)),
+                  child: Text(
+                    item.livestockCode,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: primary,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${l10n.epidemicLivestockLabel} ${item.livestockCode}',
-                          maxLines: 1, overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                      Text(
+                        '${l10n.epidemicLivestockLabel} ${item.livestockCode}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                       const SizedBox(height: 3),
                       Text(
                         item.fenceName?.isNotEmpty == true
                             ? '${item.fenceName} · ${_lastSeen(l10n)}'
                             : _lastSeen(l10n),
-                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-                  decoration: BoxDecoration(color: primarySoft, borderRadius: BorderRadius.circular(6)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: primarySoft,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
                   child: Text(
                     switch (item.rank) {
                       1 => l10n.epidemicTierCritical,
@@ -602,7 +956,11 @@ class _LivestockCard extends StatelessWidget {
                       3 => l10n.epidemicTierTracking,
                       _ => l10n.epidemicTierArchive,
                     },
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: primary),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: primary,
+                    ),
                   ),
                 ),
               ],
@@ -612,12 +970,17 @@ class _LivestockCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Row(
               children: [
-                _metric(l10n.epidemicContactCattle, '${item.directContactCount}'),
+                _metric(
+                  l10n.epidemicContactCattle,
+                  '${item.directContactCount}',
+                ),
                 const SizedBox(width: 8),
                 _metric(l10n.epidemicMaxRisk, '${item.maxRiskScore}'),
                 const SizedBox(width: 8),
-                _metric(l10n.epidemicTemperature,
-                    item.health.currentTemp?.toStringAsFixed(1) ?? '--'),
+                _metric(
+                  l10n.epidemicTemperature,
+                  item.health.currentTemp?.toStringAsFixed(1) ?? '--',
+                ),
               ],
             ),
           ),
@@ -630,12 +993,55 @@ class _LivestockCard extends StatelessWidget {
               color: primarySoft,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Text(
-              item.dueAt == null
-                  ? actionLabel(l10n)
-                  : '${actionLabel(l10n)} · ${formatMdhm(item.dueAt!)}',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: primary),
-            ),
+            // Disposition status row. With a registered task it shows the
+            // registration tag + action + due time and closes the loop with
+            // inline complete/cancel actions; otherwise it stays the tier's
+            // recommended action with its suggested deadline.
+            child: item.dispositionId == null
+                ? Text(
+                    item.dueAt == null
+                        ? actionLabel(l10n)
+                        : '${actionLabel(l10n)} · ${formatMdhm(item.dueAt!)}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: primary,
+                    ),
+                  )
+                : Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          switch (item.actionStatus) {
+                            'COMPLETED' =>
+                              '${actionLabel(l10n)} · ${l10n.epidemicDispCompletedTag}',
+                            'CANCELLED' =>
+                              '${actionLabel(l10n)} · ${l10n.epidemicDispCancelledTag}',
+                            _ =>
+                              '${l10n.epidemicDispRegisteredTag} · ${actionLabel(l10n)}'
+                                  '${item.dueAt == null ? '' : ' · ${formatMdhm(item.dueAt!)}'}',
+                          },
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: primary,
+                          ),
+                        ),
+                      ),
+                      if (item.actionStatus == 'PENDING' ||
+                          item.actionStatus == 'IN_PROGRESS') ...[
+                        _settleChip(
+                          l10n.epidemicCompleteAction,
+                          onTap: () => onSettle(item, complete: true),
+                        ),
+                        const SizedBox(width: 6),
+                        _settleChip(
+                          l10n.epidemicCancelAction,
+                          onTap: () => onSettle(item, complete: false),
+                        ),
+                      ],
+                    ],
+                  ),
           ),
           if (item.eventIds.isNotEmpty)
             InkWell(
@@ -651,13 +1057,17 @@ class _LivestockCard extends StatelessWidget {
                             ? l10n.epidemicHideEvidence
                             : l10n.epidemicShowEvidence(item.eventIds.length),
                         style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primaryDark),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryDark,
+                        ),
                       ),
                     ),
-                    Icon(expanded ? Icons.expand_less : Icons.expand_more,
-                        size: 18, color: AppColors.primaryDark),
+                    Icon(
+                      expanded ? Icons.expand_less : Icons.expand_more,
+                      size: 18,
+                      color: AppColors.primaryDark,
+                    ),
                   ],
                 ),
               ),
@@ -666,8 +1076,13 @@ class _LivestockCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
               child: Text(
-                item.reasonCodes.map((code) => _reasonLabel(l10n, code)).join(' · '),
-                style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                item.reasonCodes
+                    .map((code) => _reasonLabel(l10n, code))
+                    .join(' · '),
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: AppColors.textSecondary,
+                ),
               ),
             ),
           Padding(
@@ -697,13 +1112,8 @@ class _LivestockCard extends StatelessWidget {
     );
   }
 
-  String actionLabel(AppLocalizations l10n) => switch (item.recommendedAction) {
-        'ISOLATE_NOTIFY_VET' => l10n.epidemicActionIsolateVet,
-        'IMMEDIATE_VET_CHECK' => l10n.epidemicActionImmediateCheck,
-        'HEALTH_RECHECK' => l10n.epidemicActionMarkObservation,
-        'CONTINUE_TRACING' => l10n.epidemicActionContinueTracing,
-        _ => l10n.epidemicActionArchive,
-      };
+  String actionLabel(AppLocalizations l10n) =>
+      _epidemicActionLabel(l10n, item.recommendedAction);
 
   String _lastSeen(AppLocalizations l10n) {
     final minutes = item.lastContactAgeMinutes;
@@ -711,22 +1121,17 @@ class _LivestockCard extends StatelessWidget {
   }
 
   String _reasonLabel(AppLocalizations l10n, String code) => switch (code) {
-        'DIRECT_SOURCE' => l10n.epidemicReasonDirectSource,
-        'PATH_EXPOSURE' => l10n.epidemicReasonPathExposure,
-        'HEALTH_ABNORMAL' => l10n.epidemicReasonHealthAbnormal,
-        'FRESH' => l10n.epidemicFactorFresh,
-        'RECENT' => l10n.epidemicFactorRecent,
-        'NEAR' => l10n.epidemicFactorNear,
-        'MODERATE_DISTANCE' => l10n.epidemicFactorModerateDistance,
-        'LONG_DURATION' => l10n.epidemicFactorLongDuration,
-        'MEDIUM_DURATION' => l10n.epidemicFactorMediumDuration,
-        _ => code,
+    'DIRECT_SOURCE' => l10n.epidemicReasonDirectSource,
+    'PATH_EXPOSURE' => l10n.epidemicReasonPathExposure,
+    'HEALTH_ABNORMAL' => l10n.epidemicReasonHealthAbnormal,
+    'FRESH' => l10n.epidemicFactorFresh,
+    'RECENT' => l10n.epidemicFactorRecent,
+    'NEAR' => l10n.epidemicFactorNear,
+    'MODERATE_DISTANCE' => l10n.epidemicFactorModerateDistance,
+    'LONG_DURATION' => l10n.epidemicFactorLongDuration,
+    'MEDIUM_DURATION' => l10n.epidemicFactorMediumDuration,
+    _ => code,
   };
-
-  String _shortCode(String code) {
-    final parts = code.split('-');
-    return parts.length > 1 ? parts.last : code;
-  }
 
   Widget _metric(String label, String value) {
     return Expanded(
@@ -739,13 +1144,22 @@ class _LivestockCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label,
-                maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 10,
+                color: AppColors.textSecondary,
+              ),
+            ),
             const SizedBox(height: 4),
-            Text(value,
-                maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+            ),
           ],
         ),
       ),
@@ -753,8 +1167,23 @@ class _LivestockCard extends StatelessWidget {
   }
 }
 
+/// Disposition action display name, shared by the card, the registration
+/// toast and the settle dialogs.
+String _epidemicActionLabel(AppLocalizations l10n, String actionCode) =>
+    switch (actionCode) {
+      'ISOLATE_NOTIFY_VET' => l10n.epidemicActionIsolateVet,
+      'IMMEDIATE_VET_CHECK' => l10n.epidemicActionImmediateCheck,
+      'HEALTH_RECHECK' => l10n.epidemicActionMarkObservation,
+      'CONTINUE_TRACING' => l10n.epidemicActionContinueTracing,
+      _ => l10n.epidemicActionArchive,
+    };
+
 class _RecordsView extends StatelessWidget {
-  const _RecordsView({required this.data, required this.onWindowChanged, required this.onOpenDisposition});
+  const _RecordsView({
+    required this.data,
+    required this.onWindowChanged,
+    required this.onOpenDisposition,
+  });
   final EpidemicWorkbenchData data;
   final ValueChanged<int> onWindowChanged;
   final VoidCallback onOpenDisposition;
@@ -763,12 +1192,17 @@ class _RecordsView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final high = data.events.where((event) => event.riskScore >= 70).length;
-    final medium = data.events.where((event) => event.riskScore >= 40 && event.riskScore < 70).length;
+    final medium = data.events
+        .where((event) => event.riskScore >= 40 && event.riskScore < 70)
+        .length;
     final low = data.events.where((event) => event.riskScore < 40).length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeading(l10n.epidemicRecordTriageTitle, l10n.epidemicRiskSortHint),
+        _sectionHeading(
+          l10n.epidemicRecordTriageTitle,
+          l10n.epidemicRiskSortHint,
+        ),
         const SizedBox(height: 8),
         Row(
           children: [
@@ -787,7 +1221,11 @@ class _RecordsView extends StatelessWidget {
             for (final hours in const [24, 48, 72, 0])
               ChoiceChip(
                 visualDensity: VisualDensity.compact,
-                label: Text(hours == 0 ? l10n.epidemicWindowAll : l10n.epidemicWindowHours(hours)),
+                label: Text(
+                  hours == 0
+                      ? l10n.epidemicWindowAll
+                      : l10n.epidemicWindowHours(hours),
+                ),
                 selected: data.context.windowHours == hours,
                 onSelected: (_) => onWindowChanged(hours),
               ),
@@ -806,8 +1244,8 @@ class _RecordsView extends StatelessWidget {
                   color: event.riskScore >= 70
                       ? AppColors.danger
                       : event.riskScore >= 40
-                          ? AppColors.warning
-                          : AppColors.success,
+                      ? AppColors.warning
+                      : AppColors.success,
                   width: 4,
                 ),
               ),
@@ -818,21 +1256,34 @@ class _RecordsView extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text('${event.from.livestockCode} ↔ ${event.to.livestockCode}',
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                      child: Text(
+                        '${event.from.livestockCode} ↔ ${event.to.livestockCode}',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: event.riskScore >= 70
                             ? AppColors.dangerSoft
                             : event.riskScore >= 40
-                                ? AppColors.warningSoft
-                                : AppColors.successSoft,
+                            ? AppColors.warningSoft
+                            : AppColors.successSoft,
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Text('${event.riskScore}',
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      child: Text(
+                        '${event.riskScore}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -841,11 +1292,21 @@ class _RecordsView extends StatelessWidget {
                   '${l10n.epidemicDistance}: ${event.proximityMeters.toStringAsFixed(1)}m · '
                   '${l10n.epidemicDuration}: ${event.durationMinutes}min · '
                   '${formatMdhm(event.lastContactAt)}',
-                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 6),
-                Text(event.factorCodes.map((code) => _factorLabel(l10n, code)).join(' · '),
-                    style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                Text(
+                  event.factorCodes
+                      .map((code) => _factorLabel(l10n, code))
+                      .join(' · '),
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
                 TextButton(
                   onPressed: onOpenDisposition,
                   child: Text(l10n.epidemicDispositionByLivestock),
@@ -870,14 +1331,28 @@ class _RecordsView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
-              CircleAvatar(radius: 3.5, backgroundColor: color),
-              const SizedBox(width: 5),
-              Expanded(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-            ]),
+            Row(
+              children: [
+                CircleAvatar(radius: 3.5, backgroundColor: color),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 5),
-            Text('$count', style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w700)),
+            Text(
+              '$count',
+              style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w700),
+            ),
           ],
         ),
       ),
@@ -885,14 +1360,14 @@ class _RecordsView extends StatelessWidget {
   }
 
   String _factorLabel(AppLocalizations l10n, String code) => switch (code) {
-        'FRESH' => l10n.epidemicFactorFresh,
-        'RECENT' => l10n.epidemicFactorRecent,
-        'NEAR' => l10n.epidemicFactorNear,
-        'MODERATE_DISTANCE' => l10n.epidemicFactorModerateDistance,
-        'LONG_DURATION' => l10n.epidemicFactorLongDuration,
-        'MEDIUM_DURATION' => l10n.epidemicFactorMediumDuration,
-        _ => code,
-      };
+    'FRESH' => l10n.epidemicFactorFresh,
+    'RECENT' => l10n.epidemicFactorRecent,
+    'NEAR' => l10n.epidemicFactorNear,
+    'MODERATE_DISTANCE' => l10n.epidemicFactorModerateDistance,
+    'LONG_DURATION' => l10n.epidemicFactorLongDuration,
+    'MEDIUM_DURATION' => l10n.epidemicFactorMediumDuration,
+    _ => code,
+  };
 }
 
 class _NetworkView extends StatelessWidget {
@@ -902,6 +1377,9 @@ class _NetworkView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final codeById = {
+      for (final node in data.network.nodes) node.livestockId: node.livestockCode,
+    };
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -915,12 +1393,23 @@ class _NetworkView extends StatelessWidget {
           ),
           child: CustomPaint(
             size: Size.infinite,
-            painter: _NetworkPainter(data.network, sourceLabel: l10n.epidemicSuspectedSource),
+            painter: _NetworkPainter(
+              data.network,
+              sourceLabel: l10n.epidemicSuspectedSource,
+            ),
           ),
         ),
         const SizedBox(height: 16),
-        _sectionHeading(l10n.epidemicHighRiskPaths, l10n.epidemicSpreadHint),
-        for (final path in data.network.paths.where((path) => path.riskScore >= 70))
+        // Risk explanation replaces the bare "spread direction" hint: the
+        // opaque numbers ("2 → 1") only make sense once the scale and the
+        // 70-point display threshold are spelled out.
+        _sectionHeading(
+          l10n.epidemicHighRiskPaths,
+          l10n.epidemicPathRiskHint,
+        ),
+        for (final path in data.network.paths.where(
+          (path) => path.riskScore >= 70,
+        ))
           Container(
             width: double.infinity,
             margin: const EdgeInsets.only(bottom: 8),
@@ -928,16 +1417,40 @@ class _NetworkView extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.surfaceAlt,
               borderRadius: BorderRadius.circular(14),
-              border: const Border(left: BorderSide(color: AppColors.danger, width: 4)),
+              border: const Border(
+                left: BorderSide(color: AppColors.danger, width: 4),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(path.livestockIds.join(' → '),
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                Text(
+                  // Ear-tag codes, not raw internal ids: nodes carry the
+                  // id→code mapping, so "2 → 1" renders as "21 → 10" with
+                  // the path origin tagged as the suspected source.
+                  path.livestockIds
+                      .asMap()
+                      .entries
+                      .map((entry) {
+                        final code = codeById[entry.value] ?? entry.value;
+                        return entry.key == 0
+                            ? '$code · ${l10n.epidemicPathSourceTag}'
+                            : code;
+                      })
+                      .join(' → '),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text('${l10n.epidemicCumulativeRisk}: ${path.riskScore}',
-                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                Text(
+                  '${l10n.epidemicCumulativeRisk}: ${path.riskScore}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ],
             ),
           ),
@@ -954,8 +1467,12 @@ class _NetworkPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final positions = <String, Offset>{};
-    final source = network.nodes.where((node) => node.kind == 'SOURCE').toList();
-    final contacts = network.nodes.where((node) => node.kind == 'CONTACT').toList();
+    final source = network.nodes
+        .where((node) => node.kind == 'SOURCE')
+        .toList();
+    final contacts = network.nodes
+        .where((node) => node.kind == 'CONTACT')
+        .toList();
     final center = Offset(size.width / 2, size.height / 2);
     if (source.isNotEmpty) positions[source.first.livestockId] = center;
     for (var index = 0; index < contacts.length; index++) {
@@ -978,12 +1495,23 @@ class _NetworkPainter extends CustomPainter {
     positions.forEach((id, offset) {
       final node = network.nodes.firstWhere(
         (value) => value.livestockId == id,
-        orElse: () => EpidemicGraphNode(livestockId: id, livestockCode: '?', kind: 'CONTACT'),
+        orElse: () => EpidemicGraphNode(
+          livestockId: id,
+          livestockCode: '?',
+          kind: 'CONTACT',
+        ),
       );
       final isSource = node.kind == 'SOURCE';
-      final radius = isSource ? 26.0 : 20.0;
+      // Full ear-tag codes ("ST-21") need room: wider bubbles, smaller glyphs.
+      final radius = isSource ? 30.0 : 25.0;
       canvas.drawCircle(offset, radius, Paint()..color = AppColors.danger);
-      _text(canvas, _shortCode(node.livestockCode), offset, isSource ? 15 : 13, Colors.white);
+      _text(
+        canvas,
+        node.livestockCode,
+        offset,
+        isSource ? 11 : 10,
+        Colors.white,
+      );
       _text(
         canvas,
         isSource ? sourceLabel : node.dispositionTier ?? '',
@@ -994,22 +1522,34 @@ class _NetworkPainter extends CustomPainter {
     });
   }
 
-  void _text(Canvas canvas, String value, Offset offset, double size, Color color) {
+  void _text(
+    Canvas canvas,
+    String value,
+    Offset offset,
+    double size,
+    Color color,
+  ) {
     if (value.isEmpty) return;
     final painter = TextPainter(
-      text: TextSpan(text: value, style: TextStyle(fontSize: size, color: color, fontWeight: FontWeight.w700)),
+      text: TextSpan(
+        text: value,
+        style: TextStyle(
+          fontSize: size,
+          color: color,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
       textDirection: TextDirection.ltr,
     )..layout();
-    painter.paint(canvas, offset - Offset(painter.width / 2, painter.height / 2));
+    painter.paint(
+      canvas,
+      offset - Offset(painter.width / 2, painter.height / 2),
+    );
   }
 
   @override
-  bool shouldRepaint(covariant _NetworkPainter oldDelegate) => oldDelegate.network != network;
-
-  String _shortCode(String code) {
-    final parts = code.split('-');
-    return parts.length > 1 ? parts.last : code;
-  }
+  bool shouldRepaint(covariant _NetworkPainter oldDelegate) =>
+      oldDelegate.network != network;
 }
 
 class _BottomBar extends StatelessWidget {
@@ -1048,9 +1588,11 @@ class _BottomBar extends StatelessWidget {
               child: FilledButton.icon(
                 onPressed: () => _showReport(context),
                 icon: const Icon(Icons.description_outlined),
-                label: Text(isReportView
-                    ? l10n.epidemicInvestigationReport
-                    : l10n.epidemicEmergencyReport),
+                label: Text(
+                  isReportView
+                      ? l10n.epidemicInvestigationReport
+                      : l10n.epidemicEmergencyReport,
+                ),
               ),
             ),
           ],
@@ -1070,9 +1612,13 @@ class _BottomBar extends StatelessWidget {
             children: [
               for (final hours in const [24, 48, 72, 0])
                 ChoiceChip(
-                  label: Text(hours == 0
-                      ? AppLocalizations.of(context)!.epidemicWindowAll
-                      : AppLocalizations.of(context)!.epidemicWindowHours(hours)),
+                  label: Text(
+                    hours == 0
+                        ? AppLocalizations.of(context)!.epidemicWindowAll
+                        : AppLocalizations.of(
+                            context,
+                          )!.epidemicWindowHours(hours),
+                  ),
                   selected: data.context.windowHours == hours,
                   onSelected: (_) {
                     onWindowChanged(hours);
@@ -1097,10 +1643,7 @@ class _BottomBar extends StatelessWidget {
           '${l10n.epidemicSuspectedSource} ${source.livestockCode}\n'
           '${source.diseaseType ?? l10n.epidemicNotMarked}\n'
           '${l10n.epidemicContactLivestockCount}: ${data.livestock.length}\n'
-          '${l10n.epidemicCriticalDispositionCount}: ${data.tiers.firstWhere(
-                (tier) => tier.key == 'CRITICAL',
-                orElse: () => const EpidemicTierSummary(key: 'CRITICAL', rank: 1, count: 0),
-              ).count}',
+          '${l10n.epidemicCriticalDispositionCount}: ${data.tiers.firstWhere((tier) => tier.key == 'CRITICAL', orElse: () => const EpidemicTierSummary(key: 'CRITICAL', rank: 1, count: 0)).count}',
         ),
         actions: [
           TextButton(
@@ -1117,8 +1660,16 @@ Widget _sectionHeading(String title, String hint) {
   return Row(
     crossAxisAlignment: CrossAxisAlignment.end,
     children: [
-      Expanded(child: Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700))),
-      Text(hint, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+      Expanded(
+        child: Text(
+          title,
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+        ),
+      ),
+      Text(
+        hint,
+        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+      ),
     ],
   );
 }

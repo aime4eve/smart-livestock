@@ -128,11 +128,16 @@ class SceneSummaryEpidemic {
     required this.status,
     required this.abnormalRate,
     this.activeAlertCount = 0,
+    this.hasMarkedSource = false,
   });
 
   final String status;
   final double abnormalRate;
   final int activeAlertCount;
+
+  /// Whether a disease source has been marked for this farm (contact_traces
+  /// has a row with markedAt set) — drives the overview card's unmarked hint.
+  final bool hasMarkedSource;
 }
 
 /// AI 观察（NIX-245）：档位码 calm/watch/alarm 由前端映射为人话文案。

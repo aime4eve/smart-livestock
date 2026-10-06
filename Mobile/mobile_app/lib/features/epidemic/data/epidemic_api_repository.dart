@@ -33,7 +33,7 @@ class EpidemicApiRepository implements EpidemicRepository {
   }
 
   @override
-  Future<int> createDisposition({
+  Future<DispositionRegistration> createDisposition({
     required String livestockId,
     required String sourceLivestockId,
     required String actionCode,
@@ -48,7 +48,10 @@ class EpidemicApiRepository implements EpidemicRepository {
         if (eventId != null) 'eventId': eventId,
       },
     );
-    return (data['id'] as num?)?.toInt() ?? 0;
+    return DispositionRegistration(
+      created: (data['created'] as bool?) ?? true,
+      id: (data['id'] as num?)?.toInt() ?? 0,
+    );
   }
 
   @override
@@ -57,11 +60,27 @@ class EpidemicApiRepository implements EpidemicRepository {
   }
 
   @override
-  Future<void> markDiseased(String livestockId, String diseaseType) async {
-    await ApiClient.instance.farmPost(
+  Future<void> cancelDisposition(int dispositionId, {String? reason}) async {
+    // farmPost has no query-parameter support; the cancel endpoint takes an
+    // optional reason param, so append it to the suffix directly.
+    final query = (reason == null || reason.isEmpty) ? '' : '?reason=${Uri.encodeComponent(reason)}';
+    await ApiClient.instance.farmPost('/health/epidemic/dispositions/$dispositionId/cancel$query');
+  }
+
+  @override
+  Future<MarkDiseasedResult> markDiseased(String livestockId, String diseaseType,
+      {int? windowHours}) async {
+    final data = await ApiClient.instance.farmPost(
       '/health/epidemic/mark',
-      body: {'livestockId': livestockId, 'diseaseType': diseaseType},
+      body: {
+        'livestockId': livestockId,
+        'diseaseType': diseaseType,
+        // Optional analysis window (server clamps to 1-720h); omitted by
+        // default so the backend applies its configured 72h window.
+        if (windowHours != null) 'windowHours': windowHours,
+      },
     );
+    return MarkDiseasedResult.fromJson(data);
   }
 
   @override

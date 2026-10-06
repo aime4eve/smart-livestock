@@ -6423,6 +6423,14 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String sceneEpidemicFootNoSource(String rate) {
+    return '7 日异常率 $rate% · ';
+  }
+
+  @override
+  String get sceneEpidemicFootNoSourceTag => '未标记源头';
+
+  @override
   String aiSummaryWatching(int n) {
     return '$n 只持续观察';
   }
@@ -6688,6 +6696,192 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get signalSyncRetry => '立即重试';
+
+  @override
+  String get epidemicNoSourceTitle => '暂无标记的疑似源头';
+
+  @override
+  String get epidemicNoSourceBodyV2 =>
+      '当前牧场还没有确认染病的牲畜。从围栏页选择牛只，在详情页即可标记疑似患病，系统将自动生成接触追踪与处置建议。';
+
+  @override
+  String get epidemicGoPickLivestock => '去选择病牛';
+
+  @override
+  String get markDiseasedFromAlarm => '来自告警';
+
+  @override
+  String get alertsMarkAsSource => '标记为源头';
+
+  @override
+  String get markDiseasedTitle => '标记疑似患病源头';
+
+  @override
+  String get markDiseasedDiseaseLabel => '病种（单选）';
+
+  @override
+  String get markDiseasedFootMouth => '口蹄疫疑似';
+
+  @override
+  String get markDiseasedTuberculosis => '牛结核疑似';
+
+  @override
+  String get markDiseasedBrucellosis => '布病疑似';
+
+  @override
+  String get markDiseasedDiarrhea => '腹泻类疾病';
+
+  @override
+  String get markDiseasedOther => '其他';
+
+  @override
+  String get markDiseasedOtherHint => '请输入病种名称（必填）';
+
+  @override
+  String get markDiseasedHint => '标记后将立即分析该牛近 72 小时的接触轨迹，生成接触追踪与处置建议。';
+
+  @override
+  String get markDiseasedConfirm => '确认标记';
+
+  @override
+  String markDiseasedDone(int contacts) {
+    return '已标记，接触分析完成（$contacts 次接触）';
+  }
+
+  @override
+  String get markDiseasedNoGps => '已标记，但近 72 小时无定位轨迹，接触网络为空';
+
+  @override
+  String get markDiseasedFailedTryAgain => '标记失败，请重试';
+
+  @override
+  String get markDiseasedEntryButton => '🦠 标记疑似患病';
+
+  @override
+  String get unmarkDiseasedButton => '取消染病标记';
+
+  @override
+  String get viewWorkbenchButton => '查看疫病防控';
+
+  @override
+  String markedSourceDuration(String duration) {
+    return '已标记 $duration';
+  }
+
+  @override
+  String markedSourceContacts(int count) {
+    return '接触 $count 头 · 见「疫病防控」工作台';
+  }
+
+  @override
+  String get unmarkConfirmTitle => '取消染病标记？';
+
+  @override
+  String unmarkConfirmBody(String livestockCode) {
+    return '将同时取消 $livestockCode 作为源头的全部未完成处置单。';
+  }
+
+  @override
+  String get unmarkKeep => '保留标记';
+
+  @override
+  String get unmarkConfirm => '确认取消';
+
+  @override
+  String get unmarkDone => '已取消染病标记';
+
+  @override
+  String get upsellTitle => '疫病防控需要 Premium';
+
+  @override
+  String get upsellBody => '标记疑似患病、接触追踪与四级处置属于 Premium 功能（epidemic_alert）。';
+
+  @override
+  String get upsellLater => '暂不升级';
+
+  @override
+  String get upsellLearnMore => '了解 Premium';
+
+  @override
+  String durationMinutesShort(int minutes) {
+    return '$minutes 分钟';
+  }
+
+  @override
+  String durationHoursShort(int hours) {
+    return '$hours 小时';
+  }
+
+  @override
+  String durationDaysShort(int days) {
+    return '$days 天';
+  }
+
+  @override
+  String get fenceEditTargetMissing => '该围栏已被删除，编辑已取消';
+
+  @override
+  String get epidemicPathRiskHint => '按接触事件风险分累加（0-100），仅显示 ≥70 的高风险路径';
+
+  @override
+  String get epidemicPathSourceTag => '源头';
+
+  @override
+  String epidemicDispositionRegistered(
+    String livestock,
+    String action,
+    String due,
+  ) {
+    return '已为 $livestock 登记「$action」任务$due';
+  }
+
+  @override
+  String epidemicDispositionExisting(Object action, Object livestock) {
+    return '$livestock 已有进行中的「$action」任务';
+  }
+
+  @override
+  String epidemicDispositionDone(Object action, Object livestock) {
+    return '$livestock 的「$action」任务已完成';
+  }
+
+  @override
+  String epidemicDispositionCancelled(Object action, Object livestock) {
+    return '$livestock 的「$action」任务已取消';
+  }
+
+  @override
+  String get epidemicDispositionRegisterFailed => '登记失败，请重试';
+
+  @override
+  String get epidemicCompleteAction => '完成';
+
+  @override
+  String get epidemicCancelAction => '取消';
+
+  @override
+  String epidemicCompleteConfirm(Object action, Object livestock) {
+    return '确认将 $livestock 的「$action」任务标记为已完成？';
+  }
+
+  @override
+  String epidemicCancelConfirm(Object action, Object livestock) {
+    return '确认取消 $livestock 的「$action」任务？取消后可重新登记。';
+  }
+
+  @override
+  String get epidemicDispRegisteredTag => '已登记';
+
+  @override
+  String epidemicDispositionDueBy(Object due) {
+    return '，请在 $due 前完成';
+  }
+
+  @override
+  String get epidemicDispCompletedTag => '已完成';
+
+  @override
+  String get epidemicDispCancelledTag => '已取消';
 
   @override
   String get healthPhysiologyTitle => '生理记录';

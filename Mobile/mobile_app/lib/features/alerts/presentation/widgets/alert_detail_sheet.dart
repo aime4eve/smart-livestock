@@ -8,6 +8,7 @@ import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/alerts_controller.dart';
+import 'package:hkt_livestock_agentic/features/epidemic/presentation/widgets/mark_diseased_alert_entry.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/trajectory_sheet.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
@@ -400,6 +401,34 @@ class _AlertDetailSheetState extends ConsumerState<AlertDetailSheet> {
                 context.push(AppRoute.ranch.path);
               },
             ),
+          // Mark as source (EPIDEMIC alerts bound to a livestock, manager
+          // roles only — spec §5.2 entry ③ / §5.4; free tier forks to the
+          // upsell sheet inside the shared helper).
+          if (_alert.type == 'EPIDEMIC' &&
+              _alert.livestockId != null &&
+              isEpidemicManagerRole(widget.role))
+            _ActionButton(
+              key: Key('alert-mark-source-${_alert.id}'),
+              label: l10n.alertsMarkAsSource,
+              icon: Icons.coronavirus,
+              bgColor: AppColors.danger,
+              fgColor: Colors.white,
+              onTap: () {
+                Navigator.of(context).pop();
+                showMarkDiseasedFromAlarm(
+                  context,
+                  ref,
+                  livestockId: _alert.livestockId!,
+                  // The list/card layers use '-' / '' as the "no livestock"
+                  // sentinel; fall back to the raw id for the sheet header.
+                  livestockCode:
+                      _alert.livestockCode.isNotEmpty &&
+                          _alert.livestockCode != '-'
+                      ? _alert.livestockCode
+                      : _alert.livestockId!,
+                );
+              },
+            ),
           // Trajectory
           if (_alert.livestockId != null)
             _ActionButton(
@@ -740,6 +769,7 @@ class _TimelineEntry {
 
 class _ActionButton extends StatelessWidget {
   const _ActionButton({
+    super.key,
     required this.label,
     required this.icon,
     required this.bgColor,

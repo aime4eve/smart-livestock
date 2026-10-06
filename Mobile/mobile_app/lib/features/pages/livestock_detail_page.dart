@@ -22,6 +22,7 @@ import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/livestock_controller.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/livestock_form_sheet.dart';
+import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/mark_diseased_action_row.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/trajectory_sheet.dart';
 import 'package:hkt_livestock_agentic/features/physiology/presentation/widgets/physiology_record_card.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
@@ -906,6 +907,9 @@ class _HealthDataCard extends ConsumerWidget {
               ),
             ],
           ),
+          const SizedBox(height: AppSpacing.md),
+          // ── Mark-diseased entry (two states, spec §5.2 entry ①) ──
+          MarkDiseasedEntryRow(detail: detail),
           const SizedBox(height: AppSpacing.md),
           // ── Inline: temperature trend chart ──
           _FeverTrendSection(livestockId: detail.livestockId),

@@ -207,4 +207,41 @@ class LivestockApplicationServiceTest {
         verify(signalRevisionService).bumpStatus(
                 1L, SignalEventType.LIVESTOCK_CHANGED, "LIVESTOCK", 10L);
     }
+
+    // ── Detail markedSource enrichment (plan Task 6) ──────────────
+
+    private Livestock detailLivestock() {
+        Livestock livestock = new Livestock(1L, "COW-001", "安格斯", "MALE",
+                LocalDate.of(2024, 3, 15), new BigDecimal("450"));
+        livestock.setId(10L);
+        return livestock;
+    }
+
+    @Test
+    void detailCarriesMarkedSourceWhenLivestockIsMarked() {
+        when(livestockRepository.findById(10L)).thenReturn(Optional.of(detailLivestock()));
+        when(iotQueryPort.findActiveDevicesByLivestockIds(any())).thenReturn(java.util.Map.of());
+        var markedAt = java.time.Instant.parse("2026-09-29T02:00:00Z");
+        when(healthQueryPort.findMarkedSourceByLivestockId(10L))
+                .thenReturn(Optional.of(new HealthQueryPort.MarkedSourceState(
+                        "口蹄疫疑似", markedAt, 12)));
+
+        var result = service.getLivestock(10L);
+
+        assertThat(result.markedSource()).isNotNull();
+        assertThat(result.markedSource().diseaseType()).isEqualTo("口蹄疫疑似");
+        assertThat(result.markedSource().markedAt()).isEqualTo(markedAt);
+        assertThat(result.markedSource().contactCount()).isEqualTo(12);
+    }
+
+    @Test
+    void detailLeavesMarkedSourceNullWhenUnmarked() {
+        when(livestockRepository.findById(10L)).thenReturn(Optional.of(detailLivestock()));
+        when(iotQueryPort.findActiveDevicesByLivestockIds(any())).thenReturn(java.util.Map.of());
+        when(healthQueryPort.findMarkedSourceByLivestockId(10L)).thenReturn(Optional.empty());
+
+        var result = service.getLivestock(10L);
+
+        assertThat(result.markedSource()).isNull();
+    }
 }

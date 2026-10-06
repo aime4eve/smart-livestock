@@ -22,6 +22,7 @@ class AlertWorkbenchView extends StatelessWidget {
     this.selectedAlertIds = const {},
     this.onToggleSelection,
     this.source,
+    this.onMarkSource,
   });
 
   final AlertWorkbenchData data;
@@ -38,6 +39,11 @@ class AlertWorkbenchView extends StatelessWidget {
   final Set<String> selectedAlertIds;
   final ValueChanged<String>? onToggleSelection;
   final String? source;
+
+  /// "Mark as source" quick action for EPIDEMIC items bound to a livestock
+  /// (epidemic spec §5.2 entry ③, prototype P5). Pass null to hide the
+  /// trigger — hosts pass null for non-manager roles.
+  final ValueChanged<WorkbenchItem>? onMarkSource;
 
   @override
   Widget build(BuildContext context) {
@@ -163,13 +169,19 @@ class AlertWorkbenchView extends StatelessWidget {
         foreground: AppColors.textPrimary,
       ),
     ];
-    return GridView.count(
-      crossAxisCount: 4,
+    return GridView(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 7,
-      crossAxisSpacing: 7,
-      childAspectRatio: 1.3,
+      // Fixed bucket height: a width-derived aspect ratio made the buckets
+      // stretch to ~260dp tall on desktop while phones show ~71dp. 71dp is
+      // the phone height (content needs ~68dp), so both form factors now
+      // render identical buckets.
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        mainAxisSpacing: 7,
+        crossAxisSpacing: 7,
+        mainAxisExtent: 71,
+      ),
       children: [
         for (final spec in definitions)
           Material(
@@ -512,6 +524,22 @@ class AlertWorkbenchView extends StatelessWidget {
                               ),
                           ],
                         ),
+                        // Mark-as-source quick action (prototype P5): a small
+                        // danger-solid button, hidden in batch mode and for
+                        // non-EPIDEMIC / non-livestock items.
+                        if (onMarkSource != null &&
+                            item.canMarkDiseasedSource &&
+                            !batchMode) ...[
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: _MarkSourceButton(
+                              key: Key('alert-mark-source-${item.id}'),
+                              label: l10n.alertsMarkAsSource,
+                              onTap: () => onMarkSource!(item),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -713,6 +741,47 @@ class _TileSpec {
   final int unread;
   final Color foreground;
   final LinearGradient? background;
+}
+
+/// Small danger-solid "mark as source" button (prototype P5 .btn.small:
+/// height 30, padding 0 12, 11px/w700 white on danger, radius-sm).
+class _MarkSourceButton extends StatelessWidget {
+  const _MarkSourceButton({
+    super.key,
+    required this.label,
+    required this.onTap,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.danger,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onTap,
+        child: SizedBox(
+          height: 30,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Center(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 Future<void> showAiRankingSheet(

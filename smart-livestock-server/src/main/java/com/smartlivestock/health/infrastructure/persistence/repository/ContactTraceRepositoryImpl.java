@@ -28,6 +28,17 @@ public class ContactTraceRepositoryImpl implements ContactTraceRepository {
     }
 
     @Override
+    public List<ContactTrace> findByFarmIdAndLivestockParticipation(Long farmId, Long livestockId) {
+        return jpaRepo.findByFarmIdAndLivestockParticipation(farmId, livestockId).stream()
+                .map(HealthMapper::toDomain).toList();
+    }
+
+    @Override
+    public boolean existsMarkedSourceByFarmId(Long farmId) {
+        return jpaRepo.existsByFarmIdAndMarkedAtIsNotNull(farmId);
+    }
+
+    @Override
     public ContactTrace save(ContactTrace trace) {
         return HealthMapper.toDomain(jpaRepo.save(HealthMapper.toJpa(trace)));
     }

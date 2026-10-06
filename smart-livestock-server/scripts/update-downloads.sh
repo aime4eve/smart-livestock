@@ -4,7 +4,7 @@
 # docs/prototypes/2026-09-28-login-app-download-prototype.html 方案B).
 #
 # Run AFTER ./build_android.sh / ./build_ios.sh so the staged version matches
-# build.number; build_web.sh then copies downloads/ into frontend/ so the
+# release.number; build_web.sh then copies downloads/ into frontend/ so the
 # nginx image ships the files. Binaries are git-ignored.
 #
 # Usage: ./scripts/update-downloads.sh
@@ -12,7 +12,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 MAJOR_VERSION=$(grep "def majorVersion" build.gradle | sed "s/.*?: *'//; s/'.*//")
-BUILD_NUMBER=$(tr -d '[:space:]' < build.number)
+BUILD_NUMBER=$(tr -d '[:space:]' < release.number)
 APP_VERSION="${MAJOR_VERSION}-b${BUILD_NUMBER}"
 
 APK_SRC="../Mobile/mobile_app/build/app/outputs/flutter-apk/hkt-livestock-agentic-${APP_VERSION}.apk"

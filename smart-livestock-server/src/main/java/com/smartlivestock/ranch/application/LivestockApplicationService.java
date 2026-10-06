@@ -64,7 +64,11 @@ public class LivestockApplicationService {
         LivestockDto dto = LivestockDto.detail(livestock, health);
         List<DeviceBrief> devices = iotQueryPort.findActiveDevicesByLivestockIds(List.of(id))
                 .getOrDefault(id, List.of());
-        return dto.withDevices(devices);
+        // Nullable epidemic mark state for the detail page's mark-diseased
+        // entry (plan Task 6): absent state renders as the unmarked branch.
+        HealthQueryPort.MarkedSourceState markedSource =
+                healthQueryPort.findMarkedSourceByLivestockId(id).orElse(null);
+        return dto.withDevices(devices).withMarkedSource(markedSource);
     }
 
     @Transactional(readOnly = true)

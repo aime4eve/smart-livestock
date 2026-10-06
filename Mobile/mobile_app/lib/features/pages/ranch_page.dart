@@ -32,6 +32,7 @@ import 'package:hkt_livestock_agentic/features/alerts/data/alerts_api_repository
 import 'package:hkt_livestock_agentic/features/alerts/domain/alert_workbench.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/alert_workbench_controller.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_workbench_detail_sheet.dart';
+import 'package:hkt_livestock_agentic/features/epidemic/presentation/widgets/mark_diseased_alert_entry.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_detail_sheet.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_workbench_view.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/trajectory_sheet.dart';
@@ -1631,6 +1632,10 @@ class _RanchPageState extends ConsumerState<RanchPage>
     final epiRate = (scene.epidemic.abnormalRate * 100).toStringAsFixed(1);
     final epiOver = scene.epidemic.abnormalRate >= 0.10;
 
+    // Content-driven card height: a fixed childAspectRatio ties height to card
+    // width, so on phone widths (~51dp) the inner column (~60dp) overflows and
+    // the foot text paints past the card border in release builds.
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1743,8 +1748,23 @@ class _RanchPageState extends ConsumerState<RanchPage>
                   ? pill(AppColors.warning, l10n.pillRate(epiRate))
                   : pill(AppColors.success, l10n.pillSteady),
               foot: epiOver
-                  ? l10n.sceneEpidemicFootAbove(epiRate)
+                  ? (scene.epidemic.hasMarkedSource
+                      ? l10n.sceneEpidemicFootAbove(epiRate)
+                      : l10n.sceneEpidemicFootNoSource(epiRate))
                   : l10n.sceneEpidemicFootBelow(epiRate),
+            // P7: epiOver with no marked source appends a danger bold tail
+            // segment via the same two-span foot the fever card uses.
+            footBold: epiOver && !scene.epidemic.hasMarkedSource
+                ? TextSpan(
+                    text: l10n.sceneEpidemicFootNoSourceTag,
+                    style: const TextStyle(
+                      fontSize: 9,
+                      height: 1.3,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.danger,
+                    ),
+                  )
+                : null,
               onTap: () => context.push(AppRoute.twinEpidemic.path),
             ),
           ],
@@ -1915,6 +1935,13 @@ class _RanchPageState extends ConsumerState<RanchPage>
     final asyncData = farmId == null
         ? const AsyncLoading<AlertWorkbenchData>()
         : ref.watch(ranchAlertWorkbenchProvider(farmId));
+    // Mark-as-source is manager-only (spec §5.4): pass null to hide the
+    // trigger for other roles.
+    final markSourceHandler = isEpidemicManagerRole(
+      ref.watch(sessionControllerProvider).role,
+    )
+        ? _markDiseasedFromAlert
+        : null;
     return asyncData.when(
       data: (data) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -1935,6 +1962,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
           onLoadMore: () async {},
           onRanking: () => showAiRankingSheet(context, data.items),
           compact: true,
+          onMarkSource: markSourceHandler,
         ),
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -1960,6 +1988,17 @@ class _RanchPageState extends ConsumerState<RanchPage>
           ],
         ),
       ),
+    );
+  }
+
+  /// Mark-as-source handler for EPIDEMIC alert entries on the ranch alerts
+  /// tab (spec §5.2 ③): shared helper runs the manager/subscription fork.
+  Future<void> _markDiseasedFromAlert(WorkbenchItem item) {
+    return showMarkDiseasedFromAlarm(
+      context,
+      ref,
+      livestockId: item.asset.id,
+      livestockCode: item.asset.name,
     );
   }
 
@@ -1998,6 +2037,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
         detail.asset.id,
         livestockCode: detail.asset.name,
       ),
+      onMarkSource: isEpidemicManagerRole(role)
+          ? _markDiseasedFromAlert
+          : null,
     );
   }
 

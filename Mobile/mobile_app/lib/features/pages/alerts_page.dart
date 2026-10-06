@@ -12,6 +12,7 @@ import 'package:hkt_livestock_agentic/features/alerts/presentation/alert_workben
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_batch_bar.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_workbench_detail_sheet.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_workbench_view.dart';
+import 'package:hkt_livestock_agentic/features/epidemic/presentation/widgets/mark_diseased_alert_entry.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/trajectory_sheet.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
@@ -99,6 +100,11 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
     final l10n = AppLocalizations.of(context)!;
     final asyncData = ref.watch(alertWorkbenchControllerProvider);
     final controller = ref.read(alertWorkbenchControllerProvider.notifier);
+    // Mark-as-source is a manager action (spec §5.4): non-manager roles get
+    // no trigger at all.
+    final markSourceHandler = isEpidemicManagerRole(widget.role)
+        ? _markDiseasedFromAlert
+        : null;
 
     return Scaffold(
       key: const Key('page-alerts'),
@@ -135,6 +141,7 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
               selectedAlertIds: _selectedItemIds,
               onToggleSelection: _toggleSelection,
               source: widget.source,
+              onMarkSource: markSourceHandler,
             ),
           ),
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -312,6 +319,18 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
     await ref.read(alertWorkbenchControllerProvider.notifier).refresh();
   }
 
+  /// Mark-as-source handler for EPIDEMIC alert entries (spec §5.2 ③): the
+  /// shared helper runs the subscription fork — subscribed managers get the
+  /// prefilled mark sheet, free managers get the upsell sheet.
+  Future<void> _markDiseasedFromAlert(WorkbenchItem item) {
+    return showMarkDiseasedFromAlarm(
+      context,
+      ref,
+      livestockId: item.asset.id,
+      livestockCode: item.asset.name,
+    );
+  }
+
   Future<void> _openDetail(BuildContext context, WorkbenchItem item) async {
     setState(() => _detailOpen = true);
     try {
@@ -330,6 +349,9 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
           detail.asset.id,
           livestockCode: detail.asset.name,
         ),
+        onMarkSource: isEpidemicManagerRole(widget.role)
+            ? _markDiseasedFromAlert
+            : null,
       );
     } finally {
       if (mounted) setState(() => _detailOpen = false);

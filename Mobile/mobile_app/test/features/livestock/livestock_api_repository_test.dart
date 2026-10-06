@@ -185,5 +185,35 @@ void main() {
       });
       expect(d.lastLocation, contains('--'));
     });
+
+    test('markedSource parses disease, stamp and contact count', () {
+      final d = LivestockApiRepository.livestockDetailFromMapForTest({
+        'id': '1',
+        'markedSource': {
+          'diseaseType': '口蹄疫疑似',
+          'markedAt': '2026-09-29T02:00:00Z',
+          'contactCount': 12,
+        },
+      });
+
+      expect(d.markedSource, isNotNull);
+      expect(d.markedSource!.diseaseType, '口蹄疫疑似');
+      expect(d.markedSource!.markedAt, DateTime.parse('2026-09-29T02:00:00Z'));
+      expect(d.markedSource!.contactCount, 12);
+    });
+
+    test('absent or malformed markedSource falls back to unmarked', () {
+      final absent = LivestockApiRepository.livestockDetailFromMapForTest({
+        'id': '1',
+      });
+      expect(absent.markedSource, isNull);
+
+      final malformed =
+          LivestockApiRepository.livestockDetailFromMapForTest({
+        'id': '1',
+        'markedSource': {'diseaseType': '口蹄疫疑似'},
+      });
+      expect(malformed.markedSource, isNull);
+    });
   });
 }

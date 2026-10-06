@@ -115,11 +115,29 @@ class LivestockApiRepository implements LivestockRepository {
       activityLevel: (m['activityLevel'] ?? '正常').toString(),
       ruminationFreq: (m['ruminationFreq'] ?? '--').toString(),
       lastLocation: '${m['lastLatitude'] ?? '--'}, ${m['lastLongitude'] ?? '--'}',
+      markedSource: _parseMarkedSource(m['markedSource']),
       lastPositionAt: DateTime.tryParse(m['lastPositionAt'] as String? ?? ''),
       gender: m['gender'] as String?,
       birthDate: m['birthDate'] != null
           ? DateTime.tryParse(m['birthDate'] as String)
           : null,
+    );
+  }
+
+  /// Nullable epidemic mark state appended by the backend detail endpoint
+  /// (plan Task 6). Malformed payloads fall back to "not marked".
+  static MarkedSourceInfo? _parseMarkedSource(dynamic raw) {
+    if (raw is! Map<String, dynamic>) return null;
+    final diseaseType = raw['diseaseType'] as String?;
+    final markedAt = DateTime.tryParse(raw['markedAt'] as String? ?? '');
+    if (diseaseType == null || diseaseType.isEmpty || markedAt == null) {
+      return null;
+    }
+    final contactCount = _parseInt(raw['contactCount']) ?? 0;
+    return MarkedSourceInfo(
+      diseaseType: diseaseType,
+      markedAt: markedAt,
+      contactCount: contactCount,
     );
   }
 

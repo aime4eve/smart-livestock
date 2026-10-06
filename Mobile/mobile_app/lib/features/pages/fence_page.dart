@@ -957,9 +957,18 @@ class _FencePageState extends ConsumerState<FencePage>
     }
     final sessionInstanceId = session.sessionInstanceId;
     final fenceId = session.fenceId;
-    final fenceItem = ref.read(fenceControllerProvider).fences.firstWhere(
-          (f) => f.id == fenceId,
-        );
+    // Guard against the fence being deleted concurrently while the edit
+    // sheet is open: an unguarded firstWhere white-screens in release.
+    FenceItem? fenceItem;
+    for (final f in ref.read(fenceControllerProvider).fences) {
+      if (f.id == fenceId) fenceItem = f;
+    }
+    if (fenceItem == null) {
+      _showSnackBar(
+          context, AppLocalizations.of(context)!.fenceEditTargetMissing);
+      controller.discardEditing();
+      return;
+    }
     controller.markSavingEdit();
     try {
       await ApiClient.instance.farmPut('/fences/$fenceId', body: {

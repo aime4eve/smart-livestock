@@ -75,6 +75,11 @@ health:
   alert-reconcile:
     enabled: ${HEALTH_ALERT_RECONCILE_ENABLED:true}
     cron: ${HEALTH_ALERT_RECONCILE_CRON:0 40 * * * *}
+  contact:
+    # Contact analysis kernel (epidemic dual-track, spec 2026-09-29 §4.2)
+    proximity-threshold-meters: ${HEALTH_CONTACT_PROXIMITY_THRESHOLD_METERS:30}
+    min-duration-minutes: ${HEALTH_CONTACT_MIN_DURATION_MINUTES:5}
+    align-granularity-seconds: ${HEALTH_CONTACT_ALIGN_GRANULARITY_SECONDS:60}
   drinking:
     # Pipeline master switch: false removes the nightly batch bean entirely
     # (health.drinking.enabled). Detection params below keep their values so

@@ -3,12 +3,15 @@ package com.smartlivestock.ranch.infrastructure.adapter;
 import com.smartlivestock.health.domain.model.HealthSnapshot;
 import com.smartlivestock.health.domain.model.TempStatus;
 import com.smartlivestock.health.domain.model.MotilityStatus;
+import com.smartlivestock.health.domain.model.ContactTrace;
+import com.smartlivestock.health.domain.repository.ContactTraceRepository;
 import com.smartlivestock.health.domain.repository.HealthSnapshotRepository;
 import com.smartlivestock.ranch.domain.port.HealthQueryPort;
 import com.smartlivestock.health.domain.port.RanchQueryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -19,6 +22,7 @@ import java.util.Optional;
 public class HealthQueryPortAdapter implements HealthQueryPort {
 
     private final HealthSnapshotRepository snapshotRepository;
+    private final ContactTraceRepository contactTraceRepository;
     private final RanchQueryPort ranchQueryPort;
 
     @Override
@@ -112,6 +116,25 @@ public class HealthQueryPortAdapter implements HealthQueryPort {
                 estrusHighScore,
                 Math.round(epidemicAbnormalRate * 1000.0) / 1000.0
         );
+    }
+
+    @Override
+    public Optional<MarkedSourceState> findMarkedSourceByLivestockId(Long livestockId) {
+        // "from of a marked row IS the source" (markDiseased flips participating
+        // rows to from=target before stamping): only marked outbound rows belong
+        // to this livestock's epidemic claim, unmarked pool rows do not count.
+        List<ContactTrace> markedRows = contactTraceRepository
+                .findByFromLivestockIdOrderByLastContactAtDesc(livestockId).stream()
+                .filter(row -> row.getMarkedAt() != null)
+                .toList();
+        if (markedRows.isEmpty()) {
+            return Optional.empty();
+        }
+        ContactTrace latest = markedRows.stream()
+                .max(Comparator.comparing(ContactTrace::getMarkedAt))
+                .orElseThrow();
+        return Optional.of(new MarkedSourceState(
+                latest.getDiseaseType(), latest.getMarkedAt(), markedRows.size()));
     }
 
     private String statusString(Enum<?> status) {

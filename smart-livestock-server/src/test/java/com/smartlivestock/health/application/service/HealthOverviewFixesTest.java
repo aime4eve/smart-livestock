@@ -62,7 +62,8 @@ class HealthOverviewFixesTest {
                 ranchCommandPort, subscriptionPort, healthAnomalyService, healthAlertBridgeService,
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class),
                 feverService, digestiveService, estrusAnalysisService, epidemicService,
-                messageResolver);
+                messageResolver,
+                org.mockito.Mockito.mock(ContactAnalysisService.class));
         lenient().when(ranchQueryPort.countActiveAlertsByFarmId(1L)).thenReturn(0);
         lenient().when(ranchQueryPort.findActiveAlertsByFarmIdAndTypes(eq(1L), anyCollection()))
                 .thenReturn(List.of());
@@ -126,5 +127,22 @@ class HealthOverviewFixesTest {
         // estrus high from CURRENT snapshot (#16 = 82), not history
         assertThat(res.sceneSummary().estrus().highScoreCount()).isEqualTo(1);
         assertThat(res.sceneSummary().estrus().activeAlertCount()).isEqualTo(1);
+    }
+
+    @Test
+    void epidemicHasMarkedSourceReflectsMarkedTraceExistence() {
+        when(ranchQueryPort.findAllByFarmId(1L)).thenReturn(List.of(
+                new LivestockInfo(4L, 1L, "A", "F", "B")));
+        when(snapshotRepo.findByFarmId(1L)).thenReturn(List.of());
+
+        // No marked row (or no traces at all) -> false
+        when(contactTraceRepo.existsMarkedSourceByFarmId(1L)).thenReturn(false);
+        HealthOverviewResponse unmarked = service.getOverview(1L);
+        assertThat(unmarked.sceneSummary().epidemic().hasMarkedSource()).isFalse();
+
+        // At least one row with markedAt set -> true
+        when(contactTraceRepo.existsMarkedSourceByFarmId(1L)).thenReturn(true);
+        HealthOverviewResponse marked = service.getOverview(1L);
+        assertThat(marked.sceneSummary().epidemic().hasMarkedSource()).isTrue();
     }
 }

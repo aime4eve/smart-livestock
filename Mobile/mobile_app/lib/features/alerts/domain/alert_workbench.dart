@@ -143,6 +143,22 @@ class WorkbenchItem {
   final String targetRoute;
 
   bool get isResolved => bucket == 'resolved';
+
+  /// True when any underlying alert is EPIDEMIC-typed. Workbench items group
+  /// alerts per asset, and [WorkbenchReason.type] carries the raw backend
+  /// alert type name ("EPIDEMIC", "FENCE_BREACH", ...).
+  bool get isEpidemic => reasons.any((reason) => reason.type == 'EPIDEMIC');
+
+  /// The "mark as source" quick action (epidemic spec §5.2 entry ③) only
+  /// applies to EPIDEMIC items bound to a single livestock asset — herd /
+  /// fence / device items have no livestock to prefill the mark sheet with.
+  /// The backend falls back to the sentinel id "herd" when the underlying
+  /// alerts carry no livestockId; such items are excluded too.
+  bool get canMarkDiseasedSource =>
+      isEpidemic &&
+      asset.kind == 'livestock' &&
+      asset.id.isNotEmpty &&
+      asset.id != 'herd';
 }
 
 DateTime? _date(dynamic value) {

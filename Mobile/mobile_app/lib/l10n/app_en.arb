@@ -219,15 +219,15 @@
       }
     }
   },
-  "ranchConfirmDeleteFence": "Confirm delete \"{name}\"? This cannot be undone.",
+  "ranchConfirmDeleteFence": "Confirm delete {name}? This cannot be undone.",
   "fenceDeleteAlertsPrompt": "How should this fence's alert history be handled?",
   "@fenceDeleteAlertsPrompt": {},
   "fenceDeleteKeepAlerts": "Keep alert records (unlink only)",
   "@fenceDeleteKeepAlerts": {},
   "fenceDeleteWithAlerts": "Delete along with alert history",
   "@fenceDeleteWithAlerts": {},
-  "ranchFenceDeletedWithAlerts": "Deleted fence \"{name}\" and {count} alerts",
-  "ranchFenceDeleted": "Deleted fence \"{name}\"",
+  "ranchFenceDeletedWithAlerts": "Deleted fence {name} and {count} alerts",
+  "ranchFenceDeleted": "Deleted fence {name}",
   "@ranchFenceDeletedWithAlerts": {
     "placeholders": {
       "name": {
@@ -977,7 +977,7 @@
   "@b2bFarmCreationEnterName": {},
   "b2bFarmCreationSelectPoint": "Select a point on the map or enter coordinates",
   "@b2bFarmCreationSelectPoint": {},
-  "b2bFarmCreationSuccess": "Ranch \"{name}\" created successfully",
+  "b2bFarmCreationSuccess": "Ranch {name} created successfully",
   "@b2bFarmCreationSuccess": {
     "placeholders": {
       "name": {
@@ -1412,7 +1412,7 @@
   "@tenantAdjustLicenseConfirm": {},
   "tenantDeleteTitle": "Delete Tenant",
   "@tenantDeleteTitle": {},
-  "tenantDeleteMessage": "About to delete tenant \"{name}\". This action cannot be undone.",
+  "tenantDeleteMessage": "About to delete tenant {name}. This action cannot be undone.",
   "@tenantDeleteMessage": {
     "placeholders": {
       "name": {
@@ -1873,7 +1873,7 @@
   "@b2bFarmNewOwner": {},
   "b2bFarmConfirmChange": "Confirm Change",
   "@b2bFarmConfirmChange": {},
-  "b2bFarmChangeSuccess": "\"{farm}\" owner changed to {owner}",
+  "b2bFarmChangeSuccess": "{farm} owner changed to {owner}",
   "@b2bFarmChangeSuccess": {
     "placeholders": {
       "farm": {
@@ -1884,7 +1884,7 @@
       }
     }
   },
-  "b2bFarmRenameDemo": "\"{name}\" rename feature coming soon",
+  "b2bFarmRenameDemo": "{name} rename feature coming soon",
   "@b2bFarmRenameDemo": {
     "placeholders": {
       "name": {
@@ -1904,7 +1904,7 @@
   "@b2bWorkerAssign": {},
   "b2bWorkerAssignTitle": "Assign Workers",
   "@b2bWorkerAssignTitle": {},
-  "b2bWorkerAssignNone": "No workers available. Create one with \"Add Worker\" first.",
+  "b2bWorkerAssignNone": "No workers available. Create one with Add Worker first.",
   "@b2bWorkerAssignNone": {},
   "b2bWorkerAssignConfirm": "Confirm Assign ({count})",
   "@b2bWorkerAssignConfirm": {
@@ -1916,7 +1916,7 @@
   },
   "b2bWorkerRemoveTitle": "Remove Worker",
   "@b2bWorkerRemoveTitle": {},
-  "b2bWorkerRemoveConfirm": "Remove \"{name}\" from \"{farm}\"?",
+  "b2bWorkerRemoveConfirm": "Remove {name} from {farm}?",
   "@b2bWorkerRemoveConfirm": {
     "placeholders": {
       "name": {
@@ -1929,7 +1929,7 @@
   },
   "b2bWorkerConfirm": "Confirm",
   "@b2bWorkerConfirm": {},
-  "b2bWorkerCreated": "Worker \"{name}\" created and assigned",
+  "b2bWorkerCreated": "Worker {name} created and assigned",
   "@b2bWorkerCreated": {
     "placeholders": {
       "name": {
@@ -1941,7 +1941,7 @@
   "@b2bWorkerUpdated": {},
   "b2bWorkerResetPwd": "Reset Password",
   "@b2bWorkerResetPwd": {},
-  "b2bWorkerResetPwdTitle": "Reset \"{name}\" Password",
+  "b2bWorkerResetPwdTitle": "Reset {name} Password",
   "@b2bWorkerResetPwdTitle": {
     "placeholders": {
       "name": {
@@ -2840,7 +2840,7 @@
   "@gpsQualityUncalibrated": {},
   "gpsQualityCalibrate": "Calibrate",
   "@gpsQualityCalibrate": {},
-  "gpsQualityNoSessionHint": "No calibration sessions yet. Click \"+ Create Calibration Session\" to start.",
+  "gpsQualityNoSessionHint": "No calibration sessions yet. Click + Create Calibration Session to start.",
   "@gpsQualityNoSessionHint": {},
   "gpsQualityDelete": "Delete",
   "@gpsQualityDelete": {},
@@ -3481,7 +3481,7 @@
   "@alertFenceAddBtn": {},
   "alertFenceEditBoundary": "Edit Boundary",
   "@alertFenceEditBoundary": {},
-  "alertFenceDeleteConfirm": "Delete fence \"{name}\"?",
+  "alertFenceDeleteConfirm": "Delete fence {name}?",
   "@alertFenceDeleteConfirm": {
     "placeholders": {
       "name": {
@@ -3669,13 +3669,13 @@
   "@gpsQualityTrackLineUnselect": {},
   "gpsQualityTrackLineStartPoint": "Start",
   "@gpsQualityTrackLineStartPoint": {},
-  "gpsQualityTrackLineEmpty": "No standard track candidates yet. Click \"Import Track\" to start.",
+  "gpsQualityTrackLineEmpty": "No standard track candidates yet. Click Import Track to start.",
   "@gpsQualityTrackLineEmpty": {},
   "gpsQualityTrackLineImportBtn": "Import Track",
   "@gpsQualityTrackLineImportBtn": {},
-  "gpsQualityTrackLineRules": "Management rules (append-only, no merging): one import = one independent candidate, never auto-merged; re-importing the same file adds a new record instead of overwriting; the point list is snapshotted when a check is launched, so deleting a candidate does not affect historical reports; select ≥2 to \"Merge\" (phase 2).",
+  "gpsQualityTrackLineRules": "Management rules (append-only, no merging): one import = one independent candidate, never auto-merged; re-importing the same file adds a new record instead of overwriting; the point list is snapshotted when a check is launched, so deleting a candidate does not affect historical reports; select ≥2 to Merge (phase 2).",
   "@gpsQualityTrackLineRules": {},
-  "gpsQualityTrackLineDeleteConfirm": "Delete candidate track \"{name}\"? Historical check reports are not affected (point list is snapshotted).",
+  "gpsQualityTrackLineDeleteConfirm": "Delete candidate track {name}? Historical check reports are not affected (point list is snapshotted).",
   "@gpsQualityTrackLineDeleteConfirm": {
     "placeholders": {
       "name": {}
@@ -3710,11 +3710,11 @@
   },
   "gpsQualityLineUploadTitle": "Upload RTK Handset Export",
   "@gpsQualityLineUploadTitle": {},
-  "gpsQualityLineUploadHint": "Supports .xlsx (RTK handset \"line tracking\" export). One line per file; each import creates one candidate.",
+  "gpsQualityLineUploadHint": "Supports .xlsx (RTK handset line tracking export). One line per file; each import creates one candidate.",
   "@gpsQualityLineUploadHint": {},
   "gpsQualityLinePickFile": "Choose File",
   "@gpsQualityLinePickFile": {},
-  "gpsQualityLineFormatTitle": "File layout (RTK handset export: single sheet \"line tracking\", 8 columns, one row per line)",
+  "gpsQualityLineFormatTitle": "File layout (RTK handset export: single sheet line tracking, 8 columns, one row per line)",
   "@gpsQualityLineFormatTitle": {},
   "gpsQualityLineCleanRules": "Cleaning rules: remove consecutive duplicate points (handsets produce many duplicates while stationary), ignore elevation, tolerate dirty metadata (bad start/end times or length never block the import; everything is recomputed from coordinates). The cleaned track becomes one candidate standard track line as a whole — it is not split by device.",
   "@gpsQualityLineCleanRules": {},
@@ -3774,7 +3774,7 @@
   "@gpsQualityLineColSeq": {},
   "gpsQualityLineNameLabel": "Name",
   "@gpsQualityLineNameLabel": {},
-  "gpsQualityLineNameHint": "Defaults to the file's \"name\" column, editable. One import = one independent candidate; re-importing the same file adds a record instead of overwriting.",
+  "gpsQualityLineNameHint": "Defaults to the file's name column, editable. One import = one independent candidate; re-importing the same file adds a record instead of overwriting.",
   "@gpsQualityLineNameHint": {},
   "gpsQualityLineImportAction": "Import",
   "@gpsQualityLineImportAction": {},
@@ -3854,7 +3854,7 @@
   },
   "gpsQualityCheckSummary": "Check Summary",
   "@gpsQualityCheckSummary": {},
-  "gpsQualityCheckSummaryHint": "Click \"View Report\" to open the report of that type",
+  "gpsQualityCheckSummaryHint": "Click View Report to open the report of that type",
   "@gpsQualityCheckSummaryHint": {},
   "gpsQualitySummaryLatest": "Latest Check",
   "@gpsQualitySummaryLatest": {},
@@ -3894,7 +3894,7 @@
   "@gpsQualityLineColSegment": {},
   "gpsQualityLineColDeviation": "Shortest Distance",
   "@gpsQualityLineColDeviation": {},
-  "gpsQualityLineGotoComparison": "For cross-device comparison, go to the \"Quality Comparison\" tab.",
+  "gpsQualityLineGotoComparison": "For cross-device comparison, go to the Quality Comparison tab.",
   "@gpsQualityLineGotoComparison": {},
   "gpsQualityLineComparison": "Line Check Comparison",
   "@gpsQualityLineComparison": {},
@@ -3932,7 +3932,7 @@
   "@telemetryImportPickFile": {},
   "telemetryImportRePickFile": "Choose Another",
   "@telemetryImportRePickFile": {},
-  "telemetryImportFormatTitle": "File format requirements (blade platform \"Device Data\" export, 6 columns)",
+  "telemetryImportFormatTitle": "File format requirements (blade platform Device Data export, 6 columns)",
   "@telemetryImportFormatTitle": {},
   "telemetryImportRequired": "Required",
   "@telemetryImportRequired": {},
@@ -3964,7 +3964,7 @@
   "@telemetryImportColCreateTimeNote": {},
   "telemetryImportDecodeNote": "Decoding: HKT cattle/sheep trackers are supported (68 6B 74 header, firmware TLV protocol: battery / coordinates / period steps / 3-axis acceleration / anti-tamper). Registration, ACK and other non-telemetry frames are skipped and counted; other device models are not supported yet (decoders will be extended per protocol docs).",
   "@telemetryImportDecodeNote": {},
-  "telemetryImportRulesNote": "Import rules: the device is matched by the DevEUI in the file name; unregistered devices fail the whole file so no orphan data is produced; records already existing at the same device timestamp are skipped (idempotent, safe to re-import); imported history triggers no alerts, does not move the live sync cursor, and is marked as \"manual import\".",
+  "telemetryImportRulesNote": "Import rules: the device is matched by the DevEUI in the file name; unregistered devices fail the whole file so no orphan data is produced; records already existing at the same device timestamp are skipped (idempotent, safe to re-import); imported history triggers no alerts, does not move the live sync cursor, and is marked as manual import.",
   "@telemetryImportRulesNote": {},
   "telemetryImportNextParse": "Next: Parse",
   "@telemetryImportNextParse": {},
@@ -4036,7 +4036,7 @@
   },
   "telemetryImportConfirmDisabled": "Device not matched; import unavailable",
   "@telemetryImportConfirmDisabled": {},
-  "telemetryImportDone": "Import complete. {telemetry} telemetry records written, including {gps} GPS track points; duplicate and non-importable rows were skipped automatically. The source is marked as \"manual import\" — no alerts were triggered and the live sync cursor is untouched.",
+  "telemetryImportDone": "Import complete. {telemetry} telemetry records written, including {gps} GPS track points; duplicate and non-importable rows were skipped automatically. The source is marked as manual import — no alerts were triggered and the live sync cursor is untouched.",
   "@telemetryImportDone": {
     "placeholders": {
       "telemetry": {
@@ -4055,7 +4055,7 @@
   "@telemetryImportResultGps": {},
   "telemetryImportResultSuccess": "Success",
   "@telemetryImportResultSuccess": {},
-  "telemetryImportResultHint": "You can replay this device's track by time in \"Map · Track History\"; steps and acceleration have joined the health analytics data pool and count toward activity statistics.",
+  "telemetryImportResultHint": "You can replay this device's track by time in Map · Track History; steps and acceleration have joined the health analytics data pool and count toward activity statistics.",
   "@telemetryImportResultHint": {},
   "telemetryImportImportAnother": "Import Another File",
   "@telemetryImportImportAnother": {},
@@ -4661,7 +4661,7 @@
   "@tbWizardAnother": {},
   "deviceProfileRuleTitle": "Device Profile Rules",
   "@deviceProfileRuleTitle": {},
-  "deviceProfileRuleHint": "This list decides which TB device profiles the provisioning wizard accepts: devices whose profile is missing (or disabled) will show \"Waiting for TB device\". Add mappings here when onboarding a new link — no release needed.",
+  "deviceProfileRuleHint": "This list decides which TB device profiles the provisioning wizard accepts: devices whose profile is missing (or disabled) will show Waiting for TB device. Add mappings here when onboarding a new link — no release needed.",
   "@deviceProfileRuleHint": {},
   "deviceProfileRuleStat": "{total} rules · {enabled} enabled · {disabled} disabled",
   "@deviceProfileRuleStat": {
@@ -4681,7 +4681,7 @@
   "@deviceProfileRuleReload": {},
   "deviceProfileRuleAdd": "Add Rule",
   "@deviceProfileRuleAdd": {},
-  "deviceProfileRuleEmpty": "No rules yet — tap \"Add Rule\" to create one",
+  "deviceProfileRuleEmpty": "No rules yet — tap Add Rule to create one",
   "@deviceProfileRuleEmpty": {},
   "deviceProfileRuleColName": "Profile (TB)",
   "@deviceProfileRuleColName": {},
@@ -4719,7 +4719,7 @@
   "@deviceProfileRuleDeleteTitle": {},
   "deviceProfileRuleDeleteBody": "Confirm deletion of ",
   "@deviceProfileRuleDeleteBody": {},
-  "deviceProfileRuleDeleteWarn": "After deletion, devices on profile \"{name}\" will fail provisioning with \"Waiting for TB device\". Devices and telemetry on the ThingsBoard platform are not affected.",
+  "deviceProfileRuleDeleteWarn": "After deletion, devices on profile {name} will fail provisioning with Waiting for TB device. Devices and telemetry on the ThingsBoard platform are not affected.",
   "@deviceProfileRuleDeleteWarn": {
     "placeholders": {
       "name": {
@@ -4749,7 +4749,7 @@
   "@deviceProfileRuleFieldDeviceType": {},
   "deviceProfileRuleTypeHelp": "Determines device capabilities after provisioning (GPS / activity / health monitoring).",
   "@deviceProfileRuleTypeHelp": {},
-  "deviceProfileRuleEnabledHelp": "Disabled rules fail provisioning (\"Waiting for TB device\"); re-enable any time.",
+  "deviceProfileRuleEnabledHelp": "Disabled rules fail provisioning (Waiting for TB device); re-enable any time.",
   "@deviceProfileRuleEnabledHelp": {},
   "deviceProfileRuleFieldRemark": "Remark",
   "@deviceProfileRuleFieldRemark": {},
@@ -5162,6 +5162,9 @@
   "@sceneEpidemicFootBelow": {"placeholders": {"rate": {"type": "String"}}},
   "sceneEpidemicFootAbove": "7-day rate {rate}%, above warning line",
   "@sceneEpidemicFootAbove": {"placeholders": {"rate": {"type": "String"}}},
+  "sceneEpidemicFootNoSource": "7-day rate {rate}% · ",
+  "@sceneEpidemicFootNoSource": {"placeholders": {"rate": {"type": "String"}}},
+  "sceneEpidemicFootNoSourceTag": "no source marked",
   "aiSummaryWatching": "{n} under watch",
   "@aiSummaryWatching": {"placeholders": {"n": {"type": "int"}}},
   "aiNotReady": "AI watch not started yet; shows up automatically once ready",
@@ -5347,6 +5350,140 @@
   ,"@signalSyncStale": {}
   ,"signalSyncRetry": "Retry now"
   ,"@signalSyncRetry": {}
+
+  ,"epidemicNoSourceTitle": "No suspected source marked"
+  ,"@epidemicNoSourceTitle": {}
+  ,"epidemicNoSourceBodyV2": "None confirmed diseased yet. Pick an animal from the fence tab and mark it suspected on its detail page; tracing and dispositions generate automatically."
+  ,"@epidemicNoSourceBodyV2": {}
+  ,"epidemicGoPickLivestock": "Pick a diseased animal"
+  ,"@epidemicGoPickLivestock": {}
+  ,"markDiseasedFromAlarm": "from alert"
+  ,"@markDiseasedFromAlarm": {}
+  ,"alertsMarkAsSource": "Mark as source"
+  ,"@alertsMarkAsSource": {}
+
+  ,"markDiseasedTitle": "Mark suspected source"
+  ,"@markDiseasedTitle": {}
+  ,"markDiseasedDiseaseLabel": "Disease (single choice)"
+  ,"@markDiseasedDiseaseLabel": {}
+  ,"markDiseasedFootMouth": "Suspected FMD"
+  ,"@markDiseasedFootMouth": {}
+  ,"markDiseasedTuberculosis": "Suspected bovine tuberculosis"
+  ,"@markDiseasedTuberculosis": {}
+  ,"markDiseasedBrucellosis": "Suspected brucellosis"
+  ,"@markDiseasedBrucellosis": {}
+  ,"markDiseasedDiarrhea": "Diarrheal disease"
+  ,"@markDiseasedDiarrhea": {}
+  ,"markDiseasedOther": "Other"
+  ,"@markDiseasedOther": {}
+  ,"markDiseasedOtherHint": "Enter disease name (required)"
+  ,"@markDiseasedOtherHint": {}
+  ,"markDiseasedHint": "Marking will immediately analyze this animal's contacts over the last 72 hours and generate tracing and disposition advice."
+  ,"@markDiseasedHint": {}
+  ,"markDiseasedConfirm": "Confirm mark"
+  ,"@markDiseasedConfirm": {}
+  ,"markDiseasedDone": "Marked. Contact analysis finished ({contacts} contacts)"
+  ,"@markDiseasedDone": {
+    "placeholders": {
+      "contacts": {"type": "int"}
+    }
+  }
+  ,"markDiseasedNoGps": "Marked, but no GPS fixes in the last 72 hours; contact network is empty"
+  ,"@markDiseasedNoGps": {}
+  ,"markDiseasedFailedTryAgain": "Marking failed, please retry"
+  ,"@markDiseasedFailedTryAgain": {}
+
+  ,"markDiseasedEntryButton": "🦠 Mark suspected diseased"
+  ,"@markDiseasedEntryButton": {}
+  ,"unmarkDiseasedButton": "Remove disease mark"
+  ,"@unmarkDiseasedButton": {}
+  ,"viewWorkbenchButton": "Open Epidemic Prevention"
+  ,"@viewWorkbenchButton": {}
+  ,"markedSourceDuration": "Marked {duration} ago"
+  ,"@markedSourceDuration": {
+    "placeholders": {
+      "duration": {"type": "String"}
+    }
+  }
+  ,"markedSourceContacts": "{count} contacts · see the Epidemic Prevention workbench"
+  ,"@markedSourceContacts": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  }
+  ,"unmarkConfirmTitle": "Remove disease mark?"
+  ,"@unmarkConfirmTitle": {}
+  ,"unmarkConfirmBody": "All unfinished dispositions with {livestockCode} as their source will be cancelled too."
+  ,"@unmarkConfirmBody": {
+    "placeholders": {
+      "livestockCode": {"type": "String"}
+    }
+  }
+  ,"unmarkKeep": "Keep mark"
+  ,"@unmarkKeep": {}
+  ,"unmarkConfirm": "Confirm removal"
+  ,"@unmarkConfirm": {}
+  ,"unmarkDone": "Disease mark removed"
+  ,"@unmarkDone": {}
+  ,"upsellTitle": "Epidemic Prevention requires Premium"
+  ,"@upsellTitle": {}
+  ,"upsellBody": "Marking suspected disease, contact tracing and four-tier disposition are Premium features (epidemic_alert)."
+  ,"@upsellBody": {}
+  ,"upsellLater": "Not now"
+  ,"@upsellLater": {}
+  ,"upsellLearnMore": "Learn about Premium"
+  ,"@upsellLearnMore": {}
+  ,"durationMinutesShort": "{minutes} min"
+  ,"@durationMinutesShort": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  }
+  ,"durationHoursShort": "{hours} h"
+  ,"@durationHoursShort": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  }
+  ,"durationDaysShort": "{days} d"
+  ,"@durationDaysShort": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  }
+  ,"fenceEditTargetMissing": "This fence was deleted; the edit was discarded"
+  ,"@fenceEditTargetMissing": {}
+  ,"epidemicPathRiskHint": "Cumulative contact-event risk (0-100); only paths scoring 70+ are shown"
+  ,"@epidemicPathRiskHint": {}
+  ,"epidemicPathSourceTag": "source"
+  ,"@epidemicPathSourceTag": {}
+  ,"epidemicDispositionRegistered": "Registered '{action}' for {livestock}{due}"
+  ,"@epidemicDispositionRegistered": {"placeholders":{"livestock":{"type":"String"},"action":{"type":"String"},"due":{"type":"String"}}}
+  ,"epidemicDispositionExisting": "{livestock} already has an active '{action}' task"
+  ,"@epidemicDispositionExisting": {"livestock":{"type":"String"},"action":{"type":"String"}}
+  ,"epidemicDispositionDone": "'{action}' for {livestock} is complete"
+  ,"@epidemicDispositionDone": {"livestock":{"type":"String"},"action":{"type":"String"}}
+  ,"epidemicDispositionCancelled": "'{action}' for {livestock} was cancelled"
+  ,"@epidemicDispositionCancelled": {"livestock":{"type":"String"},"action":{"type":"String"}}
+  ,"epidemicDispositionRegisterFailed": "Registration failed, please retry"
+  ,"@epidemicDispositionRegisterFailed": {}
+  ,"epidemicCompleteAction": "Done"
+  ,"@epidemicCompleteAction": {}
+  ,"epidemicCancelAction": "Cancel"
+  ,"@epidemicCancelAction": {}
+  ,"epidemicCompleteConfirm": "Mark the '{action}' task for {livestock} as completed?"
+  ,"@epidemicCompleteConfirm": {"livestock":{"type":"String"},"action":{"type":"String"}}
+  ,"epidemicCancelConfirm": "Cancel the '{action}' task for {livestock}? You can register it again later."
+  ,"@epidemicCancelConfirm": {"livestock":{"type":"String"},"action":{"type":"String"}}
+  ,"epidemicDispRegisteredTag": "Registered"
+  ,"@epidemicDispRegisteredTag": {}
+  ,"epidemicDispositionDueBy": ", complete by {due}"
+  ,"@epidemicDispositionDueBy": {"due":{"type":"String"}}
+  ,"epidemicDispCompletedTag": "completed"
+  ,"@epidemicDispCompletedTag": {}
+  ,"epidemicDispCancelledTag": "cancelled"
+  ,"@epidemicDispCancelledTag": {}
+
   ,"healthPhysiologyTitle": "Physiology Records"
   ,"@healthPhysiologyTitle": {}
   ,"healthPhysiologyStageLactating": "Lactating · day {n}"

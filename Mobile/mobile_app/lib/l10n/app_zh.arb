@@ -5159,6 +5159,9 @@
   "@sceneEpidemicFootBelow": {"placeholders": {"rate": {"type": "String"}}},
   "sceneEpidemicFootAbove": "7 日异常率 {rate}%，已超警戒线",
   "@sceneEpidemicFootAbove": {"placeholders": {"rate": {"type": "String"}}},
+  "sceneEpidemicFootNoSource": "7 日异常率 {rate}% · ",
+  "@sceneEpidemicFootNoSource": {"placeholders": {"rate": {"type": "String"}}},
+  "sceneEpidemicFootNoSourceTag": "未标记源头",
   "aiSummaryWatching": "{n} 只持续观察",
   "@aiSummaryWatching": {"placeholders": {"n": {"type": "int"}}},
   "aiNotReady": "AI 观察暂未开启，恢复后自动展示",
@@ -5344,6 +5347,140 @@
   ,"@signalSyncStale": {}
   ,"signalSyncRetry": "立即重试"
   ,"@signalSyncRetry": {}
+
+  ,"epidemicNoSourceTitle": "暂无标记的疑似源头"
+  ,"@epidemicNoSourceTitle": {}
+  ,"epidemicNoSourceBodyV2": "当前牧场还没有确认染病的牲畜。从围栏页选择牛只，在详情页即可标记疑似患病，系统将自动生成接触追踪与处置建议。"
+  ,"@epidemicNoSourceBodyV2": {}
+  ,"epidemicGoPickLivestock": "去选择病牛"
+  ,"@epidemicGoPickLivestock": {}
+  ,"markDiseasedFromAlarm": "来自告警"
+  ,"@markDiseasedFromAlarm": {}
+  ,"alertsMarkAsSource": "标记为源头"
+  ,"@alertsMarkAsSource": {}
+
+  ,"markDiseasedTitle": "标记疑似患病源头"
+  ,"@markDiseasedTitle": {}
+  ,"markDiseasedDiseaseLabel": "病种（单选）"
+  ,"@markDiseasedDiseaseLabel": {}
+  ,"markDiseasedFootMouth": "口蹄疫疑似"
+  ,"@markDiseasedFootMouth": {}
+  ,"markDiseasedTuberculosis": "牛结核疑似"
+  ,"@markDiseasedTuberculosis": {}
+  ,"markDiseasedBrucellosis": "布病疑似"
+  ,"@markDiseasedBrucellosis": {}
+  ,"markDiseasedDiarrhea": "腹泻类疾病"
+  ,"@markDiseasedDiarrhea": {}
+  ,"markDiseasedOther": "其他"
+  ,"@markDiseasedOther": {}
+  ,"markDiseasedOtherHint": "请输入病种名称（必填）"
+  ,"@markDiseasedOtherHint": {}
+  ,"markDiseasedHint": "标记后将立即分析该牛近 72 小时的接触轨迹，生成接触追踪与处置建议。"
+  ,"@markDiseasedHint": {}
+  ,"markDiseasedConfirm": "确认标记"
+  ,"@markDiseasedConfirm": {}
+  ,"markDiseasedDone": "已标记，接触分析完成（{contacts} 次接触）"
+  ,"@markDiseasedDone": {
+    "placeholders": {
+      "contacts": {"type": "int"}
+    }
+  }
+  ,"markDiseasedNoGps": "已标记，但近 72 小时无定位轨迹，接触网络为空"
+  ,"@markDiseasedNoGps": {}
+  ,"markDiseasedFailedTryAgain": "标记失败，请重试"
+  ,"@markDiseasedFailedTryAgain": {}
+
+  ,"markDiseasedEntryButton": "🦠 标记疑似患病"
+  ,"@markDiseasedEntryButton": {}
+  ,"unmarkDiseasedButton": "取消染病标记"
+  ,"@unmarkDiseasedButton": {}
+  ,"viewWorkbenchButton": "查看疫病防控"
+  ,"@viewWorkbenchButton": {}
+  ,"markedSourceDuration": "已标记 {duration}"
+  ,"@markedSourceDuration": {
+    "placeholders": {
+      "duration": {"type": "String"}
+    }
+  }
+  ,"markedSourceContacts": "接触 {count} 头 · 见「疫病防控」工作台"
+  ,"@markedSourceContacts": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  }
+  ,"unmarkConfirmTitle": "取消染病标记？"
+  ,"@unmarkConfirmTitle": {}
+  ,"unmarkConfirmBody": "将同时取消 {livestockCode} 作为源头的全部未完成处置单。"
+  ,"@unmarkConfirmBody": {
+    "placeholders": {
+      "livestockCode": {"type": "String"}
+    }
+  }
+  ,"unmarkKeep": "保留标记"
+  ,"@unmarkKeep": {}
+  ,"unmarkConfirm": "确认取消"
+  ,"@unmarkConfirm": {}
+  ,"unmarkDone": "已取消染病标记"
+  ,"@unmarkDone": {}
+  ,"upsellTitle": "疫病防控需要 Premium"
+  ,"@upsellTitle": {}
+  ,"upsellBody": "标记疑似患病、接触追踪与四级处置属于 Premium 功能（epidemic_alert）。"
+  ,"@upsellBody": {}
+  ,"upsellLater": "暂不升级"
+  ,"@upsellLater": {}
+  ,"upsellLearnMore": "了解 Premium"
+  ,"@upsellLearnMore": {}
+  ,"durationMinutesShort": "{minutes} 分钟"
+  ,"@durationMinutesShort": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  }
+  ,"durationHoursShort": "{hours} 小时"
+  ,"@durationHoursShort": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  }
+  ,"durationDaysShort": "{days} 天"
+  ,"@durationDaysShort": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  }
+  ,"fenceEditTargetMissing": "该围栏已被删除，编辑已取消"
+  ,"@fenceEditTargetMissing": {}
+  ,"epidemicPathRiskHint": "按接触事件风险分累加（0-100），仅显示 ≥70 的高风险路径"
+  ,"@epidemicPathRiskHint": {}
+  ,"epidemicPathSourceTag": "源头"
+  ,"@epidemicPathSourceTag": {}
+  ,"epidemicDispositionRegistered": "已为 {livestock} 登记「{action}」任务{due}"
+  ,"@epidemicDispositionRegistered": {"placeholders":{"livestock":{"type":"String"},"action":{"type":"String"},"due":{"type":"String"}}}
+  ,"epidemicDispositionExisting": "{livestock} 已有进行中的「{action}」任务"
+  ,"@epidemicDispositionExisting": {"livestock":{"type":"String"},"action":{"type":"String"}}
+  ,"epidemicDispositionDone": "{livestock} 的「{action}」任务已完成"
+  ,"@epidemicDispositionDone": {"livestock":{"type":"String"},"action":{"type":"String"}}
+  ,"epidemicDispositionCancelled": "{livestock} 的「{action}」任务已取消"
+  ,"@epidemicDispositionCancelled": {"livestock":{"type":"String"},"action":{"type":"String"}}
+  ,"epidemicDispositionRegisterFailed": "登记失败，请重试"
+  ,"@epidemicDispositionRegisterFailed": {}
+  ,"epidemicCompleteAction": "完成"
+  ,"@epidemicCompleteAction": {}
+  ,"epidemicCancelAction": "取消"
+  ,"@epidemicCancelAction": {}
+  ,"epidemicCompleteConfirm": "确认将 {livestock} 的「{action}」任务标记为已完成？"
+  ,"@epidemicCompleteConfirm": {"livestock":{"type":"String"},"action":{"type":"String"}}
+  ,"epidemicCancelConfirm": "确认取消 {livestock} 的「{action}」任务？取消后可重新登记。"
+  ,"@epidemicCancelConfirm": {"livestock":{"type":"String"},"action":{"type":"String"}}
+  ,"epidemicDispRegisteredTag": "已登记"
+  ,"@epidemicDispRegisteredTag": {}
+  ,"epidemicDispositionDueBy": "，请在 {due} 前完成"
+  ,"@epidemicDispositionDueBy": {"due":{"type":"String"}}
+  ,"epidemicDispCompletedTag": "已完成"
+  ,"@epidemicDispCompletedTag": {}
+  ,"epidemicDispCancelledTag": "已取消"
+  ,"@epidemicDispCancelledTag": {}
+
   ,"healthPhysiologyTitle": "生理记录"
   ,"@healthPhysiologyTitle": {}
   ,"healthPhysiologyStageLactating": "泌乳期 · 第 {n} 天"
