@@ -75,7 +75,13 @@ public class DrinkingEventDetectionService {
     /** Fixed depth reference for the confidence heuristic (°C). */
     static final double DEPTH_CONFIDENCE_THRESHOLD_C = 1.0;
 
-    /** Context window before each cow-day midnight (spec F5 2h prefix). */
+    /**
+     * Context window before each cow-day midnight (spec F5 2h prefix). Also
+     * widens the recalc temperature-read lower bound to deleteFrom−2h (spec
+     * §4 m-b): the partial first day of a recalculated window gets its μ/σ
+     * anchored by points from just before the window — an intentional
+     * statistical anchor, not an oversight.
+     */
     static final Duration DAY_PREFIX = Duration.ofHours(2);
 
     /** Pairs farther apart than this are not "adjacent" for slope purposes. */
