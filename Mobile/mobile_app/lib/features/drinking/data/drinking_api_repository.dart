@@ -6,7 +6,7 @@ class DrinkingApiRepository implements DrinkingRepository {
   const DrinkingApiRepository();
 
   @override
-  Future<List<DrinkingEvent>> listEvents(
+  Future<DrinkingEventsPage> listEvents(
     String livestockId, {
     String? from,
     String? to,
@@ -19,12 +19,7 @@ class DrinkingApiRepository implements DrinkingRepository {
         ? '/livestock/$livestockId/drinking-events'
         : '/livestock/$livestockId/drinking-events?$query';
     final data = await ApiClient.instance.farmGet(suffix);
-    // A JSON array payload is unwrapped into {'value': [...]} by ApiClient.
-    final items = (data['value'] ?? data['items']) as List? ?? const [];
-    return items
-        .whereType<Map<String, dynamic>>()
-        .map(DrinkingEvent.fromJson)
-        .toList();
+    return DrinkingEventsPage.fromJson(data);
   }
 
   @override

@@ -1,6 +1,9 @@
 package com.smartlivestock.health.application.service;
 
+import com.smartlivestock.health.application.dto.DrinkingDtos.DrinkingEventListResponse;
 import com.smartlivestock.health.application.dto.DrinkingDtos.DrinkingEventResponse;
+import com.smartlivestock.health.application.dto.DrinkingDtos.DrinkingFeverWindowResponse;
+import com.smartlivestock.health.application.service.DrinkingEventDetectionService.ExclusionWindow;
 import com.smartlivestock.health.domain.model.DrinkingAlgorithmVersion;
 import com.smartlivestock.health.domain.model.DrinkingEventLabel;
 import com.smartlivestock.health.domain.model.DrinkingEventSources;
@@ -26,6 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Marking-loop application service (NIX-256 Task 3, spec §15.2) plus the
@@ -45,6 +49,7 @@ public class DrinkingEventService {
     private final DrinkingEventJpaRepository eventRepository;
     private final RanchQueryPort ranchQueryPort;
     private final DeviceQueryPort deviceQueryPort;
+    private final DrinkingEventDetectionService detectionService;
 
     /**
      * Confidence below which a row is served with {@code lowConfidence=true}
@@ -147,9 +152,15 @@ public class DrinkingEventService {
      * forming a <b>closed date range</b> (from 00:00 → to+1 day 00:00), the
      * same window semantics as the admin recalculation; both default to the
      * recent 7 days ending today.
+     *
+     * <p>Alongside the rows the response carries the <b>buffered fever
+     * windows</b> clipped to the same window (NIX-259 m-q) — the 48h
+     * temperature × drinking chart draws them as "fever period excluded"
+     * shadow bands, sharing the detector's exclusion semantics via
+     * {@link DrinkingEventDetectionService#feverWindowsForLivestock}.
      */
     @Transactional(readOnly = true)
-    public List<DrinkingEventResponse> listEvents(Long farmId, Long livestockId, String from, String to) {
+    public DrinkingEventListResponse listEvents(Long farmId, Long livestockId, String from, String to) {
         requireLivestockInFarm(farmId, livestockId);
         LocalDate toDay = parseDay(to, LocalDate.now(ENTRY_ZONE), "error.drinking.rangeInvalid");
         LocalDate fromDay = parseDay(from, toDay.minusDays(6), "error.drinking.rangeInvalid");
@@ -161,12 +172,39 @@ public class DrinkingEventService {
         }
         Instant windowFrom = fromDay.atStartOfDay(ENTRY_ZONE).toInstant();
         Instant windowTo = toDay.plusDays(1).atStartOfDay(ENTRY_ZONE).toInstant();
-        return eventRepository
+        List<DrinkingEventResponse> events = eventRepository
                 .findByLivestockIdAndEventStartAtGreaterThanEqualAndEventStartAtLessThanOrderByEventStartAtDesc(
                         livestockId, windowFrom, windowTo)
                 .stream()
                 .map(this::toResponse)
                 .toList();
+        return new DrinkingEventListResponse(events, clipFeverWindows(livestockId, windowFrom, windowTo));
+    }
+
+    /**
+     * Buffered fever windows clipped to {@code [windowFrom, windowTo)} for
+     * display (NIX-259 m-q): start is clamped up to windowFrom and end down
+     * to windowTo, so an open-ended window (active illness / unresolved
+     * fever alert) ends at the query bound — the client always receives a
+     * finite rectangle. Windows not intersecting the range are dropped.
+     */
+    private List<DrinkingFeverWindowResponse> clipFeverWindows(
+            Long livestockId, Instant windowFrom, Instant windowTo) {
+        return detectionService.feverWindowsForLivestock(livestockId, windowFrom, windowTo).stream()
+                .map(window -> clipFeverWindow(window, windowFrom, windowTo))
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    /** Clip one window to the range; null when the window misses the range. */
+    private static DrinkingFeverWindowResponse clipFeverWindow(
+            ExclusionWindow window, Instant from, Instant to) {
+        Instant start = window.start().isBefore(from) ? from : window.start();
+        Instant end = window.end() == null || window.end().isAfter(to) ? to : window.end();
+        if (!start.isBefore(end)) {
+            return null;
+        }
+        return new DrinkingFeverWindowResponse(start, end);
     }
 
     /** Parse an optional ISO calendar day; blank/absent falls back to the default. */

@@ -7294,6 +7294,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get healthDrinkingLegendBaseline => 'Baseline';
 
   @override
+  String get healthDrinkingLegendFever => 'Fever period +6h buffer';
+
+  @override
   String get healthDrinkingLegendEvent => 'Drinking event (trough ≈ drink end)';
 
   @override

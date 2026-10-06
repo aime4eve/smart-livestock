@@ -116,6 +116,51 @@ class DrinkingEvent {
   }
 }
 
+/// One buffered fever window (GET .../drinking-events `feverWindows`,
+/// NIX-259 m-q): physiology illness windows ∪ TEMPERATURE_ABNORMAL alert
+/// windows with the 6h defervescence buffer already applied — the same
+/// exclusion semantics the detector uses. The server clips both bounds to
+/// the queried cow-day range (open-ended windows end at the `to` bound),
+/// so the client always receives a finite rectangle.
+class FeverWindow {
+  const FeverWindow({required this.start, required this.end});
+
+  /// UTC instants as returned by the backend; rendered locally without a
+  /// toUtc() round-trip (lesson #17).
+  final DateTime start;
+  final DateTime end;
+
+  factory FeverWindow.fromJson(Map<String, dynamic> m) {
+    return FeverWindow(
+      start: DateTime.parse(m['start'] as String),
+      end: DateTime.parse(m['end'] as String),
+    );
+  }
+}
+
+/// GET .../drinking-events response body (NIX-259 m-q): the event rows
+/// plus the fever windows overlapping the same queried range. The windows
+/// feed the 48h temperature × drinking chart's fever shadow bands.
+class DrinkingEventsPage {
+  const DrinkingEventsPage({required this.events, this.feverWindows = const []});
+
+  final List<DrinkingEvent> events;
+  final List<FeverWindow> feverWindows;
+
+  factory DrinkingEventsPage.fromJson(Map<String, dynamic> m) {
+    return DrinkingEventsPage(
+      events: (m['events'] as List? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map(DrinkingEvent.fromJson)
+          .toList(),
+      feverWindows: (m['feverWindows'] as List? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map(FeverWindow.fromJson)
+          .toList(),
+    );
+  }
+}
+
 /// One event of the daily timeline inside the summary (DrinkingDayEvent).
 class DrinkingDayTimelineEvent {
   const DrinkingDayTimelineEvent({

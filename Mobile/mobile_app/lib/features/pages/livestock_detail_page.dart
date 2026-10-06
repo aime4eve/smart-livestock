@@ -1023,7 +1023,7 @@ class _FeverTrendSectionState extends ConsumerState<_FeverTrendSection> {
             ? ref
                   .watch(drinkingEventsControllerProvider(livestockId))
                   .maybeWhen(
-                    data: (events) => events
+                    data: (page) => page.events
                         .where(
                           (e) =>
                               e.label != DrinkingLabel.rejected &&

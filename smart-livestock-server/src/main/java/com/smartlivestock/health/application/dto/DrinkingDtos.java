@@ -61,6 +61,28 @@ public final class DrinkingDtos {
             boolean lowConfidence
     ) {}
 
+    /**
+     * One buffered fever window for the 48h chart's fever shadow region
+     * (NIX-259 m-q): physiology illness windows ∪ TEMPERATURE_ABNORMAL
+     * alert windows with the defervescence buffer already applied — the
+     * same exclusion semantics the detector uses. Both bounds are
+     * non-null: the server clips every window to the queried range before
+     * serving it (open-ended windows end at the query's {@code to} bound)
+     * so the client always renders a finite rectangle.
+     */
+    public record DrinkingFeverWindowResponse(Instant start, Instant end) {}
+
+    /**
+     * GET drinking-events response (NIX-259 m-q): event rows plus the
+     * buffered fever windows overlapping the queried cow-day range. The
+     * fever windows feed the 48h temperature × drinking chart's "fever
+     * period excluded" shadow bands.
+     */
+    public record DrinkingEventListResponse(
+            List<DrinkingEventResponse> events,
+            List<DrinkingFeverWindowResponse> feverWindows
+    ) {}
+
     // ════════════════════════════════════════════════════════════
     // Task 5a read endpoints — shapes pinned by the prototype data
     // tracing table (3c): every UI number maps onto a field below.

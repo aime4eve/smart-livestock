@@ -7125,6 +7125,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get healthDrinkingLegendBaseline => '基线';
 
   @override
+  String get healthDrinkingLegendFever => '发热期+6h 缓冲';
+
+  @override
   String get healthDrinkingLegendEvent => '饮水事件（谷底≈饮水结束）';
 
   @override

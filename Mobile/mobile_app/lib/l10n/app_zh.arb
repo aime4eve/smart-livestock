@@ -5680,6 +5680,8 @@
   ,"@healthDrinkingLegendValley": {}
   ,"healthDrinkingLegendBaseline": "基线"
   ,"@healthDrinkingLegendBaseline": {}
+  ,"healthDrinkingLegendFever": "发热期+6h 缓冲"
+  ,"@healthDrinkingLegendFever": {}
   ,"healthDrinkingLegendEvent": "饮水事件（谷底≈饮水结束）"
   ,"@healthDrinkingLegendEvent": {}
   ,"healthDrinkingLegendZone": "饲喂/挤奶时段"

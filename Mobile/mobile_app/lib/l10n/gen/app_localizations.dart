@@ -13119,6 +13119,12 @@ abstract class AppLocalizations {
   /// **'基线'**
   String get healthDrinkingLegendBaseline;
 
+  /// No description provided for @healthDrinkingLegendFever.
+  ///
+  /// In zh, this message translates to:
+  /// **'发热期+6h 缓冲'**
+  String get healthDrinkingLegendFever;
+
   /// No description provided for @healthDrinkingLegendEvent.
   ///
   /// In zh, this message translates to:

@@ -5683,6 +5683,8 @@
   ,"@healthDrinkingLegendValley": {}
   ,"healthDrinkingLegendBaseline": "Baseline"
   ,"@healthDrinkingLegendBaseline": {}
+  ,"healthDrinkingLegendFever": "Fever period +6h buffer"
+  ,"@healthDrinkingLegendFever": {}
   ,"healthDrinkingLegendEvent": "Drinking event (trough ≈ drink end)"
   ,"@healthDrinkingLegendEvent": {}
   ,"healthDrinkingLegendZone": "Feeding / milking window"

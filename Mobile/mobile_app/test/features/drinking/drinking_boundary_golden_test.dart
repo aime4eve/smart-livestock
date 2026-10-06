@@ -18,9 +18,9 @@ import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 /// output/drinking-l2/drill/ui-en-detail-1.png.
 class _BoundaryRepo implements DrinkingRepository {
   @override
-  Future<List<DrinkingEvent>> listEvents(String livestockId,
+  Future<DrinkingEventsPage> listEvents(String livestockId,
       {String? from, String? to}) async {
-    return const [];
+    return const DrinkingEventsPage(events: []);
   }
 
   @override

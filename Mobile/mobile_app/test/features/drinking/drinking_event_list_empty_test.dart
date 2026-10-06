@@ -18,9 +18,9 @@ import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 /// non-write roles see neither.
 class _EmptyRepo implements DrinkingRepository {
   @override
-  Future<List<DrinkingEvent>> listEvents(String livestockId,
+  Future<DrinkingEventsPage> listEvents(String livestockId,
       {String? from, String? to}) async {
-    return const [];
+    return const DrinkingEventsPage(events: []);
   }
 
   @override
@@ -59,16 +59,16 @@ Widget _harness(UserRole role) {
         ),
       ),
     ],
-    child: MaterialApp(
-      locale: const Locale('zh'),
+    child: const MaterialApp(
+      locale: Locale('zh'),
       supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: const [
+      localizationsDelegates: [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: const Scaffold(
+      home: Scaffold(
         body: SingleChildScrollView(
           child: DrinkingEventList(livestockId: '4', events: []),
         ),

@@ -140,11 +140,11 @@ class _FakeEstrusRepository implements EstrusRepository {
 
 class _FakeDrinkingRepository implements DrinkingRepository {
   @override
-  Future<List<DrinkingEvent>> listEvents(
+  Future<DrinkingEventsPage> listEvents(
     String livestockId, {
     String? from,
     String? to,
-  }) async => const [];
+  }) async => const DrinkingEventsPage(events: []);
 
   @override
   Future<DrinkingSummary> summary(

@@ -45,13 +45,17 @@ class _FakeDrinkingRepository implements DrinkingRepository {
   );
 
   @override
-  Future<List<DrinkingEvent>> listEvents(
+  Future<DrinkingEventsPage> listEvents(
     String livestockId, {
     String? from,
     String? to,
   }) async {
     eventsCallCount++;
-    return [_event(1), _event(2, label: 'CONFIRMED'), _event(3)];
+    return DrinkingEventsPage(events: [
+      _event(1),
+      _event(2, label: 'CONFIRMED'),
+      _event(3),
+    ]);
   }
 
   @override
