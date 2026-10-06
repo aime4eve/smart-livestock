@@ -79,8 +79,11 @@
 - **聚合口径（F4 裁决，两层分开定义防对不上账）**：
   - 日柱/周合计 = 各日**检出事件数直接求和**（含发热日低值——那是真实生理反应，由 context-note 解释；"未计入异常"精确化为"**发热期数据不参与异常判定与基线计算**"）；
   - 30 日基线与同类均值 = **剔除发热窗口覆盖 ≥50% 的日**后计算（发热期检出数被排除机制压低，不具统计代表性），`sampleDays` 记录有效样本天数。
+  - **样本日规则（m-f，NIX-257）**：30 日基线的"样本日" = 该牛日温度点（该牲畜全部设备合计）≥ `health.drinking.sample-day-min-points:24` **且**发热覆盖 <50%——24 点 ≈ 小时级采样，即"当日可观测"；阈值配置可调，发热覆盖复用检测器的带 6h 缓冲排除窗口（检测与统计同一套装配，不漂移）。
+  - **汇总窗含今天（m-g，NIX-257）**：`drinking-summary` 的汇总窗（days=7/30）**含今天**——当日不完整牛日照常进周柱/日柱与周合计；30 日基线里今天按样本日规则自然参与（点数不足即被判非样本日剔除，无需特判）。这是 UI"今日柱"的取数依据。
 - **牛日边界（F5）**：检测器的 μ/σ 按"日"切——**牛日 = Asia/Shanghai 日历日**（与 B3 手动录入时区一致），夜间跨午夜饮水按本地日归属，不按 UTC 劈日。
 - **重算删除语义（F6）**：日批重跑与手动回算 = 先 `DELETE WHERE device_id=? AND event_start_at >= from−1h AND event_start_at < to+1h` 再插入（1h 漂移余量，配置 `health.drinking.recalc-overlap-hours:1`）——防补传 recordedAt 漂移绕过 UNIQUE 键产生重复行。
+- **重算残日统计下界（m-b，NIX-257）**：重算读取的温度点下界 = `deleteFrom−2h`（检测内核 `DAY_PREFIX`）——用途是给窗首残日提供 μ/σ 统计锚点（残日只含窗口内点也能算出基线）；代价是窗首日的 μ/σ 混入窗前 ≤2h 的点（≤8.3% 日时长）；L1 标定与 L2 回放均为整日窗，不受影响。
 - 检测器与统计参数**全部配置化**（`health.drinking.*`，F3：魔法数不入 UI 当权威）：`baseline-min-days:3`（基线最少有效天数，默认 3，标定复核）、`recalc-overlap-hours:1`、`recovery-window-min:120`、`merge-gap-min:15`、`k-sigma:0.5`、`fall-threshold:0.06`（°C/min，Δt 归一）、`recovery-ratio:0.7`；两判据组合（FallST 斜率 ∧ 逐牛逐日 μ−kσ）+ 回升确认 + 15min 合并；参数定值见 §14（Aubé 开放数据集 L1 标定，2026-10-05）。
 - 排除窗口：发热 episode/退热 6h 缓冲——由 `PhysiologyQueryPort.activeWindows` 读时合并产出（处置单侧）∪ `TEMPERATURE_ABNORMAL` 告警窗口拼装（`AlertBrief` 已自带 `createdAt/resolvedAt`，RanchQueryPort:41，**零 DTO 改动**）。
 - **source 语义（用户裁决 2026-10-05：基于仿真数据实现功能）**：检测处理全部 source 的温度点（含 DATAGEN），事件**保留温度点 source 标记**——仿真事件可演示、可统计展示，但按 source 可区分、永不与真实数据混算对外效果口径（AGENTS 红线"仿真不得冒充效果验收"不变，禁的是冒充、不是使用）。原"DATAGEN 不入库"条款废止，替换为本条。

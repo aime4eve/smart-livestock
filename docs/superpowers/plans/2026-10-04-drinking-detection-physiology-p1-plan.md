@@ -138,3 +138,7 @@
 - SVG/CustomPainter 全部图表标签 7.5 → **9.5px**（落原型自身说明文字尺寸档）：分布图带标签×3、轴刻度×4、48h 图发热标签×2、谷值温度标注×2；
 - 带标签色 #4C7A52 → **#3D6743**（对带底色对比度 4.4 → 5.3:1，过 AA）；
 - Flutter 文字移出 `scale(sx,1)` 画布（x 预乘 sx），消除横向字形拉伸。
+
+### 附录五：m-q 发热阴影区裁决记录（NIX-259，2026-10-06）
+
+用户令"做 259"，m-q 按实现路线落地：48h 温度×饮水图补发热时段时间跨度色带（`--fever` #D97B29 @ 12% 透明度），数据源为 `DrinkingEventDetectionService.feverWindowsForLivestock`（含 6h 退热缓冲），经 drinking-events 列表端点以 `{events, feverWindows}` 复合体下发（服务端将开放窗 end 截断到查询窗 to）。本 plan 原文出现的 "HorizontalRangeAnnotation" 系笔误——原型（屏 2 SVG `<rect>` 时间跨度色带）与实现（fl_chart `RangeAnnotations.verticalRangeAnnotations`）均为时间跨度色带（vertical annotation）。原型带内"发热期·已排除"小标签由图例项"发热期+6h 缓冲"承载（fl_chart 范围注解无标签能力，退化方案照录）。

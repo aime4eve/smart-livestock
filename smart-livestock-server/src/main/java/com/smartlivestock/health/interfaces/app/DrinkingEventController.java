@@ -1,5 +1,6 @@
 package com.smartlivestock.health.interfaces.app;
 
+import com.smartlivestock.health.application.dto.DrinkingDtos.DrinkingEventListResponse;
 import com.smartlivestock.health.application.dto.DrinkingDtos.DrinkingEventResponse;
 import com.smartlivestock.health.application.dto.DrinkingDtos.DrinkingLabelRequest;
 import com.smartlivestock.health.application.dto.DrinkingDtos.DrinkingManualRequest;
@@ -23,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -51,10 +51,13 @@ public class DrinkingEventController {
     /**
      * Event detail rows of the livestock in {@code [from, to]} (closed
      * Shanghai date range, both optional, default the recent 7 days):
-     * every row including candidates and REJECTED, newest first.
+     * every row including candidates and REJECTED, newest first. The
+     * response also carries {@code feverWindows} — buffered fever
+     * exclusion windows clipped to the range (NIX-259 m-q) for the 48h
+     * chart's fever shadow regions.
      */
     @GetMapping("/drinking-events")
-    public ResponseEntity<ApiResponse<List<DrinkingEventResponse>>> listEvents(
+    public ResponseEntity<ApiResponse<DrinkingEventListResponse>> listEvents(
             @PathVariable Long farmId, @PathVariable Long livestockId,
             @RequestParam(required = false) String from,
             @RequestParam(required = false) String to) {

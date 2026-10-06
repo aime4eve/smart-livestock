@@ -169,8 +169,15 @@ public class PhysiologyQueryService implements PhysiologyQueryPort {
     @Override
     @Transactional(readOnly = true)
     public Optional<PhysiologyStage> currentStage(Long livestockId) {
-        return eventRepository.findFirstByLivestockIdAndEventTypeInOrderByOccurredAtDesc(
-                        livestockId, STAGE_TYPES)
+        return eventRepository.findFirstByLivestockIdAndEventTypeInAndSourceOrderByOccurredAtDesc(
+                        livestockId, STAGE_TYPES, PhysiologySource.MANUAL)
+                // Defensive filter (NIX-258 m-p): only MANUAL milestones drive
+                // the stage. The repository query already pins source=MANUAL;
+                // this guards against a future ALERT_CONFIRM write path
+                // slipping rows past the query (e.g. someone reverts to a
+                // source-less finder) — a confirmed-alert CALVING/DRY_OFF is
+                // read-only history and must not shift the projection.
+                .filter(latest -> latest.getSource() == PhysiologySource.MANUAL)
                 .map(latest -> {
                     if (latest.getEventType() == PhysiologyEventType.DRY_OFF) {
                         return new PhysiologyStage(PhysiologyStageType.DRY, latest.getOccurredAt());

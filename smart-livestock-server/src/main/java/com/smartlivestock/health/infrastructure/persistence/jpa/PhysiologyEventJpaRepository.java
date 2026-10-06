@@ -33,7 +33,12 @@ public interface PhysiologyEventJpaRepository extends JpaRepository<PhysiologyEv
     Optional<PhysiologyEventJpaEntity> findByLivestockIdAndEventTypeAndOccurredAtAndSource(
             Long livestockId, PhysiologyEventType eventType, Instant occurredAt, PhysiologySource source);
 
-    /** Latest CALVING or DRY_OFF milestone for stage derivation. */
-    Optional<PhysiologyEventJpaEntity> findFirstByLivestockIdAndEventTypeInOrderByOccurredAtDesc(
-            Long livestockId, Collection<PhysiologyEventType> eventTypes);
+    /**
+     * Latest CALVING or DRY_OFF milestone for stage derivation, restricted
+     * to the given source: only MANUAL milestones may drive the lactation/
+     * dry stage (NIX-258 m-p) — ALERT_CONFIRM rows, once a write path
+     * exists, are read-only history and must not shift the projection.
+     */
+    Optional<PhysiologyEventJpaEntity> findFirstByLivestockIdAndEventTypeInAndSourceOrderByOccurredAtDesc(
+            Long livestockId, Collection<PhysiologyEventType> eventTypes, PhysiologySource source);
 }

@@ -1,6 +1,9 @@
 package com.smartlivestock.health.application.service;
 
+import com.smartlivestock.health.application.dto.DrinkingDtos.DrinkingEventListResponse;
 import com.smartlivestock.health.application.dto.DrinkingDtos.DrinkingEventResponse;
+import com.smartlivestock.health.application.dto.DrinkingDtos.DrinkingFeverWindowResponse;
+import com.smartlivestock.health.application.service.DrinkingEventDetectionService.ExclusionWindow;
 import com.smartlivestock.health.domain.model.DrinkingAlgorithmVersion;
 import com.smartlivestock.health.domain.model.DrinkingEventLabel;
 import com.smartlivestock.health.domain.model.DrinkingEventSources;
@@ -43,6 +46,7 @@ class DrinkingEventServiceTest {
     private DrinkingEventJpaRepository eventRepository;
     private RanchQueryPort ranchQueryPort;
     private DeviceQueryPort deviceQueryPort;
+    private DrinkingEventDetectionService detectionService;
     private DrinkingEventService service;
 
     @BeforeEach
@@ -50,7 +54,8 @@ class DrinkingEventServiceTest {
         eventRepository = mock(DrinkingEventJpaRepository.class);
         ranchQueryPort = mock(RanchQueryPort.class);
         deviceQueryPort = mock(DeviceQueryPort.class);
-        service = new DrinkingEventService(eventRepository, ranchQueryPort, deviceQueryPort);
+        detectionService = mock(DrinkingEventDetectionService.class);
+        service = new DrinkingEventService(eventRepository, ranchQueryPort, deviceQueryPort, detectionService);
         service.lowConfidence = 0.5;
         when(ranchQueryPort.findLivestockById(5L))
                 .thenReturn(Optional.of(new LivestockInfo(5L, 1L, "SL-5", "F", "西门塔尔")));
@@ -110,7 +115,7 @@ class DrinkingEventServiceTest {
         when(eventRepository.findByLivestockIdAndEventStartAtGreaterThanEqualAndEventStartAtLessThanOrderByEventStartAtDesc(
                 eq(5L), any(), any())).thenReturn(List.of(low, high, manual));
 
-        List<DrinkingEventResponse> response = service.listEvents(1L, 5L, null, null);
+        List<DrinkingEventResponse> response = service.listEvents(1L, 5L, null, null).events();
 
         assertThat(response).extracting(DrinkingEventResponse::lowConfidence)
                 .containsExactly(true, false, false);
@@ -127,7 +132,7 @@ class DrinkingEventServiceTest {
                 eq(5L), any(), any())).thenReturn(List.of(entity));
 
         LocalDate today = LocalDate.now(ZONE);
-        List<DrinkingEventResponse> response = service.listEvents(1L, 5L, null, null);
+        List<DrinkingEventResponse> response = service.listEvents(1L, 5L, null, null).events();
 
         assertThat(response).hasSize(1);
         assertThat(response.get(0).source()).isEqualTo("DATAGEN");
@@ -162,6 +167,55 @@ class DrinkingEventServiceTest {
                 .isInstanceOf(ApiException.class); // future to-day
         assertThatThrownBy(() -> service.listEvents(1L, 99L, null, null))
                 .isInstanceOf(ApiException.class); // livestock of another farm
+    }
+
+    // ── Fever windows for the 48h chart shadow region (NIX-259 m-q) ──
+
+    @Test
+    void listEventsCarriesClippedFeverWindows() {
+        when(eventRepository.findByLivestockIdAndEventStartAtGreaterThanEqualAndEventStartAtLessThanOrderByEventStartAtDesc(
+                eq(5L), any(), any())).thenReturn(List.of());
+        LocalDate from = LocalDate.now(ZONE).minusDays(2);
+        LocalDate to = LocalDate.now(ZONE);
+        Instant windowFrom = from.atStartOfDay(ZONE).toInstant();
+        Instant windowTo = to.plusDays(1).atStartOfDay(ZONE).toInstant();
+        // Detection returns buffered windows (6h defervescence already in):
+        // one straddling the left bound, one fully inside, one open-ended
+        // (active illness), one ending before the window.
+        when(detectionService.feverWindowsForLivestock(eq(5L), eq(windowFrom), eq(windowTo)))
+                .thenReturn(List.of(
+                        new ExclusionWindow(windowFrom.minusSeconds(3600), windowFrom.plusSeconds(3600)),
+                        new ExclusionWindow(windowFrom.plusSeconds(7200), windowFrom.plusSeconds(10800)),
+                        new ExclusionWindow(windowTo.minusSeconds(1800), null),
+                        new ExclusionWindow(windowFrom.minusSeconds(7200), windowFrom.minusSeconds(3600))));
+
+        List<DrinkingFeverWindowResponse> windows =
+                service.listEvents(1L, 5L, from.toString(), to.toString()).feverWindows();
+
+        // Straddling window clamped up to windowFrom; inside window served
+        // as-is; open window truncated to the query `to` bound; the window
+        // entirely before the range is dropped.
+        assertThat(windows).containsExactly(
+                new DrinkingFeverWindowResponse(windowFrom, windowFrom.plusSeconds(3600)),
+                new DrinkingFeverWindowResponse(windowFrom.plusSeconds(7200), windowFrom.plusSeconds(10800)),
+                new DrinkingFeverWindowResponse(windowTo.minusSeconds(1800), windowTo));
+        assertThat(windows).allSatisfy(w -> {
+            assertThat(w.start()).isBefore(w.end()); // always a finite rectangle
+        });
+    }
+
+    @Test
+    void listEventsQueriesFeverWindowsOverTheSameRangeAsRows() {
+        when(eventRepository.findByLivestockIdAndEventStartAtGreaterThanEqualAndEventStartAtLessThanOrderByEventStartAtDesc(
+                eq(5L), any(), any())).thenReturn(List.of());
+        LocalDate from = LocalDate.now(ZONE).minusDays(2);
+        LocalDate to = LocalDate.now(ZONE);
+
+        service.listEvents(1L, 5L, from.toString(), to.toString());
+
+        verify(detectionService).feverWindowsForLivestock(eq(5L),
+                eq(from.atStartOfDay(ZONE).toInstant()),
+                eq(to.plusDays(1).atStartOfDay(ZONE).toInstant()));
     }
 
     // ── PATCH label whitelist (spec §15.2, m-c) ─────────────────

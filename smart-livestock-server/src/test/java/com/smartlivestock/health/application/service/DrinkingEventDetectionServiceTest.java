@@ -7,6 +7,7 @@ import com.smartlivestock.health.application.service.DrinkingEventDetectionServi
 import com.smartlivestock.health.application.service.DrinkingEventDetectionService.Valley;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -395,5 +396,76 @@ class DrinkingEventDetectionServiceTest {
         assertThat(extended).hasSize(2);
         assertThat(extended.get(0).end()).isEqualTo(at("2026-06-10T16:00"));
         assertThat(extended.get(1).end()).isNull();
+    }
+
+    // ── 12. F6 recalc ±1h overlap boundaries (NIX-257 m-h) ──────
+    // recalculate() widens the requested window [from, to) by
+    // recalc-overlap-hours on both sides into deleteFrom/deleteTo and
+    // passes them VERBATIM as detectRange's rangeFrom/rangeTo; the JPQL
+    // delete (event_start_at >= :from AND < :to) and the day keep-filter
+    // below share the same half-open bounds, so exercising detectRange's
+    // keep boundary with deleteFrom/deleteTo is equivalent to testing the
+    // recalc delete/rescan boundary (the private-method alternative would
+    // need a database).
+
+    /**
+     * Single-step V valley: start 09:30, trough 09:35. Deliberately ONE
+     * qualifying descent step over the whole series (broken flat baseline +
+     * strictly rising recovery): judgeDay emits a proto-dip per descent
+     * step, so a multi-step shape would leave inner dips inside the sweep
+     * even when the 09:30 start is outside, muddying the boundary under
+     * test.
+     */
+    private static List<TempPoint> vShapedDay() {
+        return merge(
+                flat("2026-06-10T08:00", "2026-06-10T09:30", 39.0),
+                List.of(
+                        point("2026-06-10T09:35", 36.8),
+                        point("2026-06-10T09:45", 37.3),
+                        point("2026-06-10T09:50", 38.2),
+                        point("2026-06-10T09:55", 38.9)),
+                flat("2026-06-10T10:00", "2026-06-10T12:00", 39.0));
+    }
+
+    /** Kernel twin of the F6 sweep: [from−1h, to+1h) half-open on starts. */
+    private static DetectionResult detectRecalcWindow(List<TempPoint> points, String from, String to) {
+        Instant deleteFrom = at(from).minus(Duration.ofHours(PARAMS.recalcOverlapHours()));
+        Instant deleteTo = at(to).plus(Duration.ofHours(PARAMS.recalcOverlapHours()));
+        return DrinkingEventDetectionService.detectRange(
+                points, ZONE, deleteFrom, deleteTo, List.of(), PARAMS);
+    }
+
+    @Test
+    void recalcLowerEdgeStartExactlyAtFromMinusOneHourIsIncluded() {
+        // deleteFrom = 10:30 − 1h = 09:30 = the valley start: both the delete
+        // predicate and the keep-filter are inclusive at the lower edge, so
+        // the event belongs to the recalculation scope.
+        DetectionResult result = detectRecalcWindow(vShapedDay(), "2026-06-10T10:30", "2026-06-10T12:00");
+
+        assertThat(result.events()).hasSize(1);
+        assertThat(result.events().get(0).startAt()).isEqualTo(at("2026-06-10T09:30"));
+        assertThat(result.events().get(0).troughAt()).isEqualTo(at("2026-06-10T09:35"));
+        assertThat(result.candidates()).isEmpty();
+    }
+
+    @Test
+    void recalcUpperEdgeStartExactlyAtToPlusOneHourIsExcluded() {
+        // deleteTo = 08:30 + 1h = 09:30 = the valley start: the upper edge is
+        // exclusive (start < deleteTo), so the event is neither deleted nor
+        // rescanned by this sweep — it stays owned by the neighbouring one.
+        DetectionResult result = detectRecalcWindow(vShapedDay(), "2026-06-10T06:00", "2026-06-10T08:30");
+
+        assertThat(result.events()).isEmpty();
+        assertThat(result.candidates()).isEmpty();
+    }
+
+    @Test
+    void recalcStartBeforeFromMinusOneHourIsExcluded() {
+        // deleteFrom = 10:35 − 1h = 09:35; the valley start 09:30 sits 5 min
+        // before the lower edge → outside the sweep.
+        DetectionResult result = detectRecalcWindow(vShapedDay(), "2026-06-10T10:35", "2026-06-10T12:00");
+
+        assertThat(result.events()).isEmpty();
+        assertThat(result.candidates()).isEmpty();
     }
 }

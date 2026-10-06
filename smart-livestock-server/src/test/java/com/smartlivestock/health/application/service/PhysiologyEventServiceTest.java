@@ -11,8 +11,10 @@ import com.smartlivestock.health.infrastructure.persistence.entity.PhysiologyEve
 import com.smartlivestock.health.infrastructure.persistence.jpa.EpidemicDispositionJpaRepository;
 import com.smartlivestock.health.infrastructure.persistence.jpa.PhysiologyEventJpaRepository;
 import com.smartlivestock.shared.common.ApiException;
+import com.smartlivestock.shared.common.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -57,7 +59,9 @@ class PhysiologyEventServiceTest {
         entity.setOccurredAt(Instant.parse("2026-09-01T16:00:00Z"));
         entity.setNote("old note");
         when(eventRepository.findById(7L)).thenReturn(Optional.of(entity));
-        when(eventRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        // updateEvent flushes inside its conflict try/catch (m-l), so the
+        // update path goes through saveAndFlush.
+        when(eventRepository.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
         return entity;
     }
 
@@ -110,5 +114,24 @@ class PhysiologyEventServiceTest {
                 new PhysiologyEventUpdateRequest("2026-09-02", "a".repeat(501)), 9L))
                 .isInstanceOf(ApiException.class)
                 .hasMessage("error.physiology.noteTooLong");
+    }
+
+    /**
+     * NIX-258 m-l: a concurrent update that slips past the duplicate
+     * pre-check and hits uq_physiology_manual_dup on flush must surface as
+     * STATE_CONFLICT ("error.physiology.duplicateEvent"), not a 500.
+     */
+    @Test
+    void updateMapsUniqueIndexRaceToStateConflict() {
+        manualRow();
+        when(eventRepository.saveAndFlush(any()))
+                .thenThrow(new DataIntegrityViolationException("uq_physiology_manual_dup"));
+
+        assertThatThrownBy(() -> service.updateEvent(1L, 5L, 7L,
+                new PhysiologyEventUpdateRequest("2026-09-02", null), 9L))
+                .isInstanceOf(ApiException.class)
+                .hasMessage("error.physiology.duplicateEvent")
+                .extracting("code")
+                .isEqualTo(ErrorCode.STATE_CONFLICT);
     }
 }

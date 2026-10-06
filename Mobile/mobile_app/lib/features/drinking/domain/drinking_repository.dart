@@ -9,8 +9,10 @@ import 'package:hkt_livestock_agentic/features/drinking/domain/drinking_models.d
 /// device-local calendar day is used.
 abstract class DrinkingRepository {
   /// Every row of the livestock inside the `[from, to]` cow-day range —
-  /// including candidates and REJECTED rows, newest first.
-  Future<List<DrinkingEvent>> listEvents(
+  /// including candidates and REJECTED rows, newest first — plus the
+  /// buffered fever windows clipped to the same range (NIX-259 m-q) for
+  /// the 48h chart's fever shadow bands.
+  Future<DrinkingEventsPage> listEvents(
     String livestockId, {
     String? from,
     String? to,

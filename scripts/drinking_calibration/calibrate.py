@@ -242,8 +242,16 @@ def prepare_device_arrays(series_df):
 
     This is exactly what detect_combined(in_body_gate=True) recomputes
     internally at every call; doing it once here keeps the 625-point grid
-    affordable while preserving production-parity semantics bit for bit
-    (gate applied to points AND day statistics, sigma ddof=1).
+    affordable (gate applied to points AND day statistics, as in the Java
+    kernel). Not bit-for-bit parity though: three known differences are
+    deliberately unreconciled, each conservative in direction, so the gate
+    conclusions are unaffected — (1) ddof: pandas sample std (ddof=1) vs
+    the kernel's population std inflates sigma and lowers the mu-k*sigma
+    depth line; (2) slope: the trigger pair must itself meet S_th here,
+    while the kernel confirms on the steepest rate inside the descent;
+    (3) trough boundary: the descending run advances on ties (<=) here vs
+    strictly falling (<) in the kernel, so tied troughs sit later and the
+    recovery window starts later.
     """
     devices = {}
     for dev, sub in series_df.groupby("device_id", sort=True):

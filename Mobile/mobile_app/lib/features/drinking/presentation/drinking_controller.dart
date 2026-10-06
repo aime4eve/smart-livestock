@@ -60,14 +60,16 @@ final drinkingSummaryControllerProvider = AsyncNotifierProvider.family<
 /// D-2 for the first 12h of the day (e.g. at 08:00 the window covers
 /// [D-2 08:00, now]); fetching only yesterday would miss those valleys.
 /// The chart consumer filters to now−48h itself, so the extra tail rows
-/// are inert elsewhere. Newest first from the backend.
-class DrinkingEventsController extends FarmScopedAsyncNotifier<List<DrinkingEvent>> {
+/// are inert elsewhere. Newest first from the backend. The same response
+/// also carries the fever windows (clipped server-side to the same range)
+/// for the 48h chart's fever shadow bands (NIX-259 m-q).
+class DrinkingEventsController extends FarmScopedAsyncNotifier<DrinkingEventsPage> {
   DrinkingEventsController(this.livestockId);
 
   final String livestockId;
 
   @override
-  Future<List<DrinkingEvent>> build() async {
+  Future<DrinkingEventsPage> build() async {
     watchActiveFarmId();
     final today = DateTime.now();
     return ref.read(drinkingRepositoryProvider).listEvents(
@@ -119,7 +121,7 @@ class DrinkingEventsController extends FarmScopedAsyncNotifier<List<DrinkingEven
 }
 
 final drinkingEventsControllerProvider = AsyncNotifierProvider.family<
-    DrinkingEventsController, List<DrinkingEvent>, String>(
+    DrinkingEventsController, DrinkingEventsPage, String>(
   DrinkingEventsController.new,
 );
 

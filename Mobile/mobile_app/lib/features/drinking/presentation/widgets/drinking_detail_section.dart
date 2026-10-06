@@ -24,15 +24,17 @@ import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 /// segmented control → honesty note-box (always visible) → today's event
 /// rows with the marking loop (4b).
 ///
-/// Deviations from the frozen prototype (recorded per task instructions):
-/// 1. The 48h fever shadow region + "发热期·已排除" label is NOT drawn:
-///    fever windows have no time-of-day granularity on the wire
-///    (drinking-summary dayCounts only exposes feverCoveredPercent), so
-///    the fever context is carried by the card-level fever note instead.
-///    The legend's "发热期+6h 缓冲" item is dropped accordingly.
-/// 2. The baseline is the fever detail's per-cow baselineTemp (same
-///    convention as the existing _FeverTrendSection baseline line), not a
-///    fixed 38.5.
+/// Fever shadow regions (NIX-259 m-q, user ruling 2026-10-06 = implement):
+/// buffered fever windows (6h defervescence included) arrive with the
+/// drinking-events response and render as time-span color bands
+/// (--fever @ 12% alpha) behind the 48h chart, with a "fever period + 6h
+/// buffer" legend item. The prototype's in-band "发热期·已排除" caption is
+/// carried by that legend item instead — fl_chart range annotations have
+/// no label affordance, so the band + legend is the shipped form.
+///
+/// Other recorded deviation from the frozen prototype: the baseline is the
+/// fever detail's per-cow baselineTemp (same convention as the existing
+/// _FeverTrendSection baseline line), not a fixed 38.5.
 class DrinkingDetailSection extends ConsumerStatefulWidget {
   const DrinkingDetailSection({super.key, required this.livestockId});
 
@@ -136,7 +138,7 @@ class _ReadySection extends ConsumerWidget {
   final String livestockId;
   final DrinkingDaily daily;
   final double? weeklyAvgPerDay;
-  final AsyncValue<List<DrinkingEvent>> eventsAsync;
+  final AsyncValue<DrinkingEventsPage> eventsAsync;
   final bool showPeer;
   final ValueChanged<bool> onTogglePeer;
 
@@ -184,7 +186,7 @@ class _ReadySection extends ConsumerWidget {
                     ),
                   ),
                   data: (events) => DrinkingTimeDistributionChart(
-                    eventHours: _todayCounted(events)
+                    eventHours: _todayCounted(events.events)
                         .map((e) => _localHourOfDay(e.eventStartAt))
                         .toList(),
                   ),
@@ -197,7 +199,7 @@ class _ReadySection extends ConsumerWidget {
                 l10n.healthDrinkingConcentration(
                   drinkingInZonePercent(
                     eventsAsync.maybeWhen(
-                      data: (events) => _todayCounted(events)
+                      data: (page) => _todayCounted(page.events)
                           .map((e) => _localHourOfDay(e.eventStartAt)),
                       orElse: () => const <double>[],
                     ),
@@ -278,8 +280,8 @@ class _ReadySection extends ConsumerWidget {
               color: AppColors.textSecondary,
             ),
           ),
-          data: (events) =>
-              DrinkingEventList(livestockId: livestockId, events: events),
+          data: (page) =>
+              DrinkingEventList(livestockId: livestockId, events: page.events),
         ),
       ],
     );
@@ -440,12 +442,19 @@ class _SegOption extends StatelessWidget {
 /// detail recent72h filtered to the last 48h) + per-cow baseline dashed
 /// line (existing _FeverTrendSection convention) + drinking valley dots
 /// (r4 fill --drinking-event, white stroke 1.5) with temp-drop labels, as
-/// a second dot-only data series.
+/// a second dot-only data series, all over the fever shadow bands
+/// (NIX-259 m-q): buffered fever windows rendered as time-span color
+/// bands (--fever @ 12% alpha) via fl_chart `rangeAnnotations`.
 class _TempOverlayChart extends ConsumerWidget {
   const _TempOverlayChart({required this.livestockId, required this.eventsAsync});
 
   final String livestockId;
-  final AsyncValue<List<DrinkingEvent>> eventsAsync;
+  final AsyncValue<DrinkingEventsPage> eventsAsync;
+
+  /// Fever band color: prototype screen 2 `--fever` #D97B29 at opacity
+  /// .12 (the prototype's rx4 rounding has no fl_chart equivalent —
+  /// VerticalRangeAnnotation fills a plain rectangle).
+  static Color get _feverBandColor => AppColors.fever.withValues(alpha: 0.12);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -509,7 +518,7 @@ class _TempOverlayChart extends ConsumerWidget {
 
         // Valley dots: counted events inside the window, y = minTemp.
         final valleys = eventsAsync.maybeWhen(
-          data: (events) => events
+          data: (page) => page.events
               .where(
                 (e) =>
                     _ReadySection._isCounted(e) &&
@@ -520,6 +529,18 @@ class _TempOverlayChart extends ConsumerWidget {
               .map((e) => (e.eventStartAt.millisecondsSinceEpoch.toDouble(), e))
               .toList(),
           orElse: () => const <(double, DrinkingEvent)>[],
+        );
+
+        // Fever shadow bands: server windows clipped to the visible chart
+        // window (belt-and-braces on top of the server-side clip) and
+        // drawn as vertical range annotations behind everything.
+        final feverBands = _feverRangeAnnotations(
+          eventsAsync.maybeWhen(
+            data: (page) => page.feverWindows,
+            orElse: () => const <FeverWindow>[],
+          ),
+          windowStart,
+          now,
         );
 
         var minY = readings
@@ -551,6 +572,9 @@ class _TempOverlayChart extends ConsumerWidget {
                   maxX: maxX,
                   minY: minY,
                   maxY: maxY,
+                  rangeAnnotations: RangeAnnotations(
+                    verticalRangeAnnotations: feverBands,
+                  ),
                   gridData: const FlGridData(show: true, drawVerticalLine: false),
                   titlesData: const FlTitlesData(
                     leftTitles: AxisTitles(
@@ -609,8 +633,8 @@ class _TempOverlayChart extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 7),
-            // Legend (two items — the fever-window legend item is dropped
-            // with the fever shadow region, see class doc deviation 1).
+            // Legend: temperature line, valley dots, baseline, fever band
+            // (NIX-259 m-q — the "发热期·已排除" caption rides this item).
             Wrap(
               spacing: 10,
               runSpacing: 4,
@@ -623,12 +647,46 @@ class _TempOverlayChart extends ConsumerWidget {
                   l10n.healthDrinkingLegendBaseline,
                   3,
                 ),
+                _legendSwatch(
+                  AppColors.fever.withValues(alpha: 0.2),
+                  l10n.healthDrinkingLegendFever,
+                  2,
+                ),
               ],
             ),
           ],
         );
       },
     );
+  }
+
+  /// Build the fever shadow bands clipped to the visible chart window:
+  /// x1/x2 clamped to [windowStart, now] in epoch-ms chart units; windows
+  /// that do not intersect the window are dropped. The server already
+  /// clips to the queried cow-day range — this guards the chart's own
+  /// 48h sub-window (which starts mid-day) and any legacy payload.
+  static List<VerticalRangeAnnotation> _feverRangeAnnotations(
+    List<FeverWindow> windows,
+    DateTime windowStart,
+    DateTime now,
+  ) {
+    final minX = windowStart.millisecondsSinceEpoch.toDouble();
+    final maxX = now.millisecondsSinceEpoch.toDouble();
+    return windows
+        .map((w) {
+          final x1 = w.start.millisecondsSinceEpoch.toDouble();
+          final x2 = w.end.millisecondsSinceEpoch.toDouble();
+          final start = x1 < minX ? minX : x1;
+          final end = x2 > maxX ? maxX : x2;
+          if (start >= end) return null;
+          return VerticalRangeAnnotation(
+            x1: start,
+            x2: end,
+            color: _feverBandColor,
+          );
+        })
+        .whereType<VerticalRangeAnnotation>()
+        .toList();
   }
 
   static Widget _legendSwatch(Color color, String label, double radius) {

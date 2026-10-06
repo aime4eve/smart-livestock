@@ -232,4 +232,51 @@ void main() {
       expect(peer.peerAvgPerDay, isNull);
     });
   });
+
+  group('DrinkingEventsPage.fromJson (NIX-259 m-q)', () {
+    test('parses events plus clipped fever windows', () {
+      final page = DrinkingEventsPage.fromJson({
+        'events': [
+          {
+            'id': 21,
+            'livestockId': 4,
+            'eventStartAt': '2026-10-04T02:00:00Z',
+            'eventEndAt': '2026-10-04T02:07:00Z',
+            'source': 'THINGSBOARD',
+            'label': 'UNLABELED',
+          },
+        ],
+        'feverWindows': [
+          // Closed window (buffer already applied server-side).
+          {'start': '2026-10-03T14:00:00Z', 'end': '2026-10-04T02:30:00Z'},
+          // Open window truncated at the query `to` bound by the server
+          // (to-day 2026-10-05 +1d 00:00 Asia/Shanghai = 16:00Z).
+          {'start': '2026-10-04T10:00:00Z', 'end': '2026-10-04T16:00:00Z'},
+        ],
+      });
+
+      expect(page.events, hasLength(1));
+      expect(page.events.first.id, 21);
+      expect(page.feverWindows, hasLength(2));
+      expect(
+        page.feverWindows.first.start,
+        DateTime.parse('2026-10-03T14:00:00Z'),
+      );
+      expect(
+        page.feverWindows.first.end,
+        DateTime.parse('2026-10-04T02:30:00Z'),
+      );
+      // The client model keeps end non-null — the server guarantees a
+      // finite rectangle for display.
+      expect(page.feverWindows.every((w) => !w.end.isBefore(w.start)), isTrue);
+    });
+
+    test('missing feverWindows degrades to an empty band list', () {
+      final page = DrinkingEventsPage.fromJson({
+        'events': [],
+      });
+      expect(page.events, isEmpty);
+      expect(page.feverWindows, isEmpty);
+    });
+  });
 }
