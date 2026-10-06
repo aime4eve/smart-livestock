@@ -136,6 +136,15 @@ public class PhysiologyEventService {
      * replaces it (length still capped at 500). No JsonNullable / Optional
      * wrapper is needed: the two "keep" cases are intentionally
      * indistinguishable, so the plain record binding carries the contract.
+     * <p>
+     * A concurrent update slipping past the duplicate pre-check and hitting
+     * {@code uq_physiology_manual_dup} surfaces as STATE_CONFLICT (409)
+     * instead of a 500 (NIX-258 m-l). Unlike the create path (which re-reads
+     * the winner), the conflict is reported back: the caller's own row is
+     * the update target, and the occupied slot means the chosen date is
+     * taken — only the user can pick another one. saveAndFlush keeps the
+     * integrity violation inside this method's try block; without the
+     * explicit flush it would only fire at commit, past the catch.
      */
     @Transactional
     public PhysiologyEventResponse updateEvent(Long farmId, Long livestockId, Long eventId,
@@ -166,8 +175,16 @@ public class PhysiologyEventService {
             entity.setNote(note.isBlank() ? null : note);
         }
         entity.setUpdatedBy(userId);
-        PhysiologyEventJpaEntity saved = eventRepository.save(entity);
-        return toResponse(saved, isOngoing(saved, closedManualIllnessOnsets(livestockId)));
+        try {
+            PhysiologyEventJpaEntity saved = eventRepository.saveAndFlush(entity);
+            return toResponse(saved, isOngoing(saved, closedManualIllnessOnsets(livestockId)));
+        } catch (DataIntegrityViolationException race) {
+            // Lost the race for the target (livestock, type, date) slot on
+            // uq_physiology_manual_dup: report a conflict, do NOT re-read —
+            // the row being updated is the caller's own, the occupied slot
+            // belongs to a different row, so the user must pick another date.
+            throw new ApiException(ErrorCode.STATE_CONFLICT, "error.physiology.duplicateEvent");
+        }
     }
 
     /** Delete; MANUAL rows only. */
