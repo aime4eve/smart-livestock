@@ -7,7 +7,93 @@
 **没有真牛时能推进的**：真实**设备**链路验证（不需要牛，需要胶囊+水浴）、演示数据补全（对销售）、真数据就绪的自动关卡、L3 物料筹备。
 **明确不做的**：继续用仿真数据调参/改判据——L1（Aubé，F=0.928）与 L2-pre（仿真，F=0.908）已双达标，再调就是对着自家模拟器过拟合；对外准确率口径维持"试点验证方案"（AGENTS 红线）。
 
-四条工作流**互不依赖**，可任意组合批准；建议序 W2→W1→W3→W4（理由见 §5）。
+## 0.5 现状盘点：已实现什么、验证覆盖到哪一段
+
+### 功能完成度（全部已在 dev 上线，2026-10-06 用户集成测试通过）
+
+| 模块 | 状态 | 证据 |
+|---|---|---|
+| 检测内核（FallST 斜率 ∧ μ−kσ+1.0°C 深度 + 35–43°C 门卫 + 15min 滚动合并 + 发热排除） | ✅ | L1 Aubé 科研数据标定 **F=0.928@5-min**（生产口径）；滚动锚定修复后 6-min 0.9201，门禁 ≥0.90 不变 |
+| 端到端批量回放 | ✅ | L2-pre 30 天×10 牛仿真回放 **F=0.908**，平台与离线内核对齐（0.9078）；FN 全分解无不明项 |
+| 夜批调度 + admin 批量回算 | ✅ | dev 全群回算 1.45s/0 失败；夜批 03:40 每日自动 |
+| 标记闭环（确认/驳回/补录/候选转正 + 跨重算保留） | ✅ | 演练 2,098 次打标 0 失败；标签跨重算逐数一致 |
+| 三层汇总 + Premium 同类对比 + 48h 图（谷点+发热阴影） | ✅ | 集成测试通过；阴影区随 NIX-259 上线，dev 已有真实发热窗渲染 |
+| 标签导出 + `--labels` 调参建议 | ✅ | 2,101 标签采信门槛通过；ε 护栏后建议=维持现产参数 |
+| 交付与部署 | ✅ | PR #129/#130/#131 → master；dev 饮水+疫病双功能在线；两轮交付评审遗留清零 |
+
+### 但"已验证"只覆盖了链路的后半段
+
+L1 的输入是**论文 CSV 文件**（直接喂算法），L2-pre 的输入是**直接写数据库**（绕过设备与接入）——也就是说，从"胶囊传感器"到"平台 temperature_logs"的前半段物理链路，**从未有任何一条真实数据走过**。同时演示环境存在第二个空档：datagen 只生成平滑温度基线，饮水卡恒显 0 次。
+
+**全链路验证覆盖地图**（红=盲区，黄=空档，绿=已验证；W1-W4 各补一个洞）：
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 470" style="max-width:940px;width:100%;background:#fff" font-family="PingFang SC,Microsoft YaHei,sans-serif">
+  <defs>
+    <marker id="cmArrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#617061"/></marker>
+  </defs>
+  <text x="20" y="24" font-size="14" font-weight="700" fill="#374151">饮水检测全链路验证覆盖地图（2026-10-08）</text>
+  <!-- W1 bracket -->
+  <rect x="24" y="44" width="366" height="88" rx="10" fill="none" stroke="#C0392B" stroke-width="1.6" stroke-dasharray="7 5"/>
+  <text x="36" y="62" font-size="11" font-weight="700" fill="#C0392B">W1 台架预验：把红段变绿（真胶囊+水浴 5 幕）</text>
+  <!-- Row 1: real chain -->
+  <g font-size="11" font-weight="700" text-anchor="middle">
+    <rect x="34"  y="76" width="104" height="46" rx="7" fill="#FDECEC" stroke="#C0392B"/><text x="86"  y="97" fill="#96281B">胶囊传感器</text><text x="86"  y="112" font-size="8.5" font-weight="400" fill="#96281B">5-min 上报?</text>
+    <rect x="156" y="76" width="104" height="46" rx="7" fill="#FDECEC" stroke="#C0392B"/><text x="208" y="97" fill="#96281B">LoRa 网关</text><text x="208" y="112" font-size="8.5" font-weight="400" fill="#96281B">转发形态?</text>
+    <rect x="278" y="76" width="104" height="46" rx="7" fill="#FDECEC" stroke="#C0392B"/><text x="330" y="97" fill="#96281B">ThingsBoard</text><text x="330" y="112" font-size="8.5" font-weight="400" fill="#96281B">遥测落地?</text>
+    <rect x="400" y="76" width="104" height="46" rx="7" fill="#FFF7E6" stroke="#D4A017"/><text x="452" y="97" fill="#8A6D0B">平台接入</text><text x="452" y="112" font-size="8.5" font-weight="400" fill="#8A6D0B">TB轮询·存量有</text>
+    <rect x="522" y="76" width="104" height="46" rx="7" fill="#EAF3EC" stroke="#5B8C5A"/><text x="574" y="97" fill="#2F5233">检测内核/夜批</text><text x="574" y="112" font-size="8.5" font-weight="400" fill="#2F5233">L1+L2 双达标</text>
+    <rect x="644" y="76" width="104" height="46" rx="7" fill="#EAF3EC" stroke="#5B8C5A"/><text x="696" y="97" fill="#2F5233">汇总/UI/48h图</text><text x="696" y="112" font-size="8.5" font-weight="400" fill="#2F5233">集成测试 ✓</text>
+    <rect x="766" y="76" width="104" height="46" rx="7" fill="#EAF3EC" stroke="#5B8C5A"/><text x="818" y="97" fill="#2F5233">标记闭环</text><text x="818" y="112" font-size="8.5" font-weight="400" fill="#2F5233">演练 2098 次 ✓</text>
+    <rect x="888" y="76" width="44" height="46" rx="7" fill="#EAF3EC" stroke="#5B8C5A"/><text x="910" y="94" font-size="9" fill="#2F5233">调参</text><text x="910" y="106" font-size="9" fill="#2F5233">闭环</text>
+  </g>
+  <g stroke="#617061" stroke-width="1.6">
+    <line x1="138" y1="99" x2="154" y2="99" marker-end="url(#cmArrow)"/>
+    <line x1="260" y1="99" x2="276" y2="99" marker-end="url(#cmArrow)"/>
+    <line x1="382" y1="99" x2="398" y2="99" marker-end="url(#cmArrow)"/>
+    <line x1="504" y1="99" x2="520" y2="99" marker-end="url(#cmArrow)"/>
+    <line x1="626" y1="99" x2="642" y2="99" marker-end="url(#cmArrow)"/>
+    <line x1="748" y1="99" x2="764" y2="99" marker-end="url(#cmArrow)"/>
+    <line x1="870" y1="99" x2="886" y2="99" marker-end="url(#cmArrow)"/>
+  </g>
+  <text x="200" y="148" font-size="9.5" fill="#96281B">从未有真实数据走过（L1=论文文件喂算法，L2-pre=直接写库）</text>
+  <!-- Row 2: demo lane -->
+  <text x="20" y="196" font-size="12" font-weight="700" fill="#8A6D0B">演示链路</text>
+  <rect x="34" y="208" width="170" height="46" rx="7" fill="#F8F6F0" stroke="#617061"/>
+  <text x="119" y="228" font-size="11" font-weight="700" fill="#374151" text-anchor="middle">datagen 仿真温度</text>
+  <text x="119" y="243" font-size="8.5" fill="#6B7280" text-anchor="middle">平滑基线 · 无饮水谷</text>
+  <line x1="204" y1="231" x2="248" y2="231" stroke="#617061" stroke-width="1.6" marker-end="url(#cmArrow)"/>
+  <rect x="252" y="208" width="190" height="46" rx="7" fill="#FFF7E6" stroke="#D4A017"/>
+  <text x="347" y="228" font-size="11" font-weight="700" fill="#8A6D0B" text-anchor="middle">dev/test 演示环境</text>
+  <text x="347" y="243" font-size="8.5" fill="#8A6D0B" text-anchor="middle">饮水卡恒显 0 次 → 客户以为没做</text>
+  <path d="M470 231 L560 231" stroke="#D4A017" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#cmArrow)"/>
+  <text x="480" y="222" font-size="10.5" font-weight="700" fill="#D4A017">W2 植入标定形态谷</text>
+  <text x="480" y="246" font-size="8.5" fill="#8A6D0B">演示当天活起来 + 发热/候选全链可演</text>
+  <!-- Row 3: future lane -->
+  <text x="20" y="296" font-size="12" font-weight="700" fill="#6B7280">未来事件（等待条件）</text>
+  <g font-size="10.5" text-anchor="middle" font-weight="700">
+    <rect x="34" y="308" width="150" height="46" rx="7" fill="none" stroke="#9AA5A0" stroke-dasharray="5 4"/><text x="109" y="328" fill="#4B5563">真胶囊接入牧场</text><text x="109" y="343" font-size="8.5" font-weight="400" fill="#6B7280">条件：试点/客户牛只</text>
+    <rect x="228" y="308" width="170" height="46" rx="7" fill="none" stroke="#9AA5A0" stroke-dasharray="5 4"/><text x="313" y="328" fill="#4B5563">真实源累计 ≥30 天</text><text x="313" y="343" font-size="8.5" font-weight="400" fill="#6B7280">L2-real 触发条件</text>
+    <rect x="442" y="308" width="170" height="46" rx="7" fill="none" stroke="#9AA5A0" stroke-dasharray="5 4"/><text x="527" y="328" fill="#4B5563">L2-real 真数据回放</text><text x="527" y="343" font-size="8.5" font-weight="400" fill="#6B7280">机制零改动，换数据即跑</text>
+    <rect x="656" y="308" width="180" height="46" rx="7" fill="none" stroke="#9AA5A0" stroke-dasharray="5 4"/><text x="746" y="328" fill="#4B5563">L3 金标准试点验收</text><text x="746" y="343" font-size="8.5" font-weight="400" fill="#6B7280">水表+摄像头 96h×2</text>
+  </g>
+  <g stroke="#9AA5A0" stroke-width="1.5">
+    <line x1="184" y1="331" x2="224" y2="331" marker-end="url(#cmArrow)"/>
+    <line x1="398" y1="331" x2="438" y2="331" marker-end="url(#cmArrow)"/>
+    <line x1="612" y1="331" x2="652" y2="331" marker-end="url(#cmArrow)"/>
+  </g>
+  <text x="238" y="376" font-size="10.5" font-weight="700" fill="#2C6486">W3 就绪面板：30 天到了系统自动举牌（不再靠任何人记得去查）</text>
+  <line x1="313" y1="358" x2="313" y2="364" stroke="#2C6486" stroke-width="1.4" marker-end="url(#cmArrow)"/>
+  <text x="676" y="376" font-size="10.5" font-weight="700" fill="#5B8C5A">W4 无牛先行：水表/标注/牧场物料现在备齐，有牛当天开跑</text>
+  <line x1="746" y1="358" x2="746" y2="364" stroke="#5B8C5A" stroke-width="1.4" marker-end="url(#cmArrow)"/>
+  <!-- Legend -->
+  <g font-size="9.5">
+    <rect x="34" y="416" width="18" height="12" fill="#FDECEC" stroke="#C0392B"/><text x="58" y="426" fill="#374151">盲区（无真数据走过）</text>
+    <rect x="200" y="416" width="18" height="12" fill="#FFF7E6" stroke="#D4A017"/><text x="224" y="426" fill="#374151">空档（有链路无内容/未联动实测）</text>
+    <rect x="420" y="416" width="18" height="12" fill="#EAF3EC" stroke="#5B8C5A"/><text x="444" y="426" fill="#374151">已验证（L1/L2-pre/dev 三级证据）</text>
+    <rect x="660" y="416" width="18" height="12" fill="none" stroke="#9AA5A0" stroke-dasharray="4 3"/><text x="684" y="426" fill="#374151">未来事件（等条件）</text>
+  </g>
+  <text x="34" y="452" font-size="9" fill="#9AA5A0">一句话：后半段（绿）已三级证据收口；W1 补红段、W2 补演示黄段、W3 看住未来 30 天、W4 备好终点验收——四条流各补一个洞，互不依赖。</text>
+</svg>
 
 ---
 
@@ -342,7 +428,7 @@
 
 ---
 
-## 5. 排期与依赖
+## 5. 排期、依赖与排序逻辑
 
 ```
 W2 演示谷 (2d)   ──┐
@@ -351,7 +437,17 @@ W3 就绪面板 (1.5d) ├──
 W4 L3筹备 (2d)    ──┘（W4a 采购周期长，批准即下单）
 ```
 
-**建议执行序 W2 → W1 → W3 → W4b/c（W4a 随批采购）**：先把演示环境变活（销售当周可用），台架与机时并行跑，就绪面板随后，标注包/牧场材料收尾。
+### 为什么建议 W2 → W1 → W3 → W4
+
+排序原则只有三条，对着 §0.5 覆盖地图看就直白：
+
+1. **外部依赖最少的先做**——W2 是纯软件、零外部依赖（datagen 在我们手里），批准即可开工；W1 价值最高但要等你提供胶囊、激活方式、TB 接入信息（开放项 A），且 96h 是无人值守机时——所以 W2 先动工，W1 的物料核对并行去要，人到机开。
+2. **销售回报最先落袋**——W2 完成当周，dev/test 演示环境的饮水卡就"活"了（当前恒 0 次是销售现场的真实痛点）；W1/W3 的收益是技术性与流程性的，兑现晚于 W2。
+3. **长周期采购立即启动、编码排后**——W4a 水表下单后要吃物流周期，批准当天就该下单（不等编码排到它）；W4b/c 文档没有前置依赖，放最后收尾。
+
+W3 排在 W1 后的原因：它很小（1.5 天），且语义上"接住 W1 的成果"——台架通关证明链路可行后，将来真设备接入，30 天门槛由 W3 自动盯，不需要人记着。
+
+**一句话：四条流不是并列待办清单，而是覆盖地图上四个洞各补一刀——红段（W1）、演示黄段（W2）、未来 30 天盯梢（W3）、终点验收物料（W4）。** 全部批准时按上述顺序串行推进；只批准部分时按已批的任意顺序做（互不依赖）。
 
 ## 6. 工单拆分建议（批准后立单）
 
