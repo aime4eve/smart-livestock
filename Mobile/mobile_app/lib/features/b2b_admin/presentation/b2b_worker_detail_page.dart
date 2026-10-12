@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:hkt_livestock_agentic/core/utils/timezone_options.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -59,6 +60,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
     final latCtrl = TextEditingController(text: farm.latitude?.toStringAsFixed(6) ?? '');
     final lngCtrl = TextEditingController(text: farm.longitude?.toStringAsFixed(6) ?? '');
     final areaCtrl = TextEditingController(text: farm.areaHectares?.toStringAsFixed(1) ?? '');
+    String? timezone = farm.timezone;
     final formKey = GlobalKey<FormState>();
 
     showDialog(
@@ -113,10 +115,30 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                   controller: areaCtrl,
                   decoration: InputDecoration(
                     labelText: l10n.farmCreationAreaLabel,
-                    isDense: true,
                     border: const OutlineInputBorder(),
                   ),
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue: timezone,
+                  decoration: const InputDecoration(
+                    labelText: '所在时区',
+                    helperText: '留空跟随租户/平台默认',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: [null, ...kTimezoneOptions.map((o) => o.name)]
+                      .map((tz) => DropdownMenuItem<String>(
+                            value: tz,
+                            child: Text(tz == null
+                                ? '未设置（跟随租户）'
+                                : kTimezoneOptions
+                                    .firstWhere((o) => o.name == tz,
+                                        orElse: () => TimezoneOption(tz, 0, tz))
+                                    .label),
+                          ))
+                      .toList(),
+                  onChanged: (v) => timezone = v,
                 ),
               ],
             ),
@@ -136,6 +158,8 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                 if (latCtrl.text.isNotEmpty) 'latitude': double.tryParse(latCtrl.text),
                 if (lngCtrl.text.isNotEmpty) 'longitude': double.tryParse(lngCtrl.text),
                 if (areaCtrl.text.isNotEmpty) 'areaHectares': double.tryParse(areaCtrl.text),
+                // 空串=清除(跟随租户);后端 normalize 把空串归一为 NULL
+                'timezone': timezone ?? '',
               };
               try {
                 await ApiClient.instance.put('/farms/${farm.id}', body: body);
@@ -150,7 +174,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
               } catch (e) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('更新失败: \$e')),
+                    SnackBar(content: Text('更新失败: $e')),
                   );
                 }
               }

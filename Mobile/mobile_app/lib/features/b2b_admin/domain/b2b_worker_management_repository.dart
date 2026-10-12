@@ -8,6 +8,8 @@ class B2bSubFarm {
     this.latitude,
     this.longitude,
     this.areaHectares,
+    this.timezone,
+    this.utcOffsetMinutes,
   });
 
   final String id;
@@ -18,6 +20,8 @@ class B2bSubFarm {
   final double? latitude;
   final double? longitude;
   final double? areaHectares;
+  final String? timezone;
+  final int? utcOffsetMinutes;
 }
 
 class B2bSubFarmWorker {

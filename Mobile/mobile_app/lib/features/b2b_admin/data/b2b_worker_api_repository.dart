@@ -27,6 +27,8 @@ class B2bWorkerApiRepository implements B2bWorkerManagementRepository {
               latitude: (f['latitude'] as num?)?.toDouble(),
               longitude: (f['longitude'] as num?)?.toDouble(),
               areaHectares: (f['areaHectares'] as num?)?.toDouble(),
+              timezone: f['timezone'] as String?,
+              utcOffsetMinutes: f['utcOffsetMinutes'] as int?,
             )).toList();
     return B2bWorkerManagementViewData(
       subFarms: farms,
