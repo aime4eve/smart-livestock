@@ -288,7 +288,7 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          key: Key('b2b-set-timezone-dialog-\${farm.id}'),
+          key: Key('b2b-set-timezone-dialog-${farm.id}'),
           title: const Text('设置时区'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
