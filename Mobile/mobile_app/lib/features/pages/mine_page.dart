@@ -6,6 +6,7 @@ import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:hkt_livestock_agentic/core/l10n/locale_controller.dart';
 import 'package:hkt_livestock_agentic/core/timezone/time_zone_controller.dart';
+import 'package:hkt_livestock_agentic/core/utils/timezone_options.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
@@ -352,10 +353,16 @@ class MinePage extends ConsumerWidget {
            },
            child: Column(
              children: [
-               for (final id in timeZonePickerOptions)
+               // 统一时区清单(ruling 2026-10-12):与牧场时区下拉同一份
+               // kTimezoneOptions;首项"自动（跟随牧场）"= 交还牧场链。
+               RadioListTile<String?>(
+                 value: null,
+                 title: Text(l10n.settingsTimeZoneSystem),
+               ),
+               for (final option in kTimezoneOptions)
                  RadioListTile<String?>(
-                   value: id,
-                   title: Text(_timeZoneLabel(l10n, id)),
+                   value: option.name,
+                   title: Text(option.label),
                  ),
              ],
            ),

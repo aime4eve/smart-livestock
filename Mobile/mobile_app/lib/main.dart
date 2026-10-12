@@ -48,8 +48,7 @@ void main() async {
   debugPrint('boot: time zone restored ($initialTimeZoneId)');
   // Manual user choice outranks the farm chain (ruling 2026-10-12); null
   // keeps the farm chain in charge.
-  setUserOverrideOffsetMinutes(
-      initialTimeZoneId == null ? null : timeZoneStandardOffsets[initialTimeZoneId]);
+  setUserOverrideOffsetMinutes(timeZoneStandardOffset(initialTimeZoneId));
 
   debugPrint('boot: runApp');
   runApp(

@@ -334,7 +334,18 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
                     helperText: '留空跟随租户/平台默认；影响牧场的时间显示与按日统计',
                     border: OutlineInputBorder(),
                   ),
-                  items: timezoneDropdownItems(selected: _timezone),
+                  items: [
+                    null,
+                    ...kTimezoneOptions.map((o) => o.name),
+                  ].map((tz) => DropdownMenuItem<String>(
+                        value: tz,
+                        child: Text(tz == null
+                            ? '自动（跟随租户）'
+                            : kTimezoneOptions
+                                .firstWhere((o) => o.name == tz,
+                                    orElse: () => TimezoneOption(tz, 0, tz))
+                                .label),
+                      )).toList(),
                   onChanged: (v) => setState(() => _timezone = v),
                 ),
               ],

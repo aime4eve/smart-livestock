@@ -131,7 +131,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                       .map((tz) => DropdownMenuItem<String>(
                             value: tz,
                             child: Text(tz == null
-                                ? '未设置（跟随租户）'
+                                ? '自动（跟随租户）'
                                 : kTimezoneOptions
                                     .firstWhere((o) => o.name == tz,
                                         orElse: () => TimezoneOption(tz, 0, tz))
