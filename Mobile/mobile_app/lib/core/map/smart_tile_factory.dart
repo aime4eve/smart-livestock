@@ -9,6 +9,7 @@ import 'package:hkt_livestock_agentic/core/map/mbtiles_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/tile_source_resolver.dart';
 import 'package:hkt_livestock_agentic/core/timezone/time_zone_controller.dart';
+import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 
 /// Builds the app-wide [SmartTileProvider] from explicit inputs.
 ///
@@ -63,10 +64,21 @@ Future<SmartTileProvider> loadSmartTileProvider(
     }
   }
 
+    // Tile source follows the farm's country (ruling 2026-10-12): a farm
+    // with an explicit timezone declares its datum (China zone → GCJ/高德,
+    // else WGS-84/OSM); without one, the user/device heuristic applies.
+    final switcher = ref.read(farmSwitcherControllerProvider);
+    final activeFarmList = switcher.farms
+        .where((f) => f.id == switcher.activeFarmId)
+        .toList();
+    final farmTz = activeFarmList.isEmpty ? null : activeFarmList.first.timezone;
+    final farmVerdict = farmTimezoneTileDatumIsChina(farmTz);
+    final useChina = farmVerdict ??
+        ref.read(timeZoneControllerProvider.notifier).useChinaTileSource;
+
   return buildSmartTileProvider(
     mbtilesProviders: mbtilesProviders,
-    useChinaTileSource:
-        ref.read(timeZoneControllerProvider.notifier).useChinaTileSource,
+    useChinaTileSource: useChina,
     resolveTileSources: ApiClient.instance.activeFarmId == null
         ? null
         : () => ref.read(tileSourceResolverProvider).resolve(),

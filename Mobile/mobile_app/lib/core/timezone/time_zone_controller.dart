@@ -24,6 +24,16 @@ bool isChinaTimeZone(String? id) {
   return DateTime.now().timeZoneOffset == const Duration(hours: 8);
 }
 
+/// Tile-datum verdict for a FARM-configured timezone (ruling 2026-10-12):
+/// a farm's explicit timezone declares which coordinate datum its registry
+/// coordinates use — China-zone ids mean GCJ-02 (高德), anything else means
+/// WGS-84 (OSM). Returns null when the farm has no timezone configured, so
+/// callers fall back to the user/device heuristic.
+bool? farmTimezoneTileDatumIsChina(String? farmTimezone) {
+  if (farmTimezone == null || farmTimezone.isEmpty) return null;
+  return _chinaTimeZoneIds.contains(farmTimezone);
+}
+
 /// Curated picker options (id → display). Null id = follow system.
 const timeZonePickerOptions = <String?>[
   null,
