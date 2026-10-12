@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   <li>a brand-new tenant (the inquiry) is opened the free pilot license —
  *       TRIAL subscription with PREMIUM effective tier ending at the shared
  *       campaign deadline (ruling 2026-10-12: smartlivestock.trial.ends-at,
- *       Kenya 2027-10-01 00:00 EAT = 2026-09-30T21:00:00Z), i.e. the
+ *       Kenya 2027-10-01 00:00 EAT = 2027-09-30T21:00:00Z), i.e. the
  *       "first year free at full capability" promise;</li>
  *   <li>the customer produces real data during the pilot (farm + livestock);</li>
  *   <li>when the trial runs out, the production hourly expiry job degrades
@@ -54,7 +54,7 @@ class HostedFirstYearFreeJourneyTest extends AbstractJourneyTest {
         String tenantId = extractId(tenant);
 
         // ── 2. we open the free pilot = "first year free" ────────────────
-        // application.yml ships the campaign default 2026-09-30T21:00:00Z;
+        // application.yml ships the campaign default 2027-09-30T21:00:00Z;
         // the grant must land exactly on it, not on a rolling now+365d.
         Map<String, Object> body = postRaw(platformAdminToken,
                 "/api/v1/admin/tenants/" + tenantId + "/pilot-license", Map.of()).getBody();
@@ -62,7 +62,7 @@ class HostedFirstYearFreeJourneyTest extends AbstractJourneyTest {
         Map<String, Object> pilot = (Map<String, Object>) body.get("data");
         assertThat(pilot.get("status")).isEqualTo("TRIAL");
         Instant trialEndsAt = Instant.parse((String) pilot.get("trialEndsAt"));
-        assertThat(trialEndsAt).isEqualTo(Instant.parse("2026-09-30T21:00:00Z"));
+        assertThat(trialEndsAt).isEqualTo(Instant.parse("2027-09-30T21:00:00Z"));
 
         Map<String, Object> subDuringTrial = findSubscriptionRow(tenantId);
         assertThat(subDuringTrial.get("tier")).isEqualTo("BASIC");

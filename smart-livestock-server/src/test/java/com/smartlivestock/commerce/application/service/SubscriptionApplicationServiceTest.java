@@ -96,11 +96,11 @@ class SubscriptionApplicationServiceTest {
             when(subscriptionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             SubscriptionApplicationService service = new SubscriptionApplicationService(
-                subscriptionRepository, domainEventPublisher, "2026-09-30T21:00:00Z");
+                subscriptionRepository, domainEventPublisher, "2027-09-30T21:00:00Z");
             Subscription result = service.getOrCreateSubscription(1L, "direct");
 
             assertThat(result.getStatus()).isEqualTo(SubscriptionStatus.TRIAL);
-            assertThat(result.getTrialEndsAt()).isEqualTo(Instant.parse("2026-09-30T21:00:00Z"));
+            assertThat(result.getTrialEndsAt()).isEqualTo(Instant.parse("2027-09-30T21:00:00Z"));
         }
     }
 

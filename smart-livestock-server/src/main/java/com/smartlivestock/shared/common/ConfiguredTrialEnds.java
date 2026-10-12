@@ -9,7 +9,7 @@ import java.util.Optional;
  * {@code smartlivestock.trial.ends-at} (env {@code SMARTLIVESTOCK_TRIAL_ENDS_AT}).
  * <p>
  * Ruling 2026-10-12: every free trial / pilot grant ends at one shared wall-clock
- * deadline (Kenya campaign: 2027-10-01 00:00 EAT = 2026-09-30T21:00:00Z) instead of
+ * deadline (Kenya campaign: 2027-10-01 00:00 EAT = 2027-09-30T21:00:00Z) instead of
  * a rolling now+N days. When the property is blank the callers fall back to their
  * legacy rolling windows. An unparseable value must fail startup, never silently
  * degrade (lessons-learned #18: lenient parsing hides data errors).

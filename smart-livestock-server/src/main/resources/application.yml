@@ -195,7 +195,7 @@ smartlivestock:
     enabled: ${SMARTLIVESTOCK_PILOT_LICENSE_ENABLED:true}
   # Platform-wide fixed free-trial deadline (ruling 2026-10-12). Every free
   # trial/pilot grant (pilot endpoint + self-service registration) ends at this
-  # shared instant: 2027-10-01 00:00 Kenya (EAT, UTC+3) = 2026-09-30T21:00:00Z.
+  # shared instant: 2027-10-01 00:00 Kenya (EAT, UTC+3) = 2027-09-30T21:00:00Z.
   # Blank = legacy rolling windows (pilot now+365d, self-service now+14d).
   trial:
-    ends-at: ${SMARTLIVESTOCK_TRIAL_ENDS_AT:2026-09-30T21:00:00Z}
+    ends-at: ${SMARTLIVESTOCK_TRIAL_ENDS_AT:2027-09-30T21:00:00Z}

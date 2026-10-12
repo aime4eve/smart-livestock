@@ -35,7 +35,7 @@ class PilotLicenseJourneyTest extends AbstractJourneyTest {
         // Ruling 2026-10-12: grants land exactly on the shared campaign
         // deadline (application.yml default = Kenya 2027-10-01 00:00 EAT).
         Instant trialEndsAt = Instant.parse((String) data.get("trialEndsAt"));
-        assertThat(trialEndsAt).isEqualTo(Instant.parse("2026-09-30T21:00:00Z"));
+        assertThat(trialEndsAt).isEqualTo(Instant.parse("2027-09-30T21:00:00Z"));
 
         // the row must really be in the database with a usable subscription
         Map<String, Object> subs = getApi(platformAdminToken, "/api/v1/admin/subscriptions?tenantId=" + tenantId);

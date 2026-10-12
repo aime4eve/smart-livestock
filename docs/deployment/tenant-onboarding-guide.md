@@ -10,7 +10,7 @@
 
 - 系统为 HOSTED 单实例共享库多租户架构:业务表按 `tenant_id` 行级隔离,租户之间数据互不可见;开通新租户**不需要任何架构改造或发版**,全程走管理端 API。
 - **设备采集与租户解耦(用户裁决 2026-10-12,已实现)**:设备 EUI 全球唯一(V20261012100000 全局唯一索引),数据采集按 EUI 通过 TB/blade 通道进行、与平台租户无关;租户与设备 1:1 映射,租户只能查看和使用与其关联设备的数据。
-- **免费试点统一截止日(用户裁决 2026-10-12,已实现)**:所有免费试点/自助试用统一到期于配置项 `smartlivestock.trial.ends-at`(application.yml 默认 `2026-09-30T21:00:00Z` = 2027-10-01 00:00 肯尼亚 EAT)。到期由 `CommerceScheduler` 小时任务统一降级 FREE/BASIC,数据保留。
+- **免费试点统一截止日(用户裁决 2026-10-12,已实现)**:所有免费试点/自助试用统一到期于配置项 `smartlivestock.trial.ends-at`(application.yml 默认 `2027-09-30T21:00:00Z` = 2027-10-01 00:00 肯尼亚 EAT)。到期由 `CommerceScheduler` 小时任务统一降级 FREE/BASIC,数据保留。
 - 开通模式为**平台管理员代建**(无自助注册端点),与销售口径"厂商小批量开通试用"一致。
 
 ## 2. 环境前提
@@ -19,7 +19,7 @@
 |---|---|---|
 | 授权模式 | `license.mode=HOSTED`(该模式无主机绑定,试点授权为租户级 DB 记录) | test 环境默认即为 HOSTED(application.yml:186) |
 | 试点授权开关 | `smartlivestock.pilot-license.enabled=true` | test 默认开启(application.yml:193) |
-| 统一试点截止日 | `smartlivestock.trial.ends-at`(env `SMARTLIVESTOCK_TRIAL_ENDS_AT`) | 默认 `2026-09-30T21:00:00Z`;推广期结束后由运维统一调整或清空(清空回退 365d/14d 滚动模式) |
+| 统一试点截止日 | `smartlivestock.trial.ends-at`(env `SMARTLIVESTOCK_TRIAL_ENDS_AT`) | 默认 `2027-09-30T21:00:00Z`;推广期结束后由运维统一调整或清空(清空回退 365d/14d 滚动模式) |
 | 目标实例 | 对外服务须公网可达 | test:`livestock.hkttech.cn`(nginx→18080);⚠️ 86 HOSTED 为内网验证机(172.17.10.86),对客户开放前须确认公网可达实例 |
 | 操作账号 | 平台管理员(PLATFORM_ADMIN 角色) | 凭据见 `docs/reference/deployment.md`,本文一律用 `$TOKEN` 占位 |
 
@@ -71,7 +71,7 @@ curl -sk -X POST "$BASE/api/v1/admin/users" \
 ```bash
 curl -sk -X POST "$BASE/api/v1/admin/tenants/$TENANT_ID/pilot-license" \
   -H "Authorization: Bearer $TOKEN"
-# 返回 {"tenantId":..,"status":"TRIAL","trialEndsAt":"2026-09-30T21:00:00Z"}
+# 返回 {"tenantId":..,"status":"TRIAL","trialEndsAt":"2027-09-30T21:00:00Z"}
 ```
 
 - 该端点把订阅置为 `TRIAL`(有效能力档位 = PREMIUM 全功能,即"免费到统一截止日"),并写审计日志(`PILOT_LICENSE_GRANT`)。
@@ -116,7 +116,7 @@ WHERE dev_eui IN ('<EUI1>','<EUI2>');
 | # | 验证项 | 方法 | 预期 |
 |---|---|---|---|
 | 1 | 租户管理员登录 | `POST /api/v1/auth/login`(管理员手机号) | 200 + accessToken |
-| 2 | 订阅状态 | `GET /api/v1/admin/subscriptions?tenantId=$TENANT_ID` | `status=trial`,`trial_ends_at`=统一截止日(2026-09-30T21:00Z),`effectiveTier=PREMIUM` |
+| 2 | 订阅状态 | `GET /api/v1/admin/subscriptions?tenantId=$TENANT_ID` | `status=trial`,`trial_ends_at`=统一截止日(2027-09-30T21:00:00Z),`effectiveTier=PREMIUM` |
 | 3 | 数据隔离 | 租户管理员调任一业务列表(如牧场/牲畜) | 仅见本租户数据;Demo Ranch 等既有租户数据不可见 |
 | 4 | 既有租户回归 | 任一既有租户账号登录抽查 | 不受影响 |
 | 5 | 审计留痕 | `SELECT * FROM audit_logs WHERE tenant_id=$TENANT_ID ORDER BY created_at DESC` | 有 `PILOT_LICENSE_GRANT` |
@@ -146,7 +146,7 @@ WHERE dev_eui IN ('<EUI1>','<EUI2>');
 
 | 配置项 | 值 |
 |---|---|
-| `smartlivestock.trial.ends-at`(application.yml 默认 / env `SMARTLIVESTOCK_TRIAL_ENDS_AT`) | `2026-09-30T21:00:00Z` |
+| `smartlivestock.trial.ends-at`(application.yml 默认 / env `SMARTLIVESTOCK_TRIAL_ENDS_AT`) | `2027-09-30T21:00:00Z` |
 | 对客户表述(肯尼亚 EAT=UTC+3,无夏令时) | 2027-10-01 00:00:00 当地时间 |
 | 推广期结束后 | 运维改 env 换新截止日,或置空回退滚动模式(pilot now+365d / 自助 now+14d) |
 
@@ -156,7 +156,7 @@ WHERE dev_eui IN ('<EUI1>','<EUI2>');
 租户名称:      ____________(建议 Kenya-<客户/项目标识>)
 联系人/电话:    ____________
 管理员手机号:   ____________
-试点截止:      统一配置值 2027-10-01 00:00 肯尼亚时间(2026-09-30T21:00:00Z)
+试点截止:      统一配置值 2027-10-01 00:00 肯尼亚时间(2027-09-30T21:00:00Z)
 设备 EUI 清单:  ____________
 开通执行人/日期: ____________ / ____________
 ```

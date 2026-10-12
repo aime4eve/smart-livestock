@@ -163,9 +163,9 @@ class CloudPilotLicenseServiceTest {
 
         @Test
         void fixedDeadline_configured_noSubscription_createsTrialAtDeadline() {
-            Instant deadline = Instant.parse("2026-09-30T21:00:00Z");
+            Instant deadline = Instant.parse("2027-09-30T21:00:00Z");
             CloudPilotLicenseService fixedService = new CloudPilotLicenseService(
-                licenseSubscriptionPort, auditLogRepository, guard(), "2026-09-30T21:00:00Z");
+                licenseSubscriptionPort, auditLogRepository, guard(), "2027-09-30T21:00:00Z");
             when(licenseSubscriptionPort.findSubscription(TARGET_TENANT_ID))
                 .thenReturn(Optional.empty());
 
@@ -182,9 +182,9 @@ class CloudPilotLicenseServiceTest {
             // Ruling 2026-10-12: one shared campaign end — an already-granted
             // later trial is converged back to the configured deadline.
             Instant currentEnd = Instant.now().plus(Duration.ofDays(400));
-            Instant deadline = Instant.parse("2026-09-30T21:00:00Z");
+            Instant deadline = Instant.parse("2027-09-30T21:00:00Z");
             CloudPilotLicenseService fixedService = new CloudPilotLicenseService(
-                licenseSubscriptionPort, auditLogRepository, guard(), "2026-09-30T21:00:00Z");
+                licenseSubscriptionPort, auditLogRepository, guard(), "2027-09-30T21:00:00Z");
             when(licenseSubscriptionPort.findSubscription(TARGET_TENANT_ID))
                 .thenReturn(Optional.of(snapshot(SubscriptionStatus.TRIAL, currentEnd, true)));
 
