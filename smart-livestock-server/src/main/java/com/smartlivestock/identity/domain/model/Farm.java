@@ -11,6 +11,7 @@ public class Farm extends AggregateRoot {
     private BigDecimal latitude;
     private BigDecimal longitude;
     private BigDecimal areaHectares;
+    private String timezone;
 
     public Farm() {}
 
@@ -36,4 +37,7 @@ public class Farm extends AggregateRoot {
 
     public BigDecimal getAreaHectares() { return areaHectares; }
     public void setAreaHectares(BigDecimal areaHectares) { this.areaHectares = areaHectares; }
+
+    public String getTimezone() { return timezone; }
+    public void setTimezone(String timezone) { this.timezone = timezone; }
 }

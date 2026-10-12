@@ -35,6 +35,7 @@ public class TenantAdminController {
     private final TenantApplicationService tenantApplicationService;
     private final FarmRepository farmRepository;
     private final UserRepository userRepository;
+    private final com.smartlivestock.identity.application.TenantZoneResolver tenantZoneResolver;
 
     /**
      * GET /api/v1/admin/tenants
@@ -64,6 +65,8 @@ public class TenantAdminController {
                     m.put("farmCount", farmCount);
                     m.put("userCount", userCount);
                     m.put("deviceCount", 0);
+                    m.put("timezone", t.getTimezone());
+                    m.put("utcOffsetMinutes", tenantZoneResolver.utcOffsetMinutes(t.getId()));
                     m.put("createdAt", t.getCreatedAt() != null ? t.getCreatedAt().toString() : "");
                     return m;
                 })
@@ -89,12 +92,13 @@ public class TenantAdminController {
         String name = body.get("name");
         String contactName = body.get("contactName");
         String contactPhone = body.get("contactPhone");
+        String timezone = body.get("timezone");
 
         if (name == null || name.isBlank()) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "name 不能为空");
         }
 
-        CreateTenantCommand command = new CreateTenantCommand(name, contactName, contactPhone);
+        CreateTenantCommand command = new CreateTenantCommand(name, contactName, contactPhone, timezone);
         TenantDto tenant = tenantApplicationService.createTenant(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(tenant));
     }
@@ -123,6 +127,8 @@ public class TenantAdminController {
         data.put("farmCount", farmCount);
         data.put("userCount", userCount);
         data.put("deviceCount", 0);
+        data.put("timezone", t.getTimezone());
+        data.put("utcOffsetMinutes", tenantZoneResolver.utcOffsetMinutes(tenantId));
         data.put("activeLicenseCount", 0);
         data.put("createdAt", t.getCreatedAt() != null ? t.getCreatedAt().toString() : "");
         data.put("updatedAt", t.getUpdatedAt() != null ? t.getUpdatedAt().toString() : "");
@@ -143,8 +149,9 @@ public class TenantAdminController {
         String name = body.get("name");
         String contactName = body.get("contactName");
         String contactPhone = body.get("contactPhone");
+        String timezone = body.get("timezone");
 
-        TenantDto updated = tenantApplicationService.updateTenant(tenantId, name, contactName, contactPhone);
+        TenantDto updated = tenantApplicationService.updateTenant(tenantId, name, contactName, contactPhone, timezone);
         return ResponseEntity.ok(ApiResponse.ok(updated));
     }
 

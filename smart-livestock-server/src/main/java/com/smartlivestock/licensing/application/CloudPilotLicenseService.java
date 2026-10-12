@@ -55,14 +55,17 @@ public class CloudPilotLicenseService {
     private final AuditLogRepository auditLogRepository;
     private final PilotLicenseModeGuard modeGuard;
     private final Optional<Instant> configuredTrialEndsAt;
+    private final com.smartlivestock.identity.application.TenantZoneResolver tenantZoneResolver;
 
     public CloudPilotLicenseService(LicenseSubscriptionPort licenseSubscriptionPort,
                                     AuditLogRepository auditLogRepository,
                                     PilotLicenseModeGuard modeGuard,
+                                    com.smartlivestock.identity.application.TenantZoneResolver tenantZoneResolver,
                                     @Value("${smartlivestock.trial.ends-at:}") String configuredTrialEndsAt) {
         this.licenseSubscriptionPort = licenseSubscriptionPort;
         this.auditLogRepository = auditLogRepository;
         this.modeGuard = modeGuard;
+        this.tenantZoneResolver = tenantZoneResolver;
         this.configuredTrialEndsAt = ConfiguredTrialEnds.parse(configuredTrialEndsAt);
     }
 
@@ -89,17 +92,35 @@ public class CloudPilotLicenseService {
      *                      subscription state forbids a pilot grant
      */
     public PilotLicenseResult grantPilotLicense(Long targetTenantId, Instant requestedTrialEndsAt) {
+        return grantPilotLicense(targetTenantId, requestedTrialEndsAt, null);
+    }
+
+    /**
+     * @param requestedLocalDate operator-specified LOCAL calendar date (e.g.
+     *                           "2027-10-01"); converted to local midnight in
+     *                           the tenant's own timezone and takes precedence
+     *                           over {@code requestedTrialEndsAt}.
+     */
+    public PilotLicenseResult grantPilotLicense(Long targetTenantId, Instant requestedTrialEndsAt,
+                                                java.time.LocalDate requestedLocalDate) {
         modeGuard.requireHostedPilotEnabled();
         Long operatorId = requireCurrentUserId();
 
+        // Local date wins: converted through the tenant's own zone so
+        // "2027-10-01" means Kenya midnight for a Kenya tenant — no manual
+        // UTC conversion by the operator.
+        Instant explicitEndsAt = requestedLocalDate != null
+                ? requestedLocalDate.atStartOfDay(tenantZoneResolver.zoneForTenantStrict(targetTenantId)).toInstant()
+                : requestedTrialEndsAt;
+
         String deadlineSource;
         final Instant pilotEndsAt;
-        if (requestedTrialEndsAt != null) {
-            if (!requestedTrialEndsAt.isAfter(Instant.now())) {
+        if (explicitEndsAt != null) {
+            if (!explicitEndsAt.isAfter(Instant.now())) {
                 throw new ApiException(ErrorCode.VALIDATION_ERROR, "license.pilot.deadlineInPast");
             }
-            pilotEndsAt = requestedTrialEndsAt;
-            deadlineSource = "REQUESTED";
+            pilotEndsAt = explicitEndsAt;
+            deadlineSource = requestedLocalDate != null ? "REQUESTED_LOCAL_DATE" : "REQUESTED";
         } else {
             pilotEndsAt = configuredTrialEndsAt
                     .orElseGet(() -> Instant.now().plus(Duration.ofDays(PILOT_TRIAL_DAYS)));

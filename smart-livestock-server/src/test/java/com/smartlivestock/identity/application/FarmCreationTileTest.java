@@ -42,7 +42,7 @@ class FarmCreationTileTest {
             return f;
         });
 
-        FarmApplicationService svc = new FarmApplicationService(farmRepository, persistenceContext,
+        FarmApplicationService svc = new FarmApplicationService(org.mockito.Mockito.mock(com.smartlivestock.identity.application.TenantZoneResolver.class), farmRepository, persistenceContext,
                 tenantRepository, userRepository, assignmentRepository, ranchCommandPort,
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class));
 
@@ -70,7 +70,7 @@ class FarmCreationTileTest {
             return f;
         });
 
-        FarmApplicationService svc = new FarmApplicationService(farmRepository, persistenceContext,
+        FarmApplicationService svc = new FarmApplicationService(org.mockito.Mockito.mock(com.smartlivestock.identity.application.TenantZoneResolver.class), farmRepository, persistenceContext,
                 tenantRepository, userRepository, assignmentRepository, ranchCommandPort,
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class));
 

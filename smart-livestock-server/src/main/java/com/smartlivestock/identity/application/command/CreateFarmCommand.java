@@ -5,8 +5,14 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public record CreateFarmCommand(String name, BigDecimal latitude, BigDecimal longitude,
-                                 BigDecimal areaHectares, List<Coordinate> boundaryVertices) {
+                                 BigDecimal areaHectares, List<Coordinate> boundaryVertices,
+                                 String timezone) {
     public CreateFarmCommand(String name, BigDecimal latitude, BigDecimal longitude, BigDecimal areaHectares) {
-        this(name, latitude, longitude, areaHectares, null);
+        this(name, latitude, longitude, areaHectares, null, null);
+    }
+
+    public CreateFarmCommand(String name, BigDecimal latitude, BigDecimal longitude,
+                             BigDecimal areaHectares, List<Coordinate> boundaryVertices) {
+        this(name, latitude, longitude, areaHectares, boundaryVertices, null);
     }
 }

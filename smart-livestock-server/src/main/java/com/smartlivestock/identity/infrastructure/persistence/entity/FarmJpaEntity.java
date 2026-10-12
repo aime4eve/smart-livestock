@@ -35,6 +35,10 @@ public class FarmJpaEntity {
     @Column(name = "area_hectares", precision = 10, scale = 2)
     private BigDecimal areaHectares;
 
+    /** IANA timezone; farm-level anchor (highest priority), NULL = inherit tenant (ruling 2026-10-12). */
+    @Column(name = "timezone", length = 64)
+    private String timezone;
+
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
@@ -75,6 +79,9 @@ public class FarmJpaEntity {
 
     public BigDecimal getAreaHectares() { return areaHectares; }
     public void setAreaHectares(BigDecimal areaHectares) { this.areaHectares = areaHectares; }
+
+    public String getTimezone() { return timezone; }
+    public void setTimezone(String timezone) { this.timezone = timezone; }
 
     public Instant getDeletedAt() { return deletedAt; }
     public void setDeletedAt(Instant deletedAt) { this.deletedAt = deletedAt; }

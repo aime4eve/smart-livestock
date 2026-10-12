@@ -56,6 +56,9 @@ class CloudPilotLicenseServiceTest {
     @Mock
     private AuditLogRepository auditLogRepository;
 
+    @Mock
+    private com.smartlivestock.identity.application.TenantZoneResolver tenantZoneResolver;
+
     private PilotLicenseProperties pilotLicenseProperties;
     private CloudPilotLicenseService service;
 
@@ -65,7 +68,7 @@ class CloudPilotLicenseServiceTest {
         pilotLicenseProperties.setEnabled(true);
         PilotLicenseModeGuard guard = new PilotLicenseModeGuard(pilotLicenseProperties, "HOSTED");
         // Default: no fixed deadline configured → legacy rolling 365d window.
-        service = new CloudPilotLicenseService(licenseSubscriptionPort, auditLogRepository, guard, "");
+        service = new CloudPilotLicenseService(licenseSubscriptionPort, auditLogRepository, guard, tenantZoneResolver, "");
         authenticateAsPlatformAdmin();
     }
 
@@ -165,7 +168,7 @@ class CloudPilotLicenseServiceTest {
         void fixedDeadline_configured_noSubscription_createsTrialAtDeadline() {
             Instant deadline = Instant.parse("2027-09-30T21:00:00Z");
             CloudPilotLicenseService fixedService = new CloudPilotLicenseService(
-                licenseSubscriptionPort, auditLogRepository, guard(), "2027-09-30T21:00:00Z");
+                licenseSubscriptionPort, auditLogRepository, guard(), tenantZoneResolver, "2027-09-30T21:00:00Z");
             when(licenseSubscriptionPort.findSubscription(TARGET_TENANT_ID))
                 .thenReturn(Optional.empty());
 
@@ -184,7 +187,7 @@ class CloudPilotLicenseServiceTest {
             Instant currentEnd = Instant.now().plus(Duration.ofDays(400));
             Instant deadline = Instant.parse("2027-09-30T21:00:00Z");
             CloudPilotLicenseService fixedService = new CloudPilotLicenseService(
-                licenseSubscriptionPort, auditLogRepository, guard(), "2027-09-30T21:00:00Z");
+                licenseSubscriptionPort, auditLogRepository, guard(), tenantZoneResolver, "2027-09-30T21:00:00Z");
             when(licenseSubscriptionPort.findSubscription(TARGET_TENANT_ID))
                 .thenReturn(Optional.of(snapshot(SubscriptionStatus.TRIAL, currentEnd, true)));
 
@@ -199,7 +202,7 @@ class CloudPilotLicenseServiceTest {
         void fixedDeadline_unparseableValue_failsFast() {
             org.assertj.core.api.Assertions.assertThatIllegalStateException()
                 .isThrownBy(() -> new CloudPilotLicenseService(
-                    licenseSubscriptionPort, auditLogRepository, guard(), "not-a-date"));
+                    licenseSubscriptionPort, auditLogRepository, guard(), tenantZoneResolver, "not-a-date"));
         }
 
         @Test
@@ -254,7 +257,7 @@ class CloudPilotLicenseServiceTest {
         void configuredDeadline_auditRecordsConfiguredSource() {
             Instant deadline = Instant.parse("2027-09-30T21:00:00Z");
             CloudPilotLicenseService fixedService = new CloudPilotLicenseService(
-                licenseSubscriptionPort, auditLogRepository, guard(), "2027-09-30T21:00:00Z");
+                licenseSubscriptionPort, auditLogRepository, guard(), tenantZoneResolver, "2027-09-30T21:00:00Z");
             when(licenseSubscriptionPort.findSubscription(TARGET_TENANT_ID))
                 .thenReturn(Optional.empty());
 
@@ -324,7 +327,7 @@ class CloudPilotLicenseServiceTest {
             PilotLicenseModeGuard onPremGuard =
                 new PilotLicenseModeGuard(pilotLicenseProperties, "ONPREM");
             CloudPilotLicenseService onPremService =
-                new CloudPilotLicenseService(licenseSubscriptionPort, auditLogRepository, onPremGuard, "");
+                new CloudPilotLicenseService(licenseSubscriptionPort, auditLogRepository, onPremGuard, tenantZoneResolver, "");
 
             assertThatThrownBy(() -> onPremService.grantPilotLicense(TARGET_TENANT_ID))
                 .isInstanceOf(ApiException.class)
@@ -356,7 +359,7 @@ class CloudPilotLicenseServiceTest {
             PilotLicenseModeGuard lowerGuard =
                 new PilotLicenseModeGuard(pilotLicenseProperties, "hosted");
             CloudPilotLicenseService lowerService =
-                new CloudPilotLicenseService(licenseSubscriptionPort, auditLogRepository, lowerGuard, "");
+                new CloudPilotLicenseService(licenseSubscriptionPort, auditLogRepository, lowerGuard, tenantZoneResolver, "");
             when(licenseSubscriptionPort.findSubscription(TARGET_TENANT_ID))
                 .thenReturn(Optional.empty());
 

@@ -60,7 +60,7 @@ class CloudPilotLicenseControllerTest {
         loginAs("ROLE_PLATFORM_ADMIN");
         CloudPilotLicenseController controller =
                 new CloudPilotLicenseController(cloudPilotLicenseService, guard(true, "HOSTED"));
-        when(cloudPilotLicenseService.grantPilotLicense(TENANT_ID, null))
+        when(cloudPilotLicenseService.grantPilotLicense(TENANT_ID, null, null))
                 .thenReturn(new CloudPilotLicenseService.PilotLicenseResult(
                         TENANT_ID, "TRIAL", Instant.parse("2027-09-03T08:00:00Z")));
 
@@ -77,7 +77,7 @@ class CloudPilotLicenseControllerTest {
         java.util.Map<String, Object> body =
                 java.util.Map.of("trialEndsAt", "2027-09-30T21:00:00Z");
         Instant requested = Instant.parse("2027-09-30T21:00:00Z");
-        when(cloudPilotLicenseService.grantPilotLicense(TENANT_ID, requested))
+        when(cloudPilotLicenseService.grantPilotLicense(TENANT_ID, requested, null))
                 .thenReturn(new CloudPilotLicenseService.PilotLicenseResult(
                         TENANT_ID, "TRIAL", requested));
 

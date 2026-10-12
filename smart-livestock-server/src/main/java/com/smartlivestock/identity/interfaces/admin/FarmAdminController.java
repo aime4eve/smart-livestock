@@ -112,7 +112,9 @@ public class FarmAdminController {
                 name,
                 toBigDecimal(body.get("latitude")),
                 toBigDecimal(body.get("longitude")),
-                toBigDecimal(body.get("areaHectares"))
+                toBigDecimal(body.get("areaHectares")),
+                null,
+                (String) body.get("timezone")
         );
         var farmDto = farmApplicationService.createFarm(tenantId, command, null);
 
@@ -122,7 +124,8 @@ public class FarmAdminController {
                 "name", farmDto.name() != null ? farmDto.name() : "",
                 "latitude", farmDto.latitude() != null ? farmDto.latitude() : BigDecimal.ZERO,
                 "longitude", farmDto.longitude() != null ? farmDto.longitude() : BigDecimal.ZERO,
-                "areaHectares", farmDto.areaHectares() != null ? farmDto.areaHectares() : BigDecimal.ZERO
+                "areaHectares", farmDto.areaHectares() != null ? farmDto.areaHectares() : BigDecimal.ZERO,
+                "timezone", farmDto.timezone() != null ? farmDto.timezone() : ""
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(data));
     }

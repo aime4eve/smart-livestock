@@ -22,6 +22,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class DatagenDataQueryService {
 
+    private final com.smartlivestock.identity.application.TenantZoneResolver tenantZoneResolver;
     private final DatagenDeviceAssignmentRepository assignmentRepository;
 
     @PersistenceContext
@@ -34,11 +35,13 @@ public class DatagenDataQueryService {
                 .toList();
     }
 
-    /** Local-midnight "today" start in the caller's timezone (null → UTC). */
-    public Instant todayStart(Integer tzOffsetMinutes) {
-        ZoneId zone = tzOffsetMinutes == null
-                ? ZoneOffset.UTC
-                : ZoneOffset.ofTotalSeconds(tzOffsetMinutes * 60);
+    /**
+     * Local-midnight "today" start. Tenant timezone anchors the day boundary
+     * (ruling 2026-10-12); the caller's device offset is honored only while
+     * the tenant still sits on the migration default UTC.
+     */
+    public Instant todayStart(Long farmId, Integer tzOffsetMinutes) {
+        ZoneId zone = tenantZoneResolver.zoneForFarm(farmId, tzOffsetMinutes);
         return Instant.now().atZone(zone).toLocalDate()
                 .atStartOfDay(zone).toInstant();
     }

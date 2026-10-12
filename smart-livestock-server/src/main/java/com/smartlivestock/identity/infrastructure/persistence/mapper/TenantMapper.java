@@ -17,6 +17,7 @@ public final class TenantMapper {
         jpa.setPhase(tenant.getPhase().name());
         jpa.setType(tenant.getType());
         jpa.setBillingModel(tenant.getBillingModel());
+        jpa.setTimezone(tenant.getTimezone());
         return jpa;
     }
 
@@ -29,6 +30,7 @@ public final class TenantMapper {
         tenant.reconstitutePhase(TenantPhase.valueOf(jpa.getPhase()));
         tenant.setType(jpa.getType());
         tenant.setBillingModel(jpa.getBillingModel());
+        tenant.setTimezone(jpa.getTimezone());
         return tenant;
     }
 
@@ -39,5 +41,6 @@ public final class TenantMapper {
         jpa.setPhase(tenant.getPhase().name());
         jpa.setType(tenant.getType());
         jpa.setBillingModel(tenant.getBillingModel());
+        jpa.setTimezone(tenant.getTimezone());
     }
 }

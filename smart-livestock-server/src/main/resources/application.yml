@@ -193,6 +193,11 @@ smartlivestock:
   # Hosted pilot-license API toggle (consumed by the licensing application layer).
   pilot-license:
     enabled: ${SMARTLIVESTOCK_PILOT_LICENSE_ENABLED:true}
+  # Platform default timezone — the last level of the chain farm → tenant →
+  # platform default (ruling 2026-10-12). Empty = unset: requests carrying the
+  # client device offset keep the pre-tenant behavior, then plain UTC.
+  timezone:
+    default: ${SMARTLIVESTOCK_DEFAULT_TIMEZONE:}
   # Platform-wide fixed free-trial deadline (ruling 2026-10-12). Every free
   # trial/pilot grant (pilot endpoint + self-service registration) ends at this
   # shared instant: 2027-10-01 00:00 Kenya (EAT, UTC+3) = 2027-09-30T21:00:00Z.

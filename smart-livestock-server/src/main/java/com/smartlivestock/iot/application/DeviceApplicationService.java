@@ -40,6 +40,7 @@ public class DeviceApplicationService {
     private final AgenticPlatformDeviceClient platformDeviceClient;
     private final AgenticPlatformLicenseClient platformLicenseClient;
     private final InstallationApplicationService installationApplicationService;
+    private final com.smartlivestock.identity.application.TenantZoneResolver tenantZoneResolver;
 
     /** Platform device type code mapping (local DeviceType → platform code). */
     private static final Map<DeviceType, String> PLATFORM_TYPE_CODES = Map.of(
@@ -303,6 +304,18 @@ public class DeviceApplicationService {
      * is set; runtimeStatus is synced when available. Throws ApiException on failure.
      */
     private void activateOnPlatform(Device device) {
+        // Blade X-TimeZone convention (ruling 2026-10-12): register under the
+        // device's tenant timezone. Shared threads — always clear.
+        com.smartlivestock.iot.infrastructure.client.agenticplatform.AgenticPlatformTimeZoneContext
+                .set(tenantZoneResolver.zoneForTenantStrict(device.getTenantId()).getId());
+        try {
+            activateOnPlatformInternal(device);
+        } finally {
+            com.smartlivestock.iot.infrastructure.client.agenticplatform.AgenticPlatformTimeZoneContext.clear();
+        }
+    }
+
+    private void activateOnPlatformInternal(Device device) {
         String eui = device.getDevEui();
 
         // 方式二：EUI reverse lookup (only when devEui is present)

@@ -7,7 +7,8 @@ public record TenantDto(
         String name,
         String contactName,
         String contactPhone,
-        String phase
+        String phase,
+        String timezone
 ) {
     public static TenantDto from(Tenant tenant) {
         return new TenantDto(
@@ -15,7 +16,8 @@ public record TenantDto(
                 tenant.getName(),
                 tenant.getContactName(),
                 tenant.getContactPhone(),
-                tenant.getPhase().name()
+                tenant.getPhase().name(),
+                tenant.getTimezone()
         );
     }
 }

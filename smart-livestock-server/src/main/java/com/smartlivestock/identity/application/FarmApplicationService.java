@@ -23,6 +23,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FarmApplicationService {
 
+    private final com.smartlivestock.identity.application.TenantZoneResolver tenantZoneResolver;
+
     private final FarmRepository farmRepository;
     private final SpringDataFarmRepository persistenceContext;
     private final TenantRepository tenantRepository;
@@ -37,7 +39,11 @@ public class FarmApplicationService {
             throw new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "租户不存在: " + tenantId);
         }
         Farm farm = new Farm(tenantId, command.name(), command.latitude(), command.longitude(), command.areaHectares());
+        if (command.timezone() != null && !command.timezone().isBlank()) {
+            farm.setTimezone(TenantApplicationService.normalizeTimezone(command.timezone()));
+        }
         Farm saved = farmRepository.save(farm);
+        tenantZoneResolver.evictFarm(saved.getId());
         signalRevisionService.ensureFarm(saved.getId());
 
         if (userId != null) {
@@ -50,7 +56,8 @@ public class FarmApplicationService {
                     command.boundaryVertices().stream().map(v -> v.longitude()).toList());
         }
 
-        return FarmDto.from(saved);
+        return FarmDto.from(saved, tenantZoneResolver.zoneForFarm(saved.getId(), null)
+                .getRules().getOffset(java.time.Instant.now()).getTotalSeconds() / 60);
     }
 
     public void triggerTileDetection(Long farmId, String farmName,
@@ -76,7 +83,8 @@ public class FarmApplicationService {
     public FarmDto getFarm(Long id) {
         Farm farm = farmRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "牧场不存在: " + id));
-        return FarmDto.from(farm);
+        return FarmDto.from(farm, tenantZoneResolver.zoneForFarm(farm.getId(), null)
+                .getRules().getOffset(java.time.Instant.now()).getTotalSeconds() / 60);
     }
 
     @Transactional(readOnly = true)
@@ -102,6 +110,7 @@ public class FarmApplicationService {
 
     @Transactional
     public FarmDto updateFarmEntity(Farm farm) {
+        tenantZoneResolver.evictFarm(farm.getId());
         // Fetch existing JPA entity to preserve createdAt/updatedAt
         var jpaEntities = persistenceContext.findAllById(java.util.List.of(farm.getId()));
         if (jpaEntities.isEmpty()) {
@@ -114,6 +123,7 @@ public class FarmApplicationService {
         existing.setAreaHectares(farm.getAreaHectares());
         existing.setUpdatedAt(java.time.Instant.now());
         var saved = persistenceContext.save(existing);
-        return FarmDto.from(FarmMapper.toDomain(saved));
+        return FarmDto.from(FarmMapper.toDomain(saved), tenantZoneResolver.zoneForFarm(saved.getId(), null)
+                .getRules().getOffset(java.time.Instant.now()).getTotalSeconds() / 60);
     }
 }

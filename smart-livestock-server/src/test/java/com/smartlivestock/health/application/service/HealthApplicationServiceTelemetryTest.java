@@ -56,6 +56,7 @@ class HealthApplicationServiceTelemetryTest {
     @BeforeEach
     void setUp() {
         service = new HealthApplicationService(
+                org.mockito.Mockito.mock(com.smartlivestock.identity.application.TenantZoneResolver.class),
                 snapshotRepo, tempLogRepo, motilityLogRepo, activityLogRepo,
                 estrusScoreRepo, contactTraceRepo,
                 ranchQueryPort, ranchCommandPort,

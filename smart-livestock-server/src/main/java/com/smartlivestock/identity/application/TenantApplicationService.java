@@ -10,15 +10,29 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZoneId;
+
 @Service
 @RequiredArgsConstructor
 public class TenantApplicationService {
 
     private final TenantRepository tenantRepository;
+    private final TenantZoneResolver tenantZoneResolver;
+
+    /** Validates an IANA timezone name; blank → null (inherit next level in the chain). */
+    public static String normalizeTimezone(String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        try {
+            return ZoneId.of(raw.trim()).getId();
+        } catch (Exception e) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "tenant.invalidTimezone", new Object[]{raw});
+        }
+    }
 
     @Transactional
     public TenantDto createTenant(CreateTenantCommand command) {
         Tenant tenant = new Tenant(command.name(), command.contactName(), command.contactPhone());
+        tenant.setTimezone(normalizeTimezone(command.timezone()));
         Tenant saved = tenantRepository.save(tenant);
         return TenantDto.from(saved);
     }
@@ -32,12 +46,19 @@ public class TenantApplicationService {
 
     @Transactional
     public TenantDto updateTenant(Long id, String name, String contactName, String contactPhone) {
+        return updateTenant(id, name, contactName, contactPhone, null);
+    }
+
+    @Transactional
+    public TenantDto updateTenant(Long id, String name, String contactName, String contactPhone, String timezone) {
         Tenant tenant = tenantRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "租户不存在: " + id));
         if (name != null) tenant.setName(name);
         if (contactName != null) tenant.setContactName(contactName);
         if (contactPhone != null) tenant.setContactPhone(contactPhone);
+        if (timezone != null) tenant.setTimezone(normalizeTimezone(timezone));
         Tenant saved = tenantRepository.save(tenant);
+        tenantZoneResolver.evictTenant(id);
         return TenantDto.from(saved);
     }
 

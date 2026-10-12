@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class HealthApplicationService {
 
+    private final com.smartlivestock.identity.application.TenantZoneResolver tenantZoneResolver;
     private final HealthSnapshotRepository snapshotRepo;
     private final TemperatureLogRepository tempLogRepo;
     private final RumenMotilityLogRepository motilityLogRepo;
@@ -70,14 +71,14 @@ public class HealthApplicationService {
     private static final BigDecimal MAX_PLAUSIBLE_TEMP = new BigDecimal("43.0");
 
     /**
-     * Resolves the caller's timezone for day/hour bucketing. Callers pass
-     * their device UTC offset (`tzOffsetMinutes`, e.g. 480 for UTC+8) so
-     * buckets follow the user's local calendar; absent that, buckets are
-     * plain UTC. No server-side default timezone.
+     * Resolves the bucketing timezone for day/hour grouping. Priority
+     * (ruling 2026-10-12): the farm's tenant timezone anchors the calendar;
+     * the client's device offset (`tzOffsetMinutes`, e.g. 480 for UTC+8) is
+     * only honored while the tenant still sits on the migration default UTC;
+     * otherwise plain UTC.
      */
-    private static java.time.ZoneId bucketZone(Integer tzOffsetMinutes) {
-        if (tzOffsetMinutes == null) return java.time.ZoneOffset.UTC;
-        return java.time.ZoneOffset.ofTotalSeconds(tzOffsetMinutes * 60);
+    private java.time.ZoneId bucketZone(Long farmId, Integer tzOffsetMinutes) {
+        return tenantZoneResolver.zoneForFarm(farmId, tzOffsetMinutes);
     }
 
     // ── Telemetry Processing (IoT → Health) ────────────────────
@@ -835,7 +836,7 @@ public class HealthApplicationService {
         if (!subscriptionPort.hasFeature("health_score")) {
             return List.of();
         }
-        java.time.ZoneId zone = bucketZone(tzOffsetMinutes);
+        java.time.ZoneId zone = bucketZone(farmId, tzOffsetMinutes);
         int retentionDays = Math.min(subscriptionPort.getRetentionDays("health_score"), 7);
         Instant now = Instant.now();
         List<TemperatureLog> logs = tempLogRepo.findByLivestockIdAndTimeRange(
@@ -867,7 +868,7 @@ public class HealthApplicationService {
         if (!subscriptionPort.hasFeature("health_score")) {
             return List.of();
         }
-        java.time.ZoneId zone = bucketZone(tzOffsetMinutes);
+        java.time.ZoneId zone = bucketZone(farmId, tzOffsetMinutes);
         Instant now = Instant.now();
         List<RumenMotilityLog> logs = motilityLogRepo.findByLivestockIdAndTimeRange(
                 livestockId, now.minus(Duration.ofHours(24)), now);

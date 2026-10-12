@@ -13,6 +13,7 @@ public class Tenant extends AggregateRoot {
     private TenantPhase phase;
     private String type;
     private String billingModel;
+    private String timezone = "UTC";
 
     public Tenant() {
         this.phase = TenantPhase.SAMPLE;
@@ -53,4 +54,7 @@ public class Tenant extends AggregateRoot {
 
     public String getBillingModel() { return billingModel; }
     public void setBillingModel(String billingModel) { this.billingModel = billingModel; }
+
+    public String getTimezone() { return timezone; }
+    public void setTimezone(String timezone) { this.timezone = timezone; }
 }

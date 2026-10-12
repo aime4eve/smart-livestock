@@ -78,14 +78,27 @@ public class CloudPilotLicenseController {
         requirePlatformAdmin();
         modeGuard.requireHostedPilotEnabled();
 
-        CloudPilotLicenseService.PilotLicenseResult result =
-            cloudPilotLicenseService.grantPilotLicense(tenantId, parseRequestedDeadline(body));
+        CloudPilotLicenseService.PilotLicenseResult result = cloudPilotLicenseService.grantPilotLicense(
+                tenantId, parseRequestedDeadline(body), parseRequestedLocalDate(body));
 
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("tenantId", result.tenantId() != null ? String.valueOf(result.tenantId()) : null);
         data.put("status", result.status());
         data.put("trialEndsAt", result.trialEndsAt() != null ? result.trialEndsAt().toString() : null);
         return ResponseEntity.ok(ApiResponse.ok(data));
+    }
+
+    /** Operator-local calendar date ("2027-10-01"); converted via the tenant's own timezone. */
+    private java.time.LocalDate parseRequestedLocalDate(Map<String, Object> body) {
+        if (body == null) return null;
+        Object raw = body.get("localDate");
+        if (raw == null || raw.toString().isBlank()) return null;
+        try {
+            return java.time.LocalDate.parse(raw.toString().trim());
+        } catch (Exception e) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                    "license.pilot.invalidLocalDate", new Object[]{raw.toString()});
+        }
     }
 
     private Instant parseRequestedDeadline(Map<String, Object> body) {
