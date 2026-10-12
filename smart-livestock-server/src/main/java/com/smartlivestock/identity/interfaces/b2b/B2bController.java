@@ -215,6 +215,8 @@ public class B2bController {
             item.put("latitude", farm.latitude());
             item.put("longitude", farm.longitude());
             item.put("areaHectares", farm.areaHectares());
+            item.put("timezone", farm.timezone());
+            item.put("utcOffsetMinutes", farm.utcOffsetMinutes());
             items.add(item);
         }
 

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/utils/timezone_options.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
@@ -78,6 +80,7 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
               ),
               onChangeOwner: () => _showChangeOwnerDialog(farm),
               onEditName: () => _showEditNameDialog(farm),
+              onSetTimezone: () => _showSetTimezoneDialog(farm),
             )),
         ],
       ),
@@ -276,6 +279,98 @@ class _B2bFarmListPageState extends ConsumerState<B2bFarmListPage> {
   }
 
   // ── Edit name dialog ───────────────────────────────────────
+
+  void _showSetTimezoneDialog(B2bFarmSummary farm) {
+    String? selected = farm.timezone;
+    bool saving = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          key: Key('b2b-set-timezone-dialog-\${farm.id}'),
+          title: const Text('设置时区'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(farm.name,
+                  style: Theme.of(context).textTheme.titleSmall),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                key: const Key('b2b-set-timezone-dropdown'),
+                initialValue: selected,
+                decoration: const InputDecoration(
+                  labelText: '所在时区',
+                  helperText: '留空跟随租户/平台默认；影响牧场的时间显示与按日统计',
+                ),
+                items: [null, ...kTimezoneOptions.map((o) => o.name)]
+                    .map((tz) => DropdownMenuItem<String>(
+                          value: tz,
+                          child: Text(tz == null
+                              ? '未设置（跟随租户）'
+                              : kTimezoneOptions
+                                  .firstWhere((o) => o.name == tz,
+                                      orElse: () => TimezoneOption(tz, 0, tz))
+                                  .label),
+                        ))
+                    .toList(),
+                onChanged: (v) => setDialogState(() => selected = v),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: saving ? null : () => Navigator.pop(ctx),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              key: const Key('b2b-set-timezone-confirm'),
+              onPressed: saving
+                  ? null
+                  : () async {
+                      setDialogState(() => saving = true);
+                      final messenger = ScaffoldMessenger.of(context);
+                      try {
+                        await ApiClient.instance.put('/farms/${farm.id}',
+                            body: {'timezone': selected});
+                        if (!context.mounted) return;
+                        navigatorPop(ctx);
+                        messenger.showSnackBar(const SnackBar(
+                          content: Text('时区已更新'),
+                          backgroundColor: Color(0xFF2E7D32),
+                        ));
+                        refreshFarms();
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        navigatorPop(ctx);
+                        messenger.showSnackBar(SnackBar(
+                          content: Text('更新失败: $e'),
+                          backgroundColor: const Color(0xFFD32F2F),
+                        ));
+                      }
+                    },
+              child: saving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Text('保存'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void navigatorPop(BuildContext ctx) => Navigator.of(ctx).pop();
+
+  /// Reloads the dashboard-backed farm list after a timezone change.
+  void refreshFarms() {
+    ref.invalidate(b2bDashboardControllerProvider);
+  }
 
   void _showEditNameDialog(B2bFarmSummary farm) {
     final l10n = AppLocalizations.of(context)!;
@@ -501,12 +596,14 @@ class _FarmCard extends StatelessWidget {
     required this.onTap,
     required this.onChangeOwner,
     required this.onEditName,
+    required this.onSetTimezone,
   });
 
   final B2bFarmSummary farm;
   final VoidCallback onTap;
   final VoidCallback onChangeOwner;
   final VoidCallback onEditName;
+  final VoidCallback onSetTimezone;
 
   @override
   Widget build(BuildContext context) {
@@ -592,6 +689,9 @@ class _FarmCard extends StatelessWidget {
                           case 'edit_name':
                             onEditName();
                             break;
+                          case 'set_timezone':
+                            onSetTimezone();
+                            break;
                           case 'view_workers':
                             onTap();
                             break;
@@ -625,6 +725,16 @@ class _FarmCard extends StatelessWidget {
                               Icon(Icons.edit_outlined, size: 18, color: AppColors.textSecondary),
                               SizedBox(width: 8),
                               Text('编辑名称'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'set_timezone',
+                          child: Row(
+                            children: [
+                              Icon(Icons.schedule_outlined, size: 18, color: AppColors.textSecondary),
+                              SizedBox(width: 8),
+                              Text('设置时区'),
                             ],
                           ),
                         ),
