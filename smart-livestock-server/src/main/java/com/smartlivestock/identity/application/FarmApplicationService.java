@@ -122,6 +122,7 @@ public class FarmApplicationService {
         existing.setLatitude(farm.getLatitude());
         existing.setLongitude(farm.getLongitude());
         existing.setAreaHectares(farm.getAreaHectares());
+        existing.setTimezone(farm.getTimezone());
         existing.setUpdatedAt(java.time.Instant.now());
         var saved = persistenceContext.save(existing);
         return FarmDto.from(FarmMapper.toDomain(saved), tenantZoneResolver.zoneForFarm(saved.getId(), null)
