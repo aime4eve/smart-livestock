@@ -201,6 +201,71 @@ class CloudPilotLicenseServiceTest {
                 .isThrownBy(() -> new CloudPilotLicenseService(
                     licenseSubscriptionPort, auditLogRepository, guard(), "not-a-date"));
         }
+
+        @Test
+        void requestedDeadline_noSubscription_createsTrialAtRequestedEnd() {
+            // Follow-up ruling 2026-10-12: the operator can give one tenant its
+            // own deadline; it is stored on that tenant's subscription row.
+            Instant requested = Instant.parse("2027-09-30T21:00:00Z");
+            when(licenseSubscriptionPort.findSubscription(TARGET_TENANT_ID))
+                .thenReturn(Optional.empty());
+
+            CloudPilotLicenseService.PilotLicenseResult result =
+                service.grantPilotLicense(TARGET_TENANT_ID, requested);
+
+            verify(licenseSubscriptionPort).applyTrialLicense(TARGET_TENANT_ID, requested);
+            assertThat(result.trialEndsAt()).isEqualTo(requested);
+            ArgumentCaptor<AuditLog> auditCaptor = ArgumentCaptor.forClass(AuditLog.class);
+            verify(auditLogRepository).save(auditCaptor.capture());
+            assertThat(auditCaptor.getValue().getDetails())
+                .containsEntry("deadlineSource", "REQUESTED");
+        }
+
+        @Test
+        void requestedDeadline_laterCurrentTrial_convergesToRequestedEnd() {
+            Instant currentEnd = Instant.now().plus(Duration.ofDays(400));
+            Instant requested = Instant.parse("2027-09-30T21:00:00Z");
+            when(licenseSubscriptionPort.findSubscription(TARGET_TENANT_ID))
+                .thenReturn(Optional.of(snapshot(SubscriptionStatus.TRIAL, currentEnd, true)));
+
+            CloudPilotLicenseService.PilotLicenseResult result =
+                service.grantPilotLicense(TARGET_TENANT_ID, requested);
+
+            verify(licenseSubscriptionPort).applyTrialLicense(TARGET_TENANT_ID, requested);
+            assertThat(result.trialEndsAt()).isEqualTo(requested);
+        }
+
+        @Test
+        void requestedDeadline_inPast_rejectedAsValidationError() {
+            Instant past = Instant.now().minus(Duration.ofDays(1));
+
+            assertThatThrownBy(() -> service.grantPilotLicense(TARGET_TENANT_ID, past))
+                .isInstanceOf(ApiException.class)
+                .satisfies(ex -> {
+                    ApiException apiEx = (ApiException) ex;
+                    assertThat(apiEx.getCode()).isEqualTo(ErrorCode.VALIDATION_ERROR);
+                    assertThat(apiEx.getMessage()).isEqualTo("license.pilot.deadlineInPast");
+                });
+
+            verify(licenseSubscriptionPort, never()).applyTrialLicense(anyLong(), any(Instant.class));
+        }
+
+        @Test
+        void configuredDeadline_auditRecordsConfiguredSource() {
+            Instant deadline = Instant.parse("2027-09-30T21:00:00Z");
+            CloudPilotLicenseService fixedService = new CloudPilotLicenseService(
+                licenseSubscriptionPort, auditLogRepository, guard(), "2027-09-30T21:00:00Z");
+            when(licenseSubscriptionPort.findSubscription(TARGET_TENANT_ID))
+                .thenReturn(Optional.empty());
+
+            fixedService.grantPilotLicense(TARGET_TENANT_ID);
+
+            verify(licenseSubscriptionPort).applyTrialLicense(TARGET_TENANT_ID, deadline);
+            ArgumentCaptor<AuditLog> auditCaptor = ArgumentCaptor.forClass(AuditLog.class);
+            verify(auditLogRepository).save(auditCaptor.capture());
+            assertThat(auditCaptor.getValue().getDetails())
+                .containsEntry("deadlineSource", "CONFIGURED");
+        }
     }
 
     // ── Rejection paths ──────────────────────────────────────────────

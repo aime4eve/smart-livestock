@@ -67,20 +67,44 @@ public class CloudPilotLicenseService {
     }
 
     /**
-     * Grant (or align) the pilot trial for the target tenant.
-     *
-     * @param targetTenantId tenant receiving the pilot license
-     * @return result describing the resulting subscription state
-     * @throws ApiException AUTH_FORBIDDEN when not HOSTED/disabled,
-     *                      STATE_CONFLICT when the current subscription state
-     *                      forbids a pilot grant
+     * Grant (or align) the pilot trial using the platform default deadline.
      */
     public PilotLicenseResult grantPilotLicense(Long targetTenantId) {
+        return grantPilotLicense(targetTenantId, null);
+    }
+
+    /**
+     * Grant (or align) the pilot trial for the target tenant.
+     *
+     * @param targetTenantId       tenant receiving the pilot license
+     * @param requestedTrialEndsAt operator-specified deadline; when present it
+     *                             overrides the platform default and is stored
+     *                             on THIS tenant's subscription row (per-tenant
+     *                             deadline, ruling follow-up 2026-10-12). Must
+     *                             be in the future.
+     * @return result describing the resulting subscription state
+     * @throws ApiException AUTH_FORBIDDEN when not HOSTED/disabled,
+     *                      VALIDATION_ERROR when the requested deadline is in
+     *                      the past, STATE_CONFLICT when the current
+     *                      subscription state forbids a pilot grant
+     */
+    public PilotLicenseResult grantPilotLicense(Long targetTenantId, Instant requestedTrialEndsAt) {
         modeGuard.requireHostedPilotEnabled();
         Long operatorId = requireCurrentUserId();
 
-        Instant pilotEndsAt = configuredTrialEndsAt
-                .orElseGet(() -> Instant.now().plus(Duration.ofDays(PILOT_TRIAL_DAYS)));
+        String deadlineSource;
+        final Instant pilotEndsAt;
+        if (requestedTrialEndsAt != null) {
+            if (!requestedTrialEndsAt.isAfter(Instant.now())) {
+                throw new ApiException(ErrorCode.VALIDATION_ERROR, "license.pilot.deadlineInPast");
+            }
+            pilotEndsAt = requestedTrialEndsAt;
+            deadlineSource = "REQUESTED";
+        } else {
+            pilotEndsAt = configuredTrialEndsAt
+                    .orElseGet(() -> Instant.now().plus(Duration.ofDays(PILOT_TRIAL_DAYS)));
+            deadlineSource = configuredTrialEndsAt.isPresent() ? "CONFIGURED" : "ROLLING";
+        }
 
         LicenseSubscriptionPort.LicenseSubscriptionSnapshot snapshot =
             licenseSubscriptionPort.findSubscription(targetTenantId).orElse(null);
@@ -90,21 +114,23 @@ public class CloudPilotLicenseService {
             audit(operatorId, targetTenantId, EVENT_PILOT_LICENSE_GRANT, Map.of(
                 "tenantId", targetTenantId,
                 "trialEndsAt", pilotEndsAt.toString(),
+                "deadlineSource", deadlineSource,
                 "previousStatus", "NONE"));
             return new PilotLicenseResult(targetTenantId, STATUS_TRIAL, pilotEndsAt);
         }
 
         if (STATUS_TRIAL.equals(snapshot.status()) && snapshot.trialActive()) {
-            // Fixed deadline wins even when the current trial ends later: the
-            // ruling demands one shared campaign end for every free grant.
-            Instant newTrialEndsAt = configuredTrialEndsAt
-                .orElseGet(() -> snapshot.trialEndsAt() != null
-                    && snapshot.trialEndsAt().isAfter(pilotEndsAt)
-                    ? snapshot.trialEndsAt() : pilotEndsAt);
+            // A fixed deadline (explicit or platform default) wins even when the
+            // current trial ends later: grants converge to one shared end.
+            Instant newTrialEndsAt = deadlineSource.equals("ROLLING")
+                && snapshot.trialEndsAt() != null
+                && snapshot.trialEndsAt().isAfter(pilotEndsAt)
+                ? snapshot.trialEndsAt() : pilotEndsAt;
             licenseSubscriptionPort.applyTrialLicense(targetTenantId, newTrialEndsAt);
             audit(operatorId, targetTenantId, EVENT_PILOT_LICENSE_GRANT, Map.of(
                 "tenantId", targetTenantId,
                 "trialEndsAt", newTrialEndsAt.toString(),
+                "deadlineSource", deadlineSource,
                 "previousStatus", STATUS_TRIAL));
             return new PilotLicenseResult(targetTenantId, STATUS_TRIAL, newTrialEndsAt);
         }

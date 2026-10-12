@@ -11,9 +11,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -37,9 +40,20 @@ import java.util.Map;
  *     "trialEndsAt": "2027-09-03T08:00:00Z"
  *   }
  * }
+ * Optional request body (follow-up to ruling 2026-10-12):
+ * {
+ *   "trialEndsAt": "2027-09-30T21:00:00Z"   // ISO-8601 UTC, must be future
+ * }
+ * - Provided → per-tenant deadline stored on this tenant's subscription row
+ *   (audit deadlineSource=REQUESTED); Kenya example: 2027-10-01 00:00 EAT.
+ * - Absent   → platform default smartlivestock.trial.ends-at (CONFIGURED),
+ *              or legacy rolling now+365d when unconfigured (ROLLING).
  * Rejections:
  * - 403 AUTH_FORBIDDEN  — not platform_admin, or ONPREM/pilot disabled
  *                         (message key license.pilot.modeForbidden)
+ * - 400 VALIDATION_ERROR — trialEndsAt unparseable
+ *                         (license.pilot.invalidDeadline) or in the past
+ *                         (license.pilot.deadlineInPast)
  * - 409 STATE_CONFLICT  — subscription exists in a state other than an
  *                         active TRIAL (message key
  *                         license.pilot.stateConflict, arg = current status)
@@ -55,22 +69,39 @@ public class CloudPilotLicenseController {
 
     /**
      * POST /api/v1/admin/tenants/{tenantId}/pilot-license
-     * Grant (or extend) the 365-day hosted pilot trial for the tenant.
+     * Grant (or align) the hosted pilot trial; optional per-tenant deadline.
      */
     @PostMapping("/{tenantId}/pilot-license")
     public ResponseEntity<ApiResponse<Map<String, Object>>> grantPilotLicense(
-            @PathVariable Long tenantId) {
+            @PathVariable Long tenantId,
+            @RequestBody(required = false) Map<String, Object> body) {
         requirePlatformAdmin();
         modeGuard.requireHostedPilotEnabled();
 
         CloudPilotLicenseService.PilotLicenseResult result =
-            cloudPilotLicenseService.grantPilotLicense(tenantId);
+            cloudPilotLicenseService.grantPilotLicense(tenantId, parseRequestedDeadline(body));
 
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("tenantId", result.tenantId() != null ? String.valueOf(result.tenantId()) : null);
         data.put("status", result.status());
         data.put("trialEndsAt", result.trialEndsAt() != null ? result.trialEndsAt().toString() : null);
         return ResponseEntity.ok(ApiResponse.ok(data));
+    }
+
+    private Instant parseRequestedDeadline(Map<String, Object> body) {
+        if (body == null) {
+            return null;
+        }
+        Object raw = body.get("trialEndsAt");
+        if (raw == null || raw.toString().isBlank()) {
+            return null;
+        }
+        try {
+            return Instant.parse(raw.toString().trim());
+        } catch (DateTimeParseException e) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                    "license.pilot.invalidDeadline", new Object[]{raw.toString()});
+        }
     }
 
     private void requirePlatformAdmin() {

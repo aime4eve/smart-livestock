@@ -1,6 +1,6 @@
 # 租户开通操作指南(HOSTED 云端)
 
-> 版本:v2.0(2026-10-12)
+> 版本:v2.1(2026-10-12):S4 支持按租户指定截止日(可选参数)
 > 适用:为 HOSTED 云端客户开通独立租户。首个应用案例:肯尼亚客户。
 > 前置事实源:`docs/reference/deployment.md`(环境/凭据)、`docs/deployment/release-install-guide.md`(授权模式)。
 
@@ -66,19 +66,26 @@ curl -sk -X POST "$BASE/api/v1/admin/users" \
 - 手机号全局唯一,重复返回 `DUPLICATE_RESOURCE`。
 - 角色取值见用户管理模块(牧场管理员用 `FARM_ADMIN`);不传 `password` 则为默认值,正式交付必须显式设置强密码。
 
-### S4. 授予云端试点授权(统一截止日)
+### S4. 授予云端试点授权
 
 ```bash
+# 方式一:平台默认截止日(smartlivestock.trial.ends-at,当前=2027-10-01 00:00 肯尼亚时间)
 curl -sk -X POST "$BASE/api/v1/admin/tenants/$TENANT_ID/pilot-license" \
   -H "Authorization: Bearer $TOKEN"
+
+# 方式二:按租户指定截止日(可选参数,ISO-8601 UTC,必须晚于当前时刻)
+curl -sk -X POST "$BASE/api/v1/admin/tenants/$TENANT_ID/pilot-license" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"trialEndsAt":"2027-09-30T21:00:00Z"}'
 # 返回 {"tenantId":..,"status":"TRIAL","trialEndsAt":"2027-09-30T21:00:00Z"}
 ```
 
-- 该端点把订阅置为 `TRIAL`(有效能力档位 = PREMIUM 全功能,即"免费到统一截止日"),并写审计日志(`PILOT_LICENSE_GRANT`)。
-- **到期时间 = `smartlivestock.trial.ends-at` 配置值,全平台统一**;若该租户已有更晚的 TRIAL,重调本端点会收敛回统一截止日。
-- 不再需要任何 SQL 校准(v1.0 的 S5 步骤已随统一截止日实现废止)。
+- 该端点把订阅置为 `TRIAL`(有效能力档位 = PREMIUM 全功能),并写审计日志(`PILOT_LICENSE_GRANT`,含 `deadlineSource` 字段:REQUESTED=运营指定 / CONFIGURED=平台默认 / ROLLING=滚动365天)。
+- **截止日优先级:请求显式指定 > 平台默认配置 > 滚动 365 天**。无论哪种,最终值都落在该租户自己的订阅行(`subscriptions.trial_ends_at`,数据库存储、租户隔离)。
+- 时区换算:客户当地 2027-10-01 00:00(肯尼亚 EAT=UTC+3)→ 传 `2027-09-30T21:00:00Z`。
+- 若该租户已有更晚的 TRIAL,重调本端点会收敛到目标截止日;存量旧规则租户同样重调一次即对齐。
+- 校验失败返回 400(`license.pilot.invalidDeadline` 格式错 / `license.pilot.deadlineInPast` 过去时刻)。
 - 授权/拒绝均落 `audit_logs`,事后可追溯。
-- 存量收敛:改造前按旧 365 天规则授予的 TRIAL 租户,重调一次本端点即对齐统一截止日。
 
 ### S5. 初始牧场(可选)
 
