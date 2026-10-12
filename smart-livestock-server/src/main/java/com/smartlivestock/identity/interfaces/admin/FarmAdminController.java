@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -61,17 +62,18 @@ public class FarmAdminController {
                             .map(t -> t.getName())
                             .orElse("");
                     long userCount = userRepository.findByTenantId(f.getTenantId()).size();
-                    return Map.<String, Object>of(
-                            "id", String.valueOf(f.getId()),
-                            "tenantId", String.valueOf(f.getTenantId()),
-                            "tenantName", tenantName,
-                            "name", f.getName() != null ? f.getName() : "",
-                            "status", "active",
-                            "livestockCount", 0,
-                            "deviceCount", 0,
-                            "userCount", userCount,
-                            "createdAt", f.getCreatedAt() != null ? f.getCreatedAt().toString() : ""
-                    );
+                    Map<String, Object> item = new LinkedHashMap<>();
+                    item.put("id", String.valueOf(f.getId()));
+                    item.put("tenantId", String.valueOf(f.getTenantId()));
+                    item.put("tenantName", tenantName);
+                    item.put("name", f.getName() != null ? f.getName() : "");
+                    item.put("status", "active");
+                    item.put("livestockCount", 0);
+                    item.put("deviceCount", 0);
+                    item.put("userCount", userCount);
+                    item.put("timezone", f.getTimezone());
+                    item.put("createdAt", f.getCreatedAt() != null ? f.getCreatedAt().toString() : "");
+                    return item;
                 })
                 .toList();
 

@@ -90,7 +90,8 @@ public class FarmApplicationService {
     @Transactional(readOnly = true)
     public List<FarmDto> listFarms(Long tenantId) {
         return farmRepository.findByTenantId(tenantId).stream()
-                .map(FarmDto::from)
+                .map(farm -> FarmDto.from(farm, tenantZoneResolver.zoneForFarm(farm.getId(), null)
+                        .getRules().getOffset(java.time.Instant.now()).getTotalSeconds() / 60))
                 .toList();
     }
 
