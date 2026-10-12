@@ -24,6 +24,8 @@ class TenantSummary {
     this.userCount = 0,
     this.deviceCount = 0,
     this.createdAt,
+    this.timezone,
+    this.utcOffsetMinutes,
   });
 
   final String id;
@@ -36,6 +38,8 @@ class TenantSummary {
   final int userCount;
   final int deviceCount;
   final String? createdAt;
+  final String? timezone;
+  final int? utcOffsetMinutes;
 }
 
 class TenantDetail {
@@ -52,6 +56,8 @@ class TenantDetail {
     this.activeLicenseCount = 0,
     this.createdAt,
     this.updatedAt,
+    this.timezone,
+    this.utcOffsetMinutes,
   });
 
   final String id;
@@ -66,6 +72,8 @@ class TenantDetail {
   final int activeLicenseCount;
   final String? createdAt;
   final String? updatedAt;
+  final String? timezone;
+  final int? utcOffsetMinutes;
 }
 
 // --- User ---

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
+import 'package:hkt_livestock_agentic/core/utils/timezone_options.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
@@ -32,6 +34,7 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
   final _mapController = MapController();
   LatLng _selectedCenter = MapConfig.defaultCenter;
   bool _submitting = false;
+  late String? _timezone = optionForOffset(activeTzOffsetMinutes())?.name;
   SmartTileProvider? _tileProvider;
   bool _tileProviderInitialized = false;
 
@@ -77,6 +80,7 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
           'latitude': _selectedCenter.latitude,
           'longitude': _selectedCenter.longitude,
           if (area != null) 'areaHectares': area,
+          if (_timezone != null) 'timezone': _timezone,
         },
       );
 
@@ -153,6 +157,18 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
                 hintText: '选填，例如：120.5',
                 border: OutlineInputBorder(),
               ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            DropdownButtonFormField<String>(
+              key: const Key('farm-creation-timezone'),
+              initialValue: _timezone,
+              decoration: const InputDecoration(
+                labelText: '所在时区（选填）',
+                helperText: '留空跟随租户/平台默认；影响牧场的时间显示与按日统计',
+                border: OutlineInputBorder(),
+              ),
+              items: timezoneDropdownItems(selected: _timezone),
+              onChanged: (v) => setState(() => _timezone = v),
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(

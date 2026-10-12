@@ -5805,5 +5805,13 @@
   "tenantPilotGrantSuccessPrefix": "试点授权成功,到期:",
   "@tenantPilotGrantSuccessPrefix": {},
   "tenantPilotGrantFailedPrefix": "授权失败:",
-  "@tenantPilotGrantFailedPrefix": {}
+  "@tenantPilotGrantFailedPrefix": {},
+  "tenantTimezoneLabel": "所在时区",
+  "@tenantTimezoneLabel": {},
+  "tenantTimezoneHelper": "该租户所有时间显示与按日统计的基准；留空跟随平台默认",
+  "@tenantTimezoneHelper": {},
+  "tenantPilotDeadlineNone": "试点截止日：平台统一推广期(点击选择)",
+  "@tenantPilotDeadlineNone": {},
+  "tenantPilotDeadlineChosen": "试点截止日：{date}（{tz} 当地 00:00）",
+  "@tenantPilotDeadlineChosen": {"placeholders": {"date": {"type": "String"}, "tz": {"type": "String"}}}
 }

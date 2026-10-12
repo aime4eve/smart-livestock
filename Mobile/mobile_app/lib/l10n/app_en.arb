@@ -5808,5 +5808,13 @@
   "tenantPilotGrantSuccessPrefix": "Pilot granted, expires at:",
   "@tenantPilotGrantSuccessPrefix": {},
   "tenantPilotGrantFailedPrefix": "Grant failed:",
-  "@tenantPilotGrantFailedPrefix": {}
+  "@tenantPilotGrantFailedPrefix": {},
+  "tenantTimezoneLabel": "Timezone",
+  "@tenantTimezoneLabel": {},
+  "tenantTimezoneHelper": "Anchors time display and daily statistics for this tenant; blank = platform default",
+  "@tenantTimezoneHelper": {},
+  "tenantPilotDeadlineNone": "Pilot end: platform campaign date (tap to pick)",
+  "@tenantPilotDeadlineNone": {},
+  "tenantPilotDeadlineChosen": "Pilot end: {date} ({tz} local midnight)",
+  "@tenantPilotDeadlineChosen": {"placeholders": {"date": {"type": "String"}, "tz": {"type": "String"}}}
 }

@@ -13448,6 +13448,30 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'授权失败:'**
   String get tenantPilotGrantFailedPrefix;
+
+  /// No description provided for @tenantTimezoneLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'所在时区'**
+  String get tenantTimezoneLabel;
+
+  /// No description provided for @tenantTimezoneHelper.
+  ///
+  /// In zh, this message translates to:
+  /// **'该租户所有时间显示与按日统计的基准；留空跟随平台默认'**
+  String get tenantTimezoneHelper;
+
+  /// No description provided for @tenantPilotDeadlineNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'试点截止日：平台统一推广期(点击选择)'**
+  String get tenantPilotDeadlineNone;
+
+  /// No description provided for @tenantPilotDeadlineChosen.
+  ///
+  /// In zh, this message translates to:
+  /// **'试点截止日：{date}（{tz} 当地 00:00）'**
+  String tenantPilotDeadlineChosen(String date, String tz);
 }
 
 class _AppLocalizationsDelegate

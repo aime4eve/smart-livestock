@@ -7471,4 +7471,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tenantPilotGrantFailedPrefix => 'Grant failed:';
+
+  @override
+  String get tenantTimezoneLabel => 'Timezone';
+
+  @override
+  String get tenantTimezoneHelper =>
+      'Anchors time display and daily statistics for this tenant; blank = platform default';
+
+  @override
+  String get tenantPilotDeadlineNone =>
+      'Pilot end: platform campaign date (tap to pick)';
+
+  @override
+  String tenantPilotDeadlineChosen(String date, String tz) {
+    return 'Pilot end: $date ($tz local midnight)';
+  }
 }

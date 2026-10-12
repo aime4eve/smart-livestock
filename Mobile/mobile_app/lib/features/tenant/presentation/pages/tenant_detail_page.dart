@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/utils/timezone_options.dart';
 import 'package:hkt_livestock_agentic/features/admin/domain/admin_repository.dart';
 import 'package:hkt_livestock_agentic/features/admin/presentation/admin_controller.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
@@ -18,6 +19,7 @@ class TenantDetailPage extends ConsumerStatefulWidget {
 class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
   TenantDetail? _tenant;
   List<UserSummary> _users = [];
+  String? get _tenantTimezone => _tenant?.timezone;
   bool _loading = true;
   String? _error;
 
@@ -120,6 +122,19 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                   Text('联系人: ${tenant.contactName}'),
                 if (tenant.contactPhone != null)
                   Text('联系电话: ${tenant.contactPhone}'),
+                Row(
+                  children: [
+                    Text('时区: ${tenant.timezone ?? "未设置(跟随平台默认)"}'),
+                    const SizedBox(width: AppSpacing.sm),
+                    IconButton(
+                      key: const Key('tenant-edit-timezone'),
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(Icons.edit, size: 16),
+                      onPressed: () => _showEditTimezoneDialog(context),
+                      tooltip: '修改时区',
+                    ),
+                  ],
+                ),
                 Text('阶段: ${tenant.phase ?? "-"}'),
                 Text(
                     '牧场: ${tenant.farmCount} · 用户: ${tenant.userCount} · 设备: ${tenant.deviceCount}'),
@@ -192,9 +207,85 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
     );
   }
 
+  void _showEditTimezoneDialog(BuildContext context) {
+    String? selected = _tenantTimezone;
+    bool saving = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          key: const Key('edit-timezone-dialog'),
+          title: const Text('修改时区'),
+          content: DropdownButtonFormField<String>(
+            key: const Key('edit-timezone-dropdown'),
+            initialValue: selected,
+            decoration: const InputDecoration(labelText: '所在时区'),
+            items: [null, ...kTimezoneOptions.map((o) => o.name)]
+                .map((tz) => DropdownMenuItem<String>(
+                      value: tz,
+                      child: Text(tz == null
+                          ? '未设置(跟随平台默认)'
+                          : kTimezoneOptions
+                              .firstWhere((o) => o.name == tz,
+                                  orElse: () => TimezoneOption(tz, 0, tz))
+                              .label),
+                    ))
+                .toList(),
+            onChanged: (v) => setDialogState(() => selected = v),
+          ),
+          actions: [
+            TextButton(
+              onPressed: saving ? null : () => Navigator.pop(ctx),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              key: const Key('edit-timezone-confirm'),
+              onPressed: saving
+                  ? null
+                  : () async {
+                      setDialogState(() => saving = true);
+                      final messenger = ScaffoldMessenger.of(context);
+                      final navigator = Navigator.of(ctx);
+                      try {
+                        await ref.read(adminRepositoryProvider).updateTenant(
+                              widget.id,
+                              {'timezone': selected},
+                            );
+                        if (!context.mounted) return;
+                        navigator.pop();
+                        messenger.showSnackBar(const SnackBar(
+                          content: Text('时区已更新'),
+                          backgroundColor: Color(0xFF2E7D32),
+                        ));
+                        _loadData();
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        navigator.pop();
+                        messenger.showSnackBar(SnackBar(
+                          content: Text('更新失败: $e'),
+                          backgroundColor: const Color(0xFFD32F2F),
+                        ));
+                      }
+                    },
+              child: saving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Text('保存'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showGrantPilotDialog(BuildContext context) {
     final formKey = GlobalKey<FormState>();
-    final deadlineCtrl = TextEditingController();
+    DateTime? selectedDate;
     bool granting = false;
 
     showDialog(
@@ -213,26 +304,27 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                   Text(AppLocalizations.of(context)!.tenantPilotDialogDesc,
                       style: Theme.of(ctx).textTheme.bodySmall),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  ListTile(
                     key: const Key('grant-pilot-deadline'),
-                    controller: deadlineCtrl,
-                    decoration: InputDecoration(
-                      labelText:
-                          AppLocalizations.of(context)!.tenantPilotDeadlineLabel,
-                      hintText:
-                          AppLocalizations.of(context)!.tenantPilotDeadlineHint,
-                      helperText:
-                          AppLocalizations.of(context)!.tenantPilotDeadlineHelper,
-                    ),
-                    validator: (v) {
-                      final raw = v?.trim() ?? '';
-                      if (raw.isEmpty) return null; // blank = platform default
-                      final parsed = DateTime.tryParse(raw);
-                      if (parsed == null) {
-                        return AppLocalizations.of(context)!
-                            .tenantPilotDeadlineInvalid;
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.event),
+                    title: Text(selectedDate == null
+                        ? AppLocalizations.of(context)!.tenantPilotDeadlineNone
+                        : AppLocalizations.of(context)!.tenantPilotDeadlineChosen(
+                            selectedDate!.toIso8601String().substring(0, 10),
+                            _tenantTimezone ?? 'UTC')),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () async {
+                      final now = DateTime.now();
+                      final picked = await showDatePicker(
+                        context: ctx,
+                        initialDate: now.add(const Duration(days: 365)),
+                        firstDate: now,
+                        lastDate: now.add(const Duration(days: 365 * 5)),
+                      );
+                      if (picked != null) {
+                        setDialogState(() => selectedDate = picked);
                       }
-                      return null;
                     },
                   ),
                 ],
@@ -251,7 +343,7 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                   : () => _handleGrantPilot(
                         ctx,
                         formKey,
-                        deadlineCtrl,
+                        selectedDate,
                         () => setDialogState(() => granting = true),
                         () => setDialogState(() => granting = false),
                       ),
@@ -273,7 +365,7 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
   Future<void> _handleGrantPilot(
     BuildContext dialogCtx,
     GlobalKey<FormState> formKey,
-    TextEditingController deadlineCtrl,
+    DateTime? selectedDate,
     VoidCallback setGranting,
     VoidCallback clearGranting,
   ) async {
@@ -282,11 +374,12 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
     final l10n = AppLocalizations.of(context)!;
     final navigator = Navigator.of(dialogCtx);
     final messenger = ScaffoldMessenger.of(context);
-    final raw = deadlineCtrl.text.trim();
     try {
       final grant = await ref
           .read(adminRepositoryProvider)
-          .grantPilotLicense(widget.id, raw.isEmpty ? null : raw);
+          .grantPilotLicense(
+              widget.id,
+              selectedDate?.toIso8601String().substring(0, 10));
       if (!mounted) return;
       navigator.pop();
       messenger.showSnackBar(SnackBar(

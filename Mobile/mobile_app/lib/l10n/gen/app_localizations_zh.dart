@@ -7299,4 +7299,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tenantPilotGrantFailedPrefix => '授权失败:';
+
+  @override
+  String get tenantTimezoneLabel => '所在时区';
+
+  @override
+  String get tenantTimezoneHelper => '该租户所有时间显示与按日统计的基准；留空跟随平台默认';
+
+  @override
+  String get tenantPilotDeadlineNone => '试点截止日：平台统一推广期(点击选择)';
+
+  @override
+  String tenantPilotDeadlineChosen(String date, String tz) {
+    return '试点截止日：$date（$tz 当地 00:00）';
+  }
 }

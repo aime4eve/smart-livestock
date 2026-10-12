@@ -55,10 +55,10 @@ class AdminApiRepository implements AdminRepository {
   }
 
   @override
-  Future<PilotLicenseGrant> grantPilotLicense(String tenantId, String? trialEndsAt) async {
+  Future<PilotLicenseGrant> grantPilotLicense(String tenantId, String? localDate) async {
     final body = <String, dynamic>{};
-    if (trialEndsAt != null && trialEndsAt.trim().isNotEmpty) {
-      body['trialEndsAt'] = trialEndsAt.trim();
+    if (localDate != null && localDate.trim().isNotEmpty) {
+      body['localDate'] = localDate.trim();
     }
     final data = await ApiClient.instance
         .post('/admin/tenants/$tenantId/pilot-license', body: body);
@@ -222,6 +222,8 @@ class AdminApiRepository implements AdminRepository {
       userCount: m['userCount'] as int? ?? 0,
       deviceCount: m['deviceCount'] as int? ?? 0,
       createdAt: m['createdAt'] as String?,
+      timezone: m['timezone'] as String?,
+      utcOffsetMinutes: m['utcOffsetMinutes'] as int?,
     );
   }
 
@@ -240,6 +242,8 @@ class AdminApiRepository implements AdminRepository {
       activeLicenseCount: m['activeLicenseCount'] as int? ?? 0,
       createdAt: m['createdAt'] as String?,
       updatedAt: m['updatedAt'] as String?,
+      timezone: m['timezone'] as String?,
+      utcOffsetMinutes: m['utcOffsetMinutes'] as int?,
     );
   }
 
