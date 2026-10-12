@@ -78,7 +78,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsTimeZoneDesc => '中国时区使用高德地图，其他时区使用 OpenStreetMap';
 
   @override
-  String get settingsTimeZoneSystem => '跟随系统';
+  String get settingsTimeZoneSystem => '自动（跟随牧场）';
 
   @override
   String get settingsTimeZoneChina => '中国标准时间（北京时间）';

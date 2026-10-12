@@ -13,6 +13,7 @@ import 'package:hkt_livestock_agentic/core/api/jwt_storage.dart';
 import 'package:hkt_livestock_agentic/core/database/app_database.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/timezone/time_zone_controller.dart';
+import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
 
 SemanticsHandle? _webSemanticsHandle;
 
@@ -45,6 +46,10 @@ void main() async {
   // Restore persisted time zone so map tile source choice survives restart.
   final initialTimeZoneId = await TimeZoneController.restore();
   debugPrint('boot: time zone restored ($initialTimeZoneId)');
+  // Manual user choice outranks the farm chain (ruling 2026-10-12); null
+  // keeps the farm chain in charge.
+  setUserOverrideOffsetMinutes(
+      initialTimeZoneId == null ? null : timeZoneStandardOffsets[initialTimeZoneId]);
 
   debugPrint('boot: runApp');
   runApp(

@@ -79,7 +79,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'China time zones use AMap tiles; others use OpenStreetMap';
 
   @override
-  String get settingsTimeZoneSystem => 'Follow system';
+  String get settingsTimeZoneSystem => 'Automatic (follow farm)';
 
   @override
   String get settingsTimeZoneChina => 'China Standard Time (Beijing)';

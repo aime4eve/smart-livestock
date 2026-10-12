@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
 
 /// Persisted client time-zone preference (null = follow system).
 final initialTimeZoneIdProvider = Provider<String?>((ref) => null);
@@ -34,6 +35,17 @@ const timeZonePickerOptions = <String?>[
   'Australia/Sydney',
 ];
 
+/// Standard UTC offsets (minutes) for the curated picker ids. DST shifts are
+/// not reflected — the curated list matches the settings UI semantics.
+const timeZoneStandardOffsets = <String, int>{
+  'Asia/Shanghai': 480,
+  'Asia/Hong_Kong': 480,
+  'UTC': 0,
+  'Europe/London': 0,
+  'America/New_York': -300,
+  'Australia/Sydney': 600,
+};
+
 class TimeZoneController extends Notifier<String?> {
   static const _prefsKey = 'app_time_zone';
 
@@ -50,9 +62,11 @@ class TimeZoneController extends Notifier<String?> {
     return prefs.getString(_prefsKey);
   }
 
-  /// Sets the time zone and persists it. Null = follow system.
+  /// Sets the time zone and persists it. Null = 跟随牧场/系统 (the farm →
+  /// tenant → platform chain drives presentation again, ruling 2026-10-12).
   Future<void> setTimeZone(String? id) async {
     state = id;
+    setUserOverrideOffsetMinutes(id == null ? null : timeZoneStandardOffsets[id]);
     final prefs = await SharedPreferences.getInstance();
     if (id != null) {
       await prefs.setString(_prefsKey, id);

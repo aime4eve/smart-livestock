@@ -239,7 +239,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsTimeZoneSystem.
   ///
   /// In zh, this message translates to:
-  /// **'跟随系统'**
+  /// **'自动（跟随牧场）'**
   String get settingsTimeZoneSystem;
 
   /// No description provided for @settingsTimeZoneChina.

@@ -45,7 +45,7 @@
   "@settingsTimeZone": {},
   "settingsTimeZoneDesc": "China time zones use AMap tiles; others use OpenStreetMap",
   "@settingsTimeZoneDesc": {},
-  "settingsTimeZoneSystem": "Follow system",
+  "settingsTimeZoneSystem": "Automatic (follow farm)",
   "@settingsTimeZoneSystem": {},
   "settingsTimeZoneChina": "China Standard Time (Beijing)",
   "@settingsTimeZoneChina": {},

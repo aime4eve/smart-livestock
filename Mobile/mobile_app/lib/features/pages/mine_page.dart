@@ -6,6 +6,7 @@ import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:hkt_livestock_agentic/core/l10n/locale_controller.dart';
 import 'package:hkt_livestock_agentic/core/timezone/time_zone_controller.dart';
+import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
@@ -256,7 +257,16 @@ class MinePage extends ConsumerWidget {
       currentLabel = l10n.settingsLanguageEn;
     }
     final timeZoneId = ref.watch(timeZoneControllerProvider);
-    final timeZoneLabel = _timeZoneLabel(l10n, timeZoneId);
+    // 跟随系统时,时间呈现实际由 活跃牧场(→租户)链 决定 —— 展示真实生效来源
+    final activeFarm = ref.watch(farmSwitcherControllerProvider).farms
+        .where((f) => f.id == ref.watch(farmSwitcherControllerProvider).activeFarmId)
+        .toList();
+    final activeTz = activeFarm.isEmpty ? null : activeFarm.first.timezone;
+    final timeZoneLabel = timeZoneId == null
+        ? (activeTz == null
+            ? l10n.settingsTimeZoneSystem
+            : '${l10n.settingsTimeZoneSystem} · $activeTz')
+        : _timeZoneLabel(l10n, timeZoneId);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

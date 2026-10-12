@@ -133,7 +133,7 @@ class FarmSwitcherController extends Notifier<FarmSwitcherState> {
 
   void _applyPresentationOffset(List<FarmInfo> farms, String? activeFarmId) {
     final active = farms.where((f) => f.id == activeFarmId).toList();
-    setTenantOffsetMinutes(active.isEmpty ? null : active.first.utcOffsetMinutes);
+    setFarmChainOffsetMinutes(active.isEmpty ? null : active.first.utcOffsetMinutes);
   }
 }
 
