@@ -55,6 +55,21 @@ class AdminApiRepository implements AdminRepository {
   }
 
   @override
+  Future<PilotLicenseGrant> grantPilotLicense(String tenantId, String? trialEndsAt) async {
+    final body = <String, dynamic>{};
+    if (trialEndsAt != null && trialEndsAt.trim().isNotEmpty) {
+      body['trialEndsAt'] = trialEndsAt.trim();
+    }
+    final data = await ApiClient.instance
+        .post('/admin/tenants/$tenantId/pilot-license', body: body);
+    return PilotLicenseGrant(
+      tenantId: data['tenantId']?.toString() ?? tenantId,
+      status: data['status'] as String? ?? '',
+      trialEndsAt: data['trialEndsAt']?.toString() ?? '',
+    );
+  }
+
+  @override
   Future<TenantSummary> updateTenant(String tenantId, Map<String, dynamic> body) async {
     final data = await ApiClient.instance.put('/admin/tenants/$tenantId', body: body);
     return _parseTenantSummary(data);

@@ -128,6 +128,29 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
           ),
           const SizedBox(height: AppSpacing.lg),
 
+          // --- Pilot license (ruling 2026-10-12: per-tenant deadline) ---
+          HighfiCard(
+            key: const Key('tenant-detail-pilot'),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l10n.tenantPilotCardTitle,
+                    style: theme.textTheme.titleSmall),
+                const SizedBox(height: AppSpacing.xs),
+                Text(l10n.tenantPilotCardDesc,
+                    style: theme.textTheme.bodySmall),
+                const SizedBox(height: AppSpacing.sm),
+                FilledButton.icon(
+                  key: const Key('tenant-detail-pilot-grant'),
+                  onPressed: () => _showGrantPilotDialog(context),
+                  icon: const Icon(Icons.verified),
+                  label: Text(l10n.tenantPilotGrantButton),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+
           // --- User list ---
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -167,6 +190,121 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
         ),
       ),
     );
+  }
+
+  void _showGrantPilotDialog(BuildContext context) {
+    final formKey = GlobalKey<FormState>();
+    final deadlineCtrl = TextEditingController();
+    bool granting = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          key: const Key('grant-pilot-dialog'),
+          title: Text(AppLocalizations.of(context)!.tenantPilotDialogTitle),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(AppLocalizations.of(context)!.tenantPilotDialogDesc,
+                      style: Theme.of(ctx).textTheme.bodySmall),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    key: const Key('grant-pilot-deadline'),
+                    controller: deadlineCtrl,
+                    decoration: InputDecoration(
+                      labelText:
+                          AppLocalizations.of(context)!.tenantPilotDeadlineLabel,
+                      hintText:
+                          AppLocalizations.of(context)!.tenantPilotDeadlineHint,
+                      helperText:
+                          AppLocalizations.of(context)!.tenantPilotDeadlineHelper,
+                    ),
+                    validator: (v) {
+                      final raw = v?.trim() ?? '';
+                      if (raw.isEmpty) return null; // blank = platform default
+                      final parsed = DateTime.tryParse(raw);
+                      if (parsed == null) {
+                        return AppLocalizations.of(context)!
+                            .tenantPilotDeadlineInvalid;
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: granting ? null : () => Navigator.pop(ctx),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              key: const Key('grant-pilot-confirm'),
+              onPressed: granting
+                  ? null
+                  : () => _handleGrantPilot(
+                        ctx,
+                        formKey,
+                        deadlineCtrl,
+                        () => setDialogState(() => granting = true),
+                        () => setDialogState(() => granting = false),
+                      ),
+              child: granting
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    )
+                  : Text(AppLocalizations.of(context)!.tenantPilotGrantButton),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleGrantPilot(
+    BuildContext dialogCtx,
+    GlobalKey<FormState> formKey,
+    TextEditingController deadlineCtrl,
+    VoidCallback setGranting,
+    VoidCallback clearGranting,
+  ) async {
+    if (!formKey.currentState!.validate()) return;
+    setGranting();
+    final l10n = AppLocalizations.of(context)!;
+    final navigator = Navigator.of(dialogCtx);
+    final messenger = ScaffoldMessenger.of(context);
+    final raw = deadlineCtrl.text.trim();
+    try {
+      final grant = await ref
+          .read(adminRepositoryProvider)
+          .grantPilotLicense(widget.id, raw.isEmpty ? null : raw);
+      if (!mounted) return;
+      navigator.pop();
+      messenger.showSnackBar(SnackBar(
+        key: const Key('grant-pilot-success'),
+        content: Text('${l10n.tenantPilotGrantSuccessPrefix}${grant.trialEndsAt}'),
+        backgroundColor: const Color(0xFF2E7D32),
+      ));
+    } catch (e) {
+      if (!mounted) return;
+      navigator.pop();
+      messenger.showSnackBar(SnackBar(
+        key: const Key('grant-pilot-error'),
+        content: Text('${l10n.tenantPilotGrantFailedPrefix} $e'),
+        backgroundColor: const Color(0xFFD32F2F),
+      ));
+    } finally {
+      clearGranting();
+    }
   }
 
   void _showCreateUserDialog(BuildContext context) {

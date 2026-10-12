@@ -7236,4 +7236,67 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get healthDrinkingLayerBaseline => '基线 ✓';
+
+  @override
+  String get tenantCreateTitle => '创建租户';
+
+  @override
+  String get tenantCreateNameLabel => '名称 *';
+
+  @override
+  String get tenantCreateNameHint => '请输入租户名称';
+
+  @override
+  String get tenantCreateNameRequired => '名称不能为空';
+
+  @override
+  String get tenantCreateContactNameLabel => '联系人';
+
+  @override
+  String get tenantCreateContactPhoneLabel => '联系电话';
+
+  @override
+  String get tenantCreateSubmit => '创建';
+
+  @override
+  String get tenantCreateSuccess => '租户创建成功';
+
+  @override
+  String get tenantCreateFailed => '创建失败:';
+
+  @override
+  String get tenantPilotCardTitle => '云端试点授权';
+
+  @override
+  String get tenantPilotCardDesc =>
+      '将本租户订阅置为试用(TRIAL,全功能)。默认截止日为平台统一推广期;可按租户指定截止日。';
+
+  @override
+  String get tenantPilotGrantButton => '授予试点授权';
+
+  @override
+  String get tenantPilotDialogTitle => '授予云端试点授权';
+
+  @override
+  String get tenantPilotDialogDesc =>
+      '截止日留空则使用平台默认(当前推广期统一截止 2027-10-01 肯尼亚时间);填写则本租户按指定日期到期。';
+
+  @override
+  String get tenantPilotDeadlineLabel => '截止时刻(可选,UTC)';
+
+  @override
+  String get tenantPilotDeadlineHint => '如 2027-09-30T21:00:00Z';
+
+  @override
+  String get tenantPilotDeadlineHelper =>
+      '肯尼亚 2027-10-01 00:00 = 2027-09-30T21:00:00Z(UTC+3)';
+
+  @override
+  String get tenantPilotDeadlineInvalid => '格式无效,请输入 ISO-8601 UTC 时刻';
+
+  @override
+  String get tenantPilotGrantSuccessPrefix => '试点授权成功,到期:';
+
+  @override
+  String get tenantPilotGrantFailedPrefix => '授权失败:';
 }

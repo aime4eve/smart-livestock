@@ -13328,6 +13328,126 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'基线 ✓'**
   String get healthDrinkingLayerBaseline;
+
+  /// No description provided for @tenantCreateTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建租户'**
+  String get tenantCreateTitle;
+
+  /// No description provided for @tenantCreateNameLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'名称 *'**
+  String get tenantCreateNameLabel;
+
+  /// No description provided for @tenantCreateNameHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入租户名称'**
+  String get tenantCreateNameHint;
+
+  /// No description provided for @tenantCreateNameRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'名称不能为空'**
+  String get tenantCreateNameRequired;
+
+  /// No description provided for @tenantCreateContactNameLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'联系人'**
+  String get tenantCreateContactNameLabel;
+
+  /// No description provided for @tenantCreateContactPhoneLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'联系电话'**
+  String get tenantCreateContactPhoneLabel;
+
+  /// No description provided for @tenantCreateSubmit.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建'**
+  String get tenantCreateSubmit;
+
+  /// No description provided for @tenantCreateSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'租户创建成功'**
+  String get tenantCreateSuccess;
+
+  /// No description provided for @tenantCreateFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建失败:'**
+  String get tenantCreateFailed;
+
+  /// No description provided for @tenantPilotCardTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'云端试点授权'**
+  String get tenantPilotCardTitle;
+
+  /// No description provided for @tenantPilotCardDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'将本租户订阅置为试用(TRIAL,全功能)。默认截止日为平台统一推广期;可按租户指定截止日。'**
+  String get tenantPilotCardDesc;
+
+  /// No description provided for @tenantPilotGrantButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'授予试点授权'**
+  String get tenantPilotGrantButton;
+
+  /// No description provided for @tenantPilotDialogTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'授予云端试点授权'**
+  String get tenantPilotDialogTitle;
+
+  /// No description provided for @tenantPilotDialogDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'截止日留空则使用平台默认(当前推广期统一截止 2027-10-01 肯尼亚时间);填写则本租户按指定日期到期。'**
+  String get tenantPilotDialogDesc;
+
+  /// No description provided for @tenantPilotDeadlineLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'截止时刻(可选,UTC)'**
+  String get tenantPilotDeadlineLabel;
+
+  /// No description provided for @tenantPilotDeadlineHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'如 2027-09-30T21:00:00Z'**
+  String get tenantPilotDeadlineHint;
+
+  /// No description provided for @tenantPilotDeadlineHelper.
+  ///
+  /// In zh, this message translates to:
+  /// **'肯尼亚 2027-10-01 00:00 = 2027-09-30T21:00:00Z(UTC+3)'**
+  String get tenantPilotDeadlineHelper;
+
+  /// No description provided for @tenantPilotDeadlineInvalid.
+  ///
+  /// In zh, this message translates to:
+  /// **'格式无效,请输入 ISO-8601 UTC 时刻'**
+  String get tenantPilotDeadlineInvalid;
+
+  /// No description provided for @tenantPilotGrantSuccessPrefix.
+  ///
+  /// In zh, this message translates to:
+  /// **'试点授权成功,到期:'**
+  String get tenantPilotGrantSuccessPrefix;
+
+  /// No description provided for @tenantPilotGrantFailedPrefix.
+  ///
+  /// In zh, this message translates to:
+  /// **'授权失败:'**
+  String get tenantPilotGrantFailedPrefix;
 }
 
 class _AppLocalizationsDelegate

@@ -7407,4 +7407,68 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get healthDrinkingLayerBaseline => 'Baseline ✓';
+
+  @override
+  String get tenantCreateTitle => 'Create Tenant';
+
+  @override
+  String get tenantCreateNameLabel => 'Name *';
+
+  @override
+  String get tenantCreateNameHint => 'Enter tenant name';
+
+  @override
+  String get tenantCreateNameRequired => 'Name is required';
+
+  @override
+  String get tenantCreateContactNameLabel => 'Contact name';
+
+  @override
+  String get tenantCreateContactPhoneLabel => 'Contact phone';
+
+  @override
+  String get tenantCreateSubmit => 'Create';
+
+  @override
+  String get tenantCreateSuccess => 'Tenant created';
+
+  @override
+  String get tenantCreateFailed => 'Create failed:';
+
+  @override
+  String get tenantPilotCardTitle => 'Cloud Pilot License';
+
+  @override
+  String get tenantPilotCardDesc =>
+      'Sets this tenant\'s subscription to TRIAL (full capability). Leaves at the platform campaign deadline by default; a per-tenant deadline can be specified.';
+
+  @override
+  String get tenantPilotGrantButton => 'Grant Pilot License';
+
+  @override
+  String get tenantPilotDialogTitle => 'Grant Cloud Pilot License';
+
+  @override
+  String get tenantPilotDialogDesc =>
+      'Leave the deadline blank to use the platform default (campaign ends 2027-10-01 Kenya time); fill it in to end this tenant\'s trial at a specific instant.';
+
+  @override
+  String get tenantPilotDeadlineLabel => 'Deadline (optional, UTC)';
+
+  @override
+  String get tenantPilotDeadlineHint => 'e.g. 2027-09-30T21:00:00Z';
+
+  @override
+  String get tenantPilotDeadlineHelper =>
+      'Kenya 2027-10-01 00:00 = 2027-09-30T21:00:00Z (UTC+3)';
+
+  @override
+  String get tenantPilotDeadlineInvalid =>
+      'Invalid format, expect an ISO-8601 UTC instant';
+
+  @override
+  String get tenantPilotGrantSuccessPrefix => 'Pilot granted, expires at:';
+
+  @override
+  String get tenantPilotGrantFailedPrefix => 'Grant failed:';
 }

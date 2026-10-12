@@ -1,5 +1,17 @@
 // --- Tenant ---
 
+/// Result of granting the hosted cloud pilot license (ruling 2026-10-12).
+class PilotLicenseGrant {
+  const PilotLicenseGrant({
+    required this.tenantId,
+    required this.status,
+    required this.trialEndsAt,
+  });
+  final String tenantId;
+  final String status;
+  final String trialEndsAt;
+}
+
 class TenantSummary {
   const TenantSummary({
     required this.id,
@@ -229,6 +241,7 @@ abstract class AdminRepository {
   Future<AdminListResult<TenantSummary>> loadTenants({int page = 1, int pageSize = 20, String? status, String? keyword});
   Future<TenantDetail> loadTenantDetail(String tenantId);
   Future<TenantSummary> createTenant(Map<String, dynamic> body);
+  Future<PilotLicenseGrant> grantPilotLicense(String tenantId, String? trialEndsAt);
   Future<TenantSummary> updateTenant(String tenantId, Map<String, dynamic> body);
   Future<void> updateTenantStatus(String tenantId, String status);
 
