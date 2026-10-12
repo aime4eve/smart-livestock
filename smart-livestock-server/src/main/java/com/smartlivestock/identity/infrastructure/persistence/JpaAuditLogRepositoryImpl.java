@@ -9,6 +9,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -21,6 +22,11 @@ public class JpaAuditLogRepositoryImpl implements AuditLogRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
+    // Callers write audits outside any transaction (e.g. CloudPilotLicenseService
+    // is deliberately not @Transactional so rejection audits survive the throw);
+    // without this the merge hits "No EntityManager with actual transaction" and
+    // best-effort catch blocks were silently swallowing every audit write.
+    @Transactional
     @Override
     public AuditLog save(AuditLog auditLog) {
         AuditLogJpaEntity saved = entityManager.merge(AuditLogMapper.toJpaEntity(auditLog));
