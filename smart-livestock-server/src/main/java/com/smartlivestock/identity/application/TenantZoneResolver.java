@@ -84,9 +84,10 @@ public class TenantZoneResolver {
         return fallbackZone(clientOffsetMinutes);
     }
 
-    /** Chain with no request context (pilot local-date conversion, X-TimeZone): explicit → platform default → UTC. */
+    /** Chain with no request context (pilot local-date conversion, X-TimeZone): explicit → platform default → UTC. Never null. */
     public ZoneId zoneForTenantStrict(Long tenantId) {
-        return explicitZoneForTenant(tenantId).orElseGet(this::platformDefaultZone);
+        return explicitZoneForTenant(tenantId)
+                .orElseGet(() -> parseOrNull(platformDefaultRaw).orElse(ZoneOffset.UTC));
     }
 
     /** Presentation offset for admin surfaces; follows the strict chain (DST-aware, at now). */
