@@ -32,7 +32,7 @@ class SubscriptionApplicationServiceTest {
     private DomainEventPublisher domainEventPublisher;
 
     private SubscriptionApplicationService createService() {
-        return new SubscriptionApplicationService(subscriptionRepository, domainEventPublisher);
+        return new SubscriptionApplicationService(subscriptionRepository, domainEventPublisher, "");
     }
 
     // ── Test factories ─────────────────────────────────────────────
@@ -86,6 +86,21 @@ class SubscriptionApplicationServiceTest {
             assertThat(result.getTenantId()).isEqualTo(1L);
             verify(subscriptionRepository).save(any());
             verify(domainEventPublisher).publishDomainEvents(any());
+        }
+
+        @Test
+        void noExistingSubscription_fixedDeadlineConfigured_createsTrialAtDeadline() {
+            // Ruling 2026-10-12: self-service trials end at the shared campaign
+            // deadline instead of the rolling now+14d window.
+            when(subscriptionRepository.findByTenantId(1L)).thenReturn(Optional.empty());
+            when(subscriptionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            SubscriptionApplicationService service = new SubscriptionApplicationService(
+                subscriptionRepository, domainEventPublisher, "2026-09-30T21:00:00Z");
+            Subscription result = service.getOrCreateSubscription(1L, "direct");
+
+            assertThat(result.getStatus()).isEqualTo(SubscriptionStatus.TRIAL);
+            assertThat(result.getTrialEndsAt()).isEqualTo(Instant.parse("2026-09-30T21:00:00Z"));
         }
     }
 

@@ -83,6 +83,15 @@ public class DeviceHubProvisioningService {
                 : Map.of("deviceType", command.deviceType().name());
         RegisterDeviceResult result = registerViaHub(eui, command.deviceCode(), capabilities);
 
+        // Global ownership guard (ruling 2026-10-12): an EUI maps 1:1 to exactly
+        // one tenant; a cross-tenant claim (active or soft-deleted) is rejected
+        // before the local creation branch would hit the global unique index.
+        boolean ownedByOtherTenant = deviceRepository.findAllByDevEuiIncludeDeleted(eui).stream()
+                .anyMatch(item -> !tenantId.equals(item.getTenantId()));
+        if (ownedByOtherTenant) {
+            throw new ApiException(ErrorCode.DUPLICATE_RESOURCE,
+                    "error.deviceEuiOwnedByOtherTenant", new Object[]{eui});
+        }
         List<Device> matches = deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted(eui, tenantId);
         Device device = matches.stream().filter(item -> item.getDeletedAt() == null).findFirst().orElse(null);
         boolean softDeleted = matches.stream().anyMatch(item -> item.getDeletedAt() != null);

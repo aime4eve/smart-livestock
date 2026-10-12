@@ -37,6 +37,14 @@ public interface DeviceRepository {
     List<Device> findAllByDevEuiAndTenantIdIncludeDeleted(String devEui, Long tenantId);
 
     /**
+     * Lookup by devEui across ALL tenants including soft-deleted rows.
+     * Device registration/ownership guard (ruling 2026-10-12): an EUI is a
+     * globally unique code and maps 1:1 to exactly one tenant, so creation
+     * paths must reject an EUI already claimed by another tenant.
+     */
+    List<Device> findAllByDevEuiIncludeDeleted(String devEui);
+
+    /**
      * Revive persistence: native UPDATE clearing deleted_at, resetting status to INVENTORY
      * and writing the final deviceCode (must already be checked against the active set).
      * Must run before save() on a soft-deleted row (see Device.restore()).

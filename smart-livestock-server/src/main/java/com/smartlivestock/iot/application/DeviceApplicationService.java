@@ -59,6 +59,16 @@ public class DeviceApplicationService {
         // EUI branch: same devEui = same physical device → revive soft-deleted record;
         // an active record with the same EUI is a business error (not a new device).
         if (devEui != null && !devEui.isBlank()) {
+            // Global ownership guard (ruling 2026-10-12): an EUI is globally unique
+            // and maps 1:1 to exactly one tenant. If any row (active or soft-deleted)
+            // already belongs to another tenant, reject — cross-tenant handover is a
+            // manual operation, never a side effect of registration.
+            boolean ownedByOtherTenant = deviceRepository.findAllByDevEuiIncludeDeleted(devEui).stream()
+                    .anyMatch(device -> !command.tenantId().equals(device.getTenantId()));
+            if (ownedByOtherTenant) {
+                throw new ApiException(ErrorCode.DUPLICATE_RESOURCE,
+                        "error.deviceEuiOwnedByOtherTenant", new Object[]{devEui});
+            }
             List<Device> euiMatches = deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted(
                     devEui, command.tenantId());
             if (!euiMatches.isEmpty()) {
@@ -147,6 +157,14 @@ public class DeviceApplicationService {
         }
 
         // 2. Lookup by EUI within tenant scope, including soft-deleted rows (revive detection)
+        // Global ownership guard first (ruling 2026-10-12): 1:1 EUI↔tenant mapping,
+        // cross-tenant claims are rejected instead of silently creating a second row.
+        boolean ownedByOtherTenant = deviceRepository.findAllByDevEuiIncludeDeleted(eui).stream()
+                .anyMatch(device -> !tenantId.equals(device.getTenantId()));
+        if (ownedByOtherTenant) {
+            throw new ApiException(ErrorCode.DUPLICATE_RESOURCE,
+                    "error.deviceEuiOwnedByOtherTenant", new Object[]{eui});
+        }
         List<Device> existing = deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted(eui, tenantId);
 
         if (!existing.isEmpty()) {

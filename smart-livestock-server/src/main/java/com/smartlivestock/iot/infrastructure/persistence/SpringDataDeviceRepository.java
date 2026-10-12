@@ -76,6 +76,15 @@ public interface SpringDataDeviceRepository extends JpaRepository<DeviceJpaEntit
                                                                    @Param("tenantId") Long tenantId);
 
     /**
+     * Cross-tenant lookup by devEui including soft-deleted rows (native query
+     * bypasses @SQLRestriction). Ownership guard for the creation paths: an
+     * EUI maps 1:1 to exactly one tenant (global unique index uq_devices_eui_global).
+     */
+    @Query(value = "SELECT * FROM devices WHERE lower(dev_eui) = lower(:devEui)",
+           nativeQuery = true)
+    List<DeviceJpaEntity> findAllByDevEuiIncludeDeleted(@Param("devEui") String devEui);
+
+    /**
      * Revive persistence: native UPDATE to clear deleted_at and reset status to INVENTORY.
      * Semantics must stay consistent with {@code Device.restore()} (both reset to INVENTORY).
      * Must run before save() so the merge-internal SELECT can load the row again.

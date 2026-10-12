@@ -4,9 +4,10 @@ import com.smartlivestock.identity.domain.model.AuditLog;
 import com.smartlivestock.identity.domain.repository.AuditLogRepository;
 import com.smartlivestock.licensing.application.port.LicenseSubscriptionPort;
 import com.smartlivestock.shared.common.ApiException;
+import com.smartlivestock.shared.common.ConfiguredTrialEnds;
 import com.smartlivestock.shared.common.ErrorCode;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -15,30 +16,34 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Grants hosted pilot licenses (365-day TRIAL extension) to tenants
- * (design §7, NIX-184).
+ * Grants hosted pilot licenses to tenants (design §7, NIX-184).
  * <p>
  * Rules:
  * <ul>
  *   <li>HOSTED mode + {@code smartlivestock.pilot-license.enabled=true} only.</li>
- *   <li>No subscription: create TRIAL with {@code trialEndsAt = now + 365d}.</li>
- *   <li>Active TRIAL: extend to {@code max(currentTrialEndsAt, now + 365d)}.</li>
+ *   <li>No subscription: create TRIAL with the free-trial deadline.</li>
+ *   <li>Active TRIAL: align to the same deadline.</li>
  *   <li>Any other state: reject with STATE_CONFLICT.</li>
  *   <li>Both grants and rejections are written to the audit log. The service
  *       is intentionally not {@code @Transactional} as a whole so the
  *       rejection audit entry survives the thrown exception; the port adapter
  *       commits its own transaction.</li>
  * </ul>
+ * Free-trial deadline (ruling 2026-10-12): when
+ * {@code smartlivestock.trial.ends-at} is configured, every grant ends at that
+ * shared instant (Kenya campaign: 2027-10-01 00:00 EAT); an already-granted
+ * later trial is converged back to it. When unconfigured, the legacy rolling
+ * now+365d window applies.
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class CloudPilotLicenseService {
 
-    /** Pilot trial duration in days (design §7: now + 365d). */
+    /** Rolling fallback duration (legacy behavior, design §7: now + 365d). */
     static final long PILOT_TRIAL_DAYS = 365;
 
     public static final String EVENT_PILOT_LICENSE_GRANT = "PILOT_LICENSE_GRANT";
@@ -49,9 +54,20 @@ public class CloudPilotLicenseService {
     private final LicenseSubscriptionPort licenseSubscriptionPort;
     private final AuditLogRepository auditLogRepository;
     private final PilotLicenseModeGuard modeGuard;
+    private final Optional<Instant> configuredTrialEndsAt;
+
+    public CloudPilotLicenseService(LicenseSubscriptionPort licenseSubscriptionPort,
+                                    AuditLogRepository auditLogRepository,
+                                    PilotLicenseModeGuard modeGuard,
+                                    @Value("${smartlivestock.trial.ends-at:}") String configuredTrialEndsAt) {
+        this.licenseSubscriptionPort = licenseSubscriptionPort;
+        this.auditLogRepository = auditLogRepository;
+        this.modeGuard = modeGuard;
+        this.configuredTrialEndsAt = ConfiguredTrialEnds.parse(configuredTrialEndsAt);
+    }
 
     /**
-     * Grant (or extend) the 365-day pilot trial for the target tenant.
+     * Grant (or align) the pilot trial for the target tenant.
      *
      * @param targetTenantId tenant receiving the pilot license
      * @return result describing the resulting subscription state
@@ -63,8 +79,8 @@ public class CloudPilotLicenseService {
         modeGuard.requireHostedPilotEnabled();
         Long operatorId = requireCurrentUserId();
 
-        Instant now = Instant.now();
-        Instant pilotEndsAt = now.plus(Duration.ofDays(PILOT_TRIAL_DAYS));
+        Instant pilotEndsAt = configuredTrialEndsAt
+                .orElseGet(() -> Instant.now().plus(Duration.ofDays(PILOT_TRIAL_DAYS)));
 
         LicenseSubscriptionPort.LicenseSubscriptionSnapshot snapshot =
             licenseSubscriptionPort.findSubscription(targetTenantId).orElse(null);
@@ -79,9 +95,12 @@ public class CloudPilotLicenseService {
         }
 
         if (STATUS_TRIAL.equals(snapshot.status()) && snapshot.trialActive()) {
-            Instant newTrialEndsAt = snapshot.trialEndsAt() != null
-                && snapshot.trialEndsAt().isAfter(pilotEndsAt)
-                ? snapshot.trialEndsAt() : pilotEndsAt;
+            // Fixed deadline wins even when the current trial ends later: the
+            // ruling demands one shared campaign end for every free grant.
+            Instant newTrialEndsAt = configuredTrialEndsAt
+                .orElseGet(() -> snapshot.trialEndsAt() != null
+                    && snapshot.trialEndsAt().isAfter(pilotEndsAt)
+                    ? snapshot.trialEndsAt() : pilotEndsAt);
             licenseSubscriptionPort.applyTrialLicense(targetTenantId, newTrialEndsAt);
             audit(operatorId, targetTenantId, EVENT_PILOT_LICENSE_GRANT, Map.of(
                 "tenantId", targetTenantId,

@@ -64,7 +64,8 @@ class CloudPilotLicenseServiceTest {
         pilotLicenseProperties = new PilotLicenseProperties();
         pilotLicenseProperties.setEnabled(true);
         PilotLicenseModeGuard guard = new PilotLicenseModeGuard(pilotLicenseProperties, "HOSTED");
-        service = new CloudPilotLicenseService(licenseSubscriptionPort, auditLogRepository, guard);
+        // Default: no fixed deadline configured → legacy rolling 365d window.
+        service = new CloudPilotLicenseService(licenseSubscriptionPort, auditLogRepository, guard, "");
         authenticateAsPlatformAdmin();
     }
 
@@ -78,6 +79,10 @@ class CloudPilotLicenseServiceTest {
             OPERATOR_USER_ID, "N/A",
             List.of(new SimpleGrantedAuthority("ROLE_PLATFORM_ADMIN")));
         SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+
+    private PilotLicenseModeGuard guard() {
+        return new PilotLicenseModeGuard(pilotLicenseProperties, "HOSTED");
     }
 
     private LicenseSubscriptionPort.LicenseSubscriptionSnapshot snapshot(
@@ -144,7 +149,7 @@ class CloudPilotLicenseServiceTest {
         }
 
         @Test
-        void activeTrialEndingLater_keepsLongerCurrentEnd() {
+        void activeTrialEndingLater_rollingMode_keepsLongerCurrentEnd() {
             Instant currentEnd = Instant.now().plus(Duration.ofDays(400));
             when(licenseSubscriptionPort.findSubscription(TARGET_TENANT_ID))
                 .thenReturn(Optional.of(snapshot(SubscriptionStatus.TRIAL, currentEnd, true)));
@@ -154,6 +159,47 @@ class CloudPilotLicenseServiceTest {
 
             verify(licenseSubscriptionPort).applyTrialLicense(TARGET_TENANT_ID, currentEnd);
             assertThat(result.trialEndsAt()).isEqualTo(currentEnd);
+        }
+
+        @Test
+        void fixedDeadline_configured_noSubscription_createsTrialAtDeadline() {
+            Instant deadline = Instant.parse("2026-09-30T21:00:00Z");
+            CloudPilotLicenseService fixedService = new CloudPilotLicenseService(
+                licenseSubscriptionPort, auditLogRepository, guard(), "2026-09-30T21:00:00Z");
+            when(licenseSubscriptionPort.findSubscription(TARGET_TENANT_ID))
+                .thenReturn(Optional.empty());
+
+            CloudPilotLicenseService.PilotLicenseResult result =
+                fixedService.grantPilotLicense(TARGET_TENANT_ID);
+
+            verify(licenseSubscriptionPort).applyTrialLicense(TARGET_TENANT_ID, deadline);
+            assertThat(result.trialEndsAt()).isEqualTo(deadline);
+            verify(auditLogRepository).save(any(AuditLog.class));
+        }
+
+        @Test
+        void fixedDeadline_configured_laterCurrentTrial_convergesBackToDeadline() {
+            // Ruling 2026-10-12: one shared campaign end — an already-granted
+            // later trial is converged back to the configured deadline.
+            Instant currentEnd = Instant.now().plus(Duration.ofDays(400));
+            Instant deadline = Instant.parse("2026-09-30T21:00:00Z");
+            CloudPilotLicenseService fixedService = new CloudPilotLicenseService(
+                licenseSubscriptionPort, auditLogRepository, guard(), "2026-09-30T21:00:00Z");
+            when(licenseSubscriptionPort.findSubscription(TARGET_TENANT_ID))
+                .thenReturn(Optional.of(snapshot(SubscriptionStatus.TRIAL, currentEnd, true)));
+
+            CloudPilotLicenseService.PilotLicenseResult result =
+                fixedService.grantPilotLicense(TARGET_TENANT_ID);
+
+            verify(licenseSubscriptionPort).applyTrialLicense(TARGET_TENANT_ID, deadline);
+            assertThat(result.trialEndsAt()).isEqualTo(deadline);
+        }
+
+        @Test
+        void fixedDeadline_unparseableValue_failsFast() {
+            org.assertj.core.api.Assertions.assertThatIllegalStateException()
+                .isThrownBy(() -> new CloudPilotLicenseService(
+                    licenseSubscriptionPort, auditLogRepository, guard(), "not-a-date"));
         }
     }
 
@@ -213,7 +259,7 @@ class CloudPilotLicenseServiceTest {
             PilotLicenseModeGuard onPremGuard =
                 new PilotLicenseModeGuard(pilotLicenseProperties, "ONPREM");
             CloudPilotLicenseService onPremService =
-                new CloudPilotLicenseService(licenseSubscriptionPort, auditLogRepository, onPremGuard);
+                new CloudPilotLicenseService(licenseSubscriptionPort, auditLogRepository, onPremGuard, "");
 
             assertThatThrownBy(() -> onPremService.grantPilotLicense(TARGET_TENANT_ID))
                 .isInstanceOf(ApiException.class)
@@ -245,7 +291,7 @@ class CloudPilotLicenseServiceTest {
             PilotLicenseModeGuard lowerGuard =
                 new PilotLicenseModeGuard(pilotLicenseProperties, "hosted");
             CloudPilotLicenseService lowerService =
-                new CloudPilotLicenseService(licenseSubscriptionPort, auditLogRepository, lowerGuard);
+                new CloudPilotLicenseService(licenseSubscriptionPort, auditLogRepository, lowerGuard, "");
             when(licenseSubscriptionPort.findSubscription(TARGET_TENANT_ID))
                 .thenReturn(Optional.empty());
 

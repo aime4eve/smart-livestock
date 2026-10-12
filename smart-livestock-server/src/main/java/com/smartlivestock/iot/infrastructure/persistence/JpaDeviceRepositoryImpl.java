@@ -129,6 +129,13 @@ public class JpaDeviceRepositoryImpl implements DeviceRepository {
     }
 
     @Override
+    public List<Device> findAllByDevEuiIncludeDeleted(String devEui) {
+        return springDataRepo.findAllByDevEuiIncludeDeleted(devEui).stream()
+                .map(DeviceMapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public void restoreById(Long id, String deviceCode) {
         springDataRepo.restoreById(id, deviceCode);
     }

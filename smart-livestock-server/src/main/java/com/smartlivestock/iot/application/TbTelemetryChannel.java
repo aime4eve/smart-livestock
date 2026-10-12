@@ -91,12 +91,11 @@ public class TbTelemetryChannel {
     }
 
     private void pollInternal() {
-        if (properties.getTenantId() == null || properties.getTenantId() <= 0) {
-            log.error("[TB] invalid tenant-id {}, skip cycle", properties.getTenantId());
-            return;
-        }
-        List<TbDeviceBinding> bindings = bindingRepository.findByTenantIdAndStatus(
-                properties.getTenantId(), TbDeviceBinding.Status.RESOLVED);
+        // Tenant-agnostic polling (ruling 2026-10-12): every device is collected
+        // through the single shared TB tenant regardless of which platform tenant
+        // owns the device row. Ownership stays on devices.tenant_id and is applied
+        // at ingest time, never at discovery time.
+        List<TbDeviceBinding> bindings = bindingRepository.findByStatus(TbDeviceBinding.Status.RESOLVED);
         if (bindings.isEmpty()) return;
         log.info("[TB] polling {} bound device(s)", bindings.size());
         for (TbDeviceBinding binding : bindings) {
@@ -110,8 +109,7 @@ public class TbTelemetryChannel {
     }
 
     public TriggerResult pollDevice(Long deviceId) {
-        List<TbDeviceBinding> bindings = bindingRepository.findByTenantIdAndStatus(
-                properties.getTenantId(), TbDeviceBinding.Status.RESOLVED);
+        List<TbDeviceBinding> bindings = bindingRepository.findByStatus(TbDeviceBinding.Status.RESOLVED);
         TbDeviceBinding binding = bindings.stream()
                 .filter(item -> deviceId.equals(item.getDeviceId()))
                 .findFirst().orElse(null);
