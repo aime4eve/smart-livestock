@@ -1,6 +1,6 @@
 # 租户开通操作指南(HOSTED 云端)
 
-> 版本:v2.1(2026-10-12):S4 支持按租户指定截止日(可选参数)
+> 版本:v3.0(2026-10-14):全球登录标识(账号/手机号/邮箱)、租户/牧场时区、试点授权当地日期换算、全程 UI 操作路径;修正角色示例错误(FARM_ADMIN 从来不是有效枚举)
 > 适用:为 HOSTED 云端客户开通独立租户。首个应用案例:肯尼亚客户。
 > 前置事实源:`docs/reference/deployment.md`(环境/凭据)、`docs/deployment/release-install-guide.md`(授权模式)。
 
@@ -8,162 +8,177 @@
 
 ## 1. 背景与原则
 
-- 系统为 HOSTED 单实例共享库多租户架构:业务表按 `tenant_id` 行级隔离,租户之间数据互不可见;开通新租户**不需要任何架构改造或发版**,全程走管理端 API。
-- **设备采集与租户解耦(用户裁决 2026-10-12,已实现)**:设备 EUI 全球唯一(V20261012100000 全局唯一索引),数据采集按 EUI 通过 TB/blade 通道进行、与平台租户无关;租户与设备 1:1 映射,租户只能查看和使用与其关联设备的数据。
-- **免费试点统一截止日(用户裁决 2026-10-12,已实现)**:所有免费试点/自助试用统一到期于配置项 `smartlivestock.trial.ends-at`(application.yml 默认 `2027-09-30T21:00:00Z` = 2027-10-01 00:00 肯尼亚 EAT)。到期由 `CommerceScheduler` 小时任务统一降级 FREE/BASIC,数据保留。
+- 系统为 HOSTED 单实例共享库多租户架构:业务表按 `tenant_id` 行级隔离,租户之间数据互不可见;开通新租户**不需要任何架构改造或发版**。
+- **开通全程可走管理端 UI**(租户管理→新建租户→详情页建用户/授予试点);本章 curl 为等价 API 路径,便于脚本化与排障。
+- **设备采集与租户解耦(用户裁决 2026-10-12,已实现)**:设备 EUI 全球唯一(全局唯一索引),数据采集按 EUI 通过 TB/blade 通道进行、与平台租户无关;租户与设备 1:1 映射。
+- **免费试点统一截止日(用户裁决 2026-10-12,已实现)**:所有免费试点/自助试用统一到期于 `smartlivestock.trial.ends-at`(默认 `2027-09-30T21:00:00Z` = 2027-10-01 00:00 肯尼亚 EAT);按租户另定截止日时传**当地日期**,服务端按该租户时区自动换算。
+- **时区三级链(用户裁决 2026-10-12,已实现)**:牧场时区 → 租户时区 → 平台默认(`SMARTLIVESTOCK_DEFAULT_TIMEZONE`,未配置时客户端偏移兜底)。时间显示、按日统计、试点日期换算、Blade X-TimeZone 均走此链。**给海外客户开租户,建租户时选时区(如 Nairobi UTC+3)是关键一步。**
+- **登录标识(2026-10-14 已实现)**:用户账号 / 手机号(E.164,即 WhatsApp 号)/ 邮箱,任一 + 密码;三项至少配置一项,各自全局唯一。用户名仅为显示昵称可重复。
 - 开通模式为**平台管理员代建**(无自助注册端点),与销售口径"厂商小批量开通试用"一致。
 
 ## 2. 环境前提
 
 | 项 | 要求 | 现状核对 |
 |---|---|---|
-| 授权模式 | `license.mode=HOSTED`(该模式无主机绑定,试点授权为租户级 DB 记录) | test 环境默认即为 HOSTED(application.yml:186) |
-| 试点授权开关 | `smartlivestock.pilot-license.enabled=true` | test 默认开启(application.yml:193) |
-| 统一试点截止日 | `smartlivestock.trial.ends-at`(env `SMARTLIVESTOCK_TRIAL_ENDS_AT`) | 默认 `2027-09-30T21:00:00Z`;推广期结束后由运维统一调整或清空(清空回退 365d/14d 滚动模式) |
-| 目标实例 | 对外服务须公网可达 | test:`livestock.hkttech.cn`(nginx→18080);⚠️ 86 HOSTED 为内网验证机(172.17.10.86),对客户开放前须确认公网可达实例 |
-| 操作账号 | 平台管理员(PLATFORM_ADMIN 角色) | 凭据见 `docs/reference/deployment.md`,本文一律用 `$TOKEN` 占位 |
+| 授权模式 | `license.mode=HOSTED` | dev/test 默认 HOSTED(application.yml) |
+| 试点授权开关 | `smartlivestock.pilot-license.enabled=true` | 默认开启 |
+| 统一试点截止日 | `smartlivestock.trial.ends-at`(env `SMARTLIVESTOCK_TRIAL_ENDS_AT`) | 默认 `2027-09-30T21:00:00Z`;推广期结束后运维调整或清空(清空回退 365d/14d 滚动模式) |
+| 平台默认时区(可选) | `smartlivestock.timezone.default`(env `SMARTLIVESTOCK_DEFAULT_TIMEZONE`) | 默认未配置(客户端偏移兜底);多租户运营建议配置 |
+| 目标实例 | 对外服务须公网可达 | test:`livestock.hkttech.cn`;⚠️ 86 为内网验证机,对客户开放前须确认公网实例 |
+| 操作账号 | 平台管理员(PLATFORM_ADMIN) | 凭据见 `docs/reference/deployment.md`,本文用 `$TOKEN` 占位 |
 
 ## 3. 开通前信息收集清单
 
-向客户/销售收集,缺一项则暂停开通:
+向客户/销售收集(缺项再补可后置,不阻塞建租户):
 
-- [ ] 租户名称(建议含客户标识,如 `Kenya-Demo` / 客户公司名)
+- [ ] 租户名称(建议含客户标识,如 `Kenya-<公司/项目>`)
 - [ ] 联系人与联系电话
-- [ ] 租户管理员手机号(全局唯一,作为登录账号;密码规则 ≥10 位含字母数字)
-- [ ] 首批设备 EUI 清单(16 位 hex,用于设备建档与 1:1 归属核对)
-- 试点截止日不再按租户收集——所有租户统一为 `smartlivestock.trial.ends-at` 配置值(当前=2027-10-01 00:00 肯尼亚时间)。
+- [ ] **客户所在时区**(建租户必选;如肯尼亚=Africa/Nairobi)
+- [ ] 租户管理员**登录标识**:用户账号 / 手机号(国际格式,即 WhatsApp 号)/ 邮箱,**至少一项**(按客户习惯,海外用户常只给邮箱或 WhatsApp 号)
+- [ ] 管理员姓名与显示用户名(可选)
+- [ ] 首批设备 EUI 清单(16 位 hex)
+- 试点截止日默认统一为平台配置值(2027-10-01 00:00 肯尼亚时间);客户单独约定截止日的,记当地日期即可(如 2027-10-01),**无需人工换算 UTC**。
 
-## 4. 开通步骤
+## 4. 开通步骤(UI 路径 + 等价 curl)
 
-以下 `$BASE` 为 API 基址(test:`https://livestock.hkttech.cn` 或内网 `http://172.22.1.123:18080`)。
+以下 `$BASE` 为 API 基址(dev:`http://172.22.1.123:19080`;test:`https://livestock.hkttech.cn`)。
+**UI 路径**:登录平台管理员 → 运营管理 → 租户管理,以下每步括注对应界面入口。
 
-### S1. 平台管理员登录,取 token
+### S1. 平台管理员登录
+
+(UI:登录页输入框支持手机号/邮箱/用户账号任一)
 
 ```bash
 curl -sk -X POST "$BASE/api/v1/auth/login" \
   -H 'Content-Type: application/json' \
-  -d '{"phone":"<平台管理员手机号>","password":"<密码>"}'
-# 取 data.accessToken → $TOKEN;如返回 mustChangePassword=true,先 PUT /api/v1/me/password 改密后重登
+  -d '{"identifier":"<账号/手机号/邮箱>","password":"<密码>"}'
+# 取 data.accessToken → $TOKEN
 ```
 
-### S2. 创建租户
+### S2. 创建租户(选时区!)
+
+(UI:租户管理→「新建租户」,表单含"所在时区"下拉)
 
 ```bash
 curl -sk -X POST "$BASE/api/v1/admin/tenants" \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -d '{"name":"<租户名称>","contactName":"<联系人>","contactPhone":"<联系电话>"}'
-# 记录返回的租户 id → $TENANT_ID
+  -d '{"name":"<租户名称>","contactName":"<联系人>","contactPhone":"<电话>","timezone":"Africa/Nairobi"}'
+# 记录 data.id → $TENANT_ID;返回 utcOffsetMinutes=180 即时区生效
 ```
 
-### S3. 创建租户管理员用户
+- timezone 为 IANA 名,非法值 400;留空=继承平台默认。后续可在租户详情页修改。
+
+### S3. 创建租户管理员用户(登录标识至少一项)
+
+(UI:租户详情→「新增用户」:账号/手机号/邮箱/用户名四字段,前端已做"至少一项"校验)
 
 ```bash
 curl -sk -X POST "$BASE/api/v1/admin/users" \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -d '{"phone":"<管理员手机号>","name":"<姓名>","role":"FARM_ADMIN","tenantId":"'"$TENANT_ID"'","password":"<初始密码>"}'
+  -d '{"name":"<姓名>","account":"david.wood","email":"david@cust.co.ke","role":"B2B_ADMIN","tenantId":"'"$TENANT_ID"'","password":"<初始密码>"}'
 ```
 
-- 手机号全局唯一,重复返回 `DUPLICATE_RESOURCE`。
-- 角色取值见用户管理模块(牧场管理员用 `FARM_ADMIN`);不传 `password` 则为默认值,正式交付必须显式设置强密码。
+- **登录标识三选一以上**:`account`(3-32 位,字母开头)/`phone`(E.164,如 +254712345678)/`email`;`username` 为显示昵称(可重复,选填)。全空返回 400"至少填写一项"。
+- **角色枚举**:`PLATFORM_ADMIN / B2B_ADMIN / OWNER / WORKER / API_CONSUMER`——租户侧管理员用 `B2B_ADMIN`(牧场主用户由客户自建时用 OWNER)。⚠️ 历史版本示例中的 `FARM_ADMIN` 从来不是有效值。
+- 重复标识分别报"该用户账号/邮箱/手机号已被使用";密码规则 ≥10 位含字母数字,首登强制改密。
 
 ### S4. 授予云端试点授权
 
+(UI:租户详情→「授予试点授权」→ 日历选**当地日期**;留空=平台统一截止日)
+
 ```bash
-# 方式一:平台默认截止日(smartlivestock.trial.ends-at,当前=2027-10-01 00:00 肯尼亚时间)
+# 方式一(推荐):当地日期,服务端按该租户时区自动换算当地 00:00
+curl -sk -X POST "$BASE/api/v1/admin/tenants/$TENANT_ID/pilot-license" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"localDate":"2027-10-01"}'
+# Nairobi 租户 → trialEndsAt=2027-09-30T21:00:00Z(当地零点),无需人工换算
+
+# 方式二:不带参数=平台统一截止日(smartlivestock.trial.ends-at)
 curl -sk -X POST "$BASE/api/v1/admin/tenants/$TENANT_ID/pilot-license" \
   -H "Authorization: Bearer $TOKEN"
 
-# 方式二:按租户指定截止日(可选参数,ISO-8601 UTC,必须晚于当前时刻)
-curl -sk -X POST "$BASE/api/v1/admin/tenants/$TENANT_ID/pilot-license" \
-  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -d '{"trialEndsAt":"2027-09-30T21:00:00Z"}'
-# 返回 {"tenantId":..,"status":"TRIAL","trialEndsAt":"2027-09-30T21:00:00Z"}
+# 方式三(兼容):直接传 UTC 时刻
+# -d '{"trialEndsAt":"2027-09-30T21:00:00Z"}'
 ```
 
-- 该端点把订阅置为 `TRIAL`(有效能力档位 = PREMIUM 全功能),并写审计日志(`PILOT_LICENSE_GRANT`,含 `deadlineSource` 字段:REQUESTED=运营指定 / CONFIGURED=平台默认 / ROLLING=滚动365天)。
-- **截止日优先级:请求显式指定 > 平台默认配置 > 滚动 365 天**。无论哪种,最终值都落在该租户自己的订阅行(`subscriptions.trial_ends_at`,数据库存储、租户隔离)。
-- 时区换算:客户当地 2027-10-01 00:00(肯尼亚 EAT=UTC+3)→ 传 `2027-09-30T21:00:00Z`。
-- 若该租户已有更晚的 TRIAL,重调本端点会收敛到目标截止日;存量旧规则租户同样重调一次即对齐。
-- 校验失败返回 400(`license.pilot.invalidDeadline` 格式错 / `license.pilot.deadlineInPast` 过去时刻)。
-- 授权/拒绝均落 `audit_logs`,事后可追溯。
+- 置为 `TRIAL`(有效档位=PREMIUM 全功能);审计 `PILOT_LICENSE_GRANT` 带 `deadlineSource`(REQUESTED_LOCAL_DATE / REQUESTED / CONFIGURED / ROLLING)。
+- 截止日优先级:localDate > trialEndsAt > 平台默认 > 滚动 365d;已有更晚 TRIAL 重调即收敛;400 校验(格式错/过去时刻)。
 
-### S5. 初始牧场(可选)
+### S5. 初始牧场(可选,带时区)
 
-租户管理员登录 App 后可自建牧场;如需平台代建:
+(UI:客户管理员自建,或平台管理员代建;UI 建场均含时区下拉)
 
 ```bash
 curl -sk -X POST "$BASE/api/v1/admin/farms" \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -d '{"tenantId":"'"$TENANT_ID"'","name":"<牧场名>","latitude":..,"longitude":..,"areaHectares":..}'
+  -d '{"tenantId":"'"$TENANT_ID"'","name":"<牧场名>","latitude":-1.29,"longitude":36.82,"timezone":"Africa/Nairobi"}'
 ```
+
+- 牧场时区是三级链最高优先级;不传则继承租户。地图图源随牧场时区自动切换(中国系→高德,其他→OSM)。
 
 ## 5. 设备接入(EUI 1:1 归属)
 
-原则:**采集按设备 EUI、与平台租户无关;归属按设备档案的 `tenant_id`;一台设备自始至终只挂一个租户。**(2026-10-12 已实现)
+原则:**采集按设备 EUI、与平台租户无关;归属按设备档案 `tenant_id`;一台设备只挂一个租户。**
 
-- **采集通道**:TB 通道轮询全部 RESOLVED 绑定(不再按平台租户过滤),blade 通道按设备逐台同步——两条通道均与租户无关,TB/NS 侧账号保持单一共享租户,无需为新客户在 TB 开租户。
-- **唯一性保障**:库级全局唯一索引 `uq_devices_eui_global(dev_eui)`(含软删行);建档三入口(租户注册/开放 API/NS·TB·DeviceHub 预置)均有跨租户占用预检,EUI 已归属其他租户时报 `设备 EUI {0} 已归属其他租户`——跨租户转移是人工操作,不能靠重新注册完成。
-
-设备建档到租户的三条路径(任选):
-
-1. **NS/TB 预置流程(推荐,真实追踪器)**:治理/设备管理界面按 EUI 匹配 NS/TB 候选 → 建设备档案(归属=操作时选定租户)→ 建 `tb_device_bindings`。
-2. **租户自助(开放 API)**:`POST /api/v1/open/devices/register`,凭租户绑定的 API-Key 鉴权(api_key→tenantId),设备进入该租户 INVENTORY。
-3. **牧场侧端点**:`POST /api/v1/farms/{farmId}/devices`(farm-scoped,租户用户自建)。
-
-接入后核对(防挂错租户):
+- TB 通道轮询全部 RESOLVED 绑定(不按平台租户过滤),blade 通道按设备逐台同步——TB/NS 侧账号保持单一共享租户,新客户无需在 TB 开租户。
+- 全局唯一索引 `uq_devices_eui_global`;EUI 已归属其他租户时报"设备 EUI 已归属其他租户"(转移为人工操作)。
+- 建档三路径:NS/TB 预置流程(推荐,真实追踪器)/ 开放 API `POST /api/v1/open/devices/register`(API-Key→租户)/ 牧场侧 `POST /api/v1/farms/{farmId}/devices`。
 
 ```sql
+-- 接入后核对:每个 EUI 恰 1 行且租户正确
 SELECT dev_eui, device_code, tenant_id, status FROM devices
 WHERE dev_eui IN ('<EUI1>','<EUI2>');
--- 每个 EUI 必须恰好 1 行(含软删),且 tenant_id 为目标租户
 ```
 
 ## 6. 开通验证清单(全绿才算完成)
 
 | # | 验证项 | 方法 | 预期 |
 |---|---|---|---|
-| 1 | 租户管理员登录 | `POST /api/v1/auth/login`(管理员手机号) | 200 + accessToken |
-| 2 | 订阅状态 | `GET /api/v1/admin/subscriptions?tenantId=$TENANT_ID` | `status=trial`,`trial_ends_at`=统一截止日(2027-09-30T21:00:00Z),`effectiveTier=PREMIUM` |
-| 3 | 数据隔离 | 租户管理员调任一业务列表(如牧场/牲畜) | 仅见本租户数据;Demo Ranch 等既有租户数据不可见 |
-| 4 | 既有租户回归 | 任一既有租户账号登录抽查 | 不受影响 |
-| 5 | 审计留痕 | `SELECT * FROM audit_logs WHERE tenant_id=$TENANT_ID ORDER BY created_at DESC` | 有 `PILOT_LICENSE_GRANT` |
-| 6 | 设备归属(有设备时) | 第 5 节核对 SQL + TB 轮询日志(`polling N bound device(s)`) | 每 EUI 恰 1 行、租户正确;新租户设备绑定后一个轮询周期内数据流入 |
+| 1 | 租户管理员登录 | 用**客户将使用的标识**(账号/手机/邮箱)登录 | 200 + accessToken |
+| 2 | 时区生效 | 租户详情/`GET /admin/tenants/$TENANT_ID` | timezone=Africa/Nairobi,utcOffsetMinutes=180 |
+| 3 | 订阅状态 | `GET /api/v1/admin/subscriptions`(注意:该接口 tenantId 过滤暂不生效,按返回列表核对目标租户行) | `status=trial`,trial_ends_at=约定时刻,effectiveTier=PREMIUM |
+| 4 | 数据隔离 | 租户管理员任一业务列表 | 仅见本租户数据 |
+| 5 | 既有租户回归 | 任一既有账号登录抽查 | 不受影响 |
+| 6 | 审计留痕 | audit_logs 按 tenant_id 查 | 有 PILOT_LICENSE_GRANT(deadlineSource 正确) |
+| 7 | 设备归属(有设备时) | 第 5 节 SQL + TB 日志 `polling N bound device(s)` | EUI 唯一且租户正确,数据流入 |
 
 ## 7. 安全注意
 
-- 平台管理员账号权限跨租户,操作后登出;对外交付前确认租户管理员**首次登录强制改密**已走完,禁用任何公开种子凭据(test 库存有公开种子账号,对外实例必须轮换,见 `docs/reference/deployment.md`)。
-- 本文所有 `<占位符>` 凭据不得写入任何交付物/聊天记录;真实密码只在执行时使用。
+- 平台管理员权限跨租户,操作后登出;确认客户**首登强制改密**已走完;对外实例必须轮换公开种子凭据(见 `docs/reference/deployment.md`)。
+- `<占位符>` 凭据不得写入交付物/聊天记录。
+- 客户自助修改登录标识走"我的→编辑资料"(改登录标识需验当前密码,留审计);管理员重置密码仍是找回通道(验证码/邮件验证为后续外部服务依赖)。
 
 ## 附录 A:端点速查
 
 | 端点 | 用途 | 权限 |
 |---|---|---|
-| `POST /api/v1/auth/login` | 登录 | 公开 |
-| `GET/POST /api/v1/admin/tenants` | 租户列表/创建 | PLATFORM_ADMIN |
-| `GET/PUT /api/v1/admin/tenants/{id}` | 租户详情/更新 | PLATFORM_ADMIN |
-| `PUT /api/v1/admin/tenants/{id}/status` | 启用/停用(注:当前为接口占位,状态字段未落库) | PLATFORM_ADMIN |
-| `PUT /api/v1/admin/tenants/{id}/phase` | sample↔batch 切换 | PLATFORM_ADMIN |
-| `POST /api/v1/admin/tenants/{id}/pilot-license` | 授予/对齐统一截止日试点 | PLATFORM_ADMIN + HOSTED + 开关 |
-| `POST /api/v1/admin/users` | 建用户(带 tenantId/role) | PLATFORM_ADMIN |
-| `POST /api/v1/admin/farms` | 代建牧场 | PLATFORM_ADMIN |
-| `POST /api/v1/open/devices/register` | 开放 API 设备建档(API-Key→租户) | 租户 API-Key |
+| `POST /api/v1/auth/login` | 登录(identifier=账号/手机/邮箱) | 公开 |
+| `GET/POST /api/v1/admin/tenants` | 租户列表/创建(含 timezone) | PLATFORM_ADMIN |
+| `GET/PUT /api/v1/admin/tenants/{id}` | 详情/更新(可改 timezone) | PLATFORM_ADMIN |
+| `POST /api/v1/admin/tenants/{id}/pilot-license` | 试点授权(localDate/trialEndsAt 可选) | PLATFORM_ADMIN + HOSTED + 开关 |
+| `POST /api/v1/admin/users` | 建用户(account/phone/email/username) | PLATFORM_ADMIN |
+| `PUT /api/v1/me` | 本人编辑资料(登录标识变更需 currentPassword) | 登录用户 |
+| `POST /api/v1/admin/farms` | 代建牧场(含 timezone) | PLATFORM_ADMIN |
+| `POST /api/v1/open/devices/register` | 开放 API 设备建档 | 租户 API-Key |
 | `POST /api/v1/farms/{farmId}/devices` | 牧场侧建设备 | 租户用户 |
 
-## 附录 B:统一试点截止日速查
+## 附录 B:关键配置速查
 
-| 配置项 | 值 |
+| 配置项 | 当前值 |
 |---|---|
-| `smartlivestock.trial.ends-at`(application.yml 默认 / env `SMARTLIVESTOCK_TRIAL_ENDS_AT`) | `2027-09-30T21:00:00Z` |
-| 对客户表述(肯尼亚 EAT=UTC+3,无夏令时) | 2027-10-01 00:00:00 当地时间 |
-| 推广期结束后 | 运维改 env 换新截止日,或置空回退滚动模式(pilot now+365d / 自助 now+14d) |
+| `smartlivestock.trial.ends-at`(env `SMARTLIVESTOCK_TRIAL_ENDS_AT`) | `2027-09-30T21:00:00Z`(=2027-10-01 00:00 肯尼亚 EAT) |
+| `smartlivestock.timezone.default`(env `SMARTLIVESTOCK_DEFAULT_TIMEZONE`) | 未配置(可选;配置后为三级链末端默认) |
+| 推广期结束 | 改 env 换截止日/时区,或置空回退 |
 
 ## 附录 C:本指南首例参数(肯尼亚客户,开通时填写)
 
 ```
-租户名称:      ____________(建议 Kenya-<客户/项目标识>)
-联系人/电话:    ____________
-管理员手机号:   ____________
-试点截止:      统一配置值 2027-10-01 00:00 肯尼亚时间(2027-09-30T21:00:00Z)
-设备 EUI 清单:  ____________
+租户名称:       ____________(建议 Kenya-<客户/项目标识>)
+联系人/电话:     ____________
+客户时区:       Africa/Nairobi(建租户/牧场时选择)
+管理员登录标识:  账号________ / 手机(WhatsApp)________ / 邮箱________(至少一项)
+管理员姓名/用户名:__________ / __________(用户名选填)
+试点截止:       默认统一值 2027-10-01 00:00 肯尼亚时间;单独约定则填当地日期 ______
+设备 EUI 清单:   ____________
 开通执行人/日期: ____________ / ____________
 ```
