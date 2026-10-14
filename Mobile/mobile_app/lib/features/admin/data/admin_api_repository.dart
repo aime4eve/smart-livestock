@@ -73,6 +73,11 @@ class AdminApiRepository implements AdminRepository {
   }
 
   @override
+  Future<void> updateTenantPhase(String tenantId, String phase) async {
+    await ApiClient.instance.put('/admin/tenants/$tenantId/phase', body: {'phase': phase});
+  }
+
+  @override
   Future<PilotLicenseGrant> grantPilotLicense(String tenantId, String? localDate) async {
     final body = <String, dynamic>{};
     if (localDate != null && localDate.trim().isNotEmpty) {

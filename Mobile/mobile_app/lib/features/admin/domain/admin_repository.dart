@@ -273,6 +273,7 @@ abstract class AdminRepository {
   Future<TenantSummary> createTenant(Map<String, dynamic> body);
   Future<PilotLicenseGrant> grantPilotLicense(String tenantId, String? trialEndsAt);
   Future<TenantSubscription?> loadTenantSubscription(String tenantId);
+  Future<void> updateTenantPhase(String tenantId, String phase);
   Future<TenantSummary> updateTenant(String tenantId, Map<String, dynamic> body);
   Future<void> updateTenantStatus(String tenantId, String status);
 

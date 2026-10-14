@@ -138,7 +138,19 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                     ),
                   ],
                 ),
-                Text('阶段: ${tenant.phase ?? "-"}'),
+                Row(
+                  children: [
+                    Text('阶段: ${_phaseLabel(tenant.phase)}'),
+                    const SizedBox(width: AppSpacing.sm),
+                    IconButton(
+                      key: const Key('tenant-edit-phase'),
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(Icons.edit, size: 16),
+                      onPressed: () => _showEditPhaseDialog(context),
+                      tooltip: '切换阶段',
+                    ),
+                  ],
+                ),
                 Text(
                     '牧场: ${tenant.farmCount} · 用户: ${tenant.userCount} · 设备: ${tenant.deviceCount}'),
               ],
@@ -219,6 +231,95 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                   onStatusToggle: () => _toggleUserStatus(user),
                 )),
         ],
+        ),
+      ),
+    );
+  }
+
+  String _phaseLabel(String? phase) {
+    switch (phase?.toLowerCase()) {
+      case 'batch':
+        return '批量期（正式商用）';
+      case 'sample':
+        return '样板期（验证中）';
+      default:
+        return phase ?? '-';
+    }
+  }
+
+  void _showEditPhaseDialog(BuildContext context) {
+    String selected = _tenant?.phase ?? 'sample';
+    bool saving = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          key: const Key('edit-phase-dialog'),
+          title: const Text('切换租户阶段'),
+          content: RadioGroup<String>(
+            groupValue: selected,
+            onChanged: (v) => setDialogState(() => selected = v ?? 'sample'),
+            child: const Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                RadioListTile<String>(
+                  key: Key('edit-phase-sample'),
+                  value: 'sample',
+                  title: Text('样板期（验证中）'),
+                  subtitle: Text('打样/试点验证阶段的客户标记'),
+                ),
+                RadioListTile<String>(
+                  key: Key('edit-phase-batch'),
+                  value: 'batch',
+                  title: Text('批量期（正式商用）'),
+                  subtitle: Text('已规模化上线的客户标记'),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: saving ? null : () => Navigator.pop(ctx),
+                child: const Text('取消')),
+            FilledButton(
+              key: const Key('edit-phase-confirm'),
+              onPressed: saving
+                  ? null
+                  : () async {
+                      setDialogState(() => saving = true);
+                      final messenger = ScaffoldMessenger.of(context);
+                      final navigator = Navigator.of(ctx);
+                      try {
+                        await ref
+                            .read(adminRepositoryProvider)
+                            .updateTenantPhase(widget.id, selected);
+                        if (!context.mounted) return;
+                        navigator.pop();
+                        messenger.showSnackBar(SnackBar(
+                          content:
+                              Text('阶段已切换为 ${_phaseLabel(selected)}'),
+                          backgroundColor: const Color(0xFF2E7D32),
+                        ));
+                        _loadData();
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        navigator.pop();
+                        messenger.showSnackBar(SnackBar(
+                          content: Text('切换失败: $e'),
+                          backgroundColor: const Color(0xFFD32F2F),
+                        ));
+                      }
+                    },
+              child: saving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
+                  : const Text('保存'),
+            ),
+          ],
         ),
       ),
     );
