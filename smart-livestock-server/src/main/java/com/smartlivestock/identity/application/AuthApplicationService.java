@@ -20,6 +20,7 @@ public class AuthApplicationService {
     private final UserRepository userRepository;
     private final PasswordHasher passwordHasher;
     private final JwtTokenProvider jwtTokenProvider;
+    private final com.smartlivestock.identity.domain.repository.TenantRepository tenantRepository;
 
     @Transactional(readOnly = true)
     public AuthTokenDto login(LoginCommand command) {
@@ -30,6 +31,18 @@ public class AuthApplicationService {
                 .orElseThrow(() -> new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "auth.invalidIdentifierOrPassword"));
         if (!user.isActive()) {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "用户已停用");
+        }
+        // Tenant lifecycle gate (ruling 2026-10-14): disabled/deleted tenants
+        // reject login for every member.
+        if (user.getTenantId() != null) {
+            tenantRepository.findById(user.getTenantId()).ifPresent(tenant -> {
+                if (tenant.isDeleted()) {
+                    throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "auth.tenantDeleted");
+                }
+                if ("disabled".equals(tenant.getStatus())) {
+                    throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "auth.tenantDisabled");
+                }
+            });
         }
         if (!passwordHasher.matches(command.password(), user.getPasswordHash())) {
             throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "auth.invalidIdentifierOrPassword");

@@ -14,6 +14,8 @@ public class Tenant extends AggregateRoot {
     private String type;
     private String billingModel;
     private String timezone = "UTC";
+    private String status = "active";
+    private java.time.Instant deletedAt;
 
     public Tenant() {
         this.phase = TenantPhase.SAMPLE;
@@ -63,4 +65,24 @@ public class Tenant extends AggregateRoot {
 
     public String getTimezone() { return timezone; }
     public void setTimezone(String timezone) { this.timezone = timezone; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public java.time.Instant getDeletedAt() { return deletedAt; }
+    public void setDeletedAt(java.time.Instant deletedAt) { this.deletedAt = deletedAt; }
+
+    public boolean isDeleted() { return deletedAt != null; }
+
+    /** Active → disabled (reversible); idempotent. */
+    public void disable() { this.status = "disabled"; }
+
+    /** disabled → active (reversible); idempotent. */
+    public void enable() { this.status = "active"; }
+
+    /** Soft delete: deleted_at set; business data untouched. */
+    public void softDelete() { this.deletedAt = java.time.Instant.now(); }
+
+    /** Clear the soft-delete marker (restore endpoint). */
+    public void restore() { this.deletedAt = null; }
 }

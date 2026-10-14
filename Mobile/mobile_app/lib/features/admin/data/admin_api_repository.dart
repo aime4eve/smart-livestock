@@ -24,10 +24,12 @@ class AdminApiRepository implements AdminRepository {
     int pageSize = 20,
     String? status,
     String? keyword,
+    bool includeDeleted = false,
   }) async {
     final query = <String, String>{'page': '$page', 'pageSize': '$pageSize'};
     if (status != null) query['status'] = status;
     if (keyword != null) query['keyword'] = keyword;
+    if (includeDeleted) query['includeDeleted'] = 'true';
     final qs = query.entries.map((e) => '${e.key}=${e.value}').join('&');
     final data = await ApiClient.instance.get('/admin/tenants?$qs');
     final items = (data['items'] as List<dynamic>? ?? [])
@@ -52,6 +54,22 @@ class AdminApiRepository implements AdminRepository {
   Future<TenantSummary> createTenant(Map<String, dynamic> body) async {
     final data = await ApiClient.instance.post('/admin/tenants', body: body);
     return _parseTenantSummary(data);
+  }
+
+  @override
+  Future<void> updateTenantStatus(String tenantId, String status) async {
+    await ApiClient.instance
+        .put('/admin/tenants/$tenantId/status', body: {'status': status});
+  }
+
+  @override
+  Future<void> deleteTenant(String tenantId) async {
+    await ApiClient.instance.delete('/admin/tenants/$tenantId');
+  }
+
+  @override
+  Future<void> restoreTenant(String tenantId) async {
+    await ApiClient.instance.post('/admin/tenants/$tenantId/restore');
   }
 
   @override
@@ -98,10 +116,6 @@ class AdminApiRepository implements AdminRepository {
     return _parseTenantSummary(data);
   }
 
-  @override
-  Future<void> updateTenantStatus(String tenantId, String status) async {
-    await ApiClient.instance.put('/admin/tenants/$tenantId/status', body: {'status': status});
-  }
 
   // --- Users ---
 

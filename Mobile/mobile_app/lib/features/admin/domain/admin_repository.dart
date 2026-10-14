@@ -268,14 +268,16 @@ abstract class AdminRepository {
   Future<AdminOverviewData> loadOverview();
 
   // Tenants
-  Future<AdminListResult<TenantSummary>> loadTenants({int page = 1, int pageSize = 20, String? status, String? keyword});
+  Future<AdminListResult<TenantSummary>> loadTenants({int page = 1, int pageSize = 20, String? status, String? keyword, bool includeDeleted = false});
   Future<TenantDetail> loadTenantDetail(String tenantId);
   Future<TenantSummary> createTenant(Map<String, dynamic> body);
   Future<PilotLicenseGrant> grantPilotLicense(String tenantId, String? trialEndsAt);
   Future<TenantSubscription?> loadTenantSubscription(String tenantId);
+  Future<void> updateTenantStatus(String tenantId, String status);
+  Future<void> deleteTenant(String tenantId);
+  Future<void> restoreTenant(String tenantId);
   Future<void> updateTenantPhase(String tenantId, String phase);
   Future<TenantSummary> updateTenant(String tenantId, Map<String, dynamic> body);
-  Future<void> updateTenantStatus(String tenantId, String status);
 
   // Users
   Future<AdminListResult<UserSummary>> loadUsers({int page = 1, int pageSize = 20, String? tenantId, String? role, String? keyword});

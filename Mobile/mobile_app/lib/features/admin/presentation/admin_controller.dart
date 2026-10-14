@@ -30,13 +30,18 @@ final adminOverviewControllerProvider =
 class TenantListController extends AsyncNotifier<AdminListResult<TenantSummary>> {
   @override
   Future<AdminListResult<TenantSummary>> build() async {
-    return ref.read(adminRepositoryProvider).loadTenants();
+    final includeDeleted = ref.watch(includeDeletedTenantsProvider);
+    return ref
+        .read(adminRepositoryProvider)
+        .loadTenants(includeDeleted: includeDeleted);
   }
 
   Future<void> refresh({String? status, String? keyword}) async {
+    final includeDeleted = ref.read(includeDeletedTenantsProvider);
     state = const AsyncLoading();
     state = await AsyncValue.guard(
-      () => ref.read(adminRepositoryProvider).loadTenants(status: status, keyword: keyword),
+      () => ref.read(adminRepositoryProvider).loadTenants(
+          status: status, keyword: keyword, includeDeleted: includeDeleted),
     );
   }
 
@@ -45,6 +50,16 @@ class TenantListController extends AsyncNotifier<AdminListResult<TenantSummary>>
     ref.invalidateSelf();
   }
 }
+
+class IncludeDeletedTenantsNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  void set(bool v) => state = v;
+}
+
+final includeDeletedTenantsProvider =
+    NotifierProvider<IncludeDeletedTenantsNotifier, bool>(
+        IncludeDeletedTenantsNotifier.new);
 
 final tenantListControllerProvider =
     AsyncNotifierProvider<TenantListController, AdminListResult<TenantSummary>>(
