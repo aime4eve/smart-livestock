@@ -342,6 +342,7 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                         );
                         if (!context.mounted) return;
                         navigator.pop();
+                        ref.invalidate(tenantListControllerProvider);
                         messenger.showSnackBar(const SnackBar(
                           content: Text('租户信息已更新'),
                           backgroundColor: Color(0xFF2E7D32),
@@ -435,6 +436,7 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                               Text('阶段已切换为 ${_phaseLabel(selected)}'),
                           backgroundColor: const Color(0xFF2E7D32),
                         ));
+                        ref.invalidate(tenantListControllerProvider);
                         _loadData();
                       } catch (e) {
                         if (!context.mounted) return;
@@ -567,6 +569,7 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                           content: Text('时区已更新'),
                           backgroundColor: Color(0xFF2E7D32),
                         ));
+                        ref.invalidate(tenantListControllerProvider);
                         _loadData();
                       } catch (e) {
                         if (!context.mounted) return;
@@ -696,7 +699,8 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
         content: Text('${l10n.tenantPilotGrantSuccessPrefix}${grant.trialEndsAt}'),
         backgroundColor: const Color(0xFF2E7D32),
       ));
-      _loadData(); // refresh the pilot-status chip / expiry on the card
+      ref.invalidate(tenantListControllerProvider);
+                        _loadData(); // refresh the pilot-status chip / expiry on the card
     } catch (e) {
       if (!mounted) return;
       navigator.pop();
