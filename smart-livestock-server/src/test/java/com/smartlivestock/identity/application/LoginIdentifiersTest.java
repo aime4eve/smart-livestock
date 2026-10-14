@@ -11,8 +11,8 @@ class LoginIdentifiersTest {
 
     @Test
     void classify_routesByShape() {
-        assertThat(LoginIdentifiers.classify("david.wood")).isEqualTo(LoginIdentifiers.Kind.ACCOUNT);
-        assertThat(LoginIdentifiers.classify("David.Wood")).isEqualTo(LoginIdentifiers.Kind.ACCOUNT);
+        assertThat(LoginIdentifiers.classify("j.doe-01")).isEqualTo(LoginIdentifiers.Kind.ACCOUNT);
+        assertThat(LoginIdentifiers.classify("J.Doe-01")).isEqualTo(LoginIdentifiers.Kind.ACCOUNT);
         assertThat(LoginIdentifiers.classify("+254712345678")).isEqualTo(LoginIdentifiers.Kind.PHONE);
         assertThat(LoginIdentifiers.classify("254712345678")).isEqualTo(LoginIdentifiers.Kind.PHONE);
         assertThat(LoginIdentifiers.classify("138 0013-8000")).isEqualTo(LoginIdentifiers.Kind.PHONE);

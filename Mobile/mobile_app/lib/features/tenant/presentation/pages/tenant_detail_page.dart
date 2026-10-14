@@ -753,7 +753,7 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                     keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(
                       labelText: '手机号（选填，国际格式）',
-                      hintText: '如 +254791472501',
+                      hintText: '如 +254 712 345 678',
                     ),
                   ),
                   const SizedBox(height: 12),
