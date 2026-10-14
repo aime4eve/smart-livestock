@@ -243,6 +243,8 @@ public class TenantAdminController {
 
         if (targetPhase == TenantPhase.BATCH) {
             tenantApplicationService.transitionToBatch(tenantId);
+        } else if (targetPhase == TenantPhase.SAMPLE) {
+            tenantApplicationService.revertToSample(tenantId);
         }
 
         Map<String, Object> data = Map.of(

@@ -34,6 +34,12 @@ public class Tenant extends AggregateRoot {
         registerEvent(new TenantPhaseChangedEvent(getId(), this.phase));
     }
 
+    /** BATCH → SAMPLE (operational ledger move back; idempotent on SAMPLE). */
+    public void revertToSample() {
+        this.phase = TenantPhase.SAMPLE;
+        registerEvent(new TenantPhaseChangedEvent(getId(), this.phase));
+    }
+
     public void reconstitutePhase(TenantPhase phase) {
         this.phase = phase;
     }

@@ -3,6 +3,7 @@ package com.smartlivestock.identity.application;
 import com.smartlivestock.identity.application.command.CreateTenantCommand;
 import com.smartlivestock.identity.application.dto.TenantDto;
 import com.smartlivestock.identity.domain.model.Tenant;
+import com.smartlivestock.identity.domain.model.TenantPhase;
 import com.smartlivestock.identity.domain.repository.TenantRepository;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -67,6 +68,16 @@ public class TenantApplicationService {
         Tenant tenant = tenantRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "租户不存在: " + id));
         tenant.transitionToBatch();
+        tenantRepository.save(tenant);
+    }
+
+    /** BATCH → SAMPLE; idempotent when already SAMPLE (ruling follow-up 2026-10-14). */
+    @Transactional
+    public void revertToSample(Long id) {
+        Tenant tenant = tenantRepository.findById(id)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "租户不存在: " + id));
+        if (tenant.getPhase() == TenantPhase.SAMPLE) return;
+        tenant.revertToSample();
         tenantRepository.save(tenant);
     }
 }
