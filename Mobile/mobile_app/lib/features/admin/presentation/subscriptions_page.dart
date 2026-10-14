@@ -14,6 +14,15 @@ import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip
 import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
+/// UTC instant → tenant-local yyyy-MM-dd (offset from the tenant chain).
+String _fmtDate(String? isoUtc, int? offsetMinutes) {
+  final dt = DateTime.tryParse(isoUtc ?? '');
+  if (dt == null) return '-';
+  final off = offsetMinutes ?? DateTime.now().timeZoneOffset.inMinutes;
+  final local = dt.toUtc().add(Duration(minutes: off));
+  return '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')}';
+}
+
 class SubscriptionsPage extends ConsumerStatefulWidget {
   const SubscriptionsPage({super.key});
 
@@ -392,14 +401,20 @@ class _TenantSubscriptionCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(sub.tenantId,
-                            style: theme.textTheme.titleSmall),
+                        Expanded(
+                          child: Text(
+                              (sub.tenantName != null && sub.tenantName!.isNotEmpty)
+                                  ? sub.tenantName!
+                                  : '#${sub.tenantId}',
+                              style: theme.textTheme.titleSmall,
+                              overflow: TextOverflow.ellipsis),
+                        ),
                         const SizedBox(width: AppSpacing.sm),
                         HighfiStatusChip(label: _statusLabel, color: AppColors.textSecondary),
                       ],
                     ),
                     if (sub.trialEndsAt != null)
-                      Text('试点至: \${sub.trialEndsAt}',
+                      Text('试点至: ${_fmtDate(sub.trialEndsAt, sub.utcOffsetMinutes)}',
                           style: theme.textTheme.bodySmall),
                   ],
                 ),

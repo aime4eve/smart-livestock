@@ -5,15 +5,19 @@ class TenantSubscription {
   const TenantSubscription({
     required this.id,
     required this.tenantId,
+    this.tenantName,
     required this.status,
     required this.effectiveTier,
     this.trialEndsAt,
+    this.utcOffsetMinutes,
   });
   final String id;
   final String tenantId;
+  final String? tenantName;
   final String status;
   final String effectiveTier;
   final String? trialEndsAt;
+  final int? utcOffsetMinutes;
 }
 
 /// Result of granting the hosted cloud pilot license (ruling 2026-10-12).

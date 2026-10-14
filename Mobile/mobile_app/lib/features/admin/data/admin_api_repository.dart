@@ -82,9 +82,11 @@ class AdminApiRepository implements AdminRepository {
         .map((m) => TenantSubscription(
               id: m['id']?.toString() ?? '',
               tenantId: m['tenantId']?.toString() ?? '',
+              tenantName: m['tenantName'] as String?,
               status: (m['status'] as String?) ?? '',
               effectiveTier: (m['effectiveTier'] as String?) ?? '',
               trialEndsAt: m['trialEndsAt'] as String?,
+              utcOffsetMinutes: m['utcOffsetMinutes'] as int?,
             ))
         .toList();
   }
@@ -107,9 +109,11 @@ class AdminApiRepository implements AdminRepository {
     return TenantSubscription(
       id: m['id']?.toString() ?? '',
       tenantId: m['tenantId']?.toString() ?? tenantId,
+      tenantName: m['tenantName'] as String?,
       status: (m['status'] as String?) ?? '',
       effectiveTier: (m['effectiveTier'] as String?) ?? '',
       trialEndsAt: m['trialEndsAt'] as String?,
+      utcOffsetMinutes: m['utcOffsetMinutes'] as int?,
     );
   }
 
