@@ -276,44 +276,41 @@ class CloudPilotLicenseServiceTest {
     @Nested
     class Reject {
 
+        // Ruling 2026-10-14: only a paying (ACTIVE) subscription is protected
+        // from pilot enrolment — cancelled/free/suspended/expired/renewal-
+        // failed tenants can be re-enrolled (re-grant path).
         @ParameterizedTest
-        @EnumSource(value = SubscriptionStatus.class, mode = EnumSource.Mode.EXCLUDE, names = "TRIAL")
-        void nonTrialStates_rejected_withAudit(SubscriptionStatus status) {
+        @EnumSource(value = SubscriptionStatus.class, mode = EnumSource.Mode.EXCLUDE,
+            names = {"TRIAL", "ACTIVE"})
+        void nonPayingStates_canBeReEnrolled(SubscriptionStatus status) {
             when(licenseSubscriptionPort.findSubscription(TARGET_TENANT_ID))
                 .thenReturn(Optional.of(snapshot(status, null, false)));
 
-            assertThatThrownBy(() -> service.grantPilotLicense(TARGET_TENANT_ID))
-                .isInstanceOf(ApiException.class)
-                .satisfies(ex -> {
-                    ApiException apiEx = (ApiException) ex;
-                    assertThat(apiEx.getCode()).isEqualTo(ErrorCode.STATE_CONFLICT);
-                    assertThat(apiEx.getMessage()).isEqualTo("license.pilot.stateConflict");
-                    assertThat(apiEx.getMessageArgs()).containsExactly(status.name());
-                });
+            CloudPilotLicenseService.PilotLicenseResult result =
+                service.grantPilotLicense(TARGET_TENANT_ID);
 
-            verify(licenseSubscriptionPort, never()).applyTrialLicense(anyLong(), any(Instant.class));
-            ArgumentCaptor<AuditLog> auditCaptor = ArgumentCaptor.forClass(AuditLog.class);
-            verify(auditLogRepository).save(auditCaptor.capture());
-            AuditLog auditLog = auditCaptor.getValue();
-            assertThat(auditLog.getEventType()).isEqualTo(CloudPilotLicenseService.EVENT_PILOT_LICENSE_REJECTED);
-            assertThat(auditLog.getDetails())
-                .containsEntry("tenantId", TARGET_TENANT_ID)
-                .containsEntry("currentStatus", status.name());
+            ArgumentCaptor<Instant> endsCaptor = ArgumentCaptor.forClass(Instant.class);
+            verify(licenseSubscriptionPort).applyTrialLicense(eq(TARGET_TENANT_ID), endsCaptor.capture());
+            assertThat(endsCaptor.getValue()).isCloseTo(
+                Instant.now().plus(Duration.ofDays(365)), within(5, ChronoUnit.SECONDS));
+            assertThat(result.status()).isEqualTo("TRIAL");
+            verify(auditLogRepository).save(any(AuditLog.class));
         }
 
         @Test
-        void expiredTrial_rejected() {
+        void expiredTrial_canBeReEnrolled() {
+            // Lapsed trial (status still TRIAL, window passed) re-enters the
+            // pilot at the target deadline — the re-enrolment path.
             Instant pastEnd = Instant.now().minus(Duration.ofDays(1));
             when(licenseSubscriptionPort.findSubscription(TARGET_TENANT_ID))
                 .thenReturn(Optional.of(snapshot(SubscriptionStatus.TRIAL, pastEnd, false)));
 
-            assertThatThrownBy(() -> service.grantPilotLicense(TARGET_TENANT_ID))
-                .isInstanceOf(ApiException.class)
-                .satisfies(ex -> assertThat(((ApiException) ex).getCode())
-                    .isEqualTo(ErrorCode.STATE_CONFLICT));
+            service.grantPilotLicense(TARGET_TENANT_ID);
 
-            verify(licenseSubscriptionPort, never()).applyTrialLicense(anyLong(), any(Instant.class));
-            verify(auditLogRepository).save(any(AuditLog.class));
+            ArgumentCaptor<Instant> endsCaptor = ArgumentCaptor.forClass(Instant.class);
+            verify(licenseSubscriptionPort).applyTrialLicense(eq(TARGET_TENANT_ID), endsCaptor.capture());
+            assertThat(endsCaptor.getValue()).isCloseTo(
+                Instant.now().plus(Duration.ofDays(365)), within(5, ChronoUnit.SECONDS));
         }
     }
 

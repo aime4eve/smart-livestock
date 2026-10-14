@@ -68,6 +68,7 @@ public class AdminSubscriptionController {
                     m.put("effectiveTier", sub.getEffectiveTier());
                     m.put("trialEndsAt", sub.getTrialEndsAt());
                     m.put("expiresAt", sub.getExpiresAt());
+                    m.put("utcOffsetMinutes", tenantZoneResolver.utcOffsetMinutes(sub.getTenantId()));
                     return m;
                 })
                 .toList();

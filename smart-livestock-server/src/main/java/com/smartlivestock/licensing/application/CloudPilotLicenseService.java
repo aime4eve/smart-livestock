@@ -140,28 +140,35 @@ public class CloudPilotLicenseService {
             return new PilotLicenseResult(targetTenantId, STATUS_TRIAL, pilotEndsAt);
         }
 
-        if (STATUS_TRIAL.equals(snapshot.status()) && snapshot.trialActive()) {
-            // A fixed deadline (explicit or platform default) wins even when the
-            // current trial ends later: grants converge to one shared end.
-            Instant newTrialEndsAt = deadlineSource.equals("ROLLING")
-                && snapshot.trialEndsAt() != null
-                && snapshot.trialEndsAt().isAfter(pilotEndsAt)
-                ? snapshot.trialEndsAt() : pilotEndsAt;
-            licenseSubscriptionPort.applyTrialLicense(targetTenantId, newTrialEndsAt);
-            audit(operatorId, targetTenantId, EVENT_PILOT_LICENSE_GRANT, Map.of(
+        // Ruling 2026-10-14: any non-ACTIVE subscription can be (re-)enrolled
+        // into the hosted pilot — CANCELLED (e.g. after a tenant restore),
+        // FREE (expired), SUSPENDED, EXPIRED, RENEWAL_FAILED, and lapsed
+        // TRIALs. Only a paying (ACTIVE) subscription is protected from
+        // being knocked back to trial.
+        boolean wasTrial = STATUS_TRIAL.equals(snapshot.status());
+        if (!wasTrial && "ACTIVE".equalsIgnoreCase(snapshot.status())) {
+            audit(operatorId, targetTenantId, EVENT_PILOT_LICENSE_REJECTED, Map.of(
                 "tenantId", targetTenantId,
-                "trialEndsAt", newTrialEndsAt.toString(),
-                "deadlineSource", deadlineSource,
-                "previousStatus", STATUS_TRIAL));
-            return new PilotLicenseResult(targetTenantId, STATUS_TRIAL, newTrialEndsAt);
+                "currentStatus", snapshot.status() != null ? snapshot.status() : "UNKNOWN",
+                "reason", "PILOT_STATE_CONFLICT"));
+            throw new ApiException(ErrorCode.STATE_CONFLICT, "license.pilot.stateConflict",
+                new Object[]{snapshot.status() != null ? snapshot.status() : "UNKNOWN"});
         }
 
-        audit(operatorId, targetTenantId, EVENT_PILOT_LICENSE_REJECTED, Map.of(
+        // Existing live TRIAL in rolling mode: extend-only (never shorten).
+        // Fixed deadlines (explicit/platform) always converge the value.
+        Instant effectiveEndsAt = deadlineSource.equals("ROLLING")
+            && snapshot.trialEndsAt() != null
+            && snapshot.trialEndsAt().isAfter(pilotEndsAt)
+            ? snapshot.trialEndsAt() : pilotEndsAt;
+        String previousStatus = snapshot.status() != null ? snapshot.status() : "NONE";
+        licenseSubscriptionPort.applyTrialLicense(targetTenantId, effectiveEndsAt);
+        audit(operatorId, targetTenantId, EVENT_PILOT_LICENSE_GRANT, Map.of(
             "tenantId", targetTenantId,
-            "currentStatus", snapshot.status() != null ? snapshot.status() : "UNKNOWN",
-            "reason", "PILOT_STATE_CONFLICT"));
-        throw new ApiException(ErrorCode.STATE_CONFLICT, "license.pilot.stateConflict",
-            new Object[]{snapshot.status() != null ? snapshot.status() : "UNKNOWN"});
+            "trialEndsAt", effectiveEndsAt.toString(),
+            "deadlineSource", deadlineSource,
+            "previousStatus", previousStatus));
+        return new PilotLicenseResult(targetTenantId, STATUS_TRIAL, effectiveEndsAt);
     }
 
     private void audit(Long operatorId, Long targetTenantId, String eventType, Map<String, Object> details) {

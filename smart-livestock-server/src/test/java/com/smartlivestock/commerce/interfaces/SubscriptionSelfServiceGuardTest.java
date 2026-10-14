@@ -141,7 +141,7 @@ class SubscriptionSelfServiceGuardTest {
             loginAsPlatformAdmin();
             AdminSubscriptionController controller = new AdminSubscriptionController(
                     subscriptionApplicationService, subscriptionQueryService,
-                    springDataSubscriptionRepository, new LicenseModeGuard("ONPREM"));
+                    springDataSubscriptionRepository, new LicenseModeGuard("ONPREM"), org.mockito.Mockito.mock(com.smartlivestock.identity.application.TenantZoneResolver.class));
 
             assertThatThrownBy(() -> controller.updateStatus(5L,
                             Map.of("targetStatus", "SUSPENDED")))
@@ -159,7 +159,7 @@ class SubscriptionSelfServiceGuardTest {
             loginAsPlatformAdmin();
             AdminSubscriptionController controller = new AdminSubscriptionController(
                     subscriptionApplicationService, subscriptionQueryService,
-                    springDataSubscriptionRepository, new LicenseModeGuard("HOSTED"));
+                    springDataSubscriptionRepository, new LicenseModeGuard("HOSTED"), org.mockito.Mockito.mock(com.smartlivestock.identity.application.TenantZoneResolver.class));
             // empty repo result → controller falls through the guard and fails
             // on the (mocked) business lookup with RESOURCE_NOT_FOUND
             when(springDataSubscriptionRepository.findById(5L)).thenReturn(Optional.empty());

@@ -57,7 +57,7 @@ public class CommerceLicenseAdapter implements LicenseSubscriptionPort {
             domainEventPublisher.publishDomainEvents(saved);
             return;
         }
-        sub.extendTrial(trialEndsAt);
+        sub.grantTrial(trialEndsAt);
         Subscription saved = subscriptionRepository.save(sub);
         domainEventPublisher.publishDomainEvents(saved);
     }
