@@ -119,8 +119,12 @@ class _TenantCard extends ConsumerWidget {
 
   Future<void> _lifecycle(BuildContext context, String action) async {
     final messenger = ScaffoldMessenger.of(context);
+    // Capture the list notifier BEFORE awaiting: a deleted tenant's card is
+    // unmounted by the refresh, and touching a disposed WidgetRef after the
+    // await crashes the whole view (Release Web white screen).
+    final repo = ref.read(adminRepositoryProvider);
+    final listNotifier = ref.read(tenantListControllerProvider.notifier);
     try {
-      final repo = ref.read(adminRepositoryProvider);
       if (action == 'delete') {
         await repo.deleteTenant(tenant.id);
         messenger.showSnackBar(SnackBar(
@@ -138,7 +142,7 @@ class _TenantCard extends ConsumerWidget {
             content: Text('租户「${tenant.name}」已${next == 'disabled' ? '停用' : '启用'}'),
             backgroundColor: const Color(0xFF2E7D32)));
       }
-      ref.invalidate(tenantListControllerProvider);
+      listNotifier.refresh();
     } catch (e) {
       messenger.showSnackBar(SnackBar(
           content: Text('操作失败: $e'),
