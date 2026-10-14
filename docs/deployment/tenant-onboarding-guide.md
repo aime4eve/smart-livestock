@@ -75,7 +75,7 @@ curl -sk -X POST "$BASE/api/v1/admin/tenants" \
 ```bash
 curl -sk -X POST "$BASE/api/v1/admin/users" \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -d '{"name":"<姓名>","account":"david.wood","email":"david@cust.co.ke","role":"B2B_ADMIN","tenantId":"'"$TENANT_ID"'","password":"<初始密码>"}'
+  -d '{"name":"<姓名>","account":"demo.admin","email":"admin@customer.example","role":"B2B_ADMIN","tenantId":"'"$TENANT_ID"'","password":"<初始密码>"}'
 ```
 
 - **登录标识三选一以上**:`account`(3-32 位,字母开头)/`phone`(E.164,如 +254712345678)/`email`;`username` 为显示昵称(可重复,选填)。全空返回 400"至少填写一项"。
