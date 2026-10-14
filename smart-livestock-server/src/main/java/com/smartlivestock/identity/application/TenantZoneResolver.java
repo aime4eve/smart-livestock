@@ -34,6 +34,7 @@ public class TenantZoneResolver {
     private final String platformDefaultRaw;
 
     private final Map<Long, Optional<ZoneId>> tenantZoneCache = new ConcurrentHashMap<>();
+    private final Map<Long, String> tenantNameCache = new ConcurrentHashMap<>();
     private final Map<Long, Long> farmTenantCache = new ConcurrentHashMap<>();
     private final Map<Long, Optional<ZoneId>> farmZoneCache = new ConcurrentHashMap<>();
 
@@ -118,9 +119,19 @@ public class TenantZoneResolver {
         }
     }
 
+    /** Tenant display name for admin surfaces; cached alongside the zone. */
+    public String nameOf(Long tenantId) {
+        if (tenantId == null) return "";
+        return tenantNameCache.computeIfAbsent(tenantId, id ->
+                tenantRepository.findById(id)
+                        .map(t -> t.getName() == null ? "" : t.getName())
+                        .orElse(""));
+    }
+
     public void evictTenant(Long tenantId) {
         if (tenantId == null) return;
         tenantZoneCache.remove(tenantId);
+        tenantNameCache.remove(tenantId);
     }
 
     public void evictFarm(Long farmId) {

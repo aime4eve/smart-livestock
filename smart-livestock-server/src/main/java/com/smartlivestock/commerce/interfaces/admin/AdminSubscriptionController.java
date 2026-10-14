@@ -37,6 +37,7 @@ public class AdminSubscriptionController {
     private final SubscriptionQueryService subscriptionQueryService;
     private final SpringDataSubscriptionRepository springDataSubscriptionRepository;
     private final LicenseModeGuard licenseModeGuard;
+    private final com.smartlivestock.identity.application.TenantZoneResolver tenantZoneResolver;
 
     /**
      * GET /api/v1/admin/subscriptions
@@ -51,12 +52,24 @@ public class AdminSubscriptionController {
             @RequestParam(required = false) String tier) {
         requirePlatformAdmin();
 
-        List<SubscriptionResponse> all = springDataSubscriptionRepository.findAll().stream()
+        List<Map<String, Object>> all = springDataSubscriptionRepository.findAll().stream()
                 .map(SubscriptionMapper::toDomain)
                 .map(SubscriptionAssembler::toResponse)
                 .filter(sub -> tenantId == null || tenantId.equals(sub.getTenantId()))
                 .filter(sub -> status == null || status.equalsIgnoreCase(sub.getStatus()))
                 .filter(sub -> tier == null || tier.equalsIgnoreCase(sub.getTier()))
+                .map(sub -> {
+                    Map<String, Object> m = new java.util.LinkedHashMap<>();
+                    m.put("id", sub.getId());
+                    m.put("tenantId", sub.getTenantId());
+                    m.put("tenantName", tenantZoneResolver.nameOf(sub.getTenantId()));
+                    m.put("tier", sub.getTier());
+                    m.put("status", sub.getStatus());
+                    m.put("effectiveTier", sub.getEffectiveTier());
+                    m.put("trialEndsAt", sub.getTrialEndsAt());
+                    m.put("expiresAt", sub.getExpiresAt());
+                    return m;
+                })
                 .toList();
 
         Map<String, Object> data = Map.of(

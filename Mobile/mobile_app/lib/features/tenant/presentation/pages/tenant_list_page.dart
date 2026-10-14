@@ -117,7 +117,8 @@ class _TenantCard extends ConsumerWidget {
   final TenantSummary tenant;
   final WidgetRef ref;
 
-  Future<void> _lifecycle(BuildContext context, String action) async {
+  Future<void> _lifecycle(BuildContext context, String action,
+      {bool cancelSubscription = false}) async {
     final messenger = ScaffoldMessenger.of(context);
     // Capture the list notifier BEFORE awaiting: a deleted tenant's card is
     // unmounted by the refresh, and touching a disposed WidgetRef after the
@@ -126,7 +127,8 @@ class _TenantCard extends ConsumerWidget {
     final listNotifier = ref.read(tenantListControllerProvider.notifier);
     try {
       if (action == 'delete') {
-        await repo.deleteTenant(tenant.id);
+        await repo.deleteTenant(tenant.id,
+            cancelSubscription: cancelSubscription);
         messenger.showSnackBar(SnackBar(
             content: Text('租户「${tenant.name}」已删除'),
             backgroundColor: const Color(0xFF2E7D32)));
@@ -150,18 +152,40 @@ class _TenantCard extends ConsumerWidget {
     }
   }
 
-  void _confirmDelete(BuildContext context) {
+  Future<void> _confirmDelete(BuildContext context) async {
     final nameCtrl = TextEditingController();
+    // 有试用/有效订阅时,删除需同时取消订阅(界面闭环,免两步跳页)
+    TenantSubscription? sub;
+    try {
+      sub = await ref.read(adminRepositoryProvider).loadTenantSubscription(tenant.id);
+    } catch (_) {} // 查询失败按无订阅处理,删除时由后端兜底
+    final hasLiveSub = sub != null &&
+        ['TRIAL', 'ACTIVE'].contains(sub.status.toUpperCase());
+    bool cancelSubToo = hasLiveSub;
+    if (!context.mounted) return; // async gap 后再开对话框
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
         key: const Key('tenant-delete-dialog'),
         title: const Text('删除租户'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('将删除「${tenant.name}」:全部用户停用、订阅取消、牧场下线;业务数据保留且可恢复。'),
+            Text('将删除「${tenant.name}」:全部用户停用、牧场下线;业务数据保留且可恢复。'),
+            if (hasLiveSub) ...[
+              const SizedBox(height: 8),
+              CheckboxListTile(
+                key: const Key('tenant-delete-cancel-sub'),
+                value: cancelSubToo,
+                onChanged: (v) => setDialogState(() => cancelSubToo = v ?? false),
+                title: const Text('同时取消其试点订阅'),
+                subtitle: const Text('该租户尚有未到期订阅,删除时一并取消'),
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+              ),
+            ],
             const SizedBox(height: 12),
             TextFormField(
               key: const Key('tenant-delete-confirm-name'),
@@ -186,11 +210,13 @@ class _TenantCard extends ConsumerWidget {
               // 分支内嵌 Navigator,把租户列表页自己弹出栈(go_router
               // "popped the last page" 断言崩 = 白屏)。
               Navigator.pop(ctx);
-              _lifecycle(context, 'delete');
+              _lifecycle(context, 'delete',
+                  cancelSubscription: cancelSubToo);
             },
             child: const Text('永久删除标记'),
           ),
         ],
+      ),
       ),
     );
   }

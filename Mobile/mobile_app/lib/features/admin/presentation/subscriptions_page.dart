@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/admin/domain/admin_repository.dart';
+import 'package:hkt_livestock_agentic/features/admin/presentation/admin_controller.dart';
 import 'package:hkt_livestock_agentic/features/subscription_service_management/domain/subscription_service_repository.dart';
 import 'package:hkt_livestock_agentic/features/subscription_service_management/presentation/subscription_service_controller.dart';
 import 'package:hkt_livestock_agentic/features/admin/license/domain/deployment_license_models.dart';
@@ -22,6 +24,66 @@ class SubscriptionsPage extends ConsumerStatefulWidget {
 class _SubscriptionsPageState extends ConsumerState<SubscriptionsPage> {
   /// Tenant picked in the pilot-license dropdown (null = first tenant).
   int? _pilotTenantId;
+  List<TenantSubscription>? _tenantSubs;
+  String? _tenantSubsError;
+
+  Future<void> _loadTenantSubscriptions() async {
+    try {
+      final list =
+          await ref.read(adminRepositoryProvider).loadSubscriptions();
+      if (!mounted) return;
+      setState(() => _tenantSubs = list);
+    } catch (e) {
+      if (mounted) setState(() => _tenantSubsError = e.toString());
+    }
+  }
+
+  void _confirmCancelSubscription(TenantSubscription sub) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        key: Key('cancel-sub-dialog-${sub.id}'),
+        title: const Text('取消订阅'),
+        content: const Text('取消该租户的订阅?取消后该租户将回落免费档,即可在租户管理中删除。'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+          FilledButton(
+            key: Key('cancel-sub-confirm-${sub.id}'),
+            style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFFD32F2F)),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _cancelSubscription(sub);
+            },
+            child: const Text('确认取消'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _cancelSubscription(TenantSubscription sub) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(adminRepositoryProvider).cancelSubscription(sub.id);
+      await _loadTenantSubscriptions();
+      if (!mounted) return;
+      messenger.showSnackBar(const SnackBar(
+          content: Text('订阅已取消'),
+          backgroundColor: Color(0xFF2E7D32)));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(
+          content: Text('取消失败: $e'),
+          backgroundColor: const Color(0xFFD32F2F)));
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTenantSubscriptions();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +108,31 @@ class _SubscriptionsPageState extends ConsumerState<SubscriptionsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Text('租户订阅',
+                  style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: AppSpacing.sm),
+              Text('各租户的订阅状态;删除租户前可在此取消其试点/正式订阅。',
+                  style: Theme.of(context).textTheme.bodySmall),
+              const SizedBox(height: AppSpacing.md),
+              if (_tenantSubsError != null)
+                Text('加载失败: $_tenantSubsError',
+                    style: Theme.of(context).textTheme.bodySmall),
+              if (_tenantSubs == null)
+                const Center(child: CircularProgressIndicator())
+              else if (_tenantSubs!.isEmpty)
+                HighfiCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Text('暂无租户订阅',
+                        style: Theme.of(context).textTheme.bodySmall),
+                  ),
+                )
+              else
+                ..._tenantSubs!.map((sub) => _TenantSubscriptionCard(
+                      sub: sub,
+                      onCancel: () => _confirmCancelSubscription(sub),
+                    )),
+              const SizedBox(height: AppSpacing.lg),
               Text(
                 l10n.subServiceManagement,
                 style: Theme.of(context).textTheme.titleLarge,
@@ -257,6 +344,75 @@ class _SubscriptionsPageState extends ConsumerState<SubscriptionsPage> {
                     ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TenantSubscriptionCard extends StatelessWidget {
+  const _TenantSubscriptionCard({required this.sub, required this.onCancel});
+  final TenantSubscription sub;
+  final VoidCallback onCancel;
+
+  String get _statusLabel {
+    switch (sub.status.toUpperCase()) {
+      case 'TRIAL':
+        return '试点中';
+      case 'ACTIVE':
+        return '有效';
+      case 'FREE':
+        return '免费版';
+      case 'CANCELLED':
+        return '已取消';
+      case 'SUSPENDED':
+        return '已暂停';
+      case 'EXPIRED':
+        return '已过期';
+      default:
+        return sub.status;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final canCancel = ['TRIAL', 'ACTIVE'].contains(sub.status.toUpperCase());
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: HighfiCard(
+        key: Key('tenant-sub-${sub.tenantId}'),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(sub.tenantId,
+                            style: theme.textTheme.titleSmall),
+                        const SizedBox(width: AppSpacing.sm),
+                        HighfiStatusChip(label: _statusLabel, color: AppColors.textSecondary),
+                      ],
+                    ),
+                    if (sub.trialEndsAt != null)
+                      Text('试点至: \${sub.trialEndsAt}',
+                          style: theme.textTheme.bodySmall),
+                  ],
+                ),
+              ),
+              if (canCancel)
+                TextButton(
+                  key: Key('cancel-sub-${sub.tenantId}'),
+                  onPressed: onCancel,
+                  child: const Text('取消订阅',
+                      style: TextStyle(color: Color(0xFFD32F2F))),
+                ),
+            ],
+          ),
         ),
       ),
     );

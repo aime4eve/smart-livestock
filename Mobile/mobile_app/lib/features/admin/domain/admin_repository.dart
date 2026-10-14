@@ -3,11 +3,13 @@
 /// Subscription row of a tenant (admin view, for pilot-status display).
 class TenantSubscription {
   const TenantSubscription({
+    required this.id,
     required this.tenantId,
     required this.status,
     required this.effectiveTier,
     this.trialEndsAt,
   });
+  final String id;
   final String tenantId;
   final String status;
   final String effectiveTier;
@@ -273,8 +275,10 @@ abstract class AdminRepository {
   Future<TenantSummary> createTenant(Map<String, dynamic> body);
   Future<PilotLicenseGrant> grantPilotLicense(String tenantId, String? trialEndsAt);
   Future<TenantSubscription?> loadTenantSubscription(String tenantId);
+  Future<List<TenantSubscription>> loadSubscriptions();
+  Future<void> cancelSubscription(String subscriptionId);
   Future<void> updateTenantStatus(String tenantId, String status);
-  Future<void> deleteTenant(String tenantId);
+  Future<void> deleteTenant(String tenantId, {bool cancelSubscription = false});
   Future<void> restoreTenant(String tenantId);
   Future<void> updateTenantPhase(String tenantId, String phase);
   Future<TenantSummary> updateTenant(String tenantId, Map<String, dynamic> body);

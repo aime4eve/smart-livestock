@@ -56,6 +56,17 @@ public class TenantLifecycleService {
      */
     @Transactional
     public void delete(Long tenantId, Long operatorId) {
+        delete(tenantId, operatorId, false);
+    }
+
+    /**
+     * @param cancelSubscription when true, a live (trial/active) subscription
+     *        is cancelled as part of the cascade instead of blocking the
+     *        delete — the UI checkbox path for tie-light tenants
+     *        (ruling follow-up 2026-10-14).
+     */
+    @Transactional
+    public void delete(Long tenantId, Long operatorId, boolean cancelSubscription) {
         TenantJpaEntity tenant = requireLive(tenantId);
 
         long activeDevices = deviceRepository.findByTenantId(tenantId).stream()
@@ -69,7 +80,7 @@ public class TenantLifecycleService {
                 .map(sub -> "trial".equalsIgnoreCase(sub.getStatus())
                         || "active".equalsIgnoreCase(sub.getStatus()))
                 .orElse(false);
-        if (liveSubscription) {
+        if (liveSubscription && !cancelSubscription) {
             throw new ApiException(ErrorCode.STATE_CONFLICT, "tenant.deleteLiveSubscription");
         }
 

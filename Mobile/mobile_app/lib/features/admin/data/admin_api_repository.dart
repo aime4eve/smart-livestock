@@ -63,8 +63,30 @@ class AdminApiRepository implements AdminRepository {
   }
 
   @override
-  Future<void> deleteTenant(String tenantId) async {
-    await ApiClient.instance.delete('/admin/tenants/$tenantId');
+  Future<void> deleteTenant(String tenantId, {bool cancelSubscription = false}) async {
+    await ApiClient.instance
+        .delete('/admin/tenants/$tenantId?cancelSubscription=$cancelSubscription');
+  }
+
+  @override
+  Future<void> cancelSubscription(String subscriptionId) async {
+    await ApiClient.instance.put('/admin/subscriptions/$subscriptionId/status',
+        body: {'targetStatus': 'CANCELLED'});
+  }
+
+  @override
+  Future<List<TenantSubscription>> loadSubscriptions() async {
+    final data = await ApiClient.instance.get('/admin/subscriptions?pageSize=100');
+    return (data['items'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map((m) => TenantSubscription(
+              id: m['id']?.toString() ?? '',
+              tenantId: m['tenantId']?.toString() ?? '',
+              status: (m['status'] as String?) ?? '',
+              effectiveTier: (m['effectiveTier'] as String?) ?? '',
+              trialEndsAt: m['trialEndsAt'] as String?,
+            ))
+        .toList();
   }
 
   @override
@@ -83,6 +105,7 @@ class AdminApiRepository implements AdminRepository {
     if (items.isEmpty) return null;
     final m = items.first;
     return TenantSubscription(
+      id: m['id']?.toString() ?? '',
       tenantId: m['tenantId']?.toString() ?? tenantId,
       status: (m['status'] as String?) ?? '',
       effectiveTier: (m['effectiveTier'] as String?) ?? '',

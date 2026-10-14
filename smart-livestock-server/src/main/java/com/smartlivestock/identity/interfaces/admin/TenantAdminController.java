@@ -230,9 +230,10 @@ public class TenantAdminController {
      */
     @DeleteMapping("/{tenantId}")
     public ResponseEntity<ApiResponse<Map<String, Object>>> deleteTenant(
-            @PathVariable Long tenantId) {
+            @PathVariable Long tenantId,
+            @RequestParam(required = false, defaultValue = "false") boolean cancelSubscription) {
         requirePlatformAdmin();
-        tenantLifecycleService.delete(tenantId, currentUserId());
+        tenantLifecycleService.delete(tenantId, currentUserId(), cancelSubscription);
         return ResponseEntity.ok(ApiResponse.ok(Map.of(
                 "id", String.valueOf(tenantId),
                 "deleted", true)));
