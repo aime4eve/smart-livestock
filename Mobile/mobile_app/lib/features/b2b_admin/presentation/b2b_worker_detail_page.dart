@@ -445,6 +445,9 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
 
     final nameCtrl = TextEditingController();
     final phoneCtrl = TextEditingController();
+    final accountCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    final usernameCtrl = TextEditingController();
     final passwordCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
@@ -471,18 +474,46 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
+                  key: const Key('create-worker-phone'),
                   controller: phoneCtrl,
                   decoration: const InputDecoration(
-                    labelText: '手机号',
+                    labelText: '手机号（选填，国际格式）',
+                    hintText: '如 +254712345678',
                     isDense: true,
                     border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.phone,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) return '请输入手机号';
-                    if (v.trim().length < 11) return '手机号格式不正确';
-                    return null;
-                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  key: const Key('create-worker-account'),
+                  controller: accountCtrl,
+                  decoration: const InputDecoration(
+                    labelText: '用户账号（选填，登录用）',
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  key: const Key('create-worker-email'),
+                  controller: emailCtrl,
+                  decoration: const InputDecoration(
+                    labelText: '邮箱（选填）',
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  key: const Key('create-worker-username'),
+                  controller: usernameCtrl,
+                  decoration: const InputDecoration(
+                    labelText: '用户名（选填，显示昵称）',
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -530,10 +561,19 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
     setState(() => _busy = true);
     try {
       final notifier = ref.read(b2bWorkerManagementControllerProvider.notifier);
+      final phone = phoneCtrl.text.trim();
+      final account = accountCtrl.text.trim();
+      final email = emailCtrl.text.trim();
+      if (phone.isEmpty && account.isEmpty && email.isEmpty) {
+        throw '用户账号/手机号/邮箱至少填写一项';
+      }
       final worker = await notifier.createWorker(
         name: nameCtrl.text.trim(),
-        phone: phoneCtrl.text.trim(),
         password: passwordCtrl.text.trim(),
+        phone: phone.isEmpty ? null : phone,
+        account: account.isEmpty ? null : account,
+        email: email.isEmpty ? null : email,
+        username: usernameCtrl.text.trim().isEmpty ? null : usernameCtrl.text.trim(),
       );
       // Auto-assign to current farm
       await notifier.assignWorker(farm.id, worker.id);

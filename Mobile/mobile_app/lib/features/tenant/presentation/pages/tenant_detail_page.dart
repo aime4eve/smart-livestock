@@ -403,6 +403,9 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
   void _showCreateUserDialog(BuildContext context) {
     final formKey = GlobalKey<FormState>();
     final phoneCtrl = TextEditingController();
+    final accountCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    final usernameCtrl = TextEditingController();
     final nameCtrl = TextEditingController();
     final passwordCtrl = TextEditingController();
     String selectedRole = 'B2B_ADMIN';
@@ -494,6 +497,9 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                         ctx,
                         formKey,
                         phoneCtrl,
+                        accountCtrl,
+                        emailCtrl,
+                        usernameCtrl,
                         nameCtrl,
                         passwordCtrl,
                         selectedRole,
@@ -519,6 +525,9 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
     BuildContext dialogCtx,
     GlobalKey<FormState> formKey,
     TextEditingController phoneCtrl,
+    TextEditingController accountCtrl,
+    TextEditingController emailCtrl,
+    TextEditingController usernameCtrl,
     TextEditingController nameCtrl,
     TextEditingController passwordCtrl,
     String role,
@@ -533,12 +542,22 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
     final messenger = ScaffoldMessenger.of(context);
 
     try {
+      final phone = phoneCtrl.text.trim();
+      final account = accountCtrl.text.trim();
+      final email = emailCtrl.text.trim();
+      if (phone.isEmpty && account.isEmpty && email.isEmpty) {
+        throw '用户账号/手机号/邮箱至少填写一项';
+      }
       await ref.read(adminRepositoryProvider).createUser({
-        'phone': phoneCtrl.text.trim(),
         'name': nameCtrl.text.trim(),
         'password': passwordCtrl.text,
         'role': role,
         'tenantId': int.parse(widget.id),
+        if (phone.isNotEmpty) 'phone': phone,
+        if (account.isNotEmpty) 'account': account,
+        if (email.isNotEmpty) 'email': email,
+        if (usernameCtrl.text.trim().isNotEmpty)
+          'username': usernameCtrl.text.trim(),
       });
 
       if (!mounted) return;
@@ -631,6 +650,10 @@ class _UserCard extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text('手机号: ${user.phone ?? "-"}'),
+                  if (user.account != null && user.account!.isNotEmpty)
+                    Text('账号: ${user.account}'),
+                  if (user.email != null && user.email!.isNotEmpty)
+                    Text('邮箱: ${user.email}'),
                 ],
               ),
             ),

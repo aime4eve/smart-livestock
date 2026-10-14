@@ -40,9 +40,16 @@ class B2bWorkerManagementController
     return ref.read(b2bWorkerManagementRepositoryProvider).getAvailableWorkers();
   }
 
-  Future<B2bSubFarmWorker> createWorker({required String name, required String phone, required String password}) async {
+  Future<B2bSubFarmWorker> createWorker({
+    required String name,
+    required String password,
+    String? phone,
+    String? account,
+    String? email,
+    String? username,
+  }) async {
     final worker = await ref.read(b2bWorkerManagementRepositoryProvider).createWorker(
-      name: name, phone: phone, password: password,
+      name: name, password: password, phone: phone, account: account, email: email, username: username,
     );
     await refresh();
     return worker;

@@ -23,18 +23,40 @@ public class AuthApplicationService {
 
     @Transactional(readOnly = true)
     public AuthTokenDto login(LoginCommand command) {
-        User user = userRepository.findByPhone(command.phone())
-                .orElseThrow(() -> new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "手机号或密码错误"));
+        // Identifier routing (ruling 2026-10-12): email → phone (E.164 +
+        // legacy bare-number fallback) → account. Message stays generic
+        // ("账号或密码错误") so login probing learns nothing.
+        User user = resolveLoginUser(command.identifier())
+                .orElseThrow(() -> new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "auth.invalidIdentifierOrPassword"));
         if (!user.isActive()) {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "用户已停用");
         }
         if (!passwordHasher.matches(command.password(), user.getPasswordHash())) {
-            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "手机号或密码错误");
+            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "auth.invalidIdentifierOrPassword");
         }
         user.recordLogin();
         userRepository.save(user);
         String token = jwtTokenProvider.generateToken(user.getId(), user.getTenantId(), user.getRole().name());
         return new AuthTokenDto(token, UserDto.from(user));
+    }
+
+    /** Account / email are case-insensitive; phone tries E.164 first, then
+     *  the raw string so legacy bare 11-digit numbers keep working. */
+    private java.util.Optional<User> resolveLoginUser(String raw) {
+        String v = raw == null ? "" : raw.trim();
+        if (v.isEmpty()) return java.util.Optional.empty();
+        switch (com.smartlivestock.identity.application.LoginIdentifiers.classify(v)) {
+            case EMAIL: return userRepository.findByLoginIdentifier(
+                    com.smartlivestock.identity.application.LoginIdentifiers.normalizeEmail(v));
+            case PHONE: {
+                java.util.Optional<User> e164 = userRepository.findByLoginIdentifier(
+                        com.smartlivestock.identity.application.LoginIdentifiers.normalizePhone(v));
+                if (e164.isPresent()) return e164;
+                return userRepository.findByLoginIdentifier(v);
+            }
+            default: return userRepository.findByLoginIdentifier(
+                    com.smartlivestock.identity.application.LoginIdentifiers.normalizeAccount(v));
+        }
     }
 
     /**

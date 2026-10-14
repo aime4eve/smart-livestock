@@ -112,6 +112,9 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
     final l10n = AppLocalizations.of(context)!;
     final nameCtrl = TextEditingController();
     final phoneCtrl = TextEditingController();
+    final accountCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    final usernameCtrl = TextEditingController();
     final pwdCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
@@ -132,10 +135,29 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
+                  key: const Key('create-worker-phone'),
                   controller: phoneCtrl,
-                  decoration: InputDecoration(labelText: l10n.authPhoneLabel, isDense: true, border: const OutlineInputBorder()),
+                  decoration: const InputDecoration(labelText: '手机号（选填，国际格式）', hintText: '如 +254712345678', isDense: true, border: OutlineInputBorder()),
                   keyboardType: TextInputType.phone,
-                  validator: (v) => (v == null || v.trim().isEmpty) ? l10n.workerPhoneRequired : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  key: const Key('create-worker-account'),
+                  controller: accountCtrl,
+                  decoration: const InputDecoration(labelText: '用户账号（选填，登录用）', isDense: true, border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  key: const Key('create-worker-email'),
+                  controller: emailCtrl,
+                  decoration: const InputDecoration(labelText: '邮箱（选填）', isDense: true, border: OutlineInputBorder()),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  key: const Key('create-worker-username'),
+                  controller: usernameCtrl,
+                  decoration: const InputDecoration(labelText: '用户名（选填，显示昵称）', isDense: true, border: OutlineInputBorder()),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -156,11 +178,24 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
               if (!formKey.currentState!.validate()) return;
               Navigator.pop(ctx);
               try {
+                final phone = phoneCtrl.text.trim();
+                final account = accountCtrl.text.trim();
+                final email = emailCtrl.text.trim();
+                if (phone.isEmpty && account.isEmpty && email.isEmpty) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('用户账号/手机号/邮箱至少填写一项')));
+                  }
+                  return;
+                }
                 await ref.read(workerControllerProvider.notifier).createWorker(
                   farmId,
                   name: nameCtrl.text.trim(),
-                  phone: phoneCtrl.text.trim(),
                   password: pwdCtrl.text,
+                  phone: phone.isEmpty ? null : phone,
+                  account: account.isEmpty ? null : account,
+                  email: email.isEmpty ? null : email,
+                  username: usernameCtrl.text.trim().isEmpty ? null : usernameCtrl.text.trim(),
                 );
                 if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.workerCreateSuccess)));
               } catch (e) {

@@ -23,8 +23,18 @@ class WorkerController extends FarmScopedAsyncNotifier<List<WorkerAssignment>> {
         () => ref.read(workerRepositoryProvider).load(farmId));
   }
 
-  Future<void> createWorker(String farmId, {required String name, required String phone, required String password}) async {
-    await ref.read(workerRepositoryProvider).create(farmId, name: name, phone: phone, password: password);
+  Future<void> createWorker(String farmId, {
+    required String name,
+    required String password,
+    String? phone,
+    String? account,
+    String? email,
+    String? username,
+  }) async {
+    await ref.read(workerRepositoryProvider).create(
+      farmId, name: name, password: password,
+      phone: phone, account: account, email: email, username: username,
+    );
     await loadWorkers(farmId);
   }
 

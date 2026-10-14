@@ -4,6 +4,8 @@ class UserProfile {
     this.username,
     this.name,
     this.phone,
+    this.account,
+    this.email,
     this.role,
     this.tenantId,
     this.active,
@@ -13,6 +15,8 @@ class UserProfile {
   final String? username;
   final String? name;
   final String? phone;
+  final String? account;
+  final String? email;
   final String? role;
   final int? tenantId;
   final bool? active;

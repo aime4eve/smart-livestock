@@ -62,7 +62,14 @@ abstract class B2bWorkerManagementRepository {
   Future<bool> assignWorker(String farmId, String workerId);
   Future<bool> removeWorker(String farmId, String workerId);
   Future<List<B2bSubFarmWorker>> getAvailableWorkers();
-  Future<B2bSubFarmWorker> createWorker({required String name, required String phone, required String password});
+  Future<B2bSubFarmWorker> createWorker({
+    required String name,
+    required String password,
+    String? phone,
+    String? account,
+    String? email,
+    String? username,
+  });
   Future<B2bSubFarmWorker> updateWorker(String userId, {String? name, String? phone});
   Future<bool> updateWorkerStatus(String userId, String status);
   Future<bool> resetWorkerPassword(String userId, String newPassword);

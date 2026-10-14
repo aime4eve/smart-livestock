@@ -31,7 +31,7 @@ class LoginPage extends ConsumerStatefulWidget {
 const String _appVersion = String.fromEnvironment('APP_VERSION');
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  final _phoneController = TextEditingController();
+  final _phoneController = TextEditingController(); // holds account / phone / email
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitting = false;
@@ -82,7 +82,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       final ok = await ref
           .read(sessionControllerProvider.notifier)
           .login(
-            phone: _phoneController.text.trim(),
+            identifier: _phoneController.text.trim(),
             password: _passwordController.text,
           );
 
@@ -206,10 +206,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               ),
                               const SizedBox(height: AppSpacing.lg),
                               TextFormField(
-                                key: const Key('login-phone'),
+                                key: const Key('login-identifier'),
                                 controller: _phoneController,
-                                keyboardType: TextInputType.phone,
-                                autofillHints: const [AutofillHints.telephoneNumber],
+                                keyboardType: TextInputType.emailAddress,
+                                autofillHints: const [
+                                  AutofillHints.email,
+                                  AutofillHints.telephoneNumber,
+                                  AutofillHints.username,
+                                ],
                                 decoration: InputDecoration(
                                   labelText: l10n.authPhoneLabel,
                                   hintText: l10n.authPhoneHint,

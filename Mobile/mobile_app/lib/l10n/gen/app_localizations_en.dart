@@ -165,10 +165,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authSubtitle => 'Intelligent Livestock Management';
 
   @override
-  String get authPhoneLabel => 'Phone';
+  String get authPhoneLabel => 'Phone / Email / Account';
 
   @override
-  String get authPhoneHint => 'Enter phone number';
+  String get authPhoneHint => 'Enter phone, email or account';
 
   @override
   String get authPasswordLabel => 'Password';

@@ -407,13 +407,13 @@ abstract class AppLocalizations {
   /// No description provided for @authPhoneLabel.
   ///
   /// In zh, this message translates to:
-  /// **'手机号'**
+  /// **'手机号 / 邮箱 / 用户账号'**
   String get authPhoneLabel;
 
   /// No description provided for @authPhoneHint.
   ///
   /// In zh, this message translates to:
-  /// **'请输入手机号'**
+  /// **'请输入手机号、邮箱或用户账号'**
   String get authPhoneHint;
 
   /// No description provided for @authPasswordLabel.

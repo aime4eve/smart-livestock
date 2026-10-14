@@ -11,6 +11,12 @@ public class User extends AggregateRoot {
     private String passwordHash;
     private String name;
     private String phone;
+    /** Login account, globally unique, case-insensitive (ruling 2026-10-12). */
+    private String account;
+    /** Display name, not unique. */
+    private String username;
+    /** Login email, globally unique, case-insensitive. */
+    private String email;
     private Role role;
     private Long tenantId;
     private boolean active;
@@ -93,6 +99,15 @@ public class User extends AggregateRoot {
 
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
+
+    public String getAccount() { return account; }
+    public void setAccount(String account) { this.account = account; }
+
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }

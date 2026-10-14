@@ -31,26 +31,50 @@ public class OwnerWorkerController {
             @RequestBody Map<String, Object> body) {
         Long tenantId = requireTenantId();
 
-        String phone = (String) body.get("phone");
         String name = (String) body.get("name");
         String password = (String) body.get("password");
+        String account = (String) body.get("account");
+        String username = (String) body.get("username");
+        String email = (String) body.get("email");
 
-        if (phone == null || phone.isBlank()) {
-            throw new ApiException(ErrorCode.VALIDATION_ERROR, "手机号不能为空");
-        }
         if (name == null || name.isBlank()) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "姓名不能为空");
         }
         if (password == null || password.isBlank()) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "密码不能为空");
         }
-
-        if (userRepository.findByPhone(phone).isPresent()) {
-            throw new ApiException(ErrorCode.DUPLICATE_RESOURCE, "该手机号已注册");
+        String normAccount = com.smartlivestock.identity.application.LoginIdentifiers.normalizeAccount(account);
+        String normEmail = com.smartlivestock.identity.application.LoginIdentifiers.normalizeEmail(email);
+        String normPhone = com.smartlivestock.identity.application.LoginIdentifiers.normalizePhone((String) body.get("phone"));
+        if (normAccount == null && normEmail == null && normPhone == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "user.identifierRequired");
+        }
+        if (normAccount != null && !com.smartlivestock.identity.application.LoginIdentifiers.isValidAccount(normAccount)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "user.invalidAccount");
+        }
+        if (normEmail != null && !com.smartlivestock.identity.application.LoginIdentifiers.isValidEmail(normEmail)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "user.invalidEmail");
+        }
+        if (normPhone != null && !com.smartlivestock.identity.application.LoginIdentifiers.isValidPhone(normPhone)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "user.invalidPhone");
+        }
+        for (var existing : userRepository.findAll()) {
+            if (normAccount != null && normAccount.equalsIgnoreCase(existing.getAccount())) {
+                throw new ApiException(ErrorCode.DUPLICATE_RESOURCE, "user.accountDuplicate");
+            }
+            if (normEmail != null && normEmail.equalsIgnoreCase(existing.getEmail())) {
+                throw new ApiException(ErrorCode.DUPLICATE_RESOURCE, "user.emailDuplicate");
+            }
+            if (normPhone != null && normPhone.equals(existing.getPhone())) {
+                throw new ApiException(ErrorCode.DUPLICATE_RESOURCE, "user.phoneDuplicate");
+            }
         }
 
         User user = new User(passwordHasher.hash(password), name, Role.WORKER, tenantId);
-        user.setPhone(phone);
+        user.setPhone(normPhone);
+        user.setAccount(normAccount);
+        user.setEmail(normEmail);
+        user.setUsername(username == null || username.isBlank() ? null : username.trim());
         User saved = userRepository.save(user);
 
         if (!userFarmAssignmentRepository.existsByUserIdAndFarmId(saved.getId(), farmId)) {
@@ -60,7 +84,10 @@ public class OwnerWorkerController {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("id", String.valueOf(saved.getId()));
         data.put("name", saved.getName());
-        data.put("phone", saved.getPhone());
+        data.put("username", saved.getUsername() != null ? saved.getUsername() : "");
+        data.put("account", saved.getAccount() != null ? saved.getAccount() : "");
+        data.put("email", saved.getEmail() != null ? saved.getEmail() : "");
+        data.put("phone", saved.getPhone() != null ? saved.getPhone() : "");
         data.put("role", "worker");
         data.put("status", "active");
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(data));

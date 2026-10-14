@@ -84,6 +84,8 @@ class UserSummary {
     required this.name,
     this.username,
     this.phone,
+    this.account,
+    this.email,
     this.role,
     this.tenantId,
     this.tenantName,
@@ -96,6 +98,8 @@ class UserSummary {
   final String name;
   final String? username;
   final String? phone;
+  final String? account;
+  final String? email;
   final String? role;
   final String? tenantId;
   final String? tenantName;
@@ -110,6 +114,8 @@ class UserDetail {
     required this.name,
     this.username,
     this.phone,
+    this.account,
+    this.email,
     this.role,
     this.tenantId,
     this.status,
@@ -122,6 +128,8 @@ class UserDetail {
   final String name;
   final String? username;
   final String? phone;
+  final String? account;
+  final String? email;
   final String? role;
   final String? tenantId;
   final String? status;

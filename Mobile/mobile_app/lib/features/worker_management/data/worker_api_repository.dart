@@ -12,11 +12,21 @@ class WorkerApiRepository implements WorkerRepository {
   }
 
   @override
-  Future<WorkerAssignment> create(String farmId, {required String name, required String phone, required String password}) async {
+  Future<WorkerAssignment> create(String farmId, {
+    required String name,
+    required String password,
+    String? phone,
+    String? account,
+    String? email,
+    String? username,
+  }) async {
     final data = await ApiClient.instance.farmPost('/workers', body: {
       'name': name,
-      'phone': phone,
       'password': password,
+      if (phone != null && phone.isNotEmpty) 'phone': phone,
+      if (account != null && account.isNotEmpty) 'account': account,
+      if (email != null && email.isNotEmpty) 'email': email,
+      if (username != null && username.isNotEmpty) 'username': username,
     });
     return WorkerAssignment.fromJson(data);
   }

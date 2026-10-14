@@ -40,6 +40,16 @@ public class JpaUserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public Optional<User> findByLoginIdentifier(String identifier) {
+        return springDataRepo.findByLoginIdentifier(identifier).map(UserMapper::toDomain);
+    }
+
+    @Override
+    public List<User> findAll() {
+        return springDataRepo.findAll().stream().map(UserMapper::toDomain).toList();
+    }
+
+    @Override
     public List<User> findByTenantId(Long tenantId) {
         return springDataRepo.findByTenantId(tenantId).stream()
                 .map(UserMapper::toDomain)

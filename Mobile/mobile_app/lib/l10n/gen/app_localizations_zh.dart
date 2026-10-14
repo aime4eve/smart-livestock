@@ -162,10 +162,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get authSubtitle => '智能畜牧管理平台';
 
   @override
-  String get authPhoneLabel => '手机号';
+  String get authPhoneLabel => '手机号 / 邮箱 / 用户账号';
 
   @override
-  String get authPhoneHint => '请输入手机号';
+  String get authPhoneHint => '请输入手机号、邮箱或用户账号';
 
   @override
   String get authPasswordLabel => '密码';

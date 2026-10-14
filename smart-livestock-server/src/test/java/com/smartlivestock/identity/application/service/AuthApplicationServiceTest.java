@@ -58,7 +58,7 @@ class AuthApplicationServiceTest {
     @DisplayName("正常登录成功，返回 JWT token 和用户信息")
     void shouldLoginSuccessfully() {
         User user = createActiveUser();
-        when(userRepository.findByPhone("13800138000")).thenReturn(Optional.of(user));
+        when(userRepository.findByLoginIdentifier("+13800138000")).thenReturn(Optional.of(user));
         when(passwordHasher.matches("password123", "hashed_password")).thenReturn(true);
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
         when(jwtTokenProvider.generateToken(1L, 1L, "OWNER")).thenReturn("jwt-token-owner");
@@ -77,7 +77,7 @@ class AuthApplicationServiceTest {
     @DisplayName("密码错误时，拒绝登录")
     void shouldRejectWrongPassword() {
         User user = createActiveUser();
-        when(userRepository.findByPhone("13800138000")).thenReturn(Optional.of(user));
+        when(userRepository.findByLoginIdentifier("+13800138000")).thenReturn(Optional.of(user));
         when(passwordHasher.matches("wrong_password", "hashed_password")).thenReturn(false);
 
         assertThatThrownBy(() -> service.login(new LoginCommand("13800138000", "wrong_password")))
@@ -96,7 +96,7 @@ class AuthApplicationServiceTest {
         User user = createActiveUser();
         user.reconstituteActive(false);
 
-        when(userRepository.findByPhone("13800138000")).thenReturn(Optional.of(user));
+        when(userRepository.findByLoginIdentifier("+13800138000")).thenReturn(Optional.of(user));
 
         assertThatThrownBy(() -> service.login(new LoginCommand("13800138000", "password123")))
                 .isInstanceOf(ApiException.class)
@@ -112,7 +112,7 @@ class AuthApplicationServiceTest {
     @Test
     @DisplayName("手机号不存在时，拒绝登录")
     void shouldRejectNonExistentPhone() {
-        when(userRepository.findByPhone("19999999999")).thenReturn(Optional.empty());
+        when(userRepository.findByLoginIdentifier("+19999999999")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.login(new LoginCommand("19999999999", "password123")))
                 .isInstanceOf(ApiException.class)

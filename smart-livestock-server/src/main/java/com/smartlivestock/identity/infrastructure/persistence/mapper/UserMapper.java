@@ -14,6 +14,9 @@ public final class UserMapper {
         jpa.setPasswordHash(user.getPasswordHash());
         jpa.setName(user.getName());
         jpa.setPhone(user.getPhone());
+        jpa.setAccount(user.getAccount());
+        jpa.setUsername(user.getUsername());
+        jpa.setEmail(user.getEmail());
         jpa.setRole(user.getRole().name());
         jpa.setTenantId(user.getTenantId());
         jpa.setIsActive(user.isActive());
@@ -30,6 +33,9 @@ public final class UserMapper {
         jpa.setPasswordHash(user.getPasswordHash());
         jpa.setName(user.getName());
         jpa.setPhone(user.getPhone());
+        jpa.setAccount(user.getAccount());
+        jpa.setUsername(user.getUsername());
+        jpa.setEmail(user.getEmail());
         jpa.setRole(user.getRole().name());
         jpa.setTenantId(user.getTenantId());
         jpa.setIsActive(user.isActive());
@@ -43,6 +49,9 @@ public final class UserMapper {
         user.setPasswordHash(jpa.getPasswordHash());
         user.setName(jpa.getName());
         user.setPhone(jpa.getPhone());
+        user.setAccount(jpa.getAccount());
+        user.setUsername(jpa.getUsername());
+        user.setEmail(jpa.getEmail());
         user.setRole(Role.valueOf(jpa.getRole()));
         user.setTenantId(jpa.getTenantId());
         user.reconstituteActive(Boolean.TRUE.equals(jpa.getIsActive()));
