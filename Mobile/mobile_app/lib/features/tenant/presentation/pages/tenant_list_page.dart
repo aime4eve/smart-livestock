@@ -174,7 +174,7 @@ class _TenantCard extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(ctx),
               child: const Text('取消')),
           FilledButton(
             key: const Key('tenant-delete-confirm'),
@@ -182,7 +182,10 @@ class _TenantCard extends ConsumerWidget {
                 backgroundColor: const Color(0xFFD32F2F)),
             onPressed: () {
               if (nameCtrl.text.trim() != tenant.name) return;
-              Navigator.pop(context);
+              // 必须用对话框 builder 的 ctx:pop(页面 context)会解析到
+              // 分支内嵌 Navigator,把租户列表页自己弹出栈(go_router
+              // "popped the last page" 断言崩 = 白屏)。
+              Navigator.pop(ctx);
               _lifecycle(context, 'delete');
             },
             child: const Text('永久删除标记'),
