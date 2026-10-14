@@ -109,6 +109,14 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                       child: Text(tenant.name,
                           style: theme.textTheme.titleLarge),
                     ),
+                    const SizedBox(width: AppSpacing.sm),
+                    IconButton(
+                      key: const Key('tenant-edit-info'),
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(Icons.edit, size: 18),
+                      onPressed: () => _showEditTenantDialog(context),
+                      tooltip: '编辑租户信息',
+                    ),
                     Icon(
                       tenant.status == 'active'
                           ? Icons.check_circle
@@ -231,6 +239,132 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                   onStatusToggle: () => _toggleUserStatus(user),
                 )),
         ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditTenantDialog(BuildContext context) {
+    final tenant = _tenant!;
+    final nameCtrl = TextEditingController(text: tenant.name);
+    final contactNameCtrl = TextEditingController(text: tenant.contactName ?? '');
+    final contactPhoneCtrl = TextEditingController(text: tenant.contactPhone ?? '');
+    String? timezone = tenant.timezone;
+    bool saving = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          key: const Key('edit-tenant-dialog'),
+          title: const Text('编辑租户信息'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  key: const Key('edit-tenant-name'),
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(
+                      labelText: '租户名称 *',
+                      border: OutlineInputBorder()),
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? '名称不能为空'
+                      : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  key: const Key('edit-tenant-contact-name'),
+                  controller: contactNameCtrl,
+                  decoration: const InputDecoration(
+                      labelText: '联系人',
+                      border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  key: const Key('edit-tenant-contact-phone'),
+                  controller: contactPhoneCtrl,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                      labelText: '联系电话',
+                      border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  key: const Key('edit-tenant-timezone'),
+                  initialValue: timezone,
+                  decoration: const InputDecoration(
+                      labelText: '所在时区',
+                      helperText: '留空跟随平台默认',
+                      border: OutlineInputBorder()),
+                  items: [null, ...kTimezoneOptions.map((o) => o.name)]
+                      .map((tz) => DropdownMenuItem<String>(
+                            value: tz,
+                            child: Text(tz == null
+                                ? '自动（跟随平台默认）'
+                                : kTimezoneOptions
+                                    .firstWhere((o) => o.name == tz,
+                                        orElse: () => TimezoneOption(tz, 0, tz))
+                                    .label),
+                          ))
+                      .toList(),
+                  onChanged: (v) => setDialogState(() => timezone = v),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: saving ? null : () => Navigator.pop(ctx),
+                child: const Text('取消')),
+            FilledButton(
+              key: const Key('edit-tenant-confirm'),
+              onPressed: saving
+                  ? null
+                  : () async {
+                      if (nameCtrl.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('名称不能为空')));
+                        return;
+                      }
+                      setDialogState(() => saving = true);
+                      final messenger = ScaffoldMessenger.of(context);
+                      final navigator = Navigator.of(ctx);
+                      try {
+                        await ref.read(adminRepositoryProvider).updateTenant(
+                          widget.id,
+                          {
+                            'name': nameCtrl.text.trim(),
+                            'contactName': contactNameCtrl.text.trim(),
+                            'contactPhone': contactPhoneCtrl.text.trim(),
+                            'timezone': timezone ?? '',
+                          },
+                        );
+                        if (!context.mounted) return;
+                        navigator.pop();
+                        messenger.showSnackBar(const SnackBar(
+                          content: Text('租户信息已更新'),
+                          backgroundColor: Color(0xFF2E7D32),
+                        ));
+                        _loadData();
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        navigator.pop();
+                        messenger.showSnackBar(SnackBar(
+                          content: Text('更新失败: $e'),
+                          backgroundColor: const Color(0xFFD32F2F),
+                        ));
+                      }
+                    },
+              child: saving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
+                  : const Text('保存'),
+            ),
+          ],
         ),
       ),
     );
