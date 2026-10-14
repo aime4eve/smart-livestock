@@ -738,21 +738,41 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextFormField(
+                    key: const Key('create-user-account'),
+                    controller: accountCtrl,
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      labelText: '用户账号（选填，登录用）',
+                      hintText: '3-32位，字母开头',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
                     key: const Key('create-user-phone'),
                     controller: phoneCtrl,
-                    autofocus: true,
                     keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(
-                      labelText: '手机号 *',
-                      hintText: '请输入11位手机号',
+                      labelText: '手机号（选填，国际格式）',
+                      hintText: '如 +254791472501',
                     ),
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) return '手机号不能为空';
-                      if (!RegExp(r'^1\d{10}$').hasMatch(v.trim())) {
-                        return '请输入正确的11位手机号';
-                      }
-                      return null;
-                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    key: const Key('create-user-email'),
+                    controller: emailCtrl,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      labelText: '邮箱（选填）',
+                      hintText: 'name@example.com',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    key: const Key('create-user-username'),
+                    controller: usernameCtrl,
+                    decoration: const InputDecoration(
+                      labelText: '用户名（选填，显示昵称，可重复）',
+                    ),
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
