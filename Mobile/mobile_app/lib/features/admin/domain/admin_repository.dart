@@ -1,5 +1,19 @@
 // --- Tenant ---
 
+/// Subscription row of a tenant (admin view, for pilot-status display).
+class TenantSubscription {
+  const TenantSubscription({
+    required this.tenantId,
+    required this.status,
+    required this.effectiveTier,
+    this.trialEndsAt,
+  });
+  final String tenantId;
+  final String status;
+  final String effectiveTier;
+  final String? trialEndsAt;
+}
+
 /// Result of granting the hosted cloud pilot license (ruling 2026-10-12).
 class PilotLicenseGrant {
   const PilotLicenseGrant({
@@ -258,6 +272,7 @@ abstract class AdminRepository {
   Future<TenantDetail> loadTenantDetail(String tenantId);
   Future<TenantSummary> createTenant(Map<String, dynamic> body);
   Future<PilotLicenseGrant> grantPilotLicense(String tenantId, String? trialEndsAt);
+  Future<TenantSubscription?> loadTenantSubscription(String tenantId);
   Future<TenantSummary> updateTenant(String tenantId, Map<String, dynamic> body);
   Future<void> updateTenantStatus(String tenantId, String status);
 

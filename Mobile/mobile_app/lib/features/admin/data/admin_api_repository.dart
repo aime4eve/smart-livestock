@@ -55,6 +55,24 @@ class AdminApiRepository implements AdminRepository {
   }
 
   @override
+  Future<TenantSubscription?> loadTenantSubscription(String tenantId) async {
+    final data = await ApiClient.instance
+        .get('/admin/subscriptions?tenantId=$tenantId&pageSize=50');
+    final items = (data['items'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .where((m) => tenantId == m['tenantId']?.toString())
+        .toList();
+    if (items.isEmpty) return null;
+    final m = items.first;
+    return TenantSubscription(
+      tenantId: m['tenantId']?.toString() ?? tenantId,
+      status: (m['status'] as String?) ?? '',
+      effectiveTier: (m['effectiveTier'] as String?) ?? '',
+      trialEndsAt: m['trialEndsAt'] as String?,
+    );
+  }
+
+  @override
   Future<PilotLicenseGrant> grantPilotLicense(String tenantId, String? localDate) async {
     final body = <String, dynamic>{};
     if (localDate != null && localDate.trim().isNotEmpty) {

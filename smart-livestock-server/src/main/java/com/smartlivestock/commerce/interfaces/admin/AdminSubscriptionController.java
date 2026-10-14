@@ -46,6 +46,7 @@ public class AdminSubscriptionController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> listSubscriptions(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int pageSize,
+            @RequestParam(required = false) Long tenantId,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String tier) {
         requirePlatformAdmin();
@@ -53,6 +54,7 @@ public class AdminSubscriptionController {
         List<SubscriptionResponse> all = springDataSubscriptionRepository.findAll().stream()
                 .map(SubscriptionMapper::toDomain)
                 .map(SubscriptionAssembler::toResponse)
+                .filter(sub -> tenantId == null || tenantId.equals(sub.getTenantId()))
                 .filter(sub -> status == null || status.equalsIgnoreCase(sub.getStatus()))
                 .filter(sub -> tier == null || tier.equalsIgnoreCase(sub.getTier()))
                 .toList();

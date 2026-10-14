@@ -19,6 +19,7 @@ class TenantDetailPage extends ConsumerStatefulWidget {
 class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
   TenantDetail? _tenant;
   List<UserSummary> _users = [];
+  TenantSubscription? _subscription;
   String? get _tenantTimezone => _tenant?.timezone;
   bool _loading = true;
   String? _error;
@@ -38,11 +39,13 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
       final repo = ref.read(adminRepositoryProvider);
       final tenantDetail = repo.loadTenantDetail(widget.id);
       final userList = repo.loadUsers(tenantId: widget.id);
-      final results = await Future.wait<dynamic>([tenantDetail, userList]);
+      final subFuture = repo.loadTenantSubscription(widget.id);
+      final results = await Future.wait<dynamic>([tenantDetail, userList, subFuture]);
       if (!mounted) return;
       setState(() {
         _tenant = results[0] as TenantDetail;
         _users = (results[1] as AdminListResult<UserSummary>).items;
+        _subscription = results[2] as TenantSubscription?;
         _loading = false;
       });
     } catch (e) {
@@ -149,11 +152,25 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l10n.tenantPilotCardTitle,
-                    style: theme.textTheme.titleSmall),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(l10n.tenantPilotCardTitle,
+                          style: theme.textTheme.titleSmall),
+                    ),
+                    _pilotStatusChip(theme),
+                  ],
+                ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(l10n.tenantPilotCardDesc,
                     style: theme.textTheme.bodySmall),
+                if (_pilotExpiryText() != null) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(_pilotExpiryText()!,
+                      key: const Key('tenant-pilot-expiry'),
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.w600)),
+                ],
                 const SizedBox(height: AppSpacing.sm),
                 FilledButton.icon(
                   key: const Key('tenant-detail-pilot-grant'),
@@ -205,6 +222,63 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
         ),
       ),
     );
+  }
+
+  Widget _pilotStatusChip(ThemeData theme) {
+    final sub = _subscription;
+    final String label;
+    final Color color;
+    if (sub == null) {
+      label = '未开通';
+      color = theme.colorScheme.outline;
+    } else {
+      switch (sub.status.toUpperCase()) {
+        case 'TRIAL':
+          label = '试点中 · ${sub.effectiveTier}';
+          color = const Color(0xFF2E7D32);
+          break;
+        case 'ACTIVE':
+          label = '已订阅 · ${sub.effectiveTier}';
+          color = const Color(0xFF1565C0);
+          break;
+        case 'FREE':
+          label = '免费版(试点到期)';
+          color = const Color(0xFFEF6C00);
+          break;
+        default:
+          label = sub.status;
+          color = theme.colorScheme.outline;
+      }
+    }
+    return Container(
+      key: const Key('tenant-pilot-status'),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(label,
+          style: theme.textTheme.bodySmall?.copyWith(
+              color: color, fontWeight: FontWeight.w600)),
+    );
+  }
+
+  /// Trial end rendered in the TENANT's timezone (farm→tenant→platform chain
+  /// value from the tenant detail payload).
+  String? _pilotExpiryText() {
+    final sub = _subscription;
+    if (sub?.trialEndsAt == null) return null;
+    final dt = DateTime.tryParse(sub!.trialEndsAt!);
+    if (dt == null) return null;
+    final offset = _tenant?.utcOffsetMinutes ?? 0;
+    final local = dt.toUtc().add(Duration(minutes: offset));
+    final status = sub.status.toUpperCase();
+    final prefix = status == 'TRIAL'
+        ? '免费试点至'
+        : (status == 'FREE' ? '试点已于' : '订阅到期');
+    final dateStr =
+        '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')}';
+    return status == 'FREE' ? '$prefix $dateStr 到期' : '$prefix $dateStr';
   }
 
   void _showEditTimezoneDialog(BuildContext context) {
@@ -387,6 +461,7 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
         content: Text('${l10n.tenantPilotGrantSuccessPrefix}${grant.trialEndsAt}'),
         backgroundColor: const Color(0xFF2E7D32),
       ));
+      _loadData(); // refresh the pilot-status chip / expiry on the card
     } catch (e) {
       if (!mounted) return;
       navigator.pop();
