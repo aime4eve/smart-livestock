@@ -109,6 +109,11 @@ String mergeE164(String dial, String raw) {
   if (v.startsWith('+') || v.startsWith('00')) {
     return v.startsWith('+') ? v : '+${v.substring(2)}';
   }
+  // Local number already begins with the selected dial (e.g. user types the
+  // full 254791… under +254): only prepend the plus — never double the dial.
+  if (dial.isNotEmpty && v.startsWith(dial)) {
+    return '+$v';
+  }
   var digits = v;
   while (digits.startsWith('0')) {
     digits = digits.substring(1);
