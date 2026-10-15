@@ -37,6 +37,16 @@ public class TenantJpaEntity {
     @Column(name = "billing_model", length = 20)
     private String billingModel;
 
+    /** IANA timezone; NULL = inherit platform default (three-level chain, ruling 2026-10-12). */
+    @Column(name = "timezone", length = 64)
+    private String timezone;
+
+    @Column(name = "status", nullable = false, length = 20)
+    private String status = "active";
+
+    @Column(name = "deleted_at")
+    private java.time.Instant deletedAt;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -77,6 +87,15 @@ public class TenantJpaEntity {
 
     public String getBillingModel() { return billingModel; }
     public void setBillingModel(String billingModel) { this.billingModel = billingModel; }
+
+    public String getTimezone() { return timezone; }
+    public void setTimezone(String timezone) { this.timezone = timezone; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public java.time.Instant getDeletedAt() { return deletedAt; }
+    public void setDeletedAt(java.time.Instant deletedAt) { this.deletedAt = deletedAt; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

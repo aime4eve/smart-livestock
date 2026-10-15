@@ -3,7 +3,6 @@ package com.smartlivestock.integration;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
@@ -33,9 +32,10 @@ class PilotLicenseJourneyTest extends AbstractJourneyTest {
         Map<String, Object> data = (Map<String, Object>) body.get("data");
         assertThat(data.get("status")).isEqualTo("TRIAL");
 
+        // Ruling 2026-10-12: grants land exactly on the shared campaign
+        // deadline (application.yml default = Kenya 2027-10-01 00:00 EAT).
         Instant trialEndsAt = Instant.parse((String) data.get("trialEndsAt"));
-        Instant expectedFloor = Instant.now().plus(364, ChronoUnit.DAYS);
-        assertThat(trialEndsAt).isAfter(expectedFloor);
+        assertThat(trialEndsAt).isEqualTo(Instant.parse("2027-09-30T21:00:00Z"));
 
         // the row must really be in the database with a usable subscription
         Map<String, Object> subs = getApi(platformAdminToken, "/api/v1/admin/subscriptions?tenantId=" + tenantId);
@@ -52,7 +52,7 @@ class PilotLicenseJourneyTest extends AbstractJourneyTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void regrantExtendsTrialInsteadOfShortening() {
+    void regrantAlignsToSharedCampaignDeadline() {
         Map<String, Object> tenant = createTenant("pilot-extend-" + System.nanoTime());
         String tenantId = String.valueOf(tenant.get("id"));
 
@@ -63,8 +63,9 @@ class PilotLicenseJourneyTest extends AbstractJourneyTest {
         assertThat(body.get("code")).isEqualTo("OK");
         Instant secondEnd = Instant.parse((String) ((Map<String, Object>) body.get("data")).get("trialEndsAt"));
 
-        // extension must never shorten the current trial end
-        assertThat(secondEnd).isAfterOrEqualTo(firstEnd);
+        // Fixed-deadline mode: a re-grant converges to the same shared
+        // deadline — it may extend a shorter trial but never overshoots it.
+        assertThat(secondEnd).isEqualTo(firstEnd);
     }
 
     @Test

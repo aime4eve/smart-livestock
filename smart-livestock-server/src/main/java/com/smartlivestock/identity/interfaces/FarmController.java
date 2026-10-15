@@ -82,7 +82,8 @@ public class FarmController {
                 toBigDecimal(body.get("latitude")),
                 toBigDecimal(body.get("longitude")),
                 toBigDecimal(body.get("areaHectares")),
-                boundaryVertices
+                boundaryVertices,
+                (String) body.get("timezone")
         );
         Long ownerId = null;
         if (body.get("ownerId") != null) {
@@ -117,6 +118,10 @@ public class FarmController {
         }
         if (body.get("areaHectares") != null) {
             farm.setAreaHectares(toBigDecimal(body.get("areaHectares")));
+        }
+        if (body.get("timezone") != null) {
+            farm.setTimezone(com.smartlivestock.identity.application.TenantApplicationService
+                    .normalizeTimezone((String) body.get("timezone")));
         }
         FarmDto saved = farmApplicationService.updateFarmEntity(farm);
         return ResponseEntity.ok(ApiResponse.ok(saved));

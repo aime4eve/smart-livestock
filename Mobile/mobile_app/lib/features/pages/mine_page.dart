@@ -6,9 +6,12 @@ import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 import 'package:hkt_livestock_agentic/core/l10n/locale_controller.dart';
 import 'package:hkt_livestock_agentic/core/timezone/time_zone_controller.dart';
+import 'package:hkt_livestock_agentic/core/utils/timezone_options.dart';
+import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/widgets/phone_field.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip.dart';
 import 'package:hkt_livestock_agentic/features/mine/presentation/mine_controller.dart';
@@ -30,7 +33,7 @@ class MinePage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           asyncProfile.when(
-            data: (profile) => _buildProfileSection(profile, context),
+            data: (profile) => _buildProfileSection(profile, context, ref),
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => Center(child: Text('${l10n.commonLoadFailed}: $e')),
           ),
@@ -75,7 +78,121 @@ class MinePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildProfileSection(profile, BuildContext context) {
+  void _showEditProfileDialog(
+      BuildContext context, WidgetRef ref, dynamic profile) {
+    final nameCtrl = TextEditingController(text: profile.name ?? '');
+    final accountCtrl = TextEditingController(text: profile.account ?? '');
+    final phoneCtrl = TextEditingController(text: profile.phone ?? '');
+    String profileDial = dialCodeMemoryCache ??
+        (profile.phone != null && profile.phone!.startsWith('+')
+            ? (dialFromE164(profile.phone!) ?? guessDialCode())
+            : guessDialCode());
+    final emailCtrl = TextEditingController(text: profile.email ?? '');
+    final pwdCtrl = TextEditingController();
+    bool saving = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          key: const Key('edit-profile-dialog'),
+          title: const Text('编辑资料'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+
+                const SizedBox(height: 12),
+                TextFormField(
+                    key: const Key('edit-profile-name'),
+                    controller: nameCtrl,
+                    decoration: const InputDecoration(labelText: '用户名')),
+                const SizedBox(height: 12),
+                TextFormField(
+                    key: const Key('edit-profile-account'),
+                    controller: accountCtrl,
+                    decoration: const InputDecoration(
+                        labelText: '用户账号（登录用，改需验密码）')),
+                const SizedBox(height: 12),
+                PhoneField(
+                    controller: phoneCtrl,
+                    dialCode: profileDial,
+                    onDialChanged: (d) =>
+                        setDialogState(() => profileDial = d),
+                    labelText: '手机号（改需验密码）'),
+                const SizedBox(height: 12),
+                TextFormField(
+                    key: const Key('edit-profile-email'),
+                    controller: emailCtrl,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                        labelText: '邮箱（改需验密码）')),
+                const SizedBox(height: 12),
+                TextFormField(
+                    key: const Key('edit-profile-password'),
+                    controller: pwdCtrl,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                        labelText: '当前密码（修改登录方式时必填）')),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: saving ? null : () => Navigator.pop(ctx),
+                child: const Text('取消')),
+            FilledButton(
+              key: const Key('edit-profile-confirm'),
+              onPressed: saving
+                  ? null
+                  : () async {
+                      setDialogState(() => saving = true);
+                      final messenger = ScaffoldMessenger.of(context);
+                      try {
+                        final phoneRaw = phoneCtrl.text.trim();
+                        final phoneE164 = phoneRaw.startsWith('+')
+                            ? phoneRaw
+                            : (phoneRaw.isEmpty
+                                ? ''
+                                : mergeE164(profileDial, phoneRaw));
+                        await ref.read(mineRepositoryProvider).updateProfile({
+                          'name': nameCtrl.text.trim(),
+                          'account': accountCtrl.text.trim(),
+                          'phone': phoneE164,
+                          'email': emailCtrl.text.trim(),
+                          if (pwdCtrl.text.isNotEmpty)
+                            'currentPassword': pwdCtrl.text,
+                        });
+                        if (!context.mounted) return;
+                        Navigator.pop(ctx);
+                        messenger.showSnackBar(const SnackBar(
+                          content: Text('资料已更新'),
+                          backgroundColor: Color(0xFF2E7D32),
+                        ));
+                        ref.invalidate(mineControllerProvider);
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        messenger.showSnackBar(SnackBar(
+                          content: Text('更新失败: $e'),
+                          backgroundColor: const Color(0xFFD32F2F),
+                        ));
+                      }
+                    },
+              child: saving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
+                  : const Text('保存'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileSection(profile, BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -95,6 +212,13 @@ class MinePage extends ConsumerWidget {
                     color: profile.active == true ? AppColors.success : AppColors.danger,
                     icon: Icons.verified_user_outlined,
                   ),
+                  const SizedBox(width: AppSpacing.sm),
+                  IconButton(
+                    key: const Key('mine-edit-profile'),
+                    icon: const Icon(Icons.edit_outlined, size: 20),
+                    tooltip: '编辑资料',
+                    onPressed: () => _showEditProfileDialog(context, ref, profile),
+                  ),
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
@@ -104,6 +228,16 @@ class MinePage extends ConsumerWidget {
               if (profile.phone != null) ...[
                 const SizedBox(height: AppSpacing.xs),
                 Text(l10n.mineProfilePhone(profile.phone!),
+                    style: Theme.of(context).textTheme.bodyMedium),
+              ],
+              if (profile.account != null && profile.account!.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Text('账号: ${profile.account}',
+                    style: Theme.of(context).textTheme.bodyMedium),
+              ],
+              if (profile.email != null && profile.email!.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Text('邮箱: ${profile.email}',
                     style: Theme.of(context).textTheme.bodyMedium),
               ],
               if (profile.role != null) ...[
@@ -256,7 +390,16 @@ class MinePage extends ConsumerWidget {
       currentLabel = l10n.settingsLanguageEn;
     }
     final timeZoneId = ref.watch(timeZoneControllerProvider);
-    final timeZoneLabel = _timeZoneLabel(l10n, timeZoneId);
+    // 跟随系统时,时间呈现实际由 活跃牧场(→租户)链 决定 —— 展示真实生效来源
+    final activeFarm = ref.watch(farmSwitcherControllerProvider).farms
+        .where((f) => f.id == ref.watch(farmSwitcherControllerProvider).activeFarmId)
+        .toList();
+    final activeTz = activeFarm.isEmpty ? null : activeFarm.first.timezone;
+    final timeZoneLabel = timeZoneId == null
+        ? (activeTz == null
+            ? l10n.settingsTimeZoneSystem
+            : '${l10n.settingsTimeZoneSystem} · $activeTz')
+        : _timeZoneLabel(l10n, timeZoneId);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -342,10 +485,16 @@ class MinePage extends ConsumerWidget {
            },
            child: Column(
              children: [
-               for (final id in timeZonePickerOptions)
+               // 统一时区清单(ruling 2026-10-12):与牧场时区下拉同一份
+               // kTimezoneOptions;首项"自动（跟随牧场）"= 交还牧场链。
+               RadioListTile<String?>(
+                 value: null,
+                 title: Text(l10n.settingsTimeZoneSystem),
+               ),
+               for (final option in kTimezoneOptions)
                  RadioListTile<String?>(
-                   value: id,
-                   title: Text(_timeZoneLabel(l10n, id)),
+                   value: option.name,
+                   title: Text(option.label),
                  ),
              ],
            ),

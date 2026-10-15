@@ -3,12 +3,15 @@ package com.smartlivestock.commerce.application.service;
 import com.smartlivestock.commerce.domain.model.Subscription;
 import com.smartlivestock.commerce.domain.model.SubscriptionTier;
 import com.smartlivestock.commerce.domain.repository.SubscriptionRepository;
+import com.smartlivestock.shared.common.ConfiguredTrialEnds;
 import com.smartlivestock.shared.common.DomainException;
 import com.smartlivestock.shared.common.ErrorCode;
 import com.smartlivestock.shared.domain.DomainEventPublisher;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Optional;
 
 /**
  * Application service handling subscription write operations.
@@ -18,23 +21,33 @@ import java.time.Instant;
 @Service
 public class SubscriptionApplicationService {
 
+    private static final long SELF_SERVICE_TRIAL_DAYS = 14;
+
     private final SubscriptionRepository subscriptionRepository;
     private final DomainEventPublisher domainEventPublisher;
+    private final Optional<Instant> configuredTrialEndsAt;
 
     public SubscriptionApplicationService(SubscriptionRepository subscriptionRepository,
-                                          DomainEventPublisher domainEventPublisher) {
+                                          DomainEventPublisher domainEventPublisher,
+                                          @Value("${smartlivestock.trial.ends-at:}") String configuredTrialEndsAt) {
         this.subscriptionRepository = subscriptionRepository;
         this.domainEventPublisher = domainEventPublisher;
+        this.configuredTrialEndsAt = ConfiguredTrialEnds.parse(configuredTrialEndsAt);
     }
 
     /**
      * Get existing subscription or create a new trial for the tenant.
+     * <p>
+     * Trial deadline (ruling 2026-10-12): when {@code smartlivestock.trial.ends-at}
+     * is configured, self-service trials end at that shared campaign deadline
+     * instead of the legacy rolling now+14d window.
      */
     public Subscription getOrCreateSubscription(Long tenantId, String billingModel) {
         return subscriptionRepository.findByTenantId(tenantId)
             .orElseGet(() -> {
                 Instant now = Instant.now();
-                Instant trialEnd = now.plusSeconds(14 * 86400);
+                Instant trialEnd = configuredTrialEndsAt
+                        .orElseGet(() -> now.plusSeconds(SELF_SERVICE_TRIAL_DAYS * 86400));
                 Subscription created = Subscription.startTrial(tenantId, billingModel, now, trialEnd);
                 Subscription saved = subscriptionRepository.save(created);
                 domainEventPublisher.publishDomainEvents(saved);

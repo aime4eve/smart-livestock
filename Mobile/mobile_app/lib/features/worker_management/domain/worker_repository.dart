@@ -38,7 +38,14 @@ String? _s(dynamic v) {
 
 abstract class WorkerRepository {
   Future<List<WorkerAssignment>> load(String farmId);
-  Future<WorkerAssignment> create(String farmId, {required String name, required String phone, required String password});
+  Future<WorkerAssignment> create(String farmId, {
+    required String name,
+    required String password,
+    String? phone,
+    String? account,
+    String? email,
+    String? username,
+  });
   Future<WorkerAssignment> update(String farmId, String userId, {String? name, String? phone});
   Future<bool> updateStatus(String farmId, String userId, String status);
   Future<bool> resetPassword(String farmId, String userId, String newPassword);

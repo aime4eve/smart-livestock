@@ -25,6 +25,10 @@ class _FarmCreationWizardPageState
   int _fenceCount = 0;
 
   void _onStep1Complete(String farmId, String farmName, LatLng center) {
+    // Refresh the farm list so the new farm's timezone/offset reaches the
+    // farm switcher before step 2 builds its map (tile datum follows the
+    // farm timezone, ruling 2026-10-12).
+    ref.read(farmSwitcherControllerProvider.notifier).loadFarms();
     setState(() {
       _step = 2;
       _createdFarmId = farmId;

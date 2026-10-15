@@ -21,7 +21,7 @@ public class AuthController {
 
     /**
      * POST /api/v1/auth/login
-     * Login with phone + password, returns JWT token.
+     * Login with account / phone (E.164) / email + password, returns JWT token.
      */
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthTokenDto>> login(@RequestBody LoginCommand command) {

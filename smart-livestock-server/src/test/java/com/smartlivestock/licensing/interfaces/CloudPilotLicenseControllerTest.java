@@ -46,7 +46,7 @@ class CloudPilotLicenseControllerTest {
         CloudPilotLicenseController controller =
                 new CloudPilotLicenseController(cloudPilotLicenseService, guard(true, "ONPREM"));
 
-        assertThatThrownBy(() -> controller.grantPilotLicense(TENANT_ID))
+        assertThatThrownBy(() -> controller.grantPilotLicense(TENANT_ID, null))
                 .isInstanceOf(ApiException.class)
                 .satisfies(e -> assertThat(((ApiException) e).getCode())
                         .isEqualTo(ErrorCode.AUTH_FORBIDDEN))
@@ -60,13 +60,45 @@ class CloudPilotLicenseControllerTest {
         loginAs("ROLE_PLATFORM_ADMIN");
         CloudPilotLicenseController controller =
                 new CloudPilotLicenseController(cloudPilotLicenseService, guard(true, "HOSTED"));
-        when(cloudPilotLicenseService.grantPilotLicense(TENANT_ID))
+        when(cloudPilotLicenseService.grantPilotLicense(TENANT_ID, null, null))
                 .thenReturn(new CloudPilotLicenseService.PilotLicenseResult(
                         TENANT_ID, "TRIAL", Instant.parse("2027-09-03T08:00:00Z")));
 
-        ResponseEntity<?> response = controller.grantPilotLicense(TENANT_ID);
+        ResponseEntity<?> response = controller.grantPilotLicense(TENANT_ID, null);
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
+    }
+
+    @Test
+    void requestedDeadlineForwardedToService() {
+        loginAs("ROLE_PLATFORM_ADMIN");
+        CloudPilotLicenseController controller =
+                new CloudPilotLicenseController(cloudPilotLicenseService, guard(true, "HOSTED"));
+        java.util.Map<String, Object> body =
+                java.util.Map.of("trialEndsAt", "2027-09-30T21:00:00Z");
+        Instant requested = Instant.parse("2027-09-30T21:00:00Z");
+        when(cloudPilotLicenseService.grantPilotLicense(TENANT_ID, requested, null))
+                .thenReturn(new CloudPilotLicenseService.PilotLicenseResult(
+                        TENANT_ID, "TRIAL", requested));
+
+        ResponseEntity<?> response = controller.grantPilotLicense(TENANT_ID, body);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+    }
+
+    @Test
+    void unparseableDeadlineRejectedBeforeService() {
+        loginAs("ROLE_PLATFORM_ADMIN");
+        CloudPilotLicenseController controller =
+                new CloudPilotLicenseController(cloudPilotLicenseService, guard(true, "HOSTED"));
+
+        assertThatThrownBy(() -> controller.grantPilotLicense(TENANT_ID,
+                java.util.Map.of("trialEndsAt", "not-a-date")))
+                .isInstanceOf(ApiException.class)
+                .satisfies(e -> assertThat(((ApiException) e).getCode())
+                        .isEqualTo(ErrorCode.VALIDATION_ERROR));
+
+        verifyNoInteractions(cloudPilotLicenseService);
     }
 
     @Test
@@ -75,7 +107,7 @@ class CloudPilotLicenseControllerTest {
         CloudPilotLicenseController controller =
                 new CloudPilotLicenseController(cloudPilotLicenseService, guard(true, "HOSTED"));
 
-        assertThatThrownBy(() -> controller.grantPilotLicense(TENANT_ID))
+        assertThatThrownBy(() -> controller.grantPilotLicense(TENANT_ID, null))
                 .isInstanceOf(ApiException.class)
                 .satisfies(e -> assertThat(((ApiException) e).getCode())
                         .isEqualTo(ErrorCode.AUTH_FORBIDDEN));

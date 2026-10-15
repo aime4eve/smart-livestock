@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
+import 'package:hkt_livestock_agentic/core/utils/timezone_options.dart';
 
 /// Persisted client time-zone preference (null = follow system).
 final initialTimeZoneIdProvider = Provider<String?>((ref) => null);
@@ -23,16 +25,25 @@ bool isChinaTimeZone(String? id) {
   return DateTime.now().timeZoneOffset == const Duration(hours: 8);
 }
 
-/// Curated picker options (id → display). Null id = follow system.
-const timeZonePickerOptions = <String?>[
-  null,
-  'Asia/Shanghai',
-  'Asia/Hong_Kong',
-  'UTC',
-  'Europe/London',
-  'America/New_York',
-  'Australia/Sydney',
-];
+/// Tile-datum verdict for a FARM-configured timezone (ruling 2026-10-12):
+/// a farm's explicit timezone declares which coordinate datum its registry
+/// coordinates use — China-zone ids mean GCJ-02 (高德), anything else means
+/// WGS-84 (OSM). Returns null when the farm has no timezone configured, so
+/// callers fall back to the user/device heuristic.
+bool? farmTimezoneTileDatumIsChina(String? farmTimezone) {
+  if (farmTimezone == null || farmTimezone.isEmpty) return null;
+  return _chinaTimeZoneIds.contains(farmTimezone);
+}
+
+/// Standard UTC offset (minutes) for a curated timezone id; null if unknown.
+/// DST shifts are not reflected — matches the settings UI semantics.
+int? timeZoneStandardOffset(String? id) {
+  if (id == null) return null;
+  for (final option in kTimezoneOptions) {
+    if (option.name == id) return option.offsetMinutes;
+  }
+  return null;
+}
 
 class TimeZoneController extends Notifier<String?> {
   static const _prefsKey = 'app_time_zone';
@@ -50,9 +61,11 @@ class TimeZoneController extends Notifier<String?> {
     return prefs.getString(_prefsKey);
   }
 
-  /// Sets the time zone and persists it. Null = follow system.
+  /// Sets the time zone and persists it. Null = 跟随牧场/系统 (the farm →
+  /// tenant → platform chain drives presentation again, ruling 2026-10-12).
   Future<void> setTimeZone(String? id) async {
     state = id;
+    setUserOverrideOffsetMinutes(timeZoneStandardOffset(id));
     final prefs = await SharedPreferences.getInstance();
     if (id != null) {
       await prefs.setString(_prefsKey, id);

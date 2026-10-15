@@ -30,6 +30,10 @@ public class AgenticPlatformFeignConfig {
             String prefix = tokenPrefix != null ? tokenPrefix : "";
             template.header(headerName, prefix + tokenProvider.getToken());
             template.header("Tenant-Id", tenantId);
+            // Platform convention: the caller declares its timezone; we send
+            // the device's tenant timezone (ruling 2026-10-12), UTC fallback.
+            template.header("X-TimeZone",
+                    com.smartlivestock.iot.infrastructure.client.agenticplatform.AgenticPlatformTimeZoneContext.current());
         };
     }
 

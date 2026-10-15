@@ -94,6 +94,23 @@ public class Subscription extends AggregateRoot {
      *
      * @param newTrialEndsAt the new trial end timestamp
      */
+    /**
+     * Re-grant the trial from any non-ACTIVE state (ruling 2026-10-14:
+     * cancelled / free / suspended / expired / renewal-failed subscriptions
+     * can be re-enrolled into the hosted pilot).ACTIVE subscriptions are
+     * rejected — paying customers must not be knocked back to trial.
+     */
+    public void grantTrial(Instant newTrialEndsAt) {
+        if (this.status == SubscriptionStatus.ACTIVE) {
+            throw new DomainException(ErrorCode.STATE_CONFLICT,
+                "Cannot grantTrial: subscription is ACTIVE");
+        }
+        this.status = SubscriptionStatus.TRIAL;
+        this.trialEndsAt = newTrialEndsAt;
+        this.expiresAt = null;
+        this.cancelledAt = null;
+    }
+
     public void extendTrial(Instant newTrialEndsAt) {
         requireStatus(SubscriptionStatus.TRIAL, "extendTrial");
         if (this.trialEndsAt != null && newTrialEndsAt.isBefore(this.trialEndsAt)) {

@@ -1,5 +1,37 @@
 // --- Tenant ---
 
+/// Subscription row of a tenant (admin view, for pilot-status display).
+class TenantSubscription {
+  const TenantSubscription({
+    required this.id,
+    required this.tenantId,
+    this.tenantName,
+    required this.status,
+    required this.effectiveTier,
+    this.trialEndsAt,
+    this.utcOffsetMinutes,
+  });
+  final String id;
+  final String tenantId;
+  final String? tenantName;
+  final String status;
+  final String effectiveTier;
+  final String? trialEndsAt;
+  final int? utcOffsetMinutes;
+}
+
+/// Result of granting the hosted cloud pilot license (ruling 2026-10-12).
+class PilotLicenseGrant {
+  const PilotLicenseGrant({
+    required this.tenantId,
+    required this.status,
+    required this.trialEndsAt,
+  });
+  final String tenantId;
+  final String status;
+  final String trialEndsAt;
+}
+
 class TenantSummary {
   const TenantSummary({
     required this.id,
@@ -12,6 +44,8 @@ class TenantSummary {
     this.userCount = 0,
     this.deviceCount = 0,
     this.createdAt,
+    this.timezone,
+    this.utcOffsetMinutes,
   });
 
   final String id;
@@ -24,6 +58,8 @@ class TenantSummary {
   final int userCount;
   final int deviceCount;
   final String? createdAt;
+  final String? timezone;
+  final int? utcOffsetMinutes;
 }
 
 class TenantDetail {
@@ -40,6 +76,8 @@ class TenantDetail {
     this.activeLicenseCount = 0,
     this.createdAt,
     this.updatedAt,
+    this.timezone,
+    this.utcOffsetMinutes,
   });
 
   final String id;
@@ -54,6 +92,8 @@ class TenantDetail {
   final int activeLicenseCount;
   final String? createdAt;
   final String? updatedAt;
+  final String? timezone;
+  final int? utcOffsetMinutes;
 }
 
 // --- User ---
@@ -64,6 +104,8 @@ class UserSummary {
     required this.name,
     this.username,
     this.phone,
+    this.account,
+    this.email,
     this.role,
     this.tenantId,
     this.tenantName,
@@ -76,6 +118,8 @@ class UserSummary {
   final String name;
   final String? username;
   final String? phone;
+  final String? account;
+  final String? email;
   final String? role;
   final String? tenantId;
   final String? tenantName;
@@ -90,6 +134,8 @@ class UserDetail {
     required this.name,
     this.username,
     this.phone,
+    this.account,
+    this.email,
     this.role,
     this.tenantId,
     this.status,
@@ -102,6 +148,8 @@ class UserDetail {
   final String name;
   final String? username;
   final String? phone;
+  final String? account;
+  final String? email;
   final String? role;
   final String? tenantId;
   final String? status;
@@ -226,11 +274,18 @@ abstract class AdminRepository {
   Future<AdminOverviewData> loadOverview();
 
   // Tenants
-  Future<AdminListResult<TenantSummary>> loadTenants({int page = 1, int pageSize = 20, String? status, String? keyword});
+  Future<AdminListResult<TenantSummary>> loadTenants({int page = 1, int pageSize = 20, String? status, String? keyword, bool includeDeleted = false});
   Future<TenantDetail> loadTenantDetail(String tenantId);
   Future<TenantSummary> createTenant(Map<String, dynamic> body);
-  Future<TenantSummary> updateTenant(String tenantId, Map<String, dynamic> body);
+  Future<PilotLicenseGrant> grantPilotLicense(String tenantId, String? trialEndsAt);
+  Future<TenantSubscription?> loadTenantSubscription(String tenantId);
+  Future<List<TenantSubscription>> loadSubscriptions();
+  Future<void> cancelSubscription(String subscriptionId);
   Future<void> updateTenantStatus(String tenantId, String status);
+  Future<void> deleteTenant(String tenantId, {bool cancelSubscription = false});
+  Future<void> restoreTenant(String tenantId);
+  Future<void> updateTenantPhase(String tenantId, String phase);
+  Future<TenantSummary> updateTenant(String tenantId, Map<String, dynamic> body);
 
   // Users
   Future<AdminListResult<UserSummary>> loadUsers({int page = 1, int pageSize = 20, String? tenantId, String? role, String? keyword});

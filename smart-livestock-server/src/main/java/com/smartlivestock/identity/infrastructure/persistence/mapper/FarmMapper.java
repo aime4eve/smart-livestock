@@ -15,6 +15,7 @@ public final class FarmMapper {
         jpa.setLatitude(farm.getLatitude());
         jpa.setLongitude(farm.getLongitude());
         jpa.setAreaHectares(farm.getAreaHectares());
+        jpa.setTimezone(farm.getTimezone());
         return jpa;
     }
 
@@ -26,6 +27,7 @@ public final class FarmMapper {
         farm.setLatitude(jpa.getLatitude());
         farm.setLongitude(jpa.getLongitude());
         farm.setAreaHectares(jpa.getAreaHectares());
+        farm.setTimezone(jpa.getTimezone());
         return farm;
     }
 }

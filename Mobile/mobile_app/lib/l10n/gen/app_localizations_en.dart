@@ -79,7 +79,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'China time zones use AMap tiles; others use OpenStreetMap';
 
   @override
-  String get settingsTimeZoneSystem => 'Follow system';
+  String get settingsTimeZoneSystem => 'Automatic (follow farm)';
 
   @override
   String get settingsTimeZoneChina => 'China Standard Time (Beijing)';
@@ -165,10 +165,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authSubtitle => 'Intelligent Livestock Management';
 
   @override
-  String get authPhoneLabel => 'Phone';
+  String get authPhoneLabel => 'Phone / Email / Account';
 
   @override
-  String get authPhoneHint => 'Enter phone number';
+  String get authPhoneHint => 'Enter phone, email or account';
 
   @override
   String get authPasswordLabel => 'Password';
@@ -5847,7 +5847,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorPasswordWeak =>
-      'The new password must be at least 10 characters and contain both letters and digits';
+      'New password must be at least 8 characters and include upper-case, lower-case, digits and special characters';
 
   @override
   String get loginCopyEnrollmentInfo =>
@@ -7407,4 +7407,87 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get healthDrinkingLayerBaseline => 'Baseline ✓';
+
+  @override
+  String get tenantCreateTitle => 'Create Tenant';
+
+  @override
+  String get tenantCreateNameLabel => 'Name *';
+
+  @override
+  String get tenantCreateNameHint => 'Enter tenant name';
+
+  @override
+  String get tenantCreateNameRequired => 'Name is required';
+
+  @override
+  String get tenantCreateContactNameLabel => 'Contact name';
+
+  @override
+  String get tenantCreateContactPhoneLabel => 'Contact phone';
+
+  @override
+  String get tenantCreateSubmit => 'Create';
+
+  @override
+  String get tenantCreateSuccess => 'Tenant created';
+
+  @override
+  String get tenantCreateFailed => 'Create failed:';
+
+  @override
+  String get tenantPilotCardTitle => 'Cloud Pilot License';
+
+  @override
+  String get tenantPilotCardDesc =>
+      'Sets this tenant\'s subscription to TRIAL (full capability). Leaves at the platform campaign deadline by default; a per-tenant deadline can be specified.';
+
+  @override
+  String get tenantPilotGrantButton => 'Grant Pilot License';
+
+  @override
+  String get tenantPilotDialogTitle => 'Grant Cloud Pilot License';
+
+  @override
+  String get tenantPilotDialogDesc =>
+      'Leave the deadline blank to use the platform default (campaign ends 2027-10-01 Kenya time); fill it in to end this tenant\'s trial at a specific instant.';
+
+  @override
+  String get tenantPilotDeadlineLabel => 'Deadline (optional, UTC)';
+
+  @override
+  String get tenantPilotDeadlineHint => 'e.g. 2027-09-30T21:00:00Z';
+
+  @override
+  String get tenantPilotDeadlineHelper =>
+      'Kenya 2027-10-01 00:00 = 2027-09-30T21:00:00Z (UTC+3)';
+
+  @override
+  String get tenantPilotDeadlineInvalid =>
+      'Invalid format, expect an ISO-8601 UTC instant';
+
+  @override
+  String get tenantPilotGrantSuccessPrefix => 'Pilot granted, expires at:';
+
+  @override
+  String get tenantPilotGrantFailedPrefix => 'Grant failed:';
+
+  @override
+  String get tenantTimezoneLabel => 'Timezone';
+
+  @override
+  String get tenantTimezoneHelper =>
+      'Anchors time display and daily statistics for this tenant; blank = platform default';
+
+  @override
+  String get tenantPilotDeadlineNone =>
+      'Pilot end: platform campaign date (tap to pick)';
+
+  @override
+  String tenantPilotDeadlineChosen(String date, String tz) {
+    return 'Pilot end: $date ($tz local midnight)';
+  }
+
+  @override
+  String get authEmailInvalid => '\"Invalid email format\"';
 }

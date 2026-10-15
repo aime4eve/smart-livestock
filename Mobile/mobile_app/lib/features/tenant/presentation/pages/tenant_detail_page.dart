@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/widgets/phone_field.dart';
+import 'package:hkt_livestock_agentic/core/utils/timezone_options.dart';
 import 'package:hkt_livestock_agentic/features/admin/domain/admin_repository.dart';
 import 'package:hkt_livestock_agentic/features/admin/presentation/admin_controller.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
@@ -18,6 +20,8 @@ class TenantDetailPage extends ConsumerStatefulWidget {
 class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
   TenantDetail? _tenant;
   List<UserSummary> _users = [];
+  TenantSubscription? _subscription;
+  String? get _tenantTimezone => _tenant?.timezone;
   bool _loading = true;
   String? _error;
 
@@ -36,11 +40,13 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
       final repo = ref.read(adminRepositoryProvider);
       final tenantDetail = repo.loadTenantDetail(widget.id);
       final userList = repo.loadUsers(tenantId: widget.id);
-      final results = await Future.wait<dynamic>([tenantDetail, userList]);
+      final subFuture = repo.loadTenantSubscription(widget.id);
+      final results = await Future.wait<dynamic>([tenantDetail, userList, subFuture]);
       if (!mounted) return;
       setState(() {
         _tenant = results[0] as TenantDetail;
         _users = (results[1] as AdminListResult<UserSummary>).items;
+        _subscription = results[2] as TenantSubscription?;
         _loading = false;
       });
     } catch (e) {
@@ -104,6 +110,14 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                       child: Text(tenant.name,
                           style: theme.textTheme.titleLarge),
                     ),
+                    const SizedBox(width: AppSpacing.sm),
+                    IconButton(
+                      key: const Key('tenant-edit-info'),
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(Icons.edit, size: 18),
+                      onPressed: () => _showEditTenantDialog(context),
+                      tooltip: '编辑租户信息',
+                    ),
                     Icon(
                       tenant.status == 'active'
                           ? Icons.check_circle
@@ -120,9 +134,71 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                   Text('联系人: ${tenant.contactName}'),
                 if (tenant.contactPhone != null)
                   Text('联系电话: ${tenant.contactPhone}'),
-                Text('阶段: ${tenant.phase ?? "-"}'),
+                Row(
+                  children: [
+                    Text('时区: ${tenant.timezone ?? "未设置(跟随平台默认)"}'),
+                    const SizedBox(width: AppSpacing.sm),
+                    IconButton(
+                      key: const Key('tenant-edit-timezone'),
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(Icons.edit, size: 16),
+                      onPressed: () => _showEditTimezoneDialog(context),
+                      tooltip: '修改时区',
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text('阶段: ${_phaseLabel(tenant.phase)}'),
+                    const SizedBox(width: AppSpacing.sm),
+                    IconButton(
+                      key: const Key('tenant-edit-phase'),
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(Icons.edit, size: 16),
+                      onPressed: () => _showEditPhaseDialog(context),
+                      tooltip: '切换阶段',
+                    ),
+                  ],
+                ),
                 Text(
                     '牧场: ${tenant.farmCount} · 用户: ${tenant.userCount} · 设备: ${tenant.deviceCount}'),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+
+          // --- Pilot license (ruling 2026-10-12: per-tenant deadline) ---
+          HighfiCard(
+            key: const Key('tenant-detail-pilot'),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(l10n.tenantPilotCardTitle,
+                          style: theme.textTheme.titleSmall),
+                    ),
+                    _pilotStatusChip(theme),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(l10n.tenantPilotCardDesc,
+                    style: theme.textTheme.bodySmall),
+                if (_pilotExpiryText() != null) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(_pilotExpiryText()!,
+                      key: const Key('tenant-pilot-expiry'),
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.w600)),
+                ],
+                const SizedBox(height: AppSpacing.sm),
+                FilledButton.icon(
+                  key: const Key('tenant-detail-pilot-grant'),
+                  onPressed: () => _showGrantPilotDialog(context),
+                  icon: const Icon(Icons.verified),
+                  label: Text(l10n.tenantPilotGrantButton),
+                ),
               ],
             ),
           ),
@@ -169,11 +245,484 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
     );
   }
 
+  void _showEditTenantDialog(BuildContext context) {
+    final tenant = _tenant!;
+    final nameCtrl = TextEditingController(text: tenant.name);
+    final contactNameCtrl = TextEditingController(text: tenant.contactName ?? '');
+    final contactPhoneCtrl = TextEditingController(text: tenant.contactPhone ?? '');
+    String? timezone = tenant.timezone;
+    bool saving = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          key: const Key('edit-tenant-dialog'),
+          title: const Text('编辑租户信息'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  key: const Key('edit-tenant-name'),
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(
+                      labelText: '租户名称 *',
+                      border: OutlineInputBorder()),
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? '名称不能为空'
+                      : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  key: const Key('edit-tenant-contact-name'),
+                  controller: contactNameCtrl,
+                  decoration: const InputDecoration(
+                      labelText: '联系人',
+                      border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  key: const Key('edit-tenant-contact-phone'),
+                  controller: contactPhoneCtrl,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                      labelText: '联系电话',
+                      border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  key: const Key('edit-tenant-timezone'),
+                  initialValue: timezone,
+                  decoration: const InputDecoration(
+                      labelText: '所在时区',
+                      helperText: '留空跟随平台默认',
+                      border: OutlineInputBorder()),
+                  items: [null, ...kTimezoneOptions.map((o) => o.name)]
+                      .map((tz) => DropdownMenuItem<String>(
+                            value: tz,
+                            child: Text(tz == null
+                                ? '自动（跟随平台默认）'
+                                : kTimezoneOptions
+                                    .firstWhere((o) => o.name == tz,
+                                        orElse: () => TimezoneOption(tz, 0, tz))
+                                    .label),
+                          ))
+                      .toList(),
+                  onChanged: (v) => setDialogState(() => timezone = v),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: saving ? null : () => Navigator.pop(ctx),
+                child: const Text('取消')),
+            FilledButton(
+              key: const Key('edit-tenant-confirm'),
+              onPressed: saving
+                  ? null
+                  : () async {
+                      if (nameCtrl.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('名称不能为空')));
+                        return;
+                      }
+                      setDialogState(() => saving = true);
+                      final messenger = ScaffoldMessenger.of(context);
+                      final navigator = Navigator.of(ctx);
+                      try {
+                        await ref.read(adminRepositoryProvider).updateTenant(
+                          widget.id,
+                          {
+                            'name': nameCtrl.text.trim(),
+                            'contactName': contactNameCtrl.text.trim(),
+                            'contactPhone': contactPhoneCtrl.text.trim(),
+                            'timezone': timezone ?? '',
+                          },
+                        );
+                        if (!context.mounted) return;
+                        navigator.pop();
+                        ref.invalidate(tenantListControllerProvider);
+                        messenger.showSnackBar(const SnackBar(
+                          content: Text('租户信息已更新'),
+                          backgroundColor: Color(0xFF2E7D32),
+                        ));
+                        _loadData();
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        navigator.pop();
+                        messenger.showSnackBar(SnackBar(
+                          content: Text('更新失败: $e'),
+                          backgroundColor: const Color(0xFFD32F2F),
+                        ));
+                      }
+                    },
+              child: saving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
+                  : const Text('保存'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _phaseLabel(String? phase) {
+    switch (phase?.toLowerCase()) {
+      case 'batch':
+        return '批量期（正式商用）';
+      case 'sample':
+        return '样板期（验证中）';
+      default:
+        return phase ?? '-';
+    }
+  }
+
+  void _showEditPhaseDialog(BuildContext context) {
+    String selected = _tenant?.phase ?? 'sample';
+    bool saving = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          key: const Key('edit-phase-dialog'),
+          title: const Text('切换租户阶段'),
+          content: RadioGroup<String>(
+            groupValue: selected,
+            onChanged: (v) => setDialogState(() => selected = v ?? 'sample'),
+            child: const Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                RadioListTile<String>(
+                  key: Key('edit-phase-sample'),
+                  value: 'sample',
+                  title: Text('样板期（验证中）'),
+                  subtitle: Text('打样/试点验证阶段的客户标记'),
+                ),
+                RadioListTile<String>(
+                  key: Key('edit-phase-batch'),
+                  value: 'batch',
+                  title: Text('批量期（正式商用）'),
+                  subtitle: Text('已规模化上线的客户标记'),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: saving ? null : () => Navigator.pop(ctx),
+                child: const Text('取消')),
+            FilledButton(
+              key: const Key('edit-phase-confirm'),
+              onPressed: saving
+                  ? null
+                  : () async {
+                      setDialogState(() => saving = true);
+                      final messenger = ScaffoldMessenger.of(context);
+                      final navigator = Navigator.of(ctx);
+                      try {
+                        await ref
+                            .read(adminRepositoryProvider)
+                            .updateTenantPhase(widget.id, selected);
+                        if (!context.mounted) return;
+                        navigator.pop();
+                        messenger.showSnackBar(SnackBar(
+                          content:
+                              Text('阶段已切换为 ${_phaseLabel(selected)}'),
+                          backgroundColor: const Color(0xFF2E7D32),
+                        ));
+                        ref.invalidate(tenantListControllerProvider);
+                        _loadData();
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        navigator.pop();
+                        messenger.showSnackBar(SnackBar(
+                          content: Text('切换失败: $e'),
+                          backgroundColor: const Color(0xFFD32F2F),
+                        ));
+                      }
+                    },
+              child: saving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
+                  : const Text('保存'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _pilotStatusChip(ThemeData theme) {
+    final sub = _subscription;
+    final String label;
+    final Color color;
+    if (sub == null) {
+      label = '未开通';
+      color = theme.colorScheme.outline;
+    } else {
+      switch (sub.status.toUpperCase()) {
+        case 'TRIAL':
+          label = '试点中 · ${sub.effectiveTier}';
+          color = const Color(0xFF2E7D32);
+          break;
+        case 'ACTIVE':
+          label = '已订阅 · ${sub.effectiveTier}';
+          color = const Color(0xFF1565C0);
+          break;
+        case 'FREE':
+          label = '免费版(试点到期)';
+          color = const Color(0xFFEF6C00);
+          break;
+        default:
+          label = sub.status;
+          color = theme.colorScheme.outline;
+      }
+    }
+    return Container(
+      key: const Key('tenant-pilot-status'),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(label,
+          style: theme.textTheme.bodySmall?.copyWith(
+              color: color, fontWeight: FontWeight.w600)),
+    );
+  }
+
+  /// Trial end rendered in the TENANT's timezone (farm→tenant→platform chain
+  /// value from the tenant detail payload).
+  String? _pilotExpiryText() {
+    final sub = _subscription;
+    if (sub?.trialEndsAt == null) return null;
+    final dt = DateTime.tryParse(sub!.trialEndsAt!);
+    if (dt == null) return null;
+    final offset = _tenant?.utcOffsetMinutes ?? 0;
+    final local = dt.toUtc().add(Duration(minutes: offset));
+    final status = sub.status.toUpperCase();
+    final prefix = status == 'TRIAL'
+        ? '免费试点至'
+        : (status == 'FREE' ? '试点已于' : '订阅到期');
+    final dateStr =
+        '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')}';
+    return status == 'FREE' ? '$prefix $dateStr 到期' : '$prefix $dateStr';
+  }
+
+  void _showEditTimezoneDialog(BuildContext context) {
+    String? selected = _tenantTimezone;
+    bool saving = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          key: const Key('edit-timezone-dialog'),
+          title: const Text('修改时区'),
+          content: DropdownButtonFormField<String>(
+            key: const Key('edit-timezone-dropdown'),
+            initialValue: selected,
+            decoration: const InputDecoration(labelText: '所在时区'),
+            items: [null, ...kTimezoneOptions.map((o) => o.name)]
+                .map((tz) => DropdownMenuItem<String>(
+                      value: tz,
+                      child: Text(tz == null
+                          ? '未设置(跟随平台默认)'
+                          : kTimezoneOptions
+                              .firstWhere((o) => o.name == tz,
+                                  orElse: () => TimezoneOption(tz, 0, tz))
+                              .label),
+                    ))
+                .toList(),
+            onChanged: (v) => setDialogState(() => selected = v),
+          ),
+          actions: [
+            TextButton(
+              onPressed: saving ? null : () => Navigator.pop(ctx),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              key: const Key('edit-timezone-confirm'),
+              onPressed: saving
+                  ? null
+                  : () async {
+                      setDialogState(() => saving = true);
+                      final messenger = ScaffoldMessenger.of(context);
+                      final navigator = Navigator.of(ctx);
+                      try {
+                        await ref.read(adminRepositoryProvider).updateTenant(
+                              widget.id,
+                              {'timezone': selected},
+                            );
+                        if (!context.mounted) return;
+                        navigator.pop();
+                        messenger.showSnackBar(const SnackBar(
+                          content: Text('时区已更新'),
+                          backgroundColor: Color(0xFF2E7D32),
+                        ));
+                        ref.invalidate(tenantListControllerProvider);
+                        _loadData();
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        navigator.pop();
+                        messenger.showSnackBar(SnackBar(
+                          content: Text('更新失败: $e'),
+                          backgroundColor: const Color(0xFFD32F2F),
+                        ));
+                      }
+                    },
+              child: saving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Text('保存'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showGrantPilotDialog(BuildContext context) {
+    final formKey = GlobalKey<FormState>();
+    DateTime? selectedDate;
+    bool granting = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          key: const Key('grant-pilot-dialog'),
+          title: Text(AppLocalizations.of(context)!.tenantPilotDialogTitle),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(AppLocalizations.of(context)!.tenantPilotDialogDesc,
+                      style: Theme.of(ctx).textTheme.bodySmall),
+                  const SizedBox(height: 12),
+                  ListTile(
+                    key: const Key('grant-pilot-deadline'),
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.event),
+                    title: Text(selectedDate == null
+                        ? AppLocalizations.of(context)!.tenantPilotDeadlineNone
+                        : AppLocalizations.of(context)!.tenantPilotDeadlineChosen(
+                            selectedDate!.toIso8601String().substring(0, 10),
+                            _tenantTimezone ?? 'UTC')),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () async {
+                      final now = DateTime.now();
+                      final picked = await showDatePicker(
+                        context: ctx,
+                        initialDate: now.add(const Duration(days: 365)),
+                        firstDate: now,
+                        lastDate: now.add(const Duration(days: 365 * 5)),
+                      );
+                      if (picked != null) {
+                        setDialogState(() => selectedDate = picked);
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: granting ? null : () => Navigator.pop(ctx),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              key: const Key('grant-pilot-confirm'),
+              onPressed: granting
+                  ? null
+                  : () => _handleGrantPilot(
+                        ctx,
+                        formKey,
+                        selectedDate,
+                        () => setDialogState(() => granting = true),
+                        () => setDialogState(() => granting = false),
+                      ),
+              child: granting
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    )
+                  : Text(AppLocalizations.of(context)!.tenantPilotGrantButton),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleGrantPilot(
+    BuildContext dialogCtx,
+    GlobalKey<FormState> formKey,
+    DateTime? selectedDate,
+    VoidCallback setGranting,
+    VoidCallback clearGranting,
+  ) async {
+    if (!formKey.currentState!.validate()) return;
+    setGranting();
+    final l10n = AppLocalizations.of(context)!;
+    final navigator = Navigator.of(dialogCtx);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final grant = await ref
+          .read(adminRepositoryProvider)
+          .grantPilotLicense(
+              widget.id,
+              selectedDate?.toIso8601String().substring(0, 10));
+      if (!mounted) return;
+      navigator.pop();
+      messenger.showSnackBar(SnackBar(
+        key: const Key('grant-pilot-success'),
+        content: Text('${l10n.tenantPilotGrantSuccessPrefix}${grant.trialEndsAt}'),
+        backgroundColor: const Color(0xFF2E7D32),
+      ));
+      ref.invalidate(tenantListControllerProvider);
+                        _loadData(); // refresh the pilot-status chip / expiry on the card
+    } catch (e) {
+      if (!mounted) return;
+      navigator.pop();
+      messenger.showSnackBar(SnackBar(
+        key: const Key('grant-pilot-error'),
+        content: Text('${l10n.tenantPilotGrantFailedPrefix} $e'),
+        backgroundColor: const Color(0xFFD32F2F),
+      ));
+    } finally {
+      clearGranting();
+    }
+  }
+
   void _showCreateUserDialog(BuildContext context) {
     final formKey = GlobalKey<FormState>();
     final phoneCtrl = TextEditingController();
+    final accountCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
     final nameCtrl = TextEditingController();
     final passwordCtrl = TextEditingController();
+    String userDial = guessDialCode();
     String selectedRole = 'B2B_ADMIN';
     bool creating = false;
 
@@ -190,32 +739,43 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextFormField(
+                    key: const Key('create-user-account'),
+                    controller: accountCtrl,
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      labelText: '用户账号（选填，登录用）',
+                      hintText: '3-32位，字母开头',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  PhoneField(
                     key: const Key('create-user-phone'),
                     controller: phoneCtrl,
-                    autofocus: true,
-                    keyboardType: TextInputType.phone,
+                    dialCode: userDial,
+                    onDialChanged: (d) => setDialogState(() => userDial = d),
+                    labelText: '手机号（选填）',
+                    hintText: '本地号码，如 712345678',
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    key: const Key('create-user-email'),
+                    controller: emailCtrl,
+                    keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
-                      labelText: '手机号 *',
-                      hintText: '请输入11位手机号',
+                      labelText: '邮箱（选填）',
+                      hintText: 'name@example.com',
                     ),
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) return '手机号不能为空';
-                      if (!RegExp(r'^1\d{10}$').hasMatch(v.trim())) {
-                        return '请输入正确的11位手机号';
-                      }
-                      return null;
-                    },
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     key: const Key('create-user-name'),
                     controller: nameCtrl,
                     decoration: const InputDecoration(
-                      labelText: '姓名 *',
-                      hintText: '请输入姓名',
+                      labelText: '用户名 *',
+                      hintText: '显示名称,可重复',
                     ),
                     validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? '姓名不能为空' : null,
+                        (v == null || v.trim().isEmpty) ? '用户名不能为空' : null,
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
@@ -263,6 +823,9 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                         ctx,
                         formKey,
                         phoneCtrl,
+                        accountCtrl,
+                        emailCtrl,
+                        userDial,
                         nameCtrl,
                         passwordCtrl,
                         selectedRole,
@@ -288,6 +851,9 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
     BuildContext dialogCtx,
     GlobalKey<FormState> formKey,
     TextEditingController phoneCtrl,
+    TextEditingController accountCtrl,
+    TextEditingController emailCtrl,
+    String userDial,
     TextEditingController nameCtrl,
     TextEditingController passwordCtrl,
     String role,
@@ -302,12 +868,22 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
     final messenger = ScaffoldMessenger.of(context);
 
     try {
+      final phone = phoneCtrl.text.trim().isEmpty
+          ? ''
+          : mergeE164(userDial, phoneCtrl.text.trim());
+      final account = accountCtrl.text.trim();
+      final email = emailCtrl.text.trim();
+      if (phone.isEmpty && account.isEmpty && email.isEmpty) {
+        throw '用户账号/手机号/邮箱至少填写一项';
+      }
       await ref.read(adminRepositoryProvider).createUser({
-        'phone': phoneCtrl.text.trim(),
         'name': nameCtrl.text.trim(),
         'password': passwordCtrl.text,
         'role': role,
         'tenantId': int.parse(widget.id),
+        if (phone.isNotEmpty) 'phone': phone,
+        if (account.isNotEmpty) 'account': account,
+        if (email.isNotEmpty) 'email': email,
       });
 
       if (!mounted) return;
@@ -400,6 +976,10 @@ class _UserCard extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text('手机号: ${user.phone ?? "-"}'),
+                  if (user.account != null && user.account!.isNotEmpty)
+                    Text('账号: ${user.account}'),
+                  if (user.email != null && user.email!.isNotEmpty)
+                    Text('邮箱: ${user.email}'),
                 ],
               ),
             ),

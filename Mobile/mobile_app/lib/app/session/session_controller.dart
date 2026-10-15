@@ -13,9 +13,9 @@ class SessionController extends Notifier<AppSession> {
   @override
   AppSession build() => ref.read(initialSessionProvider);
 
-  Future<bool> login({required String phone, required String password}) async {
+  Future<bool> login({required String identifier, required String password}) async {
     try {
-      final user = await ApiClient.instance.login(phone: phone, password: password);
+      final user = await ApiClient.instance.login(identifier: identifier, password: password);
       final roleStr = user['role'] as String? ?? '';
       final role = UserRole.fromString(roleStr);
 

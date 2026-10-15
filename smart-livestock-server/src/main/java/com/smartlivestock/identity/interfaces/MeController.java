@@ -22,6 +22,7 @@ public class MeController {
 
     private final UserRepository userRepository;
     private final PasswordHasher passwordHasher;
+    private final com.smartlivestock.identity.domain.repository.AuditLogRepository auditLogRepository;
 
     /**
      * GET /api/v1/me
@@ -37,10 +38,11 @@ public class MeController {
 
     /**
      * PUT /api/v1/me
-     * Update current user info (name, phone).
-     * Phone changes require the current password for confirmation — the phone
-     * number is the login identity, so it must not be swapable by an XSS-ed
-     * or borrowed session (NIX-191).
+     * Update current user info (name, username, phone, account, email).
+     * Login identifiers (phone / account / email) require the current
+     * password for confirmation — they are the login identity and must not
+     * be swapable by an XSS-ed or borrowed session (NIX-191). The display
+     * username changes freely.
      */
     @PutMapping("/me")
     public ResponseEntity<ApiResponse<UserDto>> updateCurrentUser(@RequestBody Map<String, String> body) {
@@ -51,28 +53,87 @@ public class MeController {
         if (body.containsKey("name")) {
             user.setName(body.get("name"));
         }
+        if (body.containsKey("username")) {
+            String username = body.get("username");
+            user.setUsername(username == null || username.isBlank() ? null : username.trim());
+        }
+
+        boolean identifierTouched = false;
         if (body.containsKey("phone")) {
-            String newPhone = body.get("phone");
-            if (newPhone == null || newPhone.isBlank()) {
-                throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.phoneChangeRequiresPassword");
+            String norm = com.smartlivestock.identity.application.LoginIdentifiers.normalizePhone(body.get("phone"));
+            if (norm != null && !norm.equals(user.getPhone())) identifierTouched = true;
+            if (norm != null && !com.smartlivestock.identity.application.LoginIdentifiers.isValidPhone(norm)) {
+                throw new ApiException(ErrorCode.VALIDATION_ERROR, "user.invalidPhone");
             }
-            if (!newPhone.equals(user.getPhone())) {
-                String currentPassword = body.get("currentPassword");
-                if (currentPassword == null
-                        || !passwordHasher.matches(currentPassword, user.getPasswordHash())) {
-                    throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.phoneChangeRequiresPassword");
-                }
-                userRepository.findByPhone(newPhone)
-                        .filter(other -> !other.getId().equals(userId))
-                        .ifPresent(other -> {
-                            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.phoneAlreadyUsed");
-                        });
-                user.setPhone(newPhone);
+            if (norm != null && !norm.equals(user.getPhone())) {
+                requireUnique(other -> norm.equals(other.getPhone()), "user.phoneDuplicate");
+                user.setPhone(norm);
+            } else if (norm == null) {
+                user.setPhone(null);
+            }
+        }
+        if (body.containsKey("account")) {
+            String norm = com.smartlivestock.identity.application.LoginIdentifiers.normalizeAccount(body.get("account"));
+            if (norm != null && !norm.equalsIgnoreCase(user.getAccount())) identifierTouched = true;
+            if (norm != null && !com.smartlivestock.identity.application.LoginIdentifiers.isValidAccount(norm)) {
+                throw new ApiException(ErrorCode.VALIDATION_ERROR, "user.invalidAccount");
+            }
+            if (norm != null && !norm.equalsIgnoreCase(user.getAccount())) {
+                requireUnique(other -> norm.equalsIgnoreCase(other.getAccount()), "user.accountDuplicate");
+                user.setAccount(norm);
+            } else if (norm == null) {
+                user.setAccount(null);
+            }
+        }
+        if (body.containsKey("email")) {
+            String norm = com.smartlivestock.identity.application.LoginIdentifiers.normalizeEmail(body.get("email"));
+            if (norm != null && !norm.equalsIgnoreCase(user.getEmail())) identifierTouched = true;
+            if (norm != null && !com.smartlivestock.identity.application.LoginIdentifiers.isValidEmail(norm)) {
+                throw new ApiException(ErrorCode.VALIDATION_ERROR, "user.invalidEmail");
+            }
+            if (norm != null && !norm.equalsIgnoreCase(user.getEmail())) {
+                requireUnique(other -> norm.equalsIgnoreCase(other.getEmail()), "user.emailDuplicate");
+                user.setEmail(norm);
+            } else if (norm == null) {
+                user.setEmail(null);
+            }
+        }
+
+        if (identifierTouched) {
+            // At least one login identifier must remain after the change.
+            if (user.getPhone() == null && user.getAccount() == null && user.getEmail() == null) {
+                throw new ApiException(ErrorCode.VALIDATION_ERROR, "user.identifierRequired");
+            }
+            String currentPassword = body.get("currentPassword");
+            if (currentPassword == null
+                    || !passwordHasher.matches(currentPassword, user.getPasswordHash())) {
+                throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.phoneChangeRequiresPassword");
             }
         }
 
         User saved = userRepository.save(user);
+        if (identifierTouched) {
+            try {
+                auditLogRepository.save(new com.smartlivestock.identity.domain.model.AuditLog(
+                        java.util.UUID.randomUUID().toString(),
+                        "USER_LOGIN_IDENTIFIER_CHANGED",
+                        user.getTenantId(), userId, "USER_LOGIN_IDENTIFIER_CHANGED",
+                        java.util.Map.of("userId", userId),
+                        java.time.Instant.now(), null, user.getRole().name()));
+            } catch (Exception ignored) {
+                // audit best-effort
+            }
+        }
         return ResponseEntity.ok(ApiResponse.ok(UserDto.from(saved)));
+    }
+
+    private void requireUnique(java.util.function.Predicate<User> conflict, String messageKey) {
+        userRepository.findAll().stream()
+                .filter(conflict)
+                .findFirst()
+                .ifPresent(other -> {
+                    throw new ApiException(ErrorCode.DUPLICATE_RESOURCE, messageKey);
+                });
     }
 
     /**
@@ -109,9 +170,7 @@ public class MeController {
     }
 
     private boolean isStrongPassword(String password) {
-        return password.length() >= 10
-                && password.chars().anyMatch(Character::isLetter)
-                && password.chars().anyMatch(Character::isDigit);
+        return com.smartlivestock.shared.common.PasswordPolicy.isStrong(password);
     }
 
     private Long getCurrentUserId() {

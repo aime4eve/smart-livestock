@@ -28,7 +28,7 @@ class DatagenDataQueryServiceTest {
 
     @Test
     void clear_executesDeleteStatements() throws Exception {
-        service = new DatagenDataQueryService(assignmentRepository);
+        service = new DatagenDataQueryService(org.mockito.Mockito.mock(com.smartlivestock.identity.application.TenantZoneResolver.class), assignmentRepository);
         var entityManagerField = DatagenDataQueryService.class.getDeclaredField("entityManager");
         entityManagerField.setAccessible(true);
         entityManagerField.set(service, entityManager);

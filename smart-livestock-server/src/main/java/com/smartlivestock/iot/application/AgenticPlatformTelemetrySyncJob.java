@@ -42,6 +42,9 @@ import java.util.Map;
 public class AgenticPlatformTelemetrySyncJob {
 
     private final DeviceRepository deviceRepository;
+    private final com.smartlivestock.iot.domain.repository.InstallationRepository installationRepository;
+    private final com.smartlivestock.iot.domain.port.RanchQueryPort ranchQueryPort;
+    private final com.smartlivestock.identity.application.TenantZoneResolver tenantZoneResolver;
     private final AgenticPlatformHistoryDataClient historyClient;
     private final AgenticPlatformDeviceClient deviceClient;
     private final TelemetryIngestionService telemetryIngestionService;
@@ -66,7 +69,26 @@ public class AgenticPlatformTelemetrySyncJob {
             log.warn("[PlatformSync] device {} has no platformDeviceId, skipping", deviceId);
             return;
         }
+        // Blade requires X-TimeZone on every call. Chain (ruling 2026-10-12):
+        // active installation → its livestock's farm → farm zone; otherwise
+        // the tenant zone. Shared executor thread — always clear.
+        java.util.Optional<com.smartlivestock.iot.domain.model.Installation> activeInstallation =
+                installationRepository.findActiveByDeviceId(device.getId());
+        java.util.Optional<String> farmZone = activeInstallation.flatMap(installation ->
+                ranchQueryPort.findLivestockById(installation.getLivestockId())
+                        .map(livestock -> tenantZoneResolver.zoneForFarm(livestock.farmId(), null).getId()));
+        String zoneId = farmZone.orElseGet(() ->
+                tenantZoneResolver.zoneForTenantStrict(device.getTenantId()).getId());
+        com.smartlivestock.iot.infrastructure.client.agenticplatform.AgenticPlatformTimeZoneContext.set(zoneId);
+        try {
+            syncDeviceInternal(device);
+        } finally {
+            com.smartlivestock.iot.infrastructure.client.agenticplatform.AgenticPlatformTimeZoneContext.clear();
+        }
+    }
 
+    private void syncDeviceInternal(Device device) {
+        Long deviceId = device.getId();
         String platformDeviceId = String.valueOf(device.getPlatformDeviceId());
         Instant cursor = device.getLastTelemetrySyncedAt();
 

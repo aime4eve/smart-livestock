@@ -11,6 +11,8 @@ public interface SpringDataTbDeviceBindingRepository
 
     List<TbDeviceBindingJpaEntity> findByTenantIdAndBindingStatus(Long tenantId, String bindingStatus);
 
+    List<TbDeviceBindingJpaEntity> findByBindingStatus(String bindingStatus);
+
     Optional<TbDeviceBindingJpaEntity> findByDeviceIdAndProvider(Long deviceId, String provider);
 
     List<TbDeviceBindingJpaEntity> findByTenantIdAndProvider(Long tenantId, String provider);

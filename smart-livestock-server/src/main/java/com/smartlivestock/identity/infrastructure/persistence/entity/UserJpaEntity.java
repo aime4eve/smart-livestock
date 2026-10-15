@@ -28,6 +28,15 @@ public class UserJpaEntity {
     @Column(name = "phone", length = 20)
     private String phone;
 
+    @Column(name = "account", length = 50)
+    private String account;
+
+    @Column(name = "username", length = 100)
+    private String username;
+
+    @Column(name = "email", length = 255)
+    private String email;
+
     @Column(name = "role", nullable = false, length = 30)
     private String role;
 
@@ -79,6 +88,15 @@ public class UserJpaEntity {
 
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
+
+    public String getAccount() { return account; }
+    public void setAccount(String account) { this.account = account; }
+
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }

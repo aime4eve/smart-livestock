@@ -35,6 +35,8 @@ public class TenantAdminController {
     private final TenantApplicationService tenantApplicationService;
     private final FarmRepository farmRepository;
     private final UserRepository userRepository;
+    private final com.smartlivestock.identity.application.TenantZoneResolver tenantZoneResolver;
+    private final com.smartlivestock.identity.application.TenantLifecycleService tenantLifecycleService;
 
     /**
      * GET /api/v1/admin/tenants
@@ -46,11 +48,13 @@ public class TenantAdminController {
             @RequestParam(defaultValue = "20") int pageSize,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String phase,
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "false") boolean includeDeleted) {
         requirePlatformAdmin();
 
         List<TenantJpaEntity> allTenants = springDataTenantRepository.findAll();
         List<Map<String, Object>> items = allTenants.stream()
+                .filter(t -> includeDeleted || t.getDeletedAt() == null)
                 .map(t -> {
                     long farmCount = farmRepository.findByTenantId(t.getId()).size();
                     long userCount = userRepository.findByTenantId(t.getId()).size();
@@ -60,10 +64,13 @@ public class TenantAdminController {
                     m.put("contactName", t.getContactName() != null ? t.getContactName() : "");
                     m.put("contactPhone", t.getContactPhone() != null ? t.getContactPhone() : "");
                     m.put("phase", t.getPhase() != null ? t.getPhase().toLowerCase() : "sample");
-                    m.put("status", "active");
+                    m.put("status", t.getDeletedAt() != null ? "deleted"
+                            : ("disabled".equals(t.getStatus()) ? "disabled" : "active"));
                     m.put("farmCount", farmCount);
                     m.put("userCount", userCount);
                     m.put("deviceCount", 0);
+                    m.put("timezone", t.getTimezone());
+                    m.put("utcOffsetMinutes", tenantZoneResolver.utcOffsetMinutes(t.getId()));
                     m.put("createdAt", t.getCreatedAt() != null ? t.getCreatedAt().toString() : "");
                     return m;
                 })
@@ -89,12 +96,13 @@ public class TenantAdminController {
         String name = body.get("name");
         String contactName = body.get("contactName");
         String contactPhone = body.get("contactPhone");
+        String timezone = body.get("timezone");
 
         if (name == null || name.isBlank()) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "name 不能为空");
         }
 
-        CreateTenantCommand command = new CreateTenantCommand(name, contactName, contactPhone);
+        CreateTenantCommand command = new CreateTenantCommand(name, contactName, contactPhone, timezone);
         TenantDto tenant = tenantApplicationService.createTenant(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(tenant));
     }
@@ -119,10 +127,13 @@ public class TenantAdminController {
         data.put("contactName", t.getContactName() != null ? t.getContactName() : "");
         data.put("contactPhone", t.getContactPhone() != null ? t.getContactPhone() : "");
         data.put("phase", t.getPhase() != null ? t.getPhase().toLowerCase() : "sample");
-        data.put("status", "active");
+        data.put("status", t.getDeletedAt() != null ? "deleted"
+                : ("disabled".equals(t.getStatus()) ? "disabled" : "active"));
         data.put("farmCount", farmCount);
         data.put("userCount", userCount);
         data.put("deviceCount", 0);
+        data.put("timezone", t.getTimezone());
+        data.put("utcOffsetMinutes", tenantZoneResolver.utcOffsetMinutes(tenantId));
         data.put("activeLicenseCount", 0);
         data.put("createdAt", t.getCreatedAt() != null ? t.getCreatedAt().toString() : "");
         data.put("updatedAt", t.getUpdatedAt() != null ? t.getUpdatedAt().toString() : "");
@@ -143,8 +154,9 @@ public class TenantAdminController {
         String name = body.get("name");
         String contactName = body.get("contactName");
         String contactPhone = body.get("contactPhone");
+        String timezone = body.get("timezone");
 
-        TenantDto updated = tenantApplicationService.updateTenant(tenantId, name, contactName, contactPhone);
+        TenantDto updated = tenantApplicationService.updateTenant(tenantId, name, contactName, contactPhone, timezone);
         return ResponseEntity.ok(ApiResponse.ok(updated));
     }
 
@@ -200,16 +212,45 @@ public class TenantAdminController {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "status 必须为 active 或 disabled");
         }
 
-        // Verify tenant exists
-        springDataTenantRepository.findById(tenantId)
-                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "租户不存在: " + tenantId));
+        tenantLifecycleService.updateStatus(tenantId, status, currentUserId());
 
-        // Tenant status toggle — pending Tenant domain model status field extension.
         Map<String, Object> data = Map.of(
                 "id", String.valueOf(tenantId),
                 "status", status
         );
         return ResponseEntity.ok(ApiResponse.ok(data));
+    }
+
+    /**
+     * DELETE /api/v1/admin/tenants/{tenantId}
+     * Soft delete (ruling 2026-10-14): pre-conditions block tenants with
+     * ACTIVE devices or a live subscription; cascade disables all users,
+     * cancels the subscription and soft-deletes farms. Business data is
+     * never physically removed.
+     */
+    @DeleteMapping("/{tenantId}")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> deleteTenant(
+            @PathVariable Long tenantId,
+            @RequestParam(required = false, defaultValue = "false") boolean cancelSubscription) {
+        requirePlatformAdmin();
+        tenantLifecycleService.delete(tenantId, currentUserId(), cancelSubscription);
+        return ResponseEntity.ok(ApiResponse.ok(Map.of(
+                "id", String.valueOf(tenantId),
+                "deleted", true)));
+    }
+
+    /**
+     * POST /api/v1/admin/tenants/{tenantId}/restore
+     * Clears the soft-delete marker; users come back disabled for review.
+     */
+    @PostMapping("/{tenantId}/restore")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> restoreTenant(
+            @PathVariable Long tenantId) {
+        requirePlatformAdmin();
+        tenantLifecycleService.restore(tenantId, currentUserId());
+        return ResponseEntity.ok(ApiResponse.ok(Map.of(
+                "id", String.valueOf(tenantId),
+                "restored", true)));
     }
 
     /**
@@ -236,6 +277,8 @@ public class TenantAdminController {
 
         if (targetPhase == TenantPhase.BATCH) {
             tenantApplicationService.transitionToBatch(tenantId);
+        } else if (targetPhase == TenantPhase.SAMPLE) {
+            tenantApplicationService.revertToSample(tenantId);
         }
 
         Map<String, Object> data = Map.of(
@@ -243,6 +286,14 @@ public class TenantAdminController {
                 "phase", phase.toLowerCase()
         );
         return ResponseEntity.ok(ApiResponse.ok(data));
+    }
+
+    private Long currentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof Long userId)) {
+            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "未认证");
+        }
+        return userId;
     }
 
     private void requirePlatformAdmin() {

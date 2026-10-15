@@ -24,10 +24,12 @@ class AdminApiRepository implements AdminRepository {
     int pageSize = 20,
     String? status,
     String? keyword,
+    bool includeDeleted = false,
   }) async {
     final query = <String, String>{'page': '$page', 'pageSize': '$pageSize'};
     if (status != null) query['status'] = status;
     if (keyword != null) query['keyword'] = keyword;
+    if (includeDeleted) query['includeDeleted'] = 'true';
     final qs = query.entries.map((e) => '${e.key}=${e.value}').join('&');
     final data = await ApiClient.instance.get('/admin/tenants?$qs');
     final items = (data['items'] as List<dynamic>? ?? [])
@@ -55,15 +57,92 @@ class AdminApiRepository implements AdminRepository {
   }
 
   @override
+  Future<void> updateTenantStatus(String tenantId, String status) async {
+    await ApiClient.instance
+        .put('/admin/tenants/$tenantId/status', body: {'status': status});
+  }
+
+  @override
+  Future<void> deleteTenant(String tenantId, {bool cancelSubscription = false}) async {
+    await ApiClient.instance
+        .delete('/admin/tenants/$tenantId?cancelSubscription=$cancelSubscription');
+  }
+
+  @override
+  Future<void> cancelSubscription(String subscriptionId) async {
+    await ApiClient.instance.put('/admin/subscriptions/$subscriptionId/status',
+        body: {'targetStatus': 'CANCELLED'});
+  }
+
+  @override
+  Future<List<TenantSubscription>> loadSubscriptions() async {
+    final data = await ApiClient.instance.get('/admin/subscriptions?pageSize=100');
+    return (data['items'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map((m) => TenantSubscription(
+              id: m['id']?.toString() ?? '',
+              tenantId: m['tenantId']?.toString() ?? '',
+              tenantName: m['tenantName'] as String?,
+              status: (m['status'] as String?) ?? '',
+              effectiveTier: (m['effectiveTier'] as String?) ?? '',
+              trialEndsAt: m['trialEndsAt'] as String?,
+              utcOffsetMinutes: m['utcOffsetMinutes'] as int?,
+            ))
+        .toList();
+  }
+
+  @override
+  Future<void> restoreTenant(String tenantId) async {
+    await ApiClient.instance.post('/admin/tenants/$tenantId/restore');
+  }
+
+  @override
+  Future<TenantSubscription?> loadTenantSubscription(String tenantId) async {
+    final data = await ApiClient.instance
+        .get('/admin/subscriptions?tenantId=$tenantId&pageSize=50');
+    final items = (data['items'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .where((m) => tenantId == m['tenantId']?.toString())
+        .toList();
+    if (items.isEmpty) return null;
+    final m = items.first;
+    return TenantSubscription(
+      id: m['id']?.toString() ?? '',
+      tenantId: m['tenantId']?.toString() ?? tenantId,
+      tenantName: m['tenantName'] as String?,
+      status: (m['status'] as String?) ?? '',
+      effectiveTier: (m['effectiveTier'] as String?) ?? '',
+      trialEndsAt: m['trialEndsAt'] as String?,
+      utcOffsetMinutes: m['utcOffsetMinutes'] as int?,
+    );
+  }
+
+  @override
+  Future<void> updateTenantPhase(String tenantId, String phase) async {
+    await ApiClient.instance.put('/admin/tenants/$tenantId/phase', body: {'phase': phase});
+  }
+
+  @override
+  Future<PilotLicenseGrant> grantPilotLicense(String tenantId, String? localDate) async {
+    final body = <String, dynamic>{};
+    if (localDate != null && localDate.trim().isNotEmpty) {
+      body['localDate'] = localDate.trim();
+    }
+    final data = await ApiClient.instance
+        .post('/admin/tenants/$tenantId/pilot-license', body: body);
+    return PilotLicenseGrant(
+      tenantId: data['tenantId']?.toString() ?? tenantId,
+      status: data['status'] as String? ?? '',
+      trialEndsAt: data['trialEndsAt']?.toString() ?? '',
+    );
+  }
+
+  @override
   Future<TenantSummary> updateTenant(String tenantId, Map<String, dynamic> body) async {
     final data = await ApiClient.instance.put('/admin/tenants/$tenantId', body: body);
     return _parseTenantSummary(data);
   }
 
-  @override
-  Future<void> updateTenantStatus(String tenantId, String status) async {
-    await ApiClient.instance.put('/admin/tenants/$tenantId/status', body: {'status': status});
-  }
 
   // --- Users ---
 
@@ -207,6 +286,8 @@ class AdminApiRepository implements AdminRepository {
       userCount: m['userCount'] as int? ?? 0,
       deviceCount: m['deviceCount'] as int? ?? 0,
       createdAt: m['createdAt'] as String?,
+      timezone: m['timezone'] as String?,
+      utcOffsetMinutes: m['utcOffsetMinutes'] as int?,
     );
   }
 
@@ -225,6 +306,8 @@ class AdminApiRepository implements AdminRepository {
       activeLicenseCount: m['activeLicenseCount'] as int? ?? 0,
       createdAt: m['createdAt'] as String?,
       updatedAt: m['updatedAt'] as String?,
+      timezone: m['timezone'] as String?,
+      utcOffsetMinutes: m['utcOffsetMinutes'] as int?,
     );
   }
 
@@ -235,6 +318,8 @@ class AdminApiRepository implements AdminRepository {
       name: m['name'] as String? ?? '',
       username: m['username'] as String?,
       phone: m['phone'] as String?,
+      account: m['account'] as String?,
+      email: m['email'] as String?,
       role: m['role'] as String?,
       tenantId: m['tenantId']?.toString(),
       tenantName: m['tenantName'] as String?,
@@ -251,6 +336,8 @@ class AdminApiRepository implements AdminRepository {
       name: m['name'] as String? ?? '',
       username: m['username'] as String?,
       phone: m['phone'] as String?,
+      account: m['account'] as String?,
+      email: m['email'] as String?,
       role: m['role'] as String?,
       tenantId: m['tenantId']?.toString(),
       status: m['status'] as String?,

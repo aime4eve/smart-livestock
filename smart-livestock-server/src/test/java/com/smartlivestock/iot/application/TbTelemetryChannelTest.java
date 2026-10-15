@@ -71,6 +71,37 @@ class TbTelemetryChannelTest {
     }
 
     @Test
+    void shouldPollBindingsAcrossTenants() {
+        // Ruling 2026-10-12: the channel is tenant-agnostic — bindings of any
+        // platform tenant are collected through the single shared TB tenant.
+        TbDeviceBinding tenantOne = resolvedBinding(null);
+        TbDeviceBinding tenantTwo = resolvedBinding(null);
+        tenantTwo.setId(2L);
+        tenantTwo.setTenantId(9L);
+        tenantTwo.setDeviceId(990L);
+        tenantTwo.setDeviceEui("00956906000299ff");
+        tenantTwo.setExternalDeviceId("tb-uuid-2");
+
+        when(bindingRepository.findByStatus(TbDeviceBinding.Status.RESOLVED))
+                .thenReturn(List.of(tenantOne, tenantTwo));
+        when(deviceRepository.findById(122L)).thenReturn(Optional.of(activeTracker()));
+        Device foreign = activeTracker();
+        foreign.setId(990L);
+        when(deviceRepository.findById(990L)).thenReturn(Optional.of(foreign));
+        when(tbClient.fetchTimeseries(eq("tb-uuid"), anyLong(), anyLong(), anyInt()))
+                .thenReturn(parse(timeseries("1000", "65")));
+        when(tbClient.fetchTimeseries(eq("tb-uuid-2"), anyLong(), anyLong(), anyInt()))
+                .thenReturn(parse(timeseries("1000", "70")));
+
+        channel.poll();
+
+        verify(ingestionService).ingest(eq(122L), any(), any(),
+                eq(com.smartlivestock.iot.domain.model.TelemetrySource.THINGSBOARD));
+        verify(ingestionService).ingest(eq(990L), any(), any(),
+                eq(com.smartlivestock.iot.domain.model.TelemetrySource.THINGSBOARD));
+    }
+
+    @Test
     void shouldIngestFramesAndAdvanceCursor() {
         TbDeviceBinding binding = new TbDeviceBinding();
         binding.setId(1L);
@@ -80,7 +111,7 @@ class TbTelemetryChannelTest {
         binding.setStatus(TbDeviceBinding.Status.RESOLVED);
         binding.setTelemetryCursorMs(null);
 
-        when(bindingRepository.findByTenantIdAndStatus(1L, TbDeviceBinding.Status.RESOLVED))
+        when(bindingRepository.findByStatus(TbDeviceBinding.Status.RESOLVED))
                 .thenReturn(List.of(binding));
         when(deviceRepository.findById(122L)).thenReturn(Optional.of(activeTracker()));
         when(tbClient.fetchTimeseries(eq("tb-uuid"), anyLong(), anyLong(), anyInt()))
@@ -102,7 +133,7 @@ class TbTelemetryChannelTest {
     @Test
     void shouldTreatExistingDtlFrameAsIdempotentSuccess() {
         TbDeviceBinding binding = resolvedBinding(500L);
-        when(bindingRepository.findByTenantIdAndStatus(1L, TbDeviceBinding.Status.RESOLVED))
+        when(bindingRepository.findByStatus(TbDeviceBinding.Status.RESOLVED))
                 .thenReturn(List.of(binding));
         when(deviceRepository.findById(122L)).thenReturn(Optional.of(activeTracker()));
         when(tbClient.fetchTimeseries(eq("tb-uuid"), anyLong(), anyLong(), anyInt()))
@@ -121,7 +152,7 @@ class TbTelemetryChannelTest {
     @Test
     void shouldStopAtFailedFrameAndKeepSuccessfulPrefixCursor() {
         TbDeviceBinding binding = resolvedBinding(500L);
-        when(bindingRepository.findByTenantIdAndStatus(1L, TbDeviceBinding.Status.RESOLVED))
+        when(bindingRepository.findByStatus(TbDeviceBinding.Status.RESOLVED))
                 .thenReturn(List.of(binding));
         when(deviceRepository.findById(122L)).thenReturn(Optional.of(activeTracker()));
         when(tbClient.fetchTimeseries(eq("tb-uuid"), anyLong(), anyLong(), anyInt()))
@@ -150,7 +181,7 @@ class TbTelemetryChannelTest {
     void shouldContinueWhenBatchReachesLimit() {
         properties.setBatchSize(2);
         TbDeviceBinding binding = resolvedBinding(null);
-        when(bindingRepository.findByTenantIdAndStatus(1L, TbDeviceBinding.Status.RESOLVED))
+        when(bindingRepository.findByStatus(TbDeviceBinding.Status.RESOLVED))
                 .thenReturn(List.of(binding));
         when(deviceRepository.findById(122L)).thenReturn(Optional.of(activeTracker()));
         when(tbClient.fetchTimeseries(eq("tb-uuid"), anyLong(), anyLong(), anyInt()))
@@ -172,7 +203,7 @@ class TbTelemetryChannelTest {
     @Test
     void shouldClampOutOfRangeGpsBeforeIngest() {
         TbDeviceBinding binding = resolvedBinding(null);
-        when(bindingRepository.findByTenantIdAndStatus(1L, TbDeviceBinding.Status.RESOLVED))
+        when(bindingRepository.findByStatus(TbDeviceBinding.Status.RESOLVED))
                 .thenReturn(List.of(binding));
         when(deviceRepository.findById(122L)).thenReturn(Optional.of(activeTracker()));
         when(tbClient.fetchTimeseries(eq("tb-uuid"), anyLong(), anyLong(), anyInt()))
@@ -199,7 +230,7 @@ class TbTelemetryChannelTest {
         Device device = activeTracker();
         device.setStatus(DeviceStatus.INVENTORY);
 
-        when(bindingRepository.findByTenantIdAndStatus(1L, TbDeviceBinding.Status.RESOLVED))
+        when(bindingRepository.findByStatus(TbDeviceBinding.Status.RESOLVED))
                 .thenReturn(List.of(binding));
         when(deviceRepository.findById(122L)).thenReturn(Optional.of(device));
 
@@ -212,7 +243,7 @@ class TbTelemetryChannelTest {
     @Test
     void shouldSkipUndecodableFramesAndAdvanceCursorPastThem() {
         TbDeviceBinding binding = resolvedBinding(500L);
-        when(bindingRepository.findByTenantIdAndStatus(1L, TbDeviceBinding.Status.RESOLVED))
+        when(bindingRepository.findByStatus(TbDeviceBinding.Status.RESOLVED))
                 .thenReturn(List.of(binding));
         when(deviceRepository.findById(122L)).thenReturn(Optional.of(activeTracker()));
         // Incident NIX-179: a modified TB rule chain saves decodeStatus:false
@@ -236,7 +267,7 @@ class TbTelemetryChannelTest {
     @Test
     void shouldCountConsecutiveFailuresOnPageError() {
         TbDeviceBinding binding = resolvedBinding(500L);
-        when(bindingRepository.findByTenantIdAndStatus(1L, TbDeviceBinding.Status.RESOLVED))
+        when(bindingRepository.findByStatus(TbDeviceBinding.Status.RESOLVED))
                 .thenReturn(List.of(binding));
         when(deviceRepository.findById(122L)).thenReturn(Optional.of(activeTracker()));
         when(tbClient.fetchTimeseries(eq("tb-uuid"), anyLong(), anyLong(), anyInt()))
@@ -255,7 +286,7 @@ class TbTelemetryChannelTest {
     void shouldResetFailuresOnCleanCycleWithoutFrames() {
         TbDeviceBinding binding = resolvedBinding(null);
         binding.setConsecutiveFailures(2);
-        when(bindingRepository.findByTenantIdAndStatus(1L, TbDeviceBinding.Status.RESOLVED))
+        when(bindingRepository.findByStatus(TbDeviceBinding.Status.RESOLVED))
                 .thenReturn(List.of(binding));
         when(deviceRepository.findById(122L)).thenReturn(Optional.of(activeTracker()));
         when(tbClient.fetchTimeseries(eq("tb-uuid"), anyLong(), anyLong(), anyInt()))

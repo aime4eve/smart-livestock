@@ -93,7 +93,7 @@ public class DatagenControlService {
                 .map(DatagenDeviceAssignment::getDeviceId).toList();
 
         DatagenDataQueryService.DatagenStatsParts parts = dataQueryService.statsByDeviceIds(
-                assignedDeviceIds, dataQueryService.todayStart(tzOffsetMinutes), Instant.now());
+                assignedDeviceIds, dataQueryService.todayStart(farmId, tzOffsetMinutes), Instant.now());
         int trackerCount = (int) activeDeviceIds.stream()
                 .filter(id -> deviceRepository.findById(id)
                         .filter(device -> device.getDeviceType() == DeviceType.TRACKER)

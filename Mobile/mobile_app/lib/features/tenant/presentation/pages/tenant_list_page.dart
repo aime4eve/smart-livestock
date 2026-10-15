@@ -63,6 +63,7 @@ class _TenantListContent extends ConsumerWidget {
               Text('租户列表 ($total)', style: theme.textTheme.titleLarge),
               Row(
                 children: [
+                  const _DeletedVisibilityToggle(),
                   FilledButton.icon(
                     key: const Key('tenant-list-create'),
                     onPressed: () => context.go('/ops/admin/create'),
@@ -86,19 +87,142 @@ class _TenantListContent extends ConsumerWidget {
               child: Center(child: Text('暂无租户')),
             )
           else
-            ...items.map((tenant) => _TenantCard(tenant: tenant)),
+            ...items.map((tenant) => _TenantCard(tenant: tenant, ref: ref)),
         ],
       ),
     );
   }
 }
 
-class _TenantCard extends StatelessWidget {
-  const _TenantCard({required this.tenant});
-  final TenantSummary tenant;
+/// 列表"显示已删除"开关(ruling 2026-10-14:软删租户默认隐藏)。
+class _DeletedVisibilityToggle extends ConsumerWidget {
+  const _DeletedVisibilityToggle();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final includeDeleted = ref.watch(includeDeletedTenantsProvider);
+    return FilterChip(
+      label: const Text('显示已删除'),
+      selected: includeDeleted,
+      onSelected: (v) {
+        ref.read(includeDeletedTenantsProvider.notifier).set(v);
+        ref.invalidate(tenantListControllerProvider);
+      },
+    );
+  }
+}
+
+class _TenantCard extends ConsumerWidget {
+  const _TenantCard({required this.tenant, required this.ref});
+  final TenantSummary tenant;
+  final WidgetRef ref;
+
+  Future<void> _lifecycle(BuildContext context, String action,
+      {bool cancelSubscription = false}) async {
+    final messenger = ScaffoldMessenger.of(context);
+    // Capture the list notifier BEFORE awaiting: a deleted tenant's card is
+    // unmounted by the refresh, and touching a disposed WidgetRef after the
+    // await crashes the whole view (Release Web white screen).
+    final repo = ref.read(adminRepositoryProvider);
+    final listNotifier = ref.read(tenantListControllerProvider.notifier);
+    try {
+      if (action == 'delete') {
+        await repo.deleteTenant(tenant.id,
+            cancelSubscription: cancelSubscription);
+        messenger.showSnackBar(SnackBar(
+            content: Text('租户「${tenant.name}」已删除'),
+            backgroundColor: const Color(0xFF2E7D32)));
+      } else if (action == 'restore') {
+        await repo.restoreTenant(tenant.id);
+        messenger.showSnackBar(SnackBar(
+            content: Text('租户「${tenant.name}」已恢复(用户保持停用,请逐个启用)'),
+            backgroundColor: const Color(0xFF2E7D32)));
+      } else {
+        final next = action == 'disable' ? 'disabled' : 'active';
+        await repo.updateTenantStatus(tenant.id, next);
+        messenger.showSnackBar(SnackBar(
+            content: Text('租户「${tenant.name}」已${next == 'disabled' ? '停用' : '启用'}'),
+            backgroundColor: const Color(0xFF2E7D32)));
+      }
+      listNotifier.refresh();
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(
+          content: Text('操作失败: $e'),
+          backgroundColor: const Color(0xFFD32F2F)));
+    }
+  }
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final nameCtrl = TextEditingController();
+    // 有试用/有效订阅时,删除需同时取消订阅(界面闭环,免两步跳页)
+    TenantSubscription? sub;
+    try {
+      sub = await ref.read(adminRepositoryProvider).loadTenantSubscription(tenant.id);
+    } catch (_) {} // 查询失败按无订阅处理,删除时由后端兜底
+    final hasLiveSub = sub != null &&
+        ['TRIAL', 'ACTIVE'].contains(sub.status.toUpperCase());
+    bool cancelSubToo = hasLiveSub;
+    if (!context.mounted) return; // async gap 后再开对话框
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+        key: const Key('tenant-delete-dialog'),
+        title: const Text('删除租户'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('将删除「${tenant.name}」:全部用户停用、牧场下线;业务数据保留且可恢复。'),
+            if (hasLiveSub) ...[
+              const SizedBox(height: 8),
+              CheckboxListTile(
+                key: const Key('tenant-delete-cancel-sub'),
+                value: cancelSubToo,
+                onChanged: (v) => setDialogState(() => cancelSubToo = v ?? false),
+                title: const Text('同时取消其试点订阅'),
+                subtitle: const Text('该租户尚有未到期订阅,删除时一并取消'),
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+              ),
+            ],
+            const SizedBox(height: 12),
+            TextFormField(
+              key: const Key('tenant-delete-confirm-name'),
+              controller: nameCtrl,
+              decoration: const InputDecoration(
+                  labelText: '输入租户名称以确认',
+                  border: OutlineInputBorder()),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('取消')),
+          FilledButton(
+            key: const Key('tenant-delete-confirm'),
+            style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFFD32F2F)),
+            onPressed: () {
+              if (nameCtrl.text.trim() != tenant.name) return;
+              // 必须用对话框 builder 的 ctx:pop(页面 context)会解析到
+              // 分支内嵌 Navigator,把租户列表页自己弹出栈(go_router
+              // "popped the last page" 断言崩 = 白屏)。
+              Navigator.pop(ctx);
+              _lifecycle(context, 'delete',
+                  cancelSubscription: cancelSubToo);
+            },
+            child: const Text('永久删除标记'),
+          ),
+        ],
+      ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: HighfiCard(
@@ -146,6 +270,35 @@ class _TenantCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
+                PopupMenuButton<String>(
+                  key: Key('tenant-menu-${tenant.id}'),
+                  icon: const Icon(Icons.more_vert, size: 20),
+                  onSelected: (action) {
+                    if (action == 'delete') {
+                      _confirmDelete(context);
+                    } else {
+                      _lifecycle(context, action);
+                    }
+                  },
+                  itemBuilder: (ctx) => [
+                    if (tenant.status == 'deleted') ...[
+                      const PopupMenuItem(
+                          value: 'restore', child: Text('恢复租户')),
+                    ] else ...[
+                      PopupMenuItem(
+                          value: tenant.status == 'disabled'
+                              ? 'enable'
+                              : 'disable',
+                          child: Text(tenant.status == 'disabled'
+                              ? '启用租户'
+                              : '停用租户')),
+                      const PopupMenuItem(
+                          value: 'delete',
+                          child: Text('删除租户',
+                              style: TextStyle(color: Color(0xFFD32F2F)))),
+                    ],
+                  ],
+                ),
                 const Icon(Icons.chevron_right, size: 20),
               ],
             ),

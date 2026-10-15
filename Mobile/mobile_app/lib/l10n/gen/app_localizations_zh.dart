@@ -78,7 +78,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsTimeZoneDesc => '中国时区使用高德地图，其他时区使用 OpenStreetMap';
 
   @override
-  String get settingsTimeZoneSystem => '跟随系统';
+  String get settingsTimeZoneSystem => '自动（跟随牧场）';
 
   @override
   String get settingsTimeZoneChina => '中国标准时间（北京时间）';
@@ -162,10 +162,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get authSubtitle => '智能畜牧管理平台';
 
   @override
-  String get authPhoneLabel => '手机号';
+  String get authPhoneLabel => '手机号 / 邮箱 / 用户账号';
 
   @override
-  String get authPhoneHint => '请输入手机号';
+  String get authPhoneHint => '请输入手机号、邮箱或用户账号';
 
   @override
   String get authPasswordLabel => '密码';
@@ -5715,7 +5715,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get forcedChangeMismatch => '两次输入的新密码不一致';
 
   @override
-  String get errorPasswordWeak => '新密码至少 10 位，且必须同时包含字母和数字';
+  String get errorPasswordWeak => '新密码至少 8 位，且须包含大写字母、小写字母、数字和特殊符号';
 
   @override
   String get loginCopyEnrollmentInfo => '复制登记信息（发给厂商）';
@@ -7236,4 +7236,84 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get healthDrinkingLayerBaseline => '基线 ✓';
+
+  @override
+  String get tenantCreateTitle => '创建租户';
+
+  @override
+  String get tenantCreateNameLabel => '名称 *';
+
+  @override
+  String get tenantCreateNameHint => '请输入租户名称';
+
+  @override
+  String get tenantCreateNameRequired => '名称不能为空';
+
+  @override
+  String get tenantCreateContactNameLabel => '联系人';
+
+  @override
+  String get tenantCreateContactPhoneLabel => '联系电话';
+
+  @override
+  String get tenantCreateSubmit => '创建';
+
+  @override
+  String get tenantCreateSuccess => '租户创建成功';
+
+  @override
+  String get tenantCreateFailed => '创建失败:';
+
+  @override
+  String get tenantPilotCardTitle => '云端试点授权';
+
+  @override
+  String get tenantPilotCardDesc =>
+      '将本租户订阅置为试用(TRIAL,全功能)。默认截止日为平台统一推广期;可按租户指定截止日。';
+
+  @override
+  String get tenantPilotGrantButton => '授予试点授权';
+
+  @override
+  String get tenantPilotDialogTitle => '授予云端试点授权';
+
+  @override
+  String get tenantPilotDialogDesc =>
+      '截止日留空则使用平台默认(当前推广期统一截止 2027-10-01 肯尼亚时间);填写则本租户按指定日期到期。';
+
+  @override
+  String get tenantPilotDeadlineLabel => '截止时刻(可选,UTC)';
+
+  @override
+  String get tenantPilotDeadlineHint => '如 2027-09-30T21:00:00Z';
+
+  @override
+  String get tenantPilotDeadlineHelper =>
+      '肯尼亚 2027-10-01 00:00 = 2027-09-30T21:00:00Z(UTC+3)';
+
+  @override
+  String get tenantPilotDeadlineInvalid => '格式无效,请输入 ISO-8601 UTC 时刻';
+
+  @override
+  String get tenantPilotGrantSuccessPrefix => '试点授权成功,到期:';
+
+  @override
+  String get tenantPilotGrantFailedPrefix => '授权失败:';
+
+  @override
+  String get tenantTimezoneLabel => '所在时区';
+
+  @override
+  String get tenantTimezoneHelper => '该租户所有时间显示与按日统计的基准；留空跟随平台默认';
+
+  @override
+  String get tenantPilotDeadlineNone => '试点截止日：平台统一推广期(点击选择)';
+
+  @override
+  String tenantPilotDeadlineChosen(String date, String tz) {
+    return '试点截止日：$date（$tz 当地 00:00）';
+  }
+
+  @override
+  String get authEmailInvalid => '\"邮箱格式不正确\"';
 }

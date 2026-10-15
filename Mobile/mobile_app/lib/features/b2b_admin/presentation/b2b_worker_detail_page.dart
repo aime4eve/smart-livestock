@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:hkt_livestock_agentic/core/widgets/phone_field.dart';
+import 'package:hkt_livestock_agentic/core/utils/timezone_options.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -59,6 +61,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
     final latCtrl = TextEditingController(text: farm.latitude?.toStringAsFixed(6) ?? '');
     final lngCtrl = TextEditingController(text: farm.longitude?.toStringAsFixed(6) ?? '');
     final areaCtrl = TextEditingController(text: farm.areaHectares?.toStringAsFixed(1) ?? '');
+    String? timezone = farm.timezone;
     final formKey = GlobalKey<FormState>();
 
     showDialog(
@@ -113,10 +116,30 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                   controller: areaCtrl,
                   decoration: InputDecoration(
                     labelText: l10n.farmCreationAreaLabel,
-                    isDense: true,
                     border: const OutlineInputBorder(),
                   ),
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue: timezone,
+                  decoration: const InputDecoration(
+                    labelText: '所在时区',
+                    helperText: '留空跟随租户/平台默认',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: [null, ...kTimezoneOptions.map((o) => o.name)]
+                      .map((tz) => DropdownMenuItem<String>(
+                            value: tz,
+                            child: Text(tz == null
+                                ? '自动（跟随租户）'
+                                : kTimezoneOptions
+                                    .firstWhere((o) => o.name == tz,
+                                        orElse: () => TimezoneOption(tz, 0, tz))
+                                    .label),
+                          ))
+                      .toList(),
+                  onChanged: (v) => timezone = v,
                 ),
               ],
             ),
@@ -136,6 +159,8 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                 if (latCtrl.text.isNotEmpty) 'latitude': double.tryParse(latCtrl.text),
                 if (lngCtrl.text.isNotEmpty) 'longitude': double.tryParse(lngCtrl.text),
                 if (areaCtrl.text.isNotEmpty) 'areaHectares': double.tryParse(areaCtrl.text),
+                // 空串=清除(跟随租户);后端 normalize 把空串归一为 NULL
+                'timezone': timezone ?? '',
               };
               try {
                 await ApiClient.instance.put('/farms/${farm.id}', body: body);
@@ -150,7 +175,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
               } catch (e) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('更新失败: \$e')),
+                    SnackBar(content: Text('更新失败: $e')),
                   );
                 }
               }
@@ -420,13 +445,17 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
     if (_busy) return;
 
     final nameCtrl = TextEditingController();
+    String workerDial = guessDialCode();
     final phoneCtrl = TextEditingController();
+    final accountCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
     final passwordCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
         key: const Key('b2b-create-worker-dialog'),
         title: Text(l10n.workerNewWorker),
         content: SizedBox(
@@ -439,26 +468,41 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                 TextFormField(
                   controller: nameCtrl,
                   decoration: const InputDecoration(
-                    labelText: '姓名',
+                    labelText: '用户名 *',
                     isDense: true,
                     border: OutlineInputBorder(),
                   ),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? '请输入姓名' : null,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? '请输入用户名' : null,
+                ),
+                const SizedBox(height: 12),
+                PhoneField(
+                  key: const Key('create-worker-phone'),
+                  controller: phoneCtrl,
+                  dialCode: workerDial,
+                  onDialChanged: (d) => setDialogState(() => workerDial = d),
+                  labelText: '手机号（选填）',
+                  hintText: '本地号码，如 712345678',
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
-                  controller: phoneCtrl,
+                  key: const Key('create-worker-account'),
+                  controller: accountCtrl,
                   decoration: const InputDecoration(
-                    labelText: '手机号',
+                    labelText: '用户账号（选填，登录用）',
                     isDense: true,
                     border: OutlineInputBorder(),
                   ),
-                  keyboardType: TextInputType.phone,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) return '请输入手机号';
-                    if (v.trim().length < 11) return '手机号格式不正确';
-                    return null;
-                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  key: const Key('create-worker-email'),
+                  controller: emailCtrl,
+                  decoration: const InputDecoration(
+                    labelText: '邮箱（选填）',
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -499,6 +543,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
           ),
         ],
       ),
+      ),
     );
 
     if (confirmed != true || !mounted) return;
@@ -506,10 +551,18 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
     setState(() => _busy = true);
     try {
       final notifier = ref.read(b2bWorkerManagementControllerProvider.notifier);
+      final phone = phoneCtrl.text.trim();
+      final account = accountCtrl.text.trim();
+      final email = emailCtrl.text.trim();
+      if (phone.isEmpty && account.isEmpty && email.isEmpty) {
+        throw '用户账号/手机号/邮箱至少填写一项';
+      }
       final worker = await notifier.createWorker(
         name: nameCtrl.text.trim(),
-        phone: phoneCtrl.text.trim(),
         password: passwordCtrl.text.trim(),
+        phone: phone.isEmpty ? null : mergeE164(workerDial, phone),
+        account: account.isEmpty ? null : account,
+        email: email.isEmpty ? null : email,
       );
       // Auto-assign to current farm
       await notifier.assignWorker(farm.id, worker.id);
@@ -552,11 +605,11 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                 TextFormField(
                   controller: nameCtrl,
                   decoration: const InputDecoration(
-                    labelText: '姓名',
+                    labelText: '用户名 *',
                     isDense: true,
                     border: OutlineInputBorder(),
                   ),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? '请输入姓名' : null,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? '请输入用户名' : null,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(

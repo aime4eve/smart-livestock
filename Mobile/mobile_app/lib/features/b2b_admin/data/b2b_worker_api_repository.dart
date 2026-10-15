@@ -27,6 +27,8 @@ class B2bWorkerApiRepository implements B2bWorkerManagementRepository {
               latitude: (f['latitude'] as num?)?.toDouble(),
               longitude: (f['longitude'] as num?)?.toDouble(),
               areaHectares: (f['areaHectares'] as num?)?.toDouble(),
+              timezone: f['timezone'] as String?,
+              utcOffsetMinutes: f['utcOffsetMinutes'] as int?,
             )).toList();
     return B2bWorkerManagementViewData(
       subFarms: farms,
@@ -90,11 +92,21 @@ class B2bWorkerApiRepository implements B2bWorkerManagementRepository {
   }
 
   @override
-  Future<B2bSubFarmWorker> createWorker({required String name, required String phone, required String password}) async {
+  Future<B2bSubFarmWorker> createWorker({
+    required String name,
+    required String password,
+    String? phone,
+    String? account,
+    String? email,
+    String? username,
+  }) async {
     final data = await ApiClient.instance.post('/b2b/users', body: {
       'name': name,
-      'phone': phone,
       'password': password,
+      if (phone != null && phone.isNotEmpty) 'phone': phone,
+      if (account != null && account.isNotEmpty) 'account': account,
+      if (email != null && email.isNotEmpty) 'email': email,
+      if (username != null && username.isNotEmpty) 'username': username,
     });
     return B2bSubFarmWorker(
       id: _parseId(data['id']),

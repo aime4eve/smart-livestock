@@ -16,6 +16,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Optional;
 
@@ -33,6 +35,7 @@ import static org.mockito.Mockito.when;
  * business logic without Spring context.
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class AuthApplicationServiceTest {
 
     @Mock
@@ -43,6 +46,9 @@ class AuthApplicationServiceTest {
 
     @Mock
     private JwtTokenProvider jwtTokenProvider;
+
+    @Mock
+    private com.smartlivestock.identity.domain.repository.TenantRepository tenantRepository;
 
     @InjectMocks
     private AuthApplicationService service;
@@ -58,7 +64,9 @@ class AuthApplicationServiceTest {
     @DisplayName("正常登录成功，返回 JWT token 和用户信息")
     void shouldLoginSuccessfully() {
         User user = createActiveUser();
-        when(userRepository.findByPhone("13800138000")).thenReturn(Optional.of(user));
+        when(userRepository.findByLoginIdentifier("+13800138000")).thenReturn(Optional.of(user));
+        when(userRepository.findByLoginIdentifier("+8613800138000")).thenReturn(Optional.of(user));
+        when(userRepository.findByLoginIdentifier("13800138000")).thenReturn(Optional.of(user));
         when(passwordHasher.matches("password123", "hashed_password")).thenReturn(true);
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
         when(jwtTokenProvider.generateToken(1L, 1L, "OWNER")).thenReturn("jwt-token-owner");
@@ -77,7 +85,9 @@ class AuthApplicationServiceTest {
     @DisplayName("密码错误时，拒绝登录")
     void shouldRejectWrongPassword() {
         User user = createActiveUser();
-        when(userRepository.findByPhone("13800138000")).thenReturn(Optional.of(user));
+        when(userRepository.findByLoginIdentifier("+13800138000")).thenReturn(Optional.of(user));
+        when(userRepository.findByLoginIdentifier("+8613800138000")).thenReturn(Optional.of(user));
+        when(userRepository.findByLoginIdentifier("13800138000")).thenReturn(Optional.of(user));
         when(passwordHasher.matches("wrong_password", "hashed_password")).thenReturn(false);
 
         assertThatThrownBy(() -> service.login(new LoginCommand("13800138000", "wrong_password")))
@@ -96,7 +106,9 @@ class AuthApplicationServiceTest {
         User user = createActiveUser();
         user.reconstituteActive(false);
 
-        when(userRepository.findByPhone("13800138000")).thenReturn(Optional.of(user));
+        when(userRepository.findByLoginIdentifier("+13800138000")).thenReturn(Optional.of(user));
+        when(userRepository.findByLoginIdentifier("+8613800138000")).thenReturn(Optional.of(user));
+        when(userRepository.findByLoginIdentifier("13800138000")).thenReturn(Optional.of(user));
 
         assertThatThrownBy(() -> service.login(new LoginCommand("13800138000", "password123")))
                 .isInstanceOf(ApiException.class)
@@ -112,7 +124,8 @@ class AuthApplicationServiceTest {
     @Test
     @DisplayName("手机号不存在时，拒绝登录")
     void shouldRejectNonExistentPhone() {
-        when(userRepository.findByPhone("19999999999")).thenReturn(Optional.empty());
+        when(userRepository.findByLoginIdentifier("+19999999999")).thenReturn(Optional.empty());
+        when(userRepository.findByLoginIdentifier("+8619999999999")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.login(new LoginCommand("19999999999", "password123")))
                 .isInstanceOf(ApiException.class)

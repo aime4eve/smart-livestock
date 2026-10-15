@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
 import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
 
 class FarmInfo {
@@ -10,6 +11,8 @@ class FarmInfo {
     required this.name,
     this.latitude,
     this.longitude,
+    this.timezone,
+    this.utcOffsetMinutes,
   });
   final String id;
   final String name;
@@ -17,6 +20,11 @@ class FarmInfo {
   /// WGS-84 登记坐标，来自 GET /farms 的 FarmDto；历史数据可能为空
   final double? latitude;
   final double? longitude;
+
+  /// IANA timezone + resolved offset from the farm → tenant → platform
+  /// chain (ruling 2026-10-12); null = not configured → device fallback.
+  final String? timezone;
+  final int? utcOffsetMinutes;
 }
 
 class FarmSwitcherState {
@@ -88,6 +96,8 @@ class FarmSwitcherController extends Notifier<FarmSwitcherState> {
           name: json['name'] as String? ?? '',
           latitude: (json['latitude'] as num?)?.toDouble(),
           longitude: (json['longitude'] as num?)?.toDouble(),
+          timezone: json['timezone'] as String?,
+          utcOffsetMinutes: json['utcOffsetMinutes'] as int?,
         );
       }).toList();
 
@@ -104,6 +114,7 @@ class FarmSwitcherController extends Notifier<FarmSwitcherState> {
         ref.read(sessionControllerProvider.notifier).updateActiveFarm(activeFarmId);
       }
 
+      _applyPresentationOffset(farms, activeFarmId);
       state = FarmSwitcherState(farms: farms, activeFarmId: activeFarmId);
     } on AuthException {
       state = const FarmSwitcherState.empty();
@@ -115,8 +126,14 @@ class FarmSwitcherController extends Notifier<FarmSwitcherState> {
   void switchFarm(String farmId) {
     final exists = state.farms.any((farm) => farm.id == farmId);
     if (!exists) return;
+    _applyPresentationOffset(state.farms, farmId);
     state = FarmSwitcherState(farms: state.farms, activeFarmId: farmId);
     ref.read(sessionControllerProvider.notifier).updateActiveFarm(farmId);
+  }
+
+  void _applyPresentationOffset(List<FarmInfo> farms, String? activeFarmId) {
+    final active = farms.where((f) => f.id == activeFarmId).toList();
+    setFarmChainOffsetMinutes(active.isEmpty ? null : active.first.utcOffsetMinutes);
   }
 }
 

@@ -70,6 +70,7 @@ class HealthApplicationServiceMarkDiseasedTest {
     @BeforeEach
     void setUp() {
         service = new HealthApplicationService(
+                org.mockito.Mockito.mock(com.smartlivestock.identity.application.TenantZoneResolver.class),
                 snapshotRepo,
                 mock(TemperatureLogRepository.class),
                 mock(RumenMotilityLogRepository.class),

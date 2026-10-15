@@ -13,6 +13,14 @@ public interface TbDeviceBindingRepository {
 
     List<TbDeviceBinding> findByTenantIdAndStatus(Long tenantId, TbDeviceBinding.Status status);
 
+    /**
+     * All bindings in the given status regardless of tenant — the telemetry
+     * polling channel is tenant-agnostic (ruling 2026-10-12: every device is
+     * collected through the single shared TB tenant; ownership stays on the
+     * device row).
+     */
+    List<TbDeviceBinding> findByStatus(TbDeviceBinding.Status status);
+
     Optional<TbDeviceBinding> findByDeviceIdAndProvider(Long deviceId, String provider);
 
     List<TbDeviceBinding> findByTenantIdAndProvider(Long tenantId, String provider);

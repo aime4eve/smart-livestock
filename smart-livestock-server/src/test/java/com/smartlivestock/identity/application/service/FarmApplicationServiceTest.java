@@ -40,6 +40,7 @@ class FarmApplicationServiceTest {
     @BeforeEach
     void setUp() {
         service = new FarmApplicationService(
+                org.mockito.Mockito.mock(com.smartlivestock.identity.application.TenantZoneResolver.class, org.mockito.Mockito.withSettings().defaultAnswer(inv -> java.time.ZoneId.class.equals(inv.getMethod().getReturnType()) ? java.time.ZoneOffset.UTC : org.mockito.Answers.RETURNS_DEFAULTS.answer(inv))),
                 farmRepository, persistenceContext, tenantRepository, userRepository,
                 assignmentRepository, ranchCommandPort,
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class)

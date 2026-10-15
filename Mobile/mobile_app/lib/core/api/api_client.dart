@@ -352,13 +352,13 @@ class ApiClient {
   // ── Login / Logout (no auto-refresh) ─────────────────────────────
 
   Future<Map<String, dynamic>> login({
-    required String phone,
+    required String identifier,
     required String password,
   }) async {
     final response = await http.post(
       Uri.parse('$_baseUrl/auth/login'),
       headers: const {'Content-Type': 'application/json'},
-      body: jsonEncode({'phone': phone, 'password': password}),
+      body: jsonEncode({'identifier': identifier, 'password': password}),
     ).timeout(_timeout);
 
     final body = jsonDecode(response.body) as Map<String, dynamic>;

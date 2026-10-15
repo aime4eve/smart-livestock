@@ -409,6 +409,16 @@ public class TbDeviceProvisioningService {
     }
 
     private LocalInventory localInventory(String eui, Long tenantId) {
+        // Global ownership guard (ruling 2026-10-12): an EUI maps 1:1 to exactly
+        // one tenant. Provisioning/import/reconcile/preflight all funnel through
+        // here, so a cross-tenant claim is rejected before any local row is
+        // created or revived.
+        boolean ownedByOtherTenant = deviceRepository.findAllByDevEuiIncludeDeleted(eui).stream()
+                .anyMatch(device -> !tenantId.equals(device.getTenantId()));
+        if (ownedByOtherTenant) {
+            throw new ApiException(ErrorCode.DUPLICATE_RESOURCE,
+                    "error.deviceEuiOwnedByOtherTenant", new Object[]{eui});
+        }
         List<Device> matches = deviceRepository.findAllByDevEuiAndTenantIdIncludeDeleted(eui, tenantId);
         Device active = matches.stream().filter(device -> device.getDeletedAt() == null).findFirst().orElse(null);
         Device softDeleted = matches.stream().filter(device -> device.getDeletedAt() != null).findFirst().orElse(null);

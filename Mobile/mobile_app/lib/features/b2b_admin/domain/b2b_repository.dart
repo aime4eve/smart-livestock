@@ -10,6 +10,8 @@ class B2bFarmSummary {
     this.deviceCount = 0,
     this.workerCount = 0,
     this.createdAt,
+    this.timezone,
+    this.utcOffsetMinutes,
     this.latitude,
     this.longitude,
     this.areaHectares,
@@ -25,6 +27,8 @@ class B2bFarmSummary {
   final int deviceCount;
   final int workerCount;
   final String? createdAt;
+  final String? timezone;
+  final int? utcOffsetMinutes;
   final double? latitude;
   final double? longitude;
   final double? areaHectares;

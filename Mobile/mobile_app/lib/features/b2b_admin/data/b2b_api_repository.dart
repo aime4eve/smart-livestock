@@ -32,6 +32,8 @@ class B2bApiRepository implements B2bRepository {
                 latitude: (fm['latitude'] as num?)?.toDouble(),
                 longitude: (fm['longitude'] as num?)?.toDouble(),
                 areaHectares: (fm['areaHectares'] as num?)?.toDouble(),
+                timezone: fm['timezone'] as String?,
+                utcOffsetMinutes: fm['utcOffsetMinutes'] as int?,
               );
             })
             .toList() ??

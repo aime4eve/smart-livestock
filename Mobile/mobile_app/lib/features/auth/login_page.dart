@@ -16,6 +16,7 @@ import 'package:hkt_livestock_agentic/features/auth/data/deployment_info.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
+import 'package:hkt_livestock_agentic/core/widgets/phone_field.dart';
 import 'package:http/http.dart' as http;
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -31,7 +32,8 @@ class LoginPage extends ConsumerStatefulWidget {
 const String _appVersion = String.fromEnvironment('APP_VERSION');
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  final _phoneController = TextEditingController();
+  final _phoneController = TextEditingController(); // holds account / phone / email
+  String _dialCode = dialCodeMemoryCache ?? guessDialCode();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitting = false;
@@ -73,18 +75,64 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
+  Widget _dialCodeButton(BuildContext context) {
+    final option = dialOptionOf(_dialCode);
+    return GestureDetector(
+      key: const Key('login-dial-code'),
+      onTap: () {
+        showModalBottomSheet<void>(
+          context: context,
+          builder: (sheetCtx) => SafeArea(
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                for (final o in kDialCodeOptions)
+                  ListTile(
+                    dense: true,
+                    title: Text(o.label(Localizations.localeOf(context))),
+                    trailing:
+                        o.dial == _dialCode ? const Icon(Icons.check) : null,
+                    onTap: () {
+                      setState(() => _dialCode = o.dial);
+                      Navigator.pop(sheetCtx);
+                    },
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(right: 6),
+        child: Text(
+          option == null ? '+$_dialCode ▾' : '+${option.dial} ▾',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ),
+    );
+  }
+
   Future<void> _handleCredentialLogin() async {
     final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSubmitting = true);
+    final rawIdentifier = _phoneController.text.trim();
+    final isPhone = looksLikePhoneNumber(rawIdentifier);
+    final identifier = isPhone ? mergeE164(_dialCode, rawIdentifier) : rawIdentifier;
     try {
       final ok = await ref
           .read(sessionControllerProvider.notifier)
           .login(
-            phone: _phoneController.text.trim(),
+            identifier: identifier,
             password: _passwordController.text,
           );
+
+      // 记住本次成功登录(手机号)的区号,下次登录预选
+      if (ok && isPhone) {
+        await saveDialCodeMemory(
+            dialOptionOf(_dialCode) != null ? _dialCode : guessDialCode());
+      }
 
       if (!ok && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -206,20 +254,36 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               ),
                               const SizedBox(height: AppSpacing.lg),
                               TextFormField(
-                                key: const Key('login-phone'),
+                                key: const Key('login-identifier'),
                                 controller: _phoneController,
-                                keyboardType: TextInputType.phone,
-                                autofillHints: const [AutofillHints.telephoneNumber],
+                                keyboardType: TextInputType.emailAddress,
+                                autofillHints: const [
+                                  AutofillHints.email,
+                                  AutofillHints.telephoneNumber,
+                                  AutofillHints.username,
+                                ],
                                 decoration: InputDecoration(
                                   labelText: l10n.authPhoneLabel,
                                   hintText: l10n.authPhoneHint,
+                                  prefix: _dialCodeButton(context),
                                   prefixIcon: const Icon(Icons.phone_android),
                                   isDense: true,
                                   border: const OutlineInputBorder(),
                                 ),
                                 validator: (v) {
-                                  if (v == null || v.trim().isEmpty) return l10n.authPhoneHint;
-                                  if (!RegExp(r'^1\d{10}$').hasMatch(v.trim())) {
+                                  final t = v?.trim() ?? '';
+                                  if (t.isEmpty) return l10n.authPhoneHint;
+                                  // 全球登录(ruling 2026-10-15):邮箱/账号不做
+                                  // 号码校验;号码放宽为 6-15 位数字(区号由
+                                  // 前缀选择器合并,提交时再归一)。
+                                  if (t.contains('@')) {
+                                    final emailOk = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+                                        .hasMatch(t);
+                                    return emailOk ? null : l10n.authEmailInvalid;
+                                  }
+                                  final digits =
+                                      t.replaceAll(RegExp(r'[\s\-()+]'), '');
+                                  if (digits.length < 6 || digits.length > 15) {
                                     return l10n.authPhoneInvalid;
                                   }
                                   return null;

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
+import 'package:hkt_livestock_agentic/core/utils/timezone_options.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -78,6 +80,7 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
   final _latCtrl = TextEditingController();
   final _lngCtrl = TextEditingController();
   final _areaCtrl = TextEditingController();
+  late String? _timezone = optionForOffset(activeTzOffsetMinutes())?.name;
   B2bUserSummary? _selectedOwner;
   bool _creating = false;
   final _mapController = MapController();
@@ -143,6 +146,7 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
       if (_selectedOwner != null) 'ownerId': _selectedOwner!.id,
       if (_areaCtrl.text.isNotEmpty)
         'areaHectares': double.tryParse(_areaCtrl.text),
+      if (_timezone != null) 'timezone': _timezone,
     };
 
     final ok = await ref
@@ -320,6 +324,29 @@ class _B2bFarmCreationPageState extends ConsumerState<B2bFarmCreationPage> {
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
                       decimal: true),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  key: const Key('b2b-farm-creation-timezone'),
+                  initialValue: _timezone,
+                  decoration: const InputDecoration(
+                    labelText: '所在时区（选填）',
+                    helperText: '留空跟随租户/平台默认；影响牧场的时间显示与按日统计',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: [
+                    null,
+                    ...kTimezoneOptions.map((o) => o.name),
+                  ].map((tz) => DropdownMenuItem<String>(
+                        value: tz,
+                        child: Text(tz == null
+                            ? '自动（跟随租户）'
+                            : kTimezoneOptions
+                                .firstWhere((o) => o.name == tz,
+                                    orElse: () => TimezoneOption(tz, 0, tz))
+                                .label),
+                      )).toList(),
+                  onChanged: (v) => setState(() => _timezone = v),
                 ),
               ],
             ),

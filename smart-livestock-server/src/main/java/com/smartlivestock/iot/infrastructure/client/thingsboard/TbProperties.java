@@ -21,6 +21,13 @@ public class TbProperties {
     private int lookbackDays = 7;
     private int batchSize = 200;
     private boolean bladeExclusion = false;
+
+    /**
+     * Retained for env compatibility only. Since the tenant-agnostic polling
+     * change (ruling 2026-10-12) the channel collects every RESOLVED binding
+     * through the single shared TB tenant; this value no longer filters
+     * anything and may be removed once deployments stop setting it.
+     */
     private Long tenantId = 1L;
 
     @PostConstruct
