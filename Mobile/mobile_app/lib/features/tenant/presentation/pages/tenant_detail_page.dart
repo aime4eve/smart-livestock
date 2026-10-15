@@ -720,7 +720,6 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
     final phoneCtrl = TextEditingController();
     final accountCtrl = TextEditingController();
     final emailCtrl = TextEditingController();
-    final usernameCtrl = TextEditingController();
     final nameCtrl = TextEditingController();
     final passwordCtrl = TextEditingController();
     String userDial = guessDialCode();
@@ -769,22 +768,14 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
-                    key: const Key('create-user-username'),
-                    controller: usernameCtrl,
-                    decoration: const InputDecoration(
-                      labelText: '用户名（选填，显示昵称，可重复）',
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
                     key: const Key('create-user-name'),
                     controller: nameCtrl,
                     decoration: const InputDecoration(
-                      labelText: '姓名 *',
-                      hintText: '请输入姓名',
+                      labelText: '用户名 *',
+                      hintText: '显示名称,可重复',
                     ),
                     validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? '姓名不能为空' : null,
+                        (v == null || v.trim().isEmpty) ? '用户名不能为空' : null,
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
@@ -834,7 +825,6 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                         phoneCtrl,
                         accountCtrl,
                         emailCtrl,
-                        usernameCtrl,
                         userDial,
                         nameCtrl,
                         passwordCtrl,
@@ -863,7 +853,6 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
     TextEditingController phoneCtrl,
     TextEditingController accountCtrl,
     TextEditingController emailCtrl,
-    TextEditingController usernameCtrl,
     String userDial,
     TextEditingController nameCtrl,
     TextEditingController passwordCtrl,
@@ -895,8 +884,6 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
         if (phone.isNotEmpty) 'phone': phone,
         if (account.isNotEmpty) 'account': account,
         if (email.isNotEmpty) 'email': email,
-        if (usernameCtrl.text.trim().isNotEmpty)
-          'username': usernameCtrl.text.trim(),
       });
 
       if (!mounted) return;

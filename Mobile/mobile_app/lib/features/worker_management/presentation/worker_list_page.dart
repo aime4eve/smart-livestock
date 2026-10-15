@@ -116,7 +116,6 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
     final phoneCtrl = TextEditingController();
     final accountCtrl = TextEditingController();
     final emailCtrl = TextEditingController();
-    final usernameCtrl = TextEditingController();
     final pwdCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
@@ -133,8 +132,8 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
               children: [
                 TextFormField(
                   controller: nameCtrl,
-                  decoration: InputDecoration(labelText: l10n.workerName, isDense: true, border: const OutlineInputBorder()),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? l10n.workerNameRequired : null,
+                  decoration: InputDecoration(labelText: '用户名 *', isDense: true, border: const OutlineInputBorder()),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? '请输入用户名' : null,
                 ),
                 const SizedBox(height: 12),
                 PhoneField(
@@ -159,12 +158,7 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 12),
-                TextFormField(
-                  key: const Key('create-worker-username'),
-                  controller: usernameCtrl,
-                  decoration: const InputDecoration(labelText: '用户名（选填，显示昵称）', isDense: true, border: OutlineInputBorder()),
-                ),
-                const SizedBox(height: 12),
+
                 TextFormField(
                   controller: pwdCtrl,
                   decoration: InputDecoration(labelText: l10n.workerInitPassword, isDense: true, border: const OutlineInputBorder()),
@@ -200,7 +194,6 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
                   phone: phone.isEmpty ? null : mergeE164(workerDial, phone),
                   account: account.isEmpty ? null : account,
                   email: email.isEmpty ? null : email,
-                  username: usernameCtrl.text.trim().isEmpty ? null : usernameCtrl.text.trim(),
                 );
                 if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.workerCreateSuccess)));
               } catch (e) {

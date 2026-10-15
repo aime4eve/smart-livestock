@@ -449,7 +449,6 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
     final phoneCtrl = TextEditingController();
     final accountCtrl = TextEditingController();
     final emailCtrl = TextEditingController();
-    final usernameCtrl = TextEditingController();
     final passwordCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
@@ -469,11 +468,11 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                 TextFormField(
                   controller: nameCtrl,
                   decoration: const InputDecoration(
-                    labelText: '姓名',
+                    labelText: '用户名 *',
                     isDense: true,
                     border: OutlineInputBorder(),
                   ),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? '请输入姓名' : null,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? '请输入用户名' : null,
                 ),
                 const SizedBox(height: 12),
                 PhoneField(
@@ -504,16 +503,6 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                     border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  key: const Key('create-worker-username'),
-                  controller: usernameCtrl,
-                  decoration: const InputDecoration(
-                    labelText: '用户名（选填，显示昵称）',
-                    isDense: true,
-                    border: OutlineInputBorder(),
-                  ),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -574,7 +563,6 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
         phone: phone.isEmpty ? null : mergeE164(workerDial, phone),
         account: account.isEmpty ? null : account,
         email: email.isEmpty ? null : email,
-        username: usernameCtrl.text.trim().isEmpty ? null : usernameCtrl.text.trim(),
       );
       // Auto-assign to current farm
       await notifier.assignWorker(farm.id, worker.id);
@@ -617,11 +605,11 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                 TextFormField(
                   controller: nameCtrl,
                   decoration: const InputDecoration(
-                    labelText: '姓名',
+                    labelText: '用户名 *',
                     isDense: true,
                     border: OutlineInputBorder(),
                   ),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? '请输入姓名' : null,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? '请输入用户名' : null,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(

@@ -81,7 +81,6 @@ class MinePage extends ConsumerWidget {
   void _showEditProfileDialog(
       BuildContext context, WidgetRef ref, dynamic profile) {
     final nameCtrl = TextEditingController(text: profile.name ?? '');
-    final usernameCtrl = TextEditingController(text: profile.username ?? '');
     final accountCtrl = TextEditingController(text: profile.account ?? '');
     final phoneCtrl = TextEditingController(text: profile.phone ?? '');
     String profileDial = dialCodeMemoryCache ??
@@ -102,16 +101,12 @@ class MinePage extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+
+                const SizedBox(height: 12),
                 TextFormField(
                     key: const Key('edit-profile-name'),
                     controller: nameCtrl,
-                    decoration: const InputDecoration(labelText: '姓名')),
-                const SizedBox(height: 12),
-                TextFormField(
-                    key: const Key('edit-profile-username'),
-                    controller: usernameCtrl,
-                    decoration: const InputDecoration(
-                        labelText: '用户名（显示昵称，可重复）')),
+                    decoration: const InputDecoration(labelText: '用户名')),
                 const SizedBox(height: 12),
                 TextFormField(
                     key: const Key('edit-profile-account'),
@@ -162,7 +157,6 @@ class MinePage extends ConsumerWidget {
                                 : mergeE164(profileDial, phoneRaw));
                         await ref.read(mineRepositoryProvider).updateProfile({
                           'name': nameCtrl.text.trim(),
-                          'username': usernameCtrl.text.trim(),
                           'account': accountCtrl.text.trim(),
                           'phone': phoneE164,
                           'email': emailCtrl.text.trim(),
