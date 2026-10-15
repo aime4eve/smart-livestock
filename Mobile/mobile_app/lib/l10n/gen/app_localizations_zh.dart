@@ -5715,7 +5715,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get forcedChangeMismatch => '两次输入的新密码不一致';
 
   @override
-  String get errorPasswordWeak => '新密码至少 10 位，且必须同时包含字母和数字';
+  String get errorPasswordWeak => '新密码至少 8 位，且须包含大写字母、小写字母、数字和特殊符号';
 
   @override
   String get loginCopyEnrollmentInfo => '复制登记信息（发给厂商）';

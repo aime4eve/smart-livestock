@@ -170,9 +170,7 @@ public class MeController {
     }
 
     private boolean isStrongPassword(String password) {
-        return password.length() >= 10
-                && password.chars().anyMatch(Character::isLetter)
-                && password.chars().anyMatch(Character::isDigit);
+        return com.smartlivestock.shared.common.PasswordPolicy.isStrong(password);
     }
 
     private Long getCurrentUserId() {

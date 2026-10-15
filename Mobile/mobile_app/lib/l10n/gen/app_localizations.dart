@@ -10646,7 +10646,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorPasswordWeak.
   ///
   /// In zh, this message translates to:
-  /// **'新密码至少 10 位，且必须同时包含字母和数字'**
+  /// **'新密码至少 8 位，且须包含大写字母、小写字母、数字和特殊符号'**
   String get errorPasswordWeak;
 
   /// No description provided for @loginCopyEnrollmentInfo.

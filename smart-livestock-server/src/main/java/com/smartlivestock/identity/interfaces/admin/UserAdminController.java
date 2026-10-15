@@ -156,7 +156,10 @@ public class UserAdminController {
         }
 
         if (password == null || password.isBlank()) {
-            password = "Default@123";
+            password = "Default@123!";
+        }
+        if (com.smartlivestock.shared.common.PasswordPolicy.violationKey(password) != null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, com.smartlivestock.shared.common.PasswordPolicy.WEAK_KEY);
         }
 
         User user = new User(passwordHasher.hash(password), name, role, tenantId, true);
@@ -333,6 +336,9 @@ public class UserAdminController {
         String newPassword = body.get("newPassword");
         if (newPassword == null || newPassword.isBlank()) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "newPassword 不能为空");
+        }
+        if (com.smartlivestock.shared.common.PasswordPolicy.violationKey(newPassword) != null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, com.smartlivestock.shared.common.PasswordPolicy.WEAK_KEY);
         }
 
         User user = userRepository.findById(userId)

@@ -5847,7 +5847,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorPasswordWeak =>
-      'The new password must be at least 10 characters and contain both letters and digits';
+      'New password must be at least 8 characters and include upper-case, lower-case, digits and special characters';
 
   @override
   String get loginCopyEnrollmentInfo =>

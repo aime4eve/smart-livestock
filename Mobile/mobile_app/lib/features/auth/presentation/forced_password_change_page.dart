@@ -117,9 +117,17 @@ class _ForcedPasswordChangePageState
                             InputDecoration(labelText: l10n.forcedChangeNew),
                         validator: (v) {
                           final value = v ?? '';
-                          if (value.length < 10 ||
-                              !value.contains(RegExp(r'[A-Za-z]')) ||
-                              !value.contains(RegExp(r'[0-9]'))) {
+                          // 密码策略(2026-10-15):≥8 位 + 大写/小写/数字/特殊符号
+                          final hasUpper = value.contains(RegExp(r'[A-Z]'));
+                          final hasLower = value.contains(RegExp(r'[a-z]'));
+                          final hasDigit = value.contains(RegExp(r'[0-9]'));
+                          final hasSpecial =
+                              value.contains(RegExp(r'[^A-Za-z0-9]'));
+                          if (value.length < 8 ||
+                              !hasUpper ||
+                              !hasLower ||
+                              !hasDigit ||
+                              !hasSpecial) {
                             return l10n.errorPasswordWeak;
                           }
                           return null;

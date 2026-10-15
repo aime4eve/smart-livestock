@@ -43,6 +43,9 @@ public class OwnerWorkerController {
         if (password == null || password.isBlank()) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "密码不能为空");
         }
+        if (com.smartlivestock.shared.common.PasswordPolicy.violationKey(password) != null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, com.smartlivestock.shared.common.PasswordPolicy.WEAK_KEY);
+        }
         String normAccount = com.smartlivestock.identity.application.LoginIdentifiers.normalizeAccount(account);
         String normEmail = com.smartlivestock.identity.application.LoginIdentifiers.normalizeEmail(email);
         String normPhone = com.smartlivestock.identity.application.LoginIdentifiers.normalizePhone((String) body.get("phone"));

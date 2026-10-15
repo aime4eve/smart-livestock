@@ -4623,7 +4623,7 @@
   "@forcedChangeSuccess": {},
   "forcedChangeMismatch": "The two new passwords do not match",
   "@forcedChangeMismatch": {},
-  "errorPasswordWeak": "The new password must be at least 10 characters and contain both letters and digits",
+  "errorPasswordWeak": "New password must be at least 8 characters and include upper-case, lower-case, digits and special characters",
   "@errorPasswordWeak": {},
   "loginCopyEnrollmentInfo": "Copy registration info (send to vendor)",
   "@loginCopyEnrollmentInfo": {},
