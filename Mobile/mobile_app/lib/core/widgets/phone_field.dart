@@ -20,7 +20,7 @@ class DialCodeOption {
       iso2.toUpperCase().codeUnits.map((c) => 0x1F1E6 + c - 0x41));
 
   String label(Locale? locale) =>
-      '${flag} +$dial  ${locale?.languageCode == 'en' ? en : zh}';
+      '$flag +$dial  ${locale?.languageCode == 'en' ? en : zh}';
 }
 
 /// Curated ITU dial codes (common markets first, then alphabetical-ish).
