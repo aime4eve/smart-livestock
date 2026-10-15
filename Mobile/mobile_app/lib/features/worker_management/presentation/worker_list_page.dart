@@ -132,7 +132,7 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
               children: [
                 TextFormField(
                   controller: nameCtrl,
-                  decoration: InputDecoration(labelText: '用户名 *', isDense: true, border: const OutlineInputBorder()),
+                  decoration: const InputDecoration(labelText: '用户名 *', isDense: true, border: OutlineInputBorder()),
                   validator: (v) => (v == null || v.trim().isEmpty) ? '请输入用户名' : null,
                 ),
                 const SizedBox(height: 12),
