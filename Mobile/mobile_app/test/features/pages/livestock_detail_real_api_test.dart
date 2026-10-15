@@ -59,7 +59,7 @@ Future<void> main() async {
 
           ApiClient.instance.setBaseUrl('http://localhost:8080/api/v1');
           await ApiClient.instance.login(
-            phone: '13800138000',
+            identifier: '13800138000',
             password: '123',
           );
           ApiClient.instance.setActiveFarmId('1');
