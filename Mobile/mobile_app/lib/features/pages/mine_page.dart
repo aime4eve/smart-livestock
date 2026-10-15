@@ -11,6 +11,7 @@ import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_contr
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/widgets/phone_field.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip.dart';
 import 'package:hkt_livestock_agentic/features/mine/presentation/mine_controller.dart';
@@ -83,6 +84,10 @@ class MinePage extends ConsumerWidget {
     final usernameCtrl = TextEditingController(text: profile.username ?? '');
     final accountCtrl = TextEditingController(text: profile.account ?? '');
     final phoneCtrl = TextEditingController(text: profile.phone ?? '');
+    String profileDial = dialCodeMemoryCache ??
+        (profile.phone != null && profile.phone!.startsWith('+')
+            ? (dialFromE164(profile.phone!) ?? guessDialCode())
+            : guessDialCode());
     final emailCtrl = TextEditingController(text: profile.email ?? '');
     final pwdCtrl = TextEditingController();
     bool saving = false;
@@ -114,12 +119,12 @@ class MinePage extends ConsumerWidget {
                     decoration: const InputDecoration(
                         labelText: '用户账号（登录用，改需验密码）')),
                 const SizedBox(height: 12),
-                TextFormField(
-                    key: const Key('edit-profile-phone'),
+                PhoneField(
                     controller: phoneCtrl,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(
-                        labelText: '手机号（国际格式，改需验密码）')),
+                    dialCode: profileDial,
+                    onDialChanged: (d) =>
+                        setDialogState(() => profileDial = d),
+                    labelText: '手机号（改需验密码）'),
                 const SizedBox(height: 12),
                 TextFormField(
                     key: const Key('edit-profile-email'),
@@ -139,7 +144,8 @@ class MinePage extends ConsumerWidget {
           ),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+                onPressed: saving ? null : () => Navigator.pop(ctx),
+                child: const Text('取消')),
             FilledButton(
               key: const Key('edit-profile-confirm'),
               onPressed: saving
@@ -148,11 +154,17 @@ class MinePage extends ConsumerWidget {
                       setDialogState(() => saving = true);
                       final messenger = ScaffoldMessenger.of(context);
                       try {
+                        final phoneRaw = phoneCtrl.text.trim();
+                        final phoneE164 = phoneRaw.startsWith('+')
+                            ? phoneRaw
+                            : (phoneRaw.isEmpty
+                                ? ''
+                                : mergeE164(profileDial, phoneRaw));
                         await ref.read(mineRepositoryProvider).updateProfile({
                           'name': nameCtrl.text.trim(),
                           'username': usernameCtrl.text.trim(),
                           'account': accountCtrl.text.trim(),
-                          'phone': phoneCtrl.text.trim(),
+                          'phone': phoneE164,
                           'email': emailCtrl.text.trim(),
                           if (pwdCtrl.text.isNotEmpty)
                             'currentPassword': pwdCtrl.text,

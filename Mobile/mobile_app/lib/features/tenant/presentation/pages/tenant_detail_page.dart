@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/widgets/phone_field.dart';
 import 'package:hkt_livestock_agentic/core/utils/timezone_options.dart';
 import 'package:hkt_livestock_agentic/features/admin/domain/admin_repository.dart';
 import 'package:hkt_livestock_agentic/features/admin/presentation/admin_controller.dart';
@@ -722,6 +723,7 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
     final usernameCtrl = TextEditingController();
     final nameCtrl = TextEditingController();
     final passwordCtrl = TextEditingController();
+    String userDial = guessDialCode();
     String selectedRole = 'B2B_ADMIN';
     bool creating = false;
 
@@ -747,14 +749,13 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  PhoneField(
                     key: const Key('create-user-phone'),
                     controller: phoneCtrl,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(
-                      labelText: '手机号（选填，国际格式）',
-                      hintText: '如 +254 712 345 678',
-                    ),
+                    dialCode: userDial,
+                    onDialChanged: (d) => setDialogState(() => userDial = d),
+                    labelText: '手机号（选填）',
+                    hintText: '本地号码，如 712345678',
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
@@ -834,6 +835,7 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                         accountCtrl,
                         emailCtrl,
                         usernameCtrl,
+                        userDial,
                         nameCtrl,
                         passwordCtrl,
                         selectedRole,
@@ -862,6 +864,7 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
     TextEditingController accountCtrl,
     TextEditingController emailCtrl,
     TextEditingController usernameCtrl,
+    String userDial,
     TextEditingController nameCtrl,
     TextEditingController passwordCtrl,
     String role,
@@ -876,7 +879,9 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
     final messenger = ScaffoldMessenger.of(context);
 
     try {
-      final phone = phoneCtrl.text.trim();
+      final phone = phoneCtrl.text.trim().isEmpty
+          ? ''
+          : mergeE164(userDial, phoneCtrl.text.trim());
       final account = accountCtrl.text.trim();
       final email = emailCtrl.text.trim();
       if (phone.isEmpty && account.isEmpty && email.isEmpty) {

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:hkt_livestock_agentic/core/widgets/phone_field.dart';
 import 'package:hkt_livestock_agentic/core/utils/timezone_options.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -444,6 +445,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
     if (_busy) return;
 
     final nameCtrl = TextEditingController();
+    String workerDial = guessDialCode();
     final phoneCtrl = TextEditingController();
     final accountCtrl = TextEditingController();
     final emailCtrl = TextEditingController();
@@ -453,7 +455,8 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
         key: const Key('b2b-create-worker-dialog'),
         title: Text(l10n.workerNewWorker),
         content: SizedBox(
@@ -473,16 +476,13 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
                   validator: (v) => (v == null || v.trim().isEmpty) ? '请输入姓名' : null,
                 ),
                 const SizedBox(height: 12),
-                TextFormField(
+                PhoneField(
                   key: const Key('create-worker-phone'),
                   controller: phoneCtrl,
-                  decoration: const InputDecoration(
-                    labelText: '手机号（选填，国际格式）',
-                    hintText: '如 +254712345678',
-                    isDense: true,
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.phone,
+                  dialCode: workerDial,
+                  onDialChanged: (d) => setDialogState(() => workerDial = d),
+                  labelText: '手机号（选填）',
+                  hintText: '本地号码，如 712345678',
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -554,6 +554,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
           ),
         ],
       ),
+      ),
     );
 
     if (confirmed != true || !mounted) return;
@@ -570,7 +571,7 @@ class _B2bWorkerDetailPageState extends ConsumerState<B2bWorkerDetailPage> {
       final worker = await notifier.createWorker(
         name: nameCtrl.text.trim(),
         password: passwordCtrl.text.trim(),
-        phone: phone.isEmpty ? null : phone,
+        phone: phone.isEmpty ? null : mergeE164(workerDial, phone),
         account: account.isEmpty ? null : account,
         email: email.isEmpty ? null : email,
         username: usernameCtrl.text.trim().isEmpty ? null : usernameCtrl.text.trim(),

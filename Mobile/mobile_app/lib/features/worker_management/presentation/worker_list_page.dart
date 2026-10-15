@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/core/widgets/phone_field.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_empty_error_state.dart';
@@ -111,6 +112,7 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
   void _showCreateDialog(BuildContext context, WidgetRef ref, String farmId) {
     final l10n = AppLocalizations.of(context)!;
     final nameCtrl = TextEditingController();
+    String workerDial = guessDialCode();
     final phoneCtrl = TextEditingController();
     final accountCtrl = TextEditingController();
     final emailCtrl = TextEditingController();
@@ -120,7 +122,8 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
         title: Text(l10n.workerNewWorker),
         content: SingleChildScrollView(
           child: Form(
@@ -134,11 +137,13 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
                   validator: (v) => (v == null || v.trim().isEmpty) ? l10n.workerNameRequired : null,
                 ),
                 const SizedBox(height: 12),
-                TextFormField(
+                PhoneField(
                   key: const Key('create-worker-phone'),
                   controller: phoneCtrl,
-                  decoration: const InputDecoration(labelText: '手机号（选填，国际格式）', hintText: '如 +254712345678', isDense: true, border: OutlineInputBorder()),
-                  keyboardType: TextInputType.phone,
+                  dialCode: workerDial,
+                  onDialChanged: (d) => setDialogState(() => workerDial = d),
+                  labelText: '手机号（选填）',
+                  hintText: '本地号码，如 712345678',
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -192,7 +197,7 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
                   farmId,
                   name: nameCtrl.text.trim(),
                   password: pwdCtrl.text,
-                  phone: phone.isEmpty ? null : phone,
+                  phone: phone.isEmpty ? null : mergeE164(workerDial, phone),
                   account: account.isEmpty ? null : account,
                   email: email.isEmpty ? null : email,
                   username: usernameCtrl.text.trim().isEmpty ? null : usernameCtrl.text.trim(),
@@ -205,6 +210,7 @@ class _WorkerListPageState extends ConsumerState<WorkerListPage> {
             child: Text(l10n.adminApiAuthCreate),
           ),
         ],
+      ),
       ),
     );
   }
