@@ -51,6 +51,39 @@ public final class LoginIdentifiers {
         return raw == null || raw.isBlank() ? null : raw.trim();
     }
 
+    /**
+     * Phone lookup candidates for legacy compatibility (ruling follow-up
+     * 2026-10-15). The stored form may predate the E.164 rollout: legacy
+     * bare 11-digit CN numbers were kept without a country code, while the
+     * dial-code picker now merges to +86… / +254…. Returns distinct
+     * candidates in lookup order; empty input yields an empty list.
+     */
+    public static java.util.List<String> phoneCandidates(String raw) {
+        String digits = raw == null ? ""
+                : raw.trim().replaceAll("[\\s\\-()]", "");
+        if (digits.startsWith("+")) digits = digits.substring(1);
+        else if (digits.startsWith("00")) digits = digits.substring(2);
+        if (digits.isEmpty() || !digits.matches("[0-9]+")) {
+            return java.util.List.of();
+        }
+        java.util.LinkedHashSet<String> out = new java.util.LinkedHashSet<>();
+        // CN mobile: E.164 and bare legacy forms both exist in stored data
+        if (digits.length() == 11 && digits.startsWith("1")) {
+            out.add("+86" + digits);
+        }
+        if (digits.length() == 13 && digits.startsWith("86")
+                && digits.charAt(2) == '1') {
+            out.add(digits.substring(2));
+        }
+        // KE full form (254 + 9 digits) typed under a +254 picker
+        if (digits.length() == 12 && digits.startsWith("254")) {
+            out.add("+" + digits);
+        }
+        out.add("+" + digits); // generic E.164
+        out.add(digits);       // legacy bare form
+        return java.util.List.copyOf(out);
+    }
+
     /** Classifies raw input for login routing. */
     public static Kind classify(String raw) {
         if (raw == null || raw.isBlank()) return Kind.INVALID;

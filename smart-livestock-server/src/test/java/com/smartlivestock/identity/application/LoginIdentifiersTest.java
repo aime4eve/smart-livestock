@@ -35,6 +35,21 @@ class LoginIdentifiersTest {
     }
 
     @Test
+    void phoneCandidates_coverLegacyAndE164Forms() {
+        // bare legacy CN number: +86 variant first (post-migration data),
+        // then generic and bare forms (pre-migration data)
+        assertThat(LoginIdentifiers.phoneCandidates("13800000000"))
+            .containsExactly("+8613800000000", "+13800000000", "13800000000");
+        assertThat(LoginIdentifiers.phoneCandidates("+8613800138000"))
+            .containsExactly("13800138000", "+8613800138000", "8613800138000");
+        // KE full form typed under a +254 picker: '+' + digits is already
+        // E.164 — no double dial
+        assertThat(LoginIdentifiers.phoneCandidates("254712345678"))
+            .containsExactly("+254712345678", "254712345678");
+        assertThat(LoginIdentifiers.phoneCandidates("abc")).isEmpty();
+    }
+
+    @Test
     void validators_rejectBadShapes() {
         assertThat(LoginIdentifiers.isValidAccount("ab")).isFalse();
         assertThat(LoginIdentifiers.isValidAccount("1abc")).isFalse();

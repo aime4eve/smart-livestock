@@ -62,10 +62,12 @@ public class AuthApplicationService {
             case EMAIL: return userRepository.findByLoginIdentifier(
                     com.smartlivestock.identity.application.LoginIdentifiers.normalizeEmail(v));
             case PHONE: {
-                java.util.Optional<User> e164 = userRepository.findByLoginIdentifier(
-                        com.smartlivestock.identity.application.LoginIdentifiers.normalizePhone(v));
-                if (e164.isPresent()) return e164;
-                return userRepository.findByLoginIdentifier(v);
+                for (String candidate : com.smartlivestock.identity.application.LoginIdentifiers
+                        .phoneCandidates(v)) {
+                    var hit = userRepository.findByLoginIdentifier(candidate);
+                    if (hit.isPresent()) return hit;
+                }
+                return java.util.Optional.empty();
             }
             default: return userRepository.findByLoginIdentifier(
                     com.smartlivestock.identity.application.LoginIdentifiers.normalizeAccount(v));

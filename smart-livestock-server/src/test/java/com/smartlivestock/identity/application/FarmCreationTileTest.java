@@ -42,7 +42,7 @@ class FarmCreationTileTest {
             return f;
         });
 
-        FarmApplicationService svc = new FarmApplicationService(org.mockito.Mockito.mock(com.smartlivestock.identity.application.TenantZoneResolver.class), farmRepository, persistenceContext,
+        FarmApplicationService svc = new FarmApplicationService(org.mockito.Mockito.mock(com.smartlivestock.identity.application.TenantZoneResolver.class, org.mockito.Mockito.withSettings().defaultAnswer(inv -> java.time.ZoneId.class.equals(inv.getMethod().getReturnType()) ? java.time.ZoneOffset.UTC : org.mockito.Answers.RETURNS_DEFAULTS.answer(inv))), farmRepository, persistenceContext,
                 tenantRepository, userRepository, assignmentRepository, ranchCommandPort,
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class));
 
@@ -70,7 +70,7 @@ class FarmCreationTileTest {
             return f;
         });
 
-        FarmApplicationService svc = new FarmApplicationService(org.mockito.Mockito.mock(com.smartlivestock.identity.application.TenantZoneResolver.class), farmRepository, persistenceContext,
+        FarmApplicationService svc = new FarmApplicationService(org.mockito.Mockito.mock(com.smartlivestock.identity.application.TenantZoneResolver.class, org.mockito.Mockito.withSettings().defaultAnswer(inv -> java.time.ZoneId.class.equals(inv.getMethod().getReturnType()) ? java.time.ZoneOffset.UTC : org.mockito.Answers.RETURNS_DEFAULTS.answer(inv))), farmRepository, persistenceContext,
                 tenantRepository, userRepository, assignmentRepository, ranchCommandPort,
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class));
 
