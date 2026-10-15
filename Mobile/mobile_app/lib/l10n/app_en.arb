@@ -5816,5 +5816,6 @@
   "tenantPilotDeadlineNone": "Pilot end: platform campaign date (tap to pick)",
   "@tenantPilotDeadlineNone": {},
   "tenantPilotDeadlineChosen": "Pilot end: {date} ({tz} local midnight)",
-  "@tenantPilotDeadlineChosen": {"placeholders": {"date": {"type": "String"}, "tz": {"type": "String"}}}
+  "@tenantPilotDeadlineChosen": {"placeholders": {"date": {"type": "String"}, "tz": {"type": "String"}}},
+  "authEmailInvalid": "\"Invalid email format\""
 }

@@ -5813,5 +5813,6 @@
   "tenantPilotDeadlineNone": "试点截止日：平台统一推广期(点击选择)",
   "@tenantPilotDeadlineNone": {},
   "tenantPilotDeadlineChosen": "试点截止日：{date}（{tz} 当地 00:00）",
-  "@tenantPilotDeadlineChosen": {"placeholders": {"date": {"type": "String"}, "tz": {"type": "String"}}}
+  "@tenantPilotDeadlineChosen": {"placeholders": {"date": {"type": "String"}, "tz": {"type": "String"}}},
+  "authEmailInvalid": "\"\u90ae\u7bb1\u683c\u5f0f\u4e0d\u6b63\u786e\""
 }

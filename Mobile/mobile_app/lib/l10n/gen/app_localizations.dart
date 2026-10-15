@@ -13472,6 +13472,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'试点截止日：{date}（{tz} 当地 00:00）'**
   String tenantPilotDeadlineChosen(String date, String tz);
+
+  /// No description provided for @authEmailInvalid.
+  ///
+  /// In zh, this message translates to:
+  /// **'\"邮箱格式不正确\"'**
+  String get authEmailInvalid;
 }
 
 class _AppLocalizationsDelegate

@@ -7487,4 +7487,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String tenantPilotDeadlineChosen(String date, String tz) {
     return 'Pilot end: $date ($tz local midnight)';
   }
+
+  @override
+  String get authEmailInvalid => '\"Invalid email format\"';
 }

@@ -7313,4 +7313,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String tenantPilotDeadlineChosen(String date, String tz) {
     return '试点截止日：$date（$tz 当地 00:00）';
   }
+
+  @override
+  String get authEmailInvalid => '\"邮箱格式不正确\"';
 }

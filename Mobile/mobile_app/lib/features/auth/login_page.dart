@@ -271,8 +271,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   border: const OutlineInputBorder(),
                                 ),
                                 validator: (v) {
-                                  if (v == null || v.trim().isEmpty) return l10n.authPhoneHint;
-                                  if (!RegExp(r'^1\d{10}$').hasMatch(v.trim())) {
+                                  final t = v?.trim() ?? '';
+                                  if (t.isEmpty) return l10n.authPhoneHint;
+                                  // 全球登录(ruling 2026-10-15):邮箱/账号不做
+                                  // 号码校验;号码放宽为 6-15 位数字(区号由
+                                  // 前缀选择器合并,提交时再归一)。
+                                  if (t.contains('@')) {
+                                    final emailOk = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+                                        .hasMatch(t);
+                                    return emailOk ? null : l10n.authEmailInvalid;
+                                  }
+                                  final digits =
+                                      t.replaceAll(RegExp(r'[\s\-()+]'), '');
+                                  if (digits.length < 6 || digits.length > 15) {
                                     return l10n.authPhoneInvalid;
                                   }
                                   return null;
