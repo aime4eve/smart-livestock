@@ -10,7 +10,7 @@
 #   DEVELOPMENT_TEAM=ABCD1234 ./build_ios.sh test   # test  env
 #   DEVELOPMENT_TEAM=ABCD1234 ./build_ios.sh dev    # dev   env
 #
-# Output: build/ios/ipa/hkt-livestock-agentic-*.ipa
+# Output: build/ios/ipa/smart-livestock-*.ipa
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -40,8 +40,10 @@ esac
 echo "==> Building release IPA v${APP_VERSION} ($ENV env, $API_BASE_URL)"
 
 # Check signing identity
-# Default team = free personal team of sales@hktlora.com (zhiyong wu)
-DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM:-J62PU4Y357}"
+# Default team = Apple Developer Program team of tech@hktchn.com
+# (Hunan HKT Technology Co., Ltd., switched 2026-10; free personal team
+# J62PU4Y357 retired - its 7-day profiles expired long ago)
+DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM:-QQC56X32GR}"
 
 echo "==> Team: $DEVELOPMENT_TEAM"
 
@@ -64,13 +66,13 @@ flutter build ipa --release \
 # NEWEST non-versioned IPA instead of any fixed name; a leftover from an
 # earlier naming era must never win.
 SRC_IPA=$(ls -t build/ios/ipa/*.ipa 2>/dev/null \
-          | grep -vE 'hkt-livestock-agentic-[0-9]|hkt-smartlivestock-[0-9]' \
+          | grep -vE 'smart-livestock-[0-9]|hkt-livestock-agentic-[0-9]|hkt-smartlivestock-[0-9]' \
           | head -1 || true)
 if [ -z "$SRC_IPA" ]; then
   echo "ERROR: flutter build produced no IPA under build/ios/ipa/"; exit 1
 fi
 echo "==> Source IPA: $SRC_IPA ($(stat -f '%Sm' "$SRC_IPA"))"
-OUT_IPA="build/ios/ipa/hkt-livestock-agentic-${APP_VERSION}.ipa"
+OUT_IPA="build/ios/ipa/smart-livestock-${APP_VERSION}.ipa"
 cp "$SRC_IPA" "$OUT_IPA"
 echo "==> Done: $OUT_IPA"
 ls -lh "$OUT_IPA"

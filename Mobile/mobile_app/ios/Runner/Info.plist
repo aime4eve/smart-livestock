@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Livestock Agent</string>
+	<string>Smart Livestock</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Livestock Agent</string>
+	<string>Smart Livestock</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -24,10 +24,16 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>扫描设备二维码以读取 LoRa EUI</string>
+	<string>扫描设备二维码以读取 LoRa EUI / Scan the device QR code to read the LoRa EUI</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>沿围栏边界行走时记录您的位置以生成围栏 / Records your location while you walk the fence boundary to create it</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>选择照片用于个人头像或反馈附件 / Choose a photo for your profile picture or a feedback attachment</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>沿围栏边界行走时记录您的位置以生成围栏 / Records your location while you walk the fence boundary to create it</string>
 	<key>UIApplicationSceneManifest</key>
