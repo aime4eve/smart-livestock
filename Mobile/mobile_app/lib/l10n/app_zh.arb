@@ -2699,6 +2699,14 @@
   "@gpsQualityEndedAtFutureError": {},
   "gpsQualityEndTimeHint": "留空＝正在进行的实时测试（稍后点「结束」收尾）；填写过去时间＝补录历史会话，创建即出报告",
   "@gpsQualityEndTimeHint": {},
+  "gpsQualityTimezoneHint": "时区：{offset}（本机时间）",
+  "@gpsQualityTimezoneHint": {
+    "placeholders": {
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
   "gpsQualityBatchCreate": "批量创建标定会话",
   "@gpsQualityBatchCreate": {},
   "gpsQualityImportExcel": "导入Excel",
@@ -5814,5 +5822,37 @@
   "@tenantPilotDeadlineNone": {},
   "tenantPilotDeadlineChosen": "试点截止日：{date}（{tz} 当地 00:00）",
   "@tenantPilotDeadlineChosen": {"placeholders": {"date": {"type": "String"}, "tz": {"type": "String"}}},
-  "authEmailInvalid": "\"\u90ae\u7bb1\u683c\u5f0f\u4e0d\u6b63\u786e\""
+  "authEmailInvalid": "\"\u90ae\u7bb1\u683c\u5f0f\u4e0d\u6b63\u786e\"",
+  "deviceTransferCardTitle": "设备移交",
+  "@deviceTransferCardTitle": {},
+  "deviceTransferCardHint": "将其他租户名下的设备 EUI 移交到本租户（平台管理员操作，写入审计）",
+  "@deviceTransferCardHint": {},
+  "deviceTransferAction": "移交设备",
+  "@deviceTransferAction": {},
+  "deviceTransferTitle": "移交设备到本租户",
+  "@deviceTransferTitle": {},
+  "deviceTransferEuiLabel": "LoRa EUI",
+  "@deviceTransferEuiLabel": {},
+  "deviceTransferLookup": "查询设备",
+  "@deviceTransferLookup": {},
+  "deviceTransferCurrentOwner": "当前租户",
+  "@deviceTransferCurrentOwner": {},
+  "deviceTransferActiveInstallationWarn": "该设备仍有未拆除的安装绑定，请先解绑再移交",
+  "@deviceTransferActiveInstallationWarn": {},
+  "deviceTransferAlreadyHere": "该设备已归属本租户，无需移交",
+  "@deviceTransferAlreadyHere": {},
+  "deviceTransferNotFound": "未找到该 EUI 的设备档案",
+  "@deviceTransferNotFound": {},
+  "deviceTransferConfirm": "确认移交",
+  "@deviceTransferConfirm": {},
+  "deviceTransferSuccess": "设备 {eui} 已移交到本租户",
+  "@deviceTransferSuccess": {"placeholders": {"eui": {"type": "String"}}},
+  "userCreatePasswordPolicyHint": "≥8 位，须含大写/小写/数字/符号",
+  "@userCreatePasswordPolicyHint": {},
+  "userCreatePasswordInvalid": "密码至少 8 位，且须同时包含大写字母、小写字母、数字和特殊符号",
+  "@userCreatePasswordInvalid": {},
+  "userCreateConfirmLabel": "确认密码",
+  "@userCreateConfirmLabel": {},
+  "userCreateConfirmMismatch": "两次输入的密码不一致",
+  "@userCreateConfirmMismatch": {}
 }

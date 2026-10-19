@@ -57,7 +57,9 @@ class TwinOverviewStats {
   final double healthyRate;
   final int alertCount;
   final int criticalCount;
-  final double deviceOnlineRate;
+
+  /// null = 租户无设备（后端 2026-10-19 语义），展示层显示 "—" 而非假 100%/92%。
+  final double? deviceOnlineRate;
   final String livestockCaption;
   final String alertCaption;
   final String healthCaption;

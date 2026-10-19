@@ -41,6 +41,7 @@ public class HealthApplicationService {
     private final ContactTraceRepository contactTraceRepo;
     private final RanchQueryPort ranchQueryPort;
     private final RanchCommandPort ranchCommandPort;
+    private final com.smartlivestock.ranch.domain.port.IoTQueryPort ioTQueryPort;
     private final HealthSubscriptionPort subscriptionPort;
     private final HealthAnomalyService healthAnomalyService;
     private final HealthAlertBridgeService healthAlertBridgeService;
@@ -622,9 +623,16 @@ public class HealthApplicationService {
         int epidemicTickets = alertsByType.getOrDefault("EPIDEMIC", 0L).intValue();
         int aiTickets = alertsByType.getOrDefault("AI_ANOMALY", 0L).intValue();
 
+        // 设备在线率接真实计算（ruling 2026-10-19）：原为硬编码 0.92 占位。
+        // null = 租户无设备（IoTQueryPort 语义），前端显示 "—" 而非假 100%。
+        Long overviewTenantId = com.smartlivestock.shared.tenant.TenantContext.getCurrentTenant();
+        Double deviceOnlineRate = overviewTenantId == null
+                ? null
+                : ioTQueryPort.getDeviceOnlineRate(overviewTenantId);
+
         HealthOverviewStats stats = new HealthOverviewStats(
                 total, healthyRate != null ? Math.round(healthyRate * 100.0) / 100.0 : null,
-                alertCount, criticalCount, 0.92, "稳定", "↑2",
+                alertCount, criticalCount, deviceOnlineRate, "稳定", "↑2",
                 aiAnomalyCount, Math.round(aiAvgAllScore * 1000.0) / 1000.0);
 
         SceneSummary sceneSummary = new SceneSummary(

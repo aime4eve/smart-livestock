@@ -204,6 +204,35 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
           ),
           const SizedBox(height: AppSpacing.lg),
 
+          // --- Device handover (ruling 2026-10-19: EUI cross-tenant guard) ---
+          HighfiCard(
+            key: const Key('tenant-detail-device-transfer'),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(l10n.deviceTransferCardTitle,
+                          style: theme.textTheme.titleSmall),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(l10n.deviceTransferCardHint,
+                          style: theme.textTheme.bodySmall),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                FilledButton.tonalIcon(
+                  key: const Key('tenant-device-transfer'),
+                  onPressed: () => _showDeviceTransferDialog(context),
+                  icon: const Icon(Icons.swap_horiz),
+                  label: Text(l10n.deviceTransferAction),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+
           // --- User list ---
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -240,6 +269,138 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                   onStatusToggle: () => _toggleUserStatus(user),
                 )),
         ],
+        ),
+      ),
+    );
+  }
+
+  /// 设备移交对话框（2026-10-19 裁决）：EUI 查询 → 展示当前归属 → 确认移交。
+  /// 后端强校验（活跃安装拦截/目标租户存在）并写审计，这里只做呈现。
+  void _showDeviceTransferDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final formKey = GlobalKey<FormState>();
+    final euiCtrl = TextEditingController();
+    Map<String, dynamic>? lookup;
+    String? lookupError;
+    bool querying = false;
+    bool transferring = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          key: const Key('device-transfer-dialog'),
+          title: Text(l10n.deviceTransferTitle),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    key: const Key('device-transfer-eui'),
+                    controller: euiCtrl,
+                    decoration:
+                        InputDecoration(labelText: l10n.deviceTransferEuiLabel),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? l10n.deviceTransferEuiLabel
+                        : null,
+                  ),
+                  const SizedBox(height: 12),
+                  if (lookupError != null)
+                    Text(lookupError!,
+                        style: const TextStyle(color: Color(0xFFD32F2F))),
+                  if (lookup != null) ...[
+                    if (lookup!['found'] == true) ...[
+                      Text(
+                          '${l10n.deviceTransferCurrentOwner}: ${lookup!['tenantName'] ?? lookup!['tenantId']}'),
+                      Text(
+                          '${lookup!['deviceCode'] ?? ''} · ${lookup!['deviceType'] ?? ''} · ${lookup!['status'] ?? ''}'),
+                      if (lookup!['activeInstallation'] == true)
+                        Text(l10n.deviceTransferActiveInstallationWarn,
+                            style:
+                                const TextStyle(color: Color(0xFFD32F2F))),
+                      if ('${lookup!['tenantId']}' == widget.id)
+                        Text(l10n.deviceTransferAlreadyHere),
+                    ] else
+                      Text(l10n.deviceTransferNotFound),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: transferring ? null : () => Navigator.of(ctx).pop(),
+              child: Text(l10n.commonCancel),
+            ),
+            FilledButton.tonal(
+              key: const Key('device-transfer-lookup'),
+              onPressed: querying
+                  ? null
+                  : () async {
+                      if (!formKey.currentState!.validate()) return;
+                      setDialogState(() {
+                        querying = true;
+                        lookupError = null;
+                        lookup = null;
+                      });
+                      try {
+                        final result = await ref
+                            .read(adminRepositoryProvider)
+                            .lookupDeviceTransfer(euiCtrl.text.trim());
+                        if (!ctx.mounted) return;
+                        setDialogState(() {
+                          lookup = result;
+                          querying = false;
+                        });
+                      } catch (e) {
+                        if (!ctx.mounted) return;
+                        setDialogState(() {
+                          lookup = null;
+                          querying = false;
+                          lookupError = '$e';
+                        });
+                      }
+                    },
+              child: Text(l10n.deviceTransferLookup),
+            ),
+            FilledButton(
+              key: const Key('device-transfer-confirm'),
+              onPressed: (lookup == null ||
+                      lookup!['found'] != true ||
+                      transferring ||
+                      lookup!['activeInstallation'] == true ||
+                      '${lookup!['tenantId']}' == widget.id)
+                  ? null
+                  : () async {
+                      final navigator = Navigator.of(ctx);
+                      final messenger = ScaffoldMessenger.of(context);
+                      setDialogState(() => transferring = true);
+                      try {
+                        await ref.read(adminRepositoryProvider).transferDevice(
+                            euiCtrl.text.trim(), int.parse(widget.id));
+                        if (!mounted) return;
+                        navigator.pop();
+                        messenger.showSnackBar(SnackBar(
+                          content: Text(l10n
+                              .deviceTransferSuccess(euiCtrl.text.trim())),
+                          backgroundColor: const Color(0xFF2E7D32),
+                        ));
+                        _loadData();
+                      } catch (e) {
+                        if (!mounted) return;
+                        setDialogState(() => transferring = false);
+                        messenger.showSnackBar(SnackBar(
+                          content: Text('$e'),
+                          backgroundColor: const Color(0xFFD32F2F),
+                        ));
+                      }
+                    },
+              child: Text(l10n.deviceTransferConfirm),
+            ),
+          ],
         ),
       ),
     );
@@ -716,15 +877,33 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
   }
 
   void _showCreateUserDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final formKey = GlobalKey<FormState>();
     final phoneCtrl = TextEditingController();
     final accountCtrl = TextEditingController();
     final emailCtrl = TextEditingController();
     final nameCtrl = TextEditingController();
     final passwordCtrl = TextEditingController();
+    final confirmCtrl = TextEditingController();
     String userDial = guessDialCode();
     String selectedRole = 'B2B_ADMIN';
     bool creating = false;
+    bool obscure = true;
+    String? submitError;
+
+    // 密码策略(2026-10-15)：≥8 位 + 大写/小写/数字/特殊符号，与后端 PasswordPolicy 对齐。
+    // 前置校验避免提交后才收到 400（此前失败即关窗全重填，是建号密码错位的推手）。
+    String? passwordPolicyCheck(String? v) {
+      if (v == null || v.isEmpty) return '密码不能为空';
+      final hasUpper = v.contains(RegExp(r'[A-Z]'));
+      final hasLower = v.contains(RegExp(r'[a-z]'));
+      final hasDigit = v.contains(RegExp(r'[0-9]'));
+      final hasSpecial = v.contains(RegExp(r'[^A-Za-z0-9]'));
+      if (v.length < 8 || !hasUpper || !hasLower || !hasDigit || !hasSpecial) {
+        return l10n.userCreatePasswordInvalid;
+      }
+      return null;
+    }
 
     showDialog(
       context: context,
@@ -781,13 +960,31 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                   TextFormField(
                     key: const Key('create-user-password'),
                     controller: passwordCtrl,
-                    obscureText: true,
-                    decoration: const InputDecoration(
+                    obscureText: obscure,
+                    decoration: InputDecoration(
                       labelText: '密码 *',
-                      hintText: '请输入密码',
+                      helperText: l10n.userCreatePasswordPolicyHint,
+                      suffixIcon: IconButton(
+                        icon: Icon(obscure
+                            ? Icons.visibility_off
+                            : Icons.visibility),
+                        onPressed: () =>
+                            setDialogState(() => obscure = !obscure),
+                      ),
                     ),
-                    validator: (v) =>
-                        (v == null || v.isEmpty) ? '密码不能为空' : null,
+                    validator: passwordPolicyCheck,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    key: const Key('create-user-password-confirm'),
+                    controller: confirmCtrl,
+                    obscureText: obscure,
+                    decoration: InputDecoration(
+                      labelText: l10n.userCreateConfirmLabel,
+                    ),
+                    validator: (v) => (v != passwordCtrl.text)
+                        ? l10n.userCreateConfirmMismatch
+                        : null,
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
@@ -806,6 +1003,13 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                       if (v != null) setDialogState(() => selectedRole = v);
                     },
                   ),
+                  if (submitError != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      submitError!,
+                      style: const TextStyle(color: Color(0xFFD32F2F)),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -831,6 +1035,7 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
                         selectedRole,
                         () => setDialogState(() => creating = true),
                         () => setDialogState(() => creating = false),
+                        (message) => setDialogState(() => submitError = message),
                       ),
               child: creating
                   ? const SizedBox(
@@ -859,6 +1064,7 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
     String role,
     VoidCallback setCreating,
     VoidCallback clearCreating,
+    void Function(String message) setSubmitError,
   ) async {
     if (!formKey.currentState!.validate()) return;
 
@@ -873,12 +1079,14 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
           : mergeE164(userDial, phoneCtrl.text.trim());
       final account = accountCtrl.text.trim();
       final email = emailCtrl.text.trim();
+      // trim：误粘首尾空格的密码会被原样存库，登录时对不上（2026-10-19 教训）
+      final password = passwordCtrl.text.trim();
       if (phone.isEmpty && account.isEmpty && email.isEmpty) {
         throw '用户账号/手机号/邮箱至少填写一项';
       }
       await ref.read(adminRepositoryProvider).createUser({
         'name': nameCtrl.text.trim(),
-        'password': passwordCtrl.text,
+        'password': password,
         'role': role,
         'tenantId': int.parse(widget.id),
         if (phone.isNotEmpty) 'phone': phone,
@@ -897,15 +1105,9 @@ class _TenantDetailPageState extends ConsumerState<TenantDetailPage> {
       _loadData();
     } catch (e) {
       if (!mounted) return;
-      navigator.pop();
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('创建失败: $e'),
-          backgroundColor: const Color(0xFFD32F2F),
-        ),
-      );
-    } finally {
+      // 失败留在对话框内：字段值都还在，改一处即可重试（旧实现 pop 掉全重填）
       clearCreating();
+      setSubmitError('创建失败: $e');
     }
   }
 

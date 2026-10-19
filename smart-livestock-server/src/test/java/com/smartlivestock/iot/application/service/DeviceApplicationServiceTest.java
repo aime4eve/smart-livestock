@@ -5,10 +5,17 @@ import com.smartlivestock.iot.application.InstallationApplicationService;
 import com.smartlivestock.iot.application.command.RegisterDeviceCommand;
 import com.smartlivestock.iot.application.dto.InstallationDto;
 import com.smartlivestock.iot.application.dto.DeviceDto;
+import com.smartlivestock.iot.application.dto.DeviceTransferLookupDto;
 import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.model.DeviceStatus;
 import com.smartlivestock.iot.domain.model.DeviceType;
+import com.smartlivestock.iot.domain.model.Installation;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
+import com.smartlivestock.iot.domain.repository.InstallationRepository;
+import com.smartlivestock.identity.domain.model.AuditLog;
+import com.smartlivestock.identity.domain.model.Tenant;
+import com.smartlivestock.identity.domain.repository.AuditLogRepository;
+import com.smartlivestock.identity.domain.repository.TenantRepository;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.client.AgenticPlatformDeviceClient;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.client.AgenticPlatformLicenseClient;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.DevicePageResp;
@@ -25,6 +32,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
@@ -60,6 +68,18 @@ class DeviceApplicationServiceTest {
 
     @Mock
     private InstallationApplicationService installationApplicationService;
+
+    @Mock
+    private InstallationRepository installationRepository;
+
+    @Mock
+    private TenantRepository tenantRepository;
+
+    @Mock
+    private AuditLogRepository auditLogRepository;
+
+    @Mock
+    private com.smartlivestock.identity.application.TenantZoneResolver tenantZoneResolver;
 
     @InjectMocks
     private DeviceApplicationService service;
@@ -141,6 +161,7 @@ class DeviceApplicationServiceTest {
         Device device = createInventoryDevice();
         when(deviceRepository.findById(1L)).thenReturn(Optional.of(device));
         when(deviceRepository.save(any(Device.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(tenantZoneResolver.zoneForTenantStrict(1L)).thenReturn(java.time.ZoneOffset.UTC);
         when(platformDeviceClient.pageDevices(any())).thenReturn(emptyPage());
         when(platformDeviceClient.registerDevice(any())).thenReturn(registered(100L));
 
@@ -358,6 +379,7 @@ class DeviceApplicationServiceTest {
         when(platformDeviceClient.pageDevices(any())).thenReturn(emptyPage());
         when(platformDeviceClient.registerDevice(any())).thenReturn(registered(100L));
         when(deviceRepository.save(any(Device.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(tenantZoneResolver.zoneForTenantStrict(1L)).thenReturn(java.time.ZoneOffset.UTC);
 
         DeviceDto result = service.findOrCreateByEui("aabbccdd", null, 1L);
 
@@ -379,6 +401,7 @@ class DeviceApplicationServiceTest {
                 .thenReturn(List.of(deleted));
         when(deviceRepository.findByDeviceCode("NEW-CODE")).thenReturn(Optional.empty());
         when(deviceRepository.save(any(Device.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(tenantZoneResolver.zoneForTenantStrict(1L)).thenReturn(java.time.ZoneOffset.UTC);
         when(platformDeviceClient.pageDevices(any())).thenReturn(emptyPage());
         when(platformDeviceClient.registerDevice(any())).thenReturn(registered(77L));
 
@@ -406,6 +429,7 @@ class DeviceApplicationServiceTest {
                 .thenReturn(List.of(deleted));
         when(deviceRepository.findByDeviceCode("NEW-CODE")).thenReturn(Optional.empty());
         when(deviceRepository.save(any(Device.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(tenantZoneResolver.zoneForTenantStrict(1L)).thenReturn(java.time.ZoneOffset.UTC);
         when(platformDeviceClient.pageDevices(any())).thenReturn(emptyPage());
         when(platformDeviceClient.registerDevice(any())).thenReturn(registered(77L));
 
@@ -433,5 +457,98 @@ class DeviceApplicationServiceTest {
 
         verify(deviceRepository, never()).restoreById(any(), any());
         verify(deviceRepository, never()).save(any());
+    }
+
+    // ── Platform-admin device handover (ruling 2026-10-19) ─────────────
+
+    private Device createTenantDevice(Long tenantId, String eui) {
+        Device device = new Device(tenantId, eui, DeviceType.TRACKER, eui);
+        device.setId(194L);
+        return device;
+    }
+
+    @Test
+    @DisplayName("移交查询：EUI 在其他租户 → found=true + 当前租户名 + 无活跃安装")
+    void shouldLookupDeviceForTransfer() {
+        Device device = createTenantDevice(1L, "00956906000fba02");
+        when(deviceRepository.findAllByDevEuiIncludeDeleted("00956906000fba02"))
+                .thenReturn(List.of(device));
+        when(tenantRepository.findById(1L)).thenReturn(Optional.of(new Tenant("Demo Ranch", null, null)));
+        when(installationRepository.findActiveByDeviceId(194L)).thenReturn(Optional.empty());
+
+        DeviceTransferLookupDto lookup = service.lookupForTransfer("00956906000FBA02");
+
+        assertThat(lookup.found()).isTrue();
+        assertThat(lookup.deviceId()).isEqualTo(194L);
+        assertThat(lookup.tenantId()).isEqualTo(1L);
+        assertThat(lookup.tenantName()).isEqualTo("Demo Ranch");
+        assertThat(lookup.activeInstallation()).isFalse();
+    }
+
+    @Test
+    @DisplayName("移交成功：租户 1 → 2，写审计")
+    void shouldTransferDeviceToTargetTenant() {
+        Device device = createTenantDevice(1L, "00956906000fba02");
+        when(deviceRepository.findAllByDevEuiIncludeDeleted("00956906000fba02"))
+                .thenReturn(List.of(device));
+        when(tenantRepository.findById(2L)).thenReturn(Optional.of(new Tenant("南非-市场", null, null)));
+        when(installationRepository.findActiveByDeviceId(194L)).thenReturn(Optional.empty());
+        when(deviceRepository.save(any(Device.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        DeviceDto result = service.transferToTenant("00956906000fba02", 2L, 1L);
+
+        assertThat(result.tenantId()).isEqualTo(2L);
+        ArgumentCaptor<Device> captor = ArgumentCaptor.forClass(Device.class);
+        verify(deviceRepository).save(captor.capture());
+        assertThat(captor.getValue().getTenantId()).isEqualTo(2L);
+        verify(auditLogRepository).save(any(AuditLog.class));
+    }
+
+    @Test
+    @DisplayName("移交拒绝：EUI 不存在 → RESOURCE_NOT_FOUND")
+    void shouldRejectTransferWhenDeviceMissing() {
+        when(deviceRepository.findAllByDevEuiIncludeDeleted("0095690600000000"))
+                .thenReturn(Collections.emptyList());
+
+        assertThatThrownBy(() -> service.transferToTenant("0095690600000000", 2L, 1L))
+                .isInstanceOf(ApiException.class)
+                .satisfies(ex -> assertThat(((ApiException) ex).getCode())
+                        .isEqualTo(ErrorCode.RESOURCE_NOT_FOUND));
+
+        verify(deviceRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("移交拒绝：已归属目标租户 → STATE_CONFLICT")
+    void shouldRejectTransferWhenAlreadyInTargetTenant() {
+        Device device = createTenantDevice(2L, "00956906000fba02");
+        when(deviceRepository.findAllByDevEuiIncludeDeleted("00956906000fba02"))
+                .thenReturn(List.of(device));
+
+        assertThatThrownBy(() -> service.transferToTenant("00956906000fba02", 2L, 1L))
+                .isInstanceOf(ApiException.class)
+                .satisfies(ex -> assertThat(((ApiException) ex).getCode())
+                        .isEqualTo(ErrorCode.STATE_CONFLICT));
+
+        verify(deviceRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("移交拒绝：原租户有活跃安装 → STATE_CONFLICT 且不落库不审计")
+    void shouldRejectTransferWhenActiveInstallationExists() {
+        Device device = createTenantDevice(1L, "00956906000fba02");
+        when(deviceRepository.findAllByDevEuiIncludeDeleted("00956906000fba02"))
+                .thenReturn(List.of(device));
+        when(tenantRepository.findById(2L)).thenReturn(Optional.of(new Tenant("南非-市场", null, null)));
+        when(installationRepository.findActiveByDeviceId(194L))
+                .thenReturn(Optional.of(Mockito.mock(Installation.class)));
+
+        assertThatThrownBy(() -> service.transferToTenant("00956906000fba02", 2L, 1L))
+                .isInstanceOf(ApiException.class)
+                .satisfies(ex -> assertThat(((ApiException) ex).getCode())
+                        .isEqualTo(ErrorCode.STATE_CONFLICT));
+
+        verify(deviceRepository, never()).save(any());
+        verify(auditLogRepository, never()).save(any());
     }
 }

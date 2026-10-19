@@ -76,7 +76,9 @@ Future<void> saveDialCodeMemory(String dial) async {
 String guessDialCode() {
   if (dialCodeMemoryCache != null) return dialCodeMemoryCache!;
   final hours = DateTime.now().timeZoneOffset.inHours;
-  const byOffset = {3: '254', 8: '86', 4: '971', 0: '44', -5: '1', -3: '55', 9: '81', 10: '61', 7: '66', 5: '91'};
+  // 2 → +27 (South Africa, ruling 2026-10-19): UTC+2 had no entry so SA
+  // devices fell through to the +254 fallback and phone logins 401'd.
+  const byOffset = {3: '254', 8: '86', 4: '971', 2: '27', 0: '44', -5: '1', -3: '55', 9: '81', 10: '61', 7: '66', 5: '91'};
   return byOffset[hours] ?? '254';
 }
 

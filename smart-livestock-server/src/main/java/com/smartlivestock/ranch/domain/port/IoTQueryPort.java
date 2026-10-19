@@ -14,7 +14,11 @@ public interface IoTQueryPort {
 
     boolean hasActiveInstallationByLivestock(Long livestockId);
 
-    double getDeviceOnlineRate(Long tenantId);
+    /**
+     * ACTIVE devices / total devices for the tenant. {@code null} when the
+     * tenant owns no devices — an empty fleet is "unknown", never "100%".
+     */
+    Double getDeviceOnlineRate(Long tenantId);
 
     /**
      * Batch query active devices for multiple livestock.

@@ -3,6 +3,8 @@ package com.smartlivestock.iot.application;
 import com.smartlivestock.iot.application.command.RegisterDeviceCommand;
 import com.smartlivestock.iot.application.command.UpdateDeviceCommand;
 import com.smartlivestock.iot.application.dto.DeviceDto;
+import com.smartlivestock.iot.application.dto.DeviceTransferLookupDto;
+import com.smartlivestock.iot.domain.repository.InstallationRepository;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.client.AgenticPlatformDeviceClient;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.client.AgenticPlatformLicenseClient;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.DeviceDetailResp;
@@ -13,6 +15,8 @@ import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.DeviceRe
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.InternalResponse;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.LicenseStatusResp;
 import com.smartlivestock.iot.infrastructure.client.agenticplatform.dto.LoginUser;
+import com.smartlivestock.identity.domain.model.AuditLog;
+import com.smartlivestock.identity.domain.repository.AuditLogRepository;
 import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.model.DeviceType;
 import com.smartlivestock.iot.domain.model.DeviceStatus;
@@ -27,9 +31,11 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +46,10 @@ public class DeviceApplicationService {
     private final AgenticPlatformDeviceClient platformDeviceClient;
     private final AgenticPlatformLicenseClient platformLicenseClient;
     private final InstallationApplicationService installationApplicationService;
+    private final InstallationRepository installationRepository;
     private final com.smartlivestock.identity.application.TenantZoneResolver tenantZoneResolver;
+    private final com.smartlivestock.identity.domain.repository.TenantRepository tenantRepository;
+    private final AuditLogRepository auditLogRepository;
 
     /** Platform device type code mapping (local DeviceType → platform code). */
     private static final Map<DeviceType, String> PLATFORM_TYPE_CODES = Map.of(
@@ -52,6 +61,101 @@ public class DeviceApplicationService {
     /** Device EUIs are case-insensitive and always stored lowercase. */
     private static String normalizeEui(String devEui) {
         return devEui == null ? null : devEui.toLowerCase(Locale.ROOT);
+    }
+
+    // ── Platform-admin device handover (ruling 2026-10-19) ─────────────
+
+    /**
+     * Where does an EUI live today? Feeds the admin console handover dialog:
+     * current owner tenant + whether an active installation blocks the move.
+     */
+    @Transactional(readOnly = true)
+    public DeviceTransferLookupDto lookupForTransfer(String devEui) {
+        String eui = normalizeEui(devEui);
+        if (eui == null || eui.isBlank()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.deviceTransferEuiRequired");
+        }
+        return deviceRepository.findAllByDevEuiIncludeDeleted(eui).stream()
+                .filter(d -> d.getDeletedAt() == null)
+                .findFirst()
+                .map(device -> {
+                    String tenantName = tenantRepository.findById(device.getTenantId())
+                            .map(t -> t.getName()).orElse(null);
+                    boolean activeInstallation = installationRepository
+                            .findActiveByDeviceId(device.getId()).isPresent();
+                    return new DeviceTransferLookupDto(
+                            true, device.getId(), device.getDeviceCode(),
+                            device.getDeviceType() == null ? null : device.getDeviceType().name(),
+                            device.getStatus() == null ? null : device.getStatus().name(),
+                            device.getTenantId(), tenantName, activeInstallation);
+                })
+                .orElse(DeviceTransferLookupDto.notFound());
+    }
+
+    /**
+     * Move a device's tenant ownership by EUI. The provisioning wizard's
+     * cross-tenant guard tells customers to "contact the platform admin for
+     * a handover" — this is that handover, with the guardrails the manual
+     * SQL path lacked: blocked while an active installation exists in the
+     * source tenant (unbind first), target tenant must exist, and every move
+     * is audited. Telemetry history stays with the old tenant by design.
+     */
+    @Transactional
+    public DeviceDto transferToTenant(String devEui, Long targetTenantId, Long operatorId) {
+        String eui = normalizeEui(devEui);
+        if (eui == null || eui.isBlank()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.deviceTransferEuiRequired");
+        }
+        if (targetTenantId == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.deviceTransferTenantRequired");
+        }
+        Device device = deviceRepository.findAllByDevEuiIncludeDeleted(eui).stream()
+                .filter(d -> d.getDeletedAt() == null)
+                .findFirst()
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "error.deviceTransferNotFound", new Object[]{eui}));
+        if (targetTenantId.equals(device.getTenantId())) {
+            throw new ApiException(ErrorCode.STATE_CONFLICT, "error.deviceTransferSameTenant");
+        }
+        tenantRepository.findById(targetTenantId)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "error.deviceTransferTenantNotFound", new Object[]{targetTenantId}));
+        installationRepository.findActiveByDeviceId(device.getId())
+                .ifPresent(installation -> {
+                    throw new ApiException(ErrorCode.STATE_CONFLICT,
+                            "error.deviceTransferActiveInstallation", new Object[]{eui});
+                });
+
+        Long fromTenantId = device.getTenantId();
+        device.setTenantId(targetTenantId);
+        Device saved = deviceRepository.save(device);
+        auditDeviceTransfer(operatorId, eui, saved.getId(), fromTenantId, targetTenantId);
+        log.info("Device {} ({}) handed over: tenant {} -> {} by operator {}",
+                eui, saved.getId(), fromTenantId, targetTenantId, operatorId);
+        return DeviceDto.from(saved);
+    }
+
+    private void auditDeviceTransfer(Long operatorId, String eui, Long deviceId,
+                                     Long fromTenantId, Long toTenantId) {
+        try {
+            Map<String, Object> details = new LinkedHashMap<>();
+            details.put("devEui", eui);
+            details.put("deviceId", deviceId);
+            details.put("fromTenantId", fromTenantId);
+            details.put("toTenantId", toTenantId);
+            auditLogRepository.save(new AuditLog(
+                    UUID.randomUUID().toString(),
+                    "DEVICE_TENANT_TRANSFERRED",
+                    toTenantId,
+                    operatorId,
+                    "DEVICE_TENANT_TRANSFERRED",
+                    details,
+                    Instant.now(),
+                    null,
+                    "PLATFORM_ADMIN"));
+        } catch (Exception e) {
+            log.error("Failed to audit device transfer for {}", eui, e);
+        }
     }
 
     @Transactional

@@ -673,7 +673,8 @@ class _RanchPageState extends ConsumerState<RanchPage>
         : attentionLabels.length == 1
         ? attentionLabels.single
         : l10n.heroTitleNeedsAttention;
-    final online = stats?.deviceOnlineRate ?? 0;
+    // null = 租户无设备 → "—"（不再假显 100%/92%）
+    final online = stats?.deviceOnlineRate as double?;
     final criticalLivestock = overview.livestockMarkers
         .where((marker) => marker.healthStatus == 'CRITICAL')
         .toList();
@@ -822,7 +823,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
               const SizedBox(width: 7),
               Expanded(
                 child: _heroChip(
-                  '${(online * 100).round()}%',
+                  online == null ? '—' : '${(online * 100).round()}%',
                   l10n.heroChipDevice,
                 ),
               ),

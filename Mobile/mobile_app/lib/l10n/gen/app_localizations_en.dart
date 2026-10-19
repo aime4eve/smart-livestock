@@ -3338,6 +3338,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Leave empty = in-progress live test (click End later); fill a past time = backfill a historical session that produces a report on creation';
 
   @override
+  String gpsQualityTimezoneHint(String offset) {
+    return 'Timezone: $offset (device local)';
+  }
+
+  @override
   String get gpsQualityBatchCreate => 'Batch Create Sessions';
 
   @override
@@ -7490,4 +7495,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authEmailInvalid => '\"Invalid email format\"';
+
+  @override
+  String get deviceTransferCardTitle => 'Device handover';
+
+  @override
+  String get deviceTransferCardHint =>
+      'Move a device EUI from another tenant into this one (platform-admin action, audited)';
+
+  @override
+  String get deviceTransferAction => 'Hand over device';
+
+  @override
+  String get deviceTransferTitle => 'Hand device over to this tenant';
+
+  @override
+  String get deviceTransferEuiLabel => 'LoRa EUI';
+
+  @override
+  String get deviceTransferLookup => 'Look up';
+
+  @override
+  String get deviceTransferCurrentOwner => 'Current tenant';
+
+  @override
+  String get deviceTransferActiveInstallationWarn =>
+      'Device still has an active installation; unbind it before handover';
+
+  @override
+  String get deviceTransferAlreadyHere =>
+      'Device already belongs to this tenant';
+
+  @override
+  String get deviceTransferNotFound => 'No device found for this EUI';
+
+  @override
+  String get deviceTransferConfirm => 'Confirm handover';
+
+  @override
+  String deviceTransferSuccess(String eui) {
+    return 'Device $eui handed over to this tenant';
+  }
+
+  @override
+  String get userCreatePasswordPolicyHint =>
+      '8+ chars with upper/lower case, digit and symbol';
+
+  @override
+  String get userCreatePasswordInvalid =>
+      'Password must be 8+ chars with upper case, lower case, digit and symbol';
+
+  @override
+  String get userCreateConfirmLabel => 'Confirm password';
+
+  @override
+  String get userCreateConfirmMismatch => 'Passwords do not match';
 }

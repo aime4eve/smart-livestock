@@ -144,7 +144,9 @@ class TwinOverviewPage extends ConsumerWidget {
       _StatItem(title: '严重异常', value: '${stats.criticalCount}'),
       _StatItem(
           title: '设备在线率',
-          value: '${(stats.deviceOnlineRate * 100).toStringAsFixed(1)}%'),
+          value: stats.deviceOnlineRate == null
+              ? '—'
+              : '${(stats.deviceOnlineRate! * 100).toStringAsFixed(1)}%'),
     ];
     return Wrap(
       spacing: AppSpacing.md,

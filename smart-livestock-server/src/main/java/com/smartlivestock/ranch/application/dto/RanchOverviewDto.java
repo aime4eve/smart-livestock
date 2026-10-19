@@ -21,7 +21,7 @@ public final class RanchOverviewDto {
             Double healthyRate,
             int alertCount,
             int criticalCount,
-            double deviceOnlineRate,
+            Double deviceOnlineRate,
             Double inFenceRate,
             int noGpsCount,
             int outsideFenceCount

@@ -153,7 +153,7 @@ public final class HealthDtos {
             Double healthyRate,
             int alertCount,
             int criticalCount,
-            double deviceOnlineRate,
+            Double deviceOnlineRate,
             String healthTrend,
             String livestockTrend,
             int aiAnomalyCount,

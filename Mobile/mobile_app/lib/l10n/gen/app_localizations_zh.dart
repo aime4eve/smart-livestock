@@ -3267,6 +3267,11 @@ class AppLocalizationsZh extends AppLocalizations {
       '留空＝正在进行的实时测试（稍后点「结束」收尾）；填写过去时间＝补录历史会话，创建即出报告';
 
   @override
+  String gpsQualityTimezoneHint(String offset) {
+    return '时区：$offset（本机时间）';
+  }
+
+  @override
   String get gpsQualityBatchCreate => '批量创建标定会话';
 
   @override
@@ -7316,4 +7321,54 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get authEmailInvalid => '\"邮箱格式不正确\"';
+
+  @override
+  String get deviceTransferCardTitle => '设备移交';
+
+  @override
+  String get deviceTransferCardHint => '将其他租户名下的设备 EUI 移交到本租户（平台管理员操作，写入审计）';
+
+  @override
+  String get deviceTransferAction => '移交设备';
+
+  @override
+  String get deviceTransferTitle => '移交设备到本租户';
+
+  @override
+  String get deviceTransferEuiLabel => 'LoRa EUI';
+
+  @override
+  String get deviceTransferLookup => '查询设备';
+
+  @override
+  String get deviceTransferCurrentOwner => '当前租户';
+
+  @override
+  String get deviceTransferActiveInstallationWarn => '该设备仍有未拆除的安装绑定，请先解绑再移交';
+
+  @override
+  String get deviceTransferAlreadyHere => '该设备已归属本租户，无需移交';
+
+  @override
+  String get deviceTransferNotFound => '未找到该 EUI 的设备档案';
+
+  @override
+  String get deviceTransferConfirm => '确认移交';
+
+  @override
+  String deviceTransferSuccess(String eui) {
+    return '设备 $eui 已移交到本租户';
+  }
+
+  @override
+  String get userCreatePasswordPolicyHint => '≥8 位，须含大写/小写/数字/符号';
+
+  @override
+  String get userCreatePasswordInvalid => '密码至少 8 位，且须同时包含大写字母、小写字母、数字和特殊符号';
+
+  @override
+  String get userCreateConfirmLabel => '确认密码';
+
+  @override
+  String get userCreateConfirmMismatch => '两次输入的密码不一致';
 }

@@ -2702,6 +2702,14 @@
   "@gpsQualityEndedAtFutureError": {},
   "gpsQualityEndTimeHint": "Leave empty = in-progress live test (click End later); fill a past time = backfill a historical session that produces a report on creation",
   "@gpsQualityEndTimeHint": {},
+  "gpsQualityTimezoneHint": "Timezone: {offset} (device local)",
+  "@gpsQualityTimezoneHint": {
+    "placeholders": {
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
   "gpsQualityBatchCreate": "Batch Create Sessions",
   "@gpsQualityBatchCreate": {},
   "gpsQualityImportExcel": "Import Excel",
@@ -5817,5 +5825,37 @@
   "@tenantPilotDeadlineNone": {},
   "tenantPilotDeadlineChosen": "Pilot end: {date} ({tz} local midnight)",
   "@tenantPilotDeadlineChosen": {"placeholders": {"date": {"type": "String"}, "tz": {"type": "String"}}},
-  "authEmailInvalid": "\"Invalid email format\""
+  "authEmailInvalid": "\"Invalid email format\"",
+  "deviceTransferCardTitle": "Device handover",
+  "@deviceTransferCardTitle": {},
+  "deviceTransferCardHint": "Move a device EUI from another tenant into this one (platform-admin action, audited)",
+  "@deviceTransferCardHint": {},
+  "deviceTransferAction": "Hand over device",
+  "@deviceTransferAction": {},
+  "deviceTransferTitle": "Hand device over to this tenant",
+  "@deviceTransferTitle": {},
+  "deviceTransferEuiLabel": "LoRa EUI",
+  "@deviceTransferEuiLabel": {},
+  "deviceTransferLookup": "Look up",
+  "@deviceTransferLookup": {},
+  "deviceTransferCurrentOwner": "Current tenant",
+  "@deviceTransferCurrentOwner": {},
+  "deviceTransferActiveInstallationWarn": "Device still has an active installation; unbind it before handover",
+  "@deviceTransferActiveInstallationWarn": {},
+  "deviceTransferAlreadyHere": "Device already belongs to this tenant",
+  "@deviceTransferAlreadyHere": {},
+  "deviceTransferNotFound": "No device found for this EUI",
+  "@deviceTransferNotFound": {},
+  "deviceTransferConfirm": "Confirm handover",
+  "@deviceTransferConfirm": {},
+  "deviceTransferSuccess": "Device {eui} handed over to this tenant",
+  "@deviceTransferSuccess": {"placeholders": {"eui": {"type": "String"}}},
+  "userCreatePasswordPolicyHint": "8+ chars with upper/lower case, digit and symbol",
+  "@userCreatePasswordPolicyHint": {},
+  "userCreatePasswordInvalid": "Password must be 8+ chars with upper case, lower case, digit and symbol",
+  "@userCreatePasswordInvalid": {},
+  "userCreateConfirmLabel": "Confirm password",
+  "@userCreateConfirmLabel": {},
+  "userCreateConfirmMismatch": "Passwords do not match",
+  "@userCreateConfirmMismatch": {}
 }

@@ -6110,6 +6110,12 @@ abstract class AppLocalizations {
   /// **'留空＝正在进行的实时测试（稍后点「结束」收尾）；填写过去时间＝补录历史会话，创建即出报告'**
   String get gpsQualityEndTimeHint;
 
+  /// No description provided for @gpsQualityTimezoneHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'时区：{offset}（本机时间）'**
+  String gpsQualityTimezoneHint(String offset);
+
   /// No description provided for @gpsQualityBatchCreate.
   ///
   /// In zh, this message translates to:
@@ -13478,6 +13484,102 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'\"邮箱格式不正确\"'**
   String get authEmailInvalid;
+
+  /// No description provided for @deviceTransferCardTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备移交'**
+  String get deviceTransferCardTitle;
+
+  /// No description provided for @deviceTransferCardHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'将其他租户名下的设备 EUI 移交到本租户（平台管理员操作，写入审计）'**
+  String get deviceTransferCardHint;
+
+  /// No description provided for @deviceTransferAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'移交设备'**
+  String get deviceTransferAction;
+
+  /// No description provided for @deviceTransferTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'移交设备到本租户'**
+  String get deviceTransferTitle;
+
+  /// No description provided for @deviceTransferEuiLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'LoRa EUI'**
+  String get deviceTransferEuiLabel;
+
+  /// No description provided for @deviceTransferLookup.
+  ///
+  /// In zh, this message translates to:
+  /// **'查询设备'**
+  String get deviceTransferLookup;
+
+  /// No description provided for @deviceTransferCurrentOwner.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前租户'**
+  String get deviceTransferCurrentOwner;
+
+  /// No description provided for @deviceTransferActiveInstallationWarn.
+  ///
+  /// In zh, this message translates to:
+  /// **'该设备仍有未拆除的安装绑定，请先解绑再移交'**
+  String get deviceTransferActiveInstallationWarn;
+
+  /// No description provided for @deviceTransferAlreadyHere.
+  ///
+  /// In zh, this message translates to:
+  /// **'该设备已归属本租户，无需移交'**
+  String get deviceTransferAlreadyHere;
+
+  /// No description provided for @deviceTransferNotFound.
+  ///
+  /// In zh, this message translates to:
+  /// **'未找到该 EUI 的设备档案'**
+  String get deviceTransferNotFound;
+
+  /// No description provided for @deviceTransferConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认移交'**
+  String get deviceTransferConfirm;
+
+  /// No description provided for @deviceTransferSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备 {eui} 已移交到本租户'**
+  String deviceTransferSuccess(String eui);
+
+  /// No description provided for @userCreatePasswordPolicyHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'≥8 位，须含大写/小写/数字/符号'**
+  String get userCreatePasswordPolicyHint;
+
+  /// No description provided for @userCreatePasswordInvalid.
+  ///
+  /// In zh, this message translates to:
+  /// **'密码至少 8 位，且须同时包含大写字母、小写字母、数字和特殊符号'**
+  String get userCreatePasswordInvalid;
+
+  /// No description provided for @userCreateConfirmLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认密码'**
+  String get userCreateConfirmLabel;
+
+  /// No description provided for @userCreateConfirmMismatch.
+  ///
+  /// In zh, this message translates to:
+  /// **'两次输入的密码不一致'**
+  String get userCreateConfirmMismatch;
 }
 
 class _AppLocalizationsDelegate

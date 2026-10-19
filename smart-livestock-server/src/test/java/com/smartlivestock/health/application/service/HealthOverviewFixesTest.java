@@ -59,7 +59,9 @@ class HealthOverviewFixesTest {
     void setUp() {
         service = new HealthApplicationService(org.mockito.Mockito.mock(com.smartlivestock.identity.application.TenantZoneResolver.class), snapshotRepo, tempLogRepo, motilityLogRepo,
                 activityLogRepo, estrusScoreRepo, contactTraceRepo, ranchQueryPort,
-                ranchCommandPort, subscriptionPort, healthAnomalyService, healthAlertBridgeService,
+                ranchCommandPort,
+                org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.port.IoTQueryPort.class),
+                subscriptionPort, healthAnomalyService, healthAlertBridgeService,
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class),
                 feverService, digestiveService, estrusAnalysisService, epidemicService,
                 messageResolver,

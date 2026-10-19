@@ -79,6 +79,7 @@ class HealthApplicationServiceMarkDiseasedTest {
                 contactTraceRepo,
                 ranchQueryPort,
                 mock(RanchCommandPort.class),
+                mock(com.smartlivestock.ranch.domain.port.IoTQueryPort.class),
                 mock(HealthSubscriptionPort.class),
                 mock(HealthAnomalyService.class),
                 mock(HealthAlertBridgeService.class),

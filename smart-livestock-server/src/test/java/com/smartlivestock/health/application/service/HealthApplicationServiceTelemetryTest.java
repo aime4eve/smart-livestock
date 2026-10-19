@@ -60,6 +60,7 @@ class HealthApplicationServiceTelemetryTest {
                 snapshotRepo, tempLogRepo, motilityLogRepo, activityLogRepo,
                 estrusScoreRepo, contactTraceRepo,
                 ranchQueryPort, ranchCommandPort,
+                org.mockito.Mockito.mock(com.smartlivestock.ranch.domain.port.IoTQueryPort.class),
                 subscriptionPort,
                 healthAnomalyService,
                 healthAlertBridgeService,

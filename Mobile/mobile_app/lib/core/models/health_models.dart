@@ -40,7 +40,7 @@ class HealthOverviewResponse {
       healthyRate: (m['healthyRate'] as num?)?.toDouble() ?? 0.0,
       alertCount: m['alertCount'] as int? ?? 0,
       criticalCount: m['criticalCount'] as int? ?? 0,
-      deviceOnlineRate: (m['deviceOnlineRate'] as num?)?.toDouble() ?? 0.0,
+      deviceOnlineRate: (m['deviceOnlineRate'] as num?)?.toDouble(),
       livestockCaption: m['livestockCaption'] as String? ?? '',
       alertCaption: m['alertCaption'] as String? ?? '',
       healthCaption: m['healthCaption'] as String? ?? '',

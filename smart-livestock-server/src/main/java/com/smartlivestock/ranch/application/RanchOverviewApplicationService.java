@@ -175,9 +175,10 @@ public class RanchOverviewApplicationService {
         // Reuse the already-loaded livestock/health/alerts data instead of re-querying
         // (getHealthOverview would re-fetch snapshots, livestock, and alerts a second time).
         HealthOverview healthOverview = buildHealthOverview(livestockList, healthStates, activeAlerts);
-        double deviceOnlineRate = tenantId != null
+        // null = 租户无设备（旧实现空租户假显 100%、无租户假显 85%，2026-10-19 语义修正）
+        Double deviceOnlineRate = tenantId != null
                 ? ioTQueryPort.getDeviceOnlineRate(tenantId)
-                : 0.85;
+                : null;
 
         // 6. Location breakdown: inFenceRate + no-GPS / outside-fence counts.
         // total = inside any active fence + outside + no GPS fix.

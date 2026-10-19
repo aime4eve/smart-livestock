@@ -200,6 +200,22 @@ class AdminApiRepository implements AdminRepository {
     await ApiClient.instance.post('/admin/users/$userId/reset-password', body: {'newPassword': newPassword});
   }
 
+  // --- Device handover (ruling 2026-10-19) ---
+
+  @override
+  Future<Map<String, dynamic>> lookupDeviceTransfer(String eui) async {
+    return ApiClient.instance
+        .get('/admin/devices/lookup?eui=${Uri.encodeQueryComponent(eui)}');
+  }
+
+  @override
+  Future<Map<String, dynamic>> transferDevice(String eui, int targetTenantId) async {
+    return ApiClient.instance.post('/admin/devices/transfer', body: {
+      'devEui': eui,
+      'targetTenantId': targetTenantId,
+    });
+  }
+
   // --- Farms ---
 
   @override

@@ -210,9 +210,14 @@ POST /api/v1/auth/login
 Content-Type: application/json
 
 Request:
-{ "phone": "13800138000", "password": "aB3$xK9@pQ2" }
+{ "identifier": "13800138000", "password": "aB3$xK9@pQ2" }
+```
+
+`identifier` 接受 用户名 / 手机号（E.164 或存量裸号）/ 邮箱 任一（登录标识符泛化，2026-10）。
 
 Response 200:
+
+```
 {
   "code": "OK",
   "message": "success",

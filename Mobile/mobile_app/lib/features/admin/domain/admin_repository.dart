@@ -295,6 +295,10 @@ abstract class AdminRepository {
   Future<void> updateUserStatus(String userId, String status);
   Future<void> resetPassword(String userId, String newPassword);
 
+  // Device handover (ruling 2026-10-19): where an EUI lives + move it
+  Future<Map<String, dynamic>> lookupDeviceTransfer(String eui);
+  Future<Map<String, dynamic>> transferDevice(String eui, int targetTenantId);
+
   // Farms
   Future<AdminListResult<FarmSummary>> loadFarms({int page = 1, int pageSize = 20, String? tenantId, String? keyword});
   Future<FarmDetail> loadFarmDetail(String farmId);
