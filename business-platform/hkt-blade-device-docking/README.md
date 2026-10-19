@@ -6,6 +6,8 @@ blade 不可改代码，本工程只作为消费方。
 
 **已通过真实 blade平台 test 环境（172.22.4.17）和dev 环境（172.21.2.41）全链路验证（单元测试 18/18 + 真实联通性 13/13 全绿）。**
 
+> ⚠️ 2026-10-16 更新：上句中的 dev 环境（172.21.2.41）device 服务已于当日迁移下线，我方已弃用该环境（dev 栈改对接 SIT 172.22.2.237，test 172.22.4.17 不变）。现行地址见附录「blade 平台 dev 环境（已失效）」标注、「blade 平台 SIT 环境」表与换票追记；`verify-blade-docking.sh` 头部注释含 SIT 用法示例。
+
 2026-08-29 起，本文同时记录 smart-livestock 真实设备数据采集的完整经验：NS 平台配置、
 ThingsBoard 直连、blade 轮询，以及三条链路的取舍。datagen 仿真数据用于市场演示和算法
 预训练，不计入真实设备采集通道。
@@ -614,9 +616,13 @@ TB gateway 的 project mapping 是远程 shared attribute 配置，变更不能�
 
 ### Nacos 注册中心
 
-172.22.3.16:8848，namespace `c47123d9-9d2b-4fdf-a61a-8d5daa9c89ac
+172.22.3.16:8848，namespace `c47123d9-9d2b-4fdf-a61a-8d5daa9c89ac`（Phase C PoC 时期的 blade 命名空间）。
 
-### blade 平台 dev 环境
+> 2026-10-16 更新：我方 blade 地址事实源已收归自建命名空间「智慧畜牧（smartlivestock）」，dataId `smartlivestock-blade-dev.yaml`（→ SIT 172.22.2.237）与 `smartlivestock-blade-test.yaml`（→ 172.22.4.17）。blade 侧三套环境（AI智能体开发 / AI智能体测试-客户试用 / AI智能体测试-测试SIT）的实例注册表也可在同一 Nacos 查得。
+
+### blade 平台 dev 环境（已失效，2026-10-16 弃用）
+
+> 2026-10-16 探查证实：device 服务已从 172.21.2.41:8100 迁移（Nacos 实例注册表显示新址 172.22.16.54:8100，version=lianlin），auth 仍留 172.21.2.41:8108。同日用户裁决 dev 栈改对接 SIT（172.22.2.237），旧 dev 环境就此弃用。下表仅为 PoC 时期历史记录，勿再连接。
 
 | 服务             | 地址             | 用途                              |
 | ---------------- | ---------------- | --------------------------------- |
@@ -632,12 +638,24 @@ TB gateway 的 project mapping 是远程 shared attribute 配置，变更不能�
 | hkt-blade-device | 172.22.4.17:8100 | 设备 + 遥测 `/feign/v1/device/*` |
 | hkt-blade-system | 172.22.4.17:8106 | 用户管理 `/feign/v1/system/sdk/*` |
 
+### blade 平台 SIT 环境（现行，2026-10-16 起为 dev 栈对接目标）
+
+地址、health 与 openapi 换票已于 2026-10-16 从本机实测通过（device/auth 8100/8108 health 200、换票 200）。
+
+| 服务 | 地址 | 用途 |
+|------|------|------|
+| hkt-blade-auth | 172.22.2.237:8108 | OAuth2 换票 `/oauth2/token` |
+| hkt-blade-device | 172.22.2.237:8100 | 设备 + 遥测 `/feign/v1/device/*` |
+| hkt-blade-system | 172.22.2.237:8106 | 用户管理 `/feign/v1/system/sdk/*`（8106 未实测） |
+
 ### 换票记录
 
 |本项目| blade 平台|service-user-id|换票|
 |------|------|------|------|
 | dev（19080）|dev 172.21.2.41|207938296942293811| ✅ | 
 | test（18080） |test 172.22.4.17|2074385063398711296 | ✅ |        
+
+> 2026-10-16 换票追记：SIT（172.22.2.237）已实测 openapi 换票 200，凭据=与 test 同 ID 的预置服务账号 + 同一 openapi client；上表 dev 行（172.21.2.41）对应环境已弃用。现行 dev 栈的地址与凭据以 Nacos `smartlivestock-blade-dev.yaml` + 123 `~/smart-livestock-server/.env.dev` 为准，凭据不入文档不入库。
 
 ### 单元测试（18/18 全绿）
 

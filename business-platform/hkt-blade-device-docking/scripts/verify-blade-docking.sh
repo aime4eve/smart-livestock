@@ -5,8 +5,16 @@ set -euo pipefail
 # Reads device EUI list from scripts/devices.conf, auto-resolves deviceId.
 # To add a device: add one line (EUI) to devices.conf, no code changes needed.
 #
+# Environments (health + openapi token re-verified 2026-10-16 from dev Mac):
+#   test (default)  AUTH_HOST=172.22.4.17   unchanged customer-trial env
+#   SIT             AUTH_HOST=172.22.2.237  dev stack's target since 2026-10-16
+#   old dev         172.21.2.41 device service migrated away 2026-10-16 - do not use
+#
 # Usage:
-#   ./scripts/verify-blade-docking.sh
+#   ./scripts/verify-blade-docking.sh                                                  # vs test
+#   AUTH_HOST=172.22.2.237 DEVICE_HOST=172.22.2.237 ./scripts/verify-blade-docking.sh  # vs SIT
+#   (SIT currently accepts the same service-user id and openapi client secret as test;
+#    override CLIENT_SECRET / SERVICE_USER_ID when a target env issues its own)
 
 # ---- Config ----
 AUTH_HOST="${AUTH_HOST:-172.22.4.17}"

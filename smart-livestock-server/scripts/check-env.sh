@@ -88,14 +88,17 @@ if [[ ! -f "$ENV_FILE" ]]; then
   exit 1
 fi
 
-for key in \
-  DB_HOST DB_PORT DB_NAME DB_USER DB_PASSWORD \
-  REDIS_HOST REDIS_PORT ROCKETMQ_NAME_SERVER \
-  JWT_SECRET SERVER_PORT \
-  SIMULATOR_DEVICE_REGISTER_KEY SIMULATOR_FENCE_SYNC_KEY \
-  AGENTIC_PLATFORM_DEVICE_BASE_URL AGENTIC_PLATFORM_LICENSE_BASE_URL; do
-  require_value "$key"
-done
+# blade addresses come from Nacos when NACOS_CONFIG_ENABLED=true; the static
+# AGENTIC_PLATFORM_* address vars are then an optional emergency override only.
+if [[ "$(value_of NACOS_CONFIG_ENABLED)" == "true" ]]; then
+  for key in NACOS_CONFIG_SERVER_ADDR NACOS_CONFIG_DATA_ID; do
+    require_value "$key"
+  done
+else
+  for key in AGENTIC_PLATFORM_DEVICE_BASE_URL AGENTIC_PLATFORM_LICENSE_BASE_URL; do
+    require_value "$key"
+  done
+fi
 
 require_configured_secret DB_PASSWORD
 require_secret JWT_SECRET
@@ -104,7 +107,11 @@ require_secret SIMULATOR_FENCE_SYNC_KEY
 
 if [[ "$(value_of AGENTIC_PLATFORM_OAUTH2_ENABLED)" == "true" ]]; then
   require_secret AGENTIC_PLATFORM_OAUTH2_CLIENT_SECRET
-  require_value AGENTIC_PLATFORM_OAUTH2_SERVICE_USER_ID
+  # service-user-id is provisioned per blade environment; with Nacos sync on
+  # it arrives from the remote config, otherwise it must be set locally.
+  if [[ "$(value_of NACOS_CONFIG_ENABLED)" != "true" ]]; then
+    require_value AGENTIC_PLATFORM_OAUTH2_SERVICE_USER_ID
+  fi
 fi
 
 require_enabled_pair \

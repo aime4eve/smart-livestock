@@ -15,13 +15,19 @@
 
 ## blade 平台环境对应
 
-dev stack ↔ blade dev（172.21.2.41），test stack ↔ blade test（172.22.4.17）。地址默认值写在各自 compose 文件的 `AGENTIC_PLATFORM_*` 变量中，密钥在远程 `.env` / `.env.dev` 手动维护。本项目作为 blade 外部调用方走 URL 直连，不注册 Nacos。
+> 2026-10-16 用户裁决更新：blade 服务统一注册于 Nacos（172.22.3.16:8848，凭据不入库），blade 侧按 Nacos 命名空间分环境；本项目仍走 URL 直连，不注册 Nacos。
+
+dev stack ↔ blade SIT「AI智能体测试-测试环境」（172.22.2.237，Nacos 命名空间 993151ce…），test stack ↔ blade 客户试用「AI智能体测试-客户试用环境」（172.22.4.17，命名空间 3292a83b…）。密钥（client-id/client-secret/tenant-id）在远程 `.env` / `.env.dev` 手动维护。
+
+**地址同步机制（2026-10-16 落地）**：blade 地址 4 项（device/license base-url、oauth2 token-uri、service-user-id）的事实源在 Nacos `smartlivestock` 命名空间（dataId `smartlivestock-blade-dev.yaml` / `-test.yaml`），由启动期组件 `NacosRemoteConfigLoader` 通过 HTTP v1 API（8848）拉取注入——blade 侧变更流程 = Nacos 控制台改配置 + 重启进程（用户裁决 2026-10-16：接受重启生效，无需热刷新）。要点：①刻意不用官方 nacos-config starter（其 gRPC 端口 9848/9849 从部署机 123 不可达）；②零新增依赖（RestTemplate/Jackson/snakeyaml）；③失败自动回落本地默认（optional 语义，启动日志可见 outcome）；④优先级 OS env > Nacos > application.yml 默认（.env 中地址项已注释，留作紧急覆盖通道）；⑤release/ONPREM 不设 `NACOS_CONFIG_ENABLED`，行为与以前完全一致（86/223 后续规划走 HKT-DeviceHub，不对 Nacos 做依赖，用户裁决 2026-10-16）。
+
+历史备注：2026-10-16 前 dev 曾对接「AI智能体开发」（172.21.2.41）；该环境的 device 服务后迁至 172.22.16.54:8100（auth 留在 172.21.2.41:8108），随裁决废弃，不再对接。
 
 ## 验证机环境归属与采集对接
 
-**86（HOSTED）= dev 环境载体、223（ONPREM）= test 环境载体**：两台验证机的采集对接复用同环境凭据（事实源：123 远程 `.env.dev` / `.env`）。三条通道端点：TB 遥测 `http://172.22.3.105`、NS 设备预置 `http://172.17.201.15`（均为 application.yml 默认值）、blade 按上表环境对应。当前接入状态与操作/验证步骤见 `docs/deployment/release-deployment-playbook.md` §9（2026-09-12：223 全套已通，86 的 TB+NS 已通、blade dev 因网络策略待开通）。
+**86（HOSTED）= dev 环境载体、223（ONPREM）= test 环境载体**：两台验证机的采集对接复用同环境凭据（事实源：123 远程 `.env.dev` / `.env`）。三条通道端点：TB 遥测 `http://172.22.3.105`、NS 设备预置 `http://172.17.201.15`（均为 application.yml 默认值）、blade 按上表环境对应。当前接入状态与操作/验证步骤见 `docs/deployment/release-deployment-playbook.md` §9（2026-09-12：223 全套已通，86 的 TB+NS 已通；blade 侧待开通状态随 2026-10-16 dev 切换 SIT 后需按新地址 172.22.2.237 重新评估网络策略，且 dev 网段从开发机直连不可达，连通性必须在部署机上验证）。
 
-blade dev/test 是两套独立平台：OAuth2 client（`hkt_openapi`）相同，但服务账号各自独立（dev=`2079382969422938112`，test=`2074385063398711296`）。新建环境需按 `business-platform/hkt-blade-device-docking/README.md` 自助流程创建服务账号。设计文档：`docs/superpowers/specs/2026-07-21-blade-env-mapping-design.md`
+blade SIT/客户试用是两套独立平台：OAuth2 client（`hkt_openapi`）相同，服务账号在两套库中各自存在——**SIT 与客户试用同用服务账号 `2074385063398711296`（sub=SmartLivestock Service，实测两套均可换票）**；旧「AI智能体开发」账号 `2079382969422938112` 仅存在于废弃的旧 dev 环境。新建环境需按 `business-platform/hkt-blade-device-docking/README.md` 自助流程创建服务账号。设计文档：`docs/superpowers/specs/2026-07-21-blade-env-mapping-design.md`
 
 ## HKT-DeviceHub 共享接入通道
 
