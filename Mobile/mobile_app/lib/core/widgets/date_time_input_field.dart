@@ -20,6 +20,7 @@ class DateTimeInputField extends StatefulWidget {
     this.isRequired = false,
     this.minDate,
     this.maxDate,
+    this.helperText,
   });
 
   /// The field label (should already be an AppLocalizations string).
@@ -39,6 +40,9 @@ class DateTimeInputField extends StatefulWidget {
 
   /// Latest selectable date in the date picker.
   final DateTime? maxDate;
+
+  /// Optional helper line shown below the input (e.g. active timezone label).
+  final String? helperText;
 
   @override
   State<DateTimeInputField> createState() => _DateTimeInputFieldState();
@@ -170,6 +174,7 @@ class _DateTimeInputFieldState extends State<DateTimeInputField> {
       decoration: InputDecoration(
         labelText: widget.label,
         hintText: _displayFormat,
+        helperText: widget.helperText,
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 10,

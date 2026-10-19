@@ -53,7 +53,12 @@ void main() {
       expect(r1.rtkPointId, 11);
       expect(r1.routeId, isNull);
       expect(r1.preStatus, 'OK');
-      expect(r1.startedAt, DateTime.parse('2026-07-18T09:00:00Z'));
+      // Wire stays UTC; the model normalizes to operator-local at the parse
+      // boundary, so only the instant is contractually pinned here.
+      final started = r1.startedAt;
+      expect(started, isNotNull);
+      expect(started!.isUtc, isFalse);
+      expect(started.toUtc(), DateTime.parse('2026-07-18T09:00:00Z'));
       expect(r1.endedAt, isNotNull);
 
       final r2 = result.rows[1];

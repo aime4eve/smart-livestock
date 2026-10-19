@@ -120,13 +120,15 @@ class _CreateCheckDialogState extends ConsumerState<CreateCheckDialog> {
                   onChanged: (v) => setState(() => _routeId = v),
                 ),
               const SizedBox(height: AppSpacing.md),
-              // Time range
+              // Time range (wall times are device-local for device QC; the
+              // active UTC offset is shown so the operator is never guessing)
               DateTimeInputField(
                 key: const Key('check-start-time'),
                 label: l10n.gpsQualityStartTime,
                 value: _startedAt,
                 onChanged: (v) => setState(() => _startedAt = v),
                 isRequired: true,
+                helperText: l10n.gpsQualityTimezoneHint(_localTzLabel()),
               ),
               const SizedBox(height: AppSpacing.sm),
               DateTimeInputField(
@@ -134,6 +136,7 @@ class _CreateCheckDialogState extends ConsumerState<CreateCheckDialog> {
                 label: l10n.gpsQualityEndTime,
                 value: _endedAt,
                 onChanged: (v) => setState(() => _endedAt = v),
+                helperText: l10n.gpsQualityTimezoneHint(_localTzLabel()),
               ),
             ],
           ),
@@ -153,6 +156,17 @@ class _CreateCheckDialogState extends ConsumerState<CreateCheckDialog> {
         ),
       ],
     );
+  }
+
+  /// GPS quality checks are a device-engineering tool, independent of the
+  /// farm timezone chain: entered wall times mean the operator's device
+  /// timezone, so surface the active UTC offset explicitly.
+  String _localTzLabel() {
+    final mins = DateTime.now().timeZoneOffset.inMinutes;
+    final abs = mins.abs();
+    final hh = (abs ~/ 60).toString().padLeft(2, '0');
+    final mm = (abs % 60).toString().padLeft(2, '0');
+    return 'UTC${mins.isNegative ? '-' : '+'}$hh:$mm';
   }
 
   Future<void> _submit() async {

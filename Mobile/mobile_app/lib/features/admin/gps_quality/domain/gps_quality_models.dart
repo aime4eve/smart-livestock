@@ -1,5 +1,13 @@
 import 'package:flutter/foundation.dart';
 
+/// GPS quality checks are a device-engineering tool, independent of the farm
+/// timezone chain (ruling 2026-10-16). The backend serves every timestamp as
+/// UTC; [DateTime.parse] alone keeps the UTC wall clock and every `format*`
+/// helper prints wall clock verbatim. All `fromJson` factories therefore
+/// normalize to the operator's device-local timezone at this single boundary
+/// (`toLocal()`), so list/summary/report panels can format directly. Wire
+/// format stays UTC: the repository re-encodes with `.toUtc()`.
+
 /// Quality grade based on P95 and effective points.
 enum QualityGrade { excellent, usable, marginal, unavailable }
 
@@ -57,8 +65,8 @@ class DynamicRoute {
         id: json['id'] as int,
         name: json['name'] as String? ?? '',
         description: json['description'] as String?,
-        createdAt: DateTime.parse(json['createdAt'] as String),
-        updatedAt: DateTime.parse(json['updatedAt'] as String),
+        createdAt: DateTime.parse(json['createdAt'] as String).toLocal(),
+        updatedAt: DateTime.parse(json['updatedAt'] as String).toLocal(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -135,10 +143,10 @@ class DynamicQualityReport {
         routeId: json['routeId'] as int? ?? 0,
         routeName: json['routeName'] as String? ?? '',
         startedAt: json['startedAt'] != null
-            ? DateTime.parse(json['startedAt'] as String)
+            ? DateTime.parse(json['startedAt'] as String).toLocal()
             : DateTime.now(),
         endedAt: json['endedAt'] != null
-            ? DateTime.parse(json['endedAt'] as String)
+            ? DateTime.parse(json['endedAt'] as String).toLocal()
             : null,
         threshold: (json['threshold'] as num?)?.toDouble() ?? 0,
         grade: _parseGrade(json['grade'] as String? ?? 'UNAVAILABLE'),
@@ -245,7 +253,7 @@ class DynamicPointSummary {
         ambiguous: json['ambiguous'] as bool? ?? false,
         error: (json['error'] as num?)?.toDouble(),
         matchedAt: json['matchedAt'] != null
-            ? DateTime.parse(json['matchedAt'] as String)
+            ? DateTime.parse(json['matchedAt'] as String).toLocal()
             : null,
       );
 }
@@ -283,7 +291,7 @@ class DynamicMatchedPass {
         error: (json['error'] as num?)?.toDouble() ?? 0,
         ambiguous: json['ambiguous'] as bool? ?? false,
         recordedAt: json['recordedAt'] != null
-            ? DateTime.parse(json['recordedAt'] as String)
+            ? DateTime.parse(json['recordedAt'] as String).toLocal()
             : DateTime.now(),
       );
 }
@@ -361,10 +369,10 @@ class GpsQualityReport {
               (json['longitude'] as num?)?.toDouble() ?? 0,
         ),
         startedAt: json['startedAt'] != null
-            ? DateTime.parse(json['startedAt'] as String)
+            ? DateTime.parse(json['startedAt'] as String).toLocal()
             : DateTime.now(),
         endedAt: json['endedAt'] != null
-            ? DateTime.parse(json['endedAt'] as String)
+            ? DateTime.parse(json['endedAt'] as String).toLocal()
             : null,
         stats: GpsQualityStats.fromJson(
             json['stats'] as Map<String, dynamic>? ?? const {}),
@@ -456,7 +464,7 @@ class ScatterPoint {
         longitude: (json['longitude'] as num).toDouble(),
         error: (json['error'] as num?)?.toDouble() ?? 0,
         suspect: json['suspect'] as bool? ?? false,
-        recordedAt: DateTime.parse(json['recordedAt'] as String),
+        recordedAt: DateTime.parse(json['recordedAt'] as String).toLocal(),
       );
 }
 
@@ -519,16 +527,16 @@ class QualityCheck {
         rtkPointId: json['rtkPointId'] as int?,
         routeId: json['routeId'] as int?,
         startedAt: json['startedAt'] != null
-            ? DateTime.parse(json['startedAt'] as String)
+            ? DateTime.parse(json['startedAt'] as String).toLocal()
             : DateTime.now(),
         endedAt: json['endedAt'] != null
-            ? DateTime.parse(json['endedAt'] as String)
+            ? DateTime.parse(json['endedAt'] as String).toLocal()
             : null,
         status: json['status'] as String? ?? 'READY',
         errorMessage: json['errorMessage'] as String?,
         batchImportId: json['batchImportId'] as int?,
         createdAt: json['createdAt'] != null
-            ? DateTime.parse(json['createdAt'] as String)
+            ? DateTime.parse(json['createdAt'] as String).toLocal()
             : null,
       );
 }
@@ -698,10 +706,10 @@ class BatchParseRow {
         rtkPointId: json['rtkPointId'] as int?,
         routeId: json['routeId'] as int?,
         startedAt: json['startedAt'] != null
-            ? DateTime.parse(json['startedAt'] as String)
+            ? DateTime.parse(json['startedAt'] as String).toLocal()
             : null,
         endedAt: json['endedAt'] != null
-            ? DateTime.parse(json['endedAt'] as String)
+            ? DateTime.parse(json['endedAt'] as String).toLocal()
             : null,
         preStatus: json['preStatus'] as String? ?? '',
         message: json['message'] as String?,
@@ -784,10 +792,10 @@ class DynamicComparisonRow {
         p50: (json['p50'] as num?)?.toDouble() ?? 0,
         p95: (json['p95'] as num?)?.toDouble() ?? 0,
         startedAt: json['startedAt'] != null
-            ? DateTime.parse(json['startedAt'] as String)
+            ? DateTime.parse(json['startedAt'] as String).toLocal()
             : null,
         endedAt: json['endedAt'] != null
-            ? DateTime.parse(json['endedAt'] as String)
+            ? DateTime.parse(json['endedAt'] as String).toLocal()
             : null,
       );
 }
@@ -835,7 +843,7 @@ class TrajectoryParseRow {
         rowNo: json['rowNo'] as int? ?? 0,
         deviceEui: json['deviceEui'] as String? ?? '',
         collectedAt: json['collectedAt'] != null
-            ? DateTime.parse(json['collectedAt'] as String)
+            ? DateTime.parse(json['collectedAt'] as String).toLocal()
             : null,
         rtkLatitude: (json['rtkLatitude'] as num?)?.toDouble(),
         rtkLongitude: (json['rtkLongitude'] as num?)?.toDouble(),
@@ -844,7 +852,7 @@ class TrajectoryParseRow {
         matchMode: json['matchMode'] as String? ?? 'INVALID',
         error: json['error'] as String?,
         matchedRecordedAt: json['matchedRecordedAt'] != null
-            ? DateTime.parse(json['matchedRecordedAt'] as String)
+            ? DateTime.parse(json['matchedRecordedAt'] as String).toLocal()
             : null,
         timeDiffSec: json['timeDiffSec'] as int?,
       );
@@ -987,7 +995,7 @@ class TrajectoryTrackPoint {
   factory TrajectoryTrackPoint.fromJson(Map<String, dynamic> json) =>
       TrajectoryTrackPoint(
         sequenceNo: json['sequenceNo'] as int? ?? 0,
-        collectedAt: DateTime.parse(json['collectedAt'] as String),
+        collectedAt: DateTime.parse(json['collectedAt'] as String).toLocal(),
         rtkLatitude: (json['rtkLatitude'] as num).toDouble(),
         rtkLongitude: (json['rtkLongitude'] as num).toDouble(),
         deviceLatitude: (json['deviceLatitude'] as num?)?.toDouble(),
@@ -1071,9 +1079,9 @@ class TrajectoryQualityReport {
         testId: json['testId'] as int? ?? 0,
         deviceCode: json['deviceCode'] as String? ?? '',
         deviceEui: json['deviceEui'] as String? ?? '',
-        startedAt: DateTime.parse(json['startedAt'] as String),
+        startedAt: DateTime.parse(json['startedAt'] as String).toLocal(),
         endedAt: json['endedAt'] != null
-            ? DateTime.parse(json['endedAt'] as String)
+            ? DateTime.parse(json['endedAt'] as String).toLocal()
             : null,
         toleranceSec: json['toleranceSec'] as int? ?? 60,
         grade: trajectoryGradeFrom(json['grade'] as String?),
@@ -1141,10 +1149,10 @@ class TrajectoryComparisonRow {
         p95: (json['p95'] as num?)?.toDouble() ?? 0,
         grade: trajectoryGradeFrom(json['grade'] as String?),
         startedAt: json['startedAt'] != null
-            ? DateTime.parse(json['startedAt'] as String)
+            ? DateTime.parse(json['startedAt'] as String).toLocal()
             : null,
         endedAt: json['endedAt'] != null
-            ? DateTime.parse(json['endedAt'] as String)
+            ? DateTime.parse(json['endedAt'] as String).toLocal()
             : null,
       );
 }
@@ -1189,7 +1197,7 @@ class StandardTrackLine {
         startLat: (json['startLat'] as num?)?.toDouble(),
         sourceFile: json['sourceFile'] as String?,
         createdAt: json['createdAt'] != null
-            ? DateTime.parse(json['createdAt'] as String)
+            ? DateTime.parse(json['createdAt'] as String).toLocal()
             : null,
       );
 }
@@ -1289,10 +1297,10 @@ class LineCheckDevice {
         deviceId: json['deviceId'] as int?,
         pointCount: json['pointCount'] as int? ?? 0,
         firstRecordedAt: json['firstRecordedAt'] != null
-            ? DateTime.parse(json['firstRecordedAt'] as String)
+            ? DateTime.parse(json['firstRecordedAt'] as String).toLocal()
             : null,
         lastRecordedAt: json['lastRecordedAt'] != null
-            ? DateTime.parse(json['lastRecordedAt'] as String)
+            ? DateTime.parse(json['lastRecordedAt'] as String).toLocal()
             : null,
       );
 }
@@ -1367,10 +1375,10 @@ class LineQualityReport {
         testId: json['testId'] as int? ?? 0,
         deviceCode: json['deviceCode'] as String? ?? '',
         startedAt: json['startedAt'] != null
-            ? DateTime.parse(json['startedAt'] as String)
+            ? DateTime.parse(json['startedAt'] as String).toLocal()
             : DateTime.now(),
         endedAt: json['endedAt'] != null
-            ? DateTime.parse(json['endedAt'] as String)
+            ? DateTime.parse(json['endedAt'] as String).toLocal()
             : null,
         trackLineId: json['trackLineId'] as int?,
         trackLineName: json['trackLineName'] as String? ?? '',
@@ -1409,7 +1417,7 @@ class LineDeviation {
   factory LineDeviation.fromJson(Map<String, dynamic> json) => LineDeviation(
         sequenceNo: json['sequenceNo'] as int? ?? 0,
         recordedAt: json['recordedAt'] != null
-            ? DateTime.parse(json['recordedAt'] as String)
+            ? DateTime.parse(json['recordedAt'] as String).toLocal()
             : DateTime.now(),
         lng: (json['lng'] as num?)?.toDouble() ?? 0,
         lat: (json['lat'] as num?)?.toDouble() ?? 0,
@@ -1440,7 +1448,7 @@ class CheckSummaryItem {
         checkType: json['checkType'] as String? ?? '',
         testId: json['testId'] as int?,
         endedAt: json['endedAt'] != null
-            ? DateTime.parse(json['endedAt'] as String)
+            ? DateTime.parse(json['endedAt'] as String).toLocal()
             : null,
         grade: trajectoryGradeFrom(json['grade'] as String?),
         keyMetric: json['keyMetric'] as String? ?? '',
@@ -1497,10 +1505,10 @@ class LineComparisonRow {
         within40mPct: (json['within40mPct'] as num?)?.toDouble() ?? 0,
         grade: trajectoryGradeFrom(json['grade'] as String?),
         startedAt: json['startedAt'] != null
-            ? DateTime.parse(json['startedAt'] as String)
+            ? DateTime.parse(json['startedAt'] as String).toLocal()
             : null,
         endedAt: json['endedAt'] != null
-            ? DateTime.parse(json['endedAt'] as String)
+            ? DateTime.parse(json['endedAt'] as String).toLocal()
             : null,
       );
 }
