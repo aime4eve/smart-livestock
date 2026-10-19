@@ -101,6 +101,10 @@ Future<AppSession> _restoreSession() async {
     tenantId: userInfo['tenantId'] as int?,
     username: userInfo['username'] as String?,
     activeFarmId: activeFarmId,
+    // NIX-191: 登录响应里的 mustChangePassword 已随 userInfo 持久化，
+    // 恢复会话时必须还原，否则刷新后强制改密锁失效，
+    // 业务接口全部 403 PASSWORD_CHANGE_REQUIRED 被当成"暂无关联牧场"。
+    mustChangePassword: userInfo['mustChangePassword'] == true,
   );
 }
 // build-1783647087

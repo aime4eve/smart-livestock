@@ -45,6 +45,9 @@ void main() {
             .overrideWith(() => _NoFarmController()),
       ],
       child: const MaterialApp(
+        // 空态文案已走 l10n，固定中文断言需要显式指定 locale
+        //（测试环境默认 locale 会解析到英文文案）。
+        locale: Locale('zh'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: MainShell(

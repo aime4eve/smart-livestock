@@ -33,17 +33,23 @@ class FarmSwitcherState {
     this.activeFarmId,
     this.isLoading = false,
     this.error,
+    this.loadFailed = false,
   });
   const FarmSwitcherState.empty()
       : farms = const [],
         activeFarmId = null,
         isLoading = false,
-        error = null;
+        error = null,
+        loadFailed = false;
 
   final List<FarmInfo> farms;
   final String? activeFarmId;
   final bool isLoading;
   final String? error;
+
+  /// 终态标记：本次加载已失败，MainShell 不得再自动触发
+  ///（否则 build→loadFarms→失败→重建 形成每秒 ~30 次的请求风暴）。
+  final bool loadFailed;
 
   bool get hasMultipleFarms => farms.length > 1;
   bool get hasFarms => farms.isNotEmpty;
@@ -85,6 +91,7 @@ class FarmSwitcherController extends Notifier<FarmSwitcherState> {
   }
 
   Future<void> loadFarms() async {
+    if (state.isLoading) return;
     state = const FarmSwitcherState(farms: [], isLoading: true);
     try {
       final data = await ApiClient.instance.get('/farms');
@@ -118,8 +125,16 @@ class FarmSwitcherController extends Notifier<FarmSwitcherState> {
       state = FarmSwitcherState(farms: farms, activeFarmId: activeFarmId);
     } on AuthException {
       state = const FarmSwitcherState.empty();
+    } on ApiException catch (e) {
+      // 页面刷新后 _restoreSession 会丢失强制改密锁（NIX-191），第一个被拒的
+      // /farms 在这里把锁装回 session，让路由把用户送回改密页，
+      // 而不是把 403 当成"暂无关联牧场"。
+      if (e.code == 'PASSWORD_CHANGE_REQUIRED') {
+        ref.read(sessionControllerProvider.notifier).lockForPasswordChange();
+      }
+      state = const FarmSwitcherState(farms: [], error: '加载牧场失败', loadFailed: true);
     } catch (e) {
-      state = const FarmSwitcherState(farms: [], error: '加载牧场失败');
+      state = const FarmSwitcherState(farms: [], error: '加载牧场失败', loadFailed: true);
     }
   }
 

@@ -41,8 +41,15 @@ class MainShell extends ConsumerWidget {
         role == UserRole.owner || role == UserRole.worker;
     final farmState =
         showFarmContext ? ref.watch(farmSwitcherControllerProvider) : null;
-    // Trigger farm loading when owner/worker logs in and farms haven't been loaded yet
-    if (showFarmContext && farmState != null && !farmState.hasFarms && !farmState.isLoading) {
+    // Trigger farm loading when owner/worker logs in and farms haven't been
+    // loaded yet. loadFailed 是终态：失败后不再自动重试（否则每次 build 都会
+    // 重新发起请求，形成 ~30 req/s 的风暴）；改密锁解除后由
+    // SessionController.markPasswordChanged 统一补一次加载。
+    if (showFarmContext &&
+        farmState != null &&
+        !farmState.hasFarms &&
+        !farmState.isLoading &&
+        !farmState.loadFailed) {
       Future.microtask(() {
         ref.read(farmSwitcherControllerProvider.notifier).loadFarms();
       });
@@ -154,7 +161,7 @@ class _FarmEmptyGuidance extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Text(
-          '暂无关联牧场，请联系管理员为您分配牧场。',
+          AppLocalizations.of(context)!.farmEmptyGuidance,
           style: Theme.of(context).textTheme.titleMedium,
           textAlign: TextAlign.center,
         ),

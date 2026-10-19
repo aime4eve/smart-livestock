@@ -52,10 +52,27 @@ class SessionController extends Notifier<AppSession> {
     JwtStorage.instance.saveActiveFarmId(farmId);
   }
 
+  /// NIX-191: re-arms the forced password-change lock when a restored session
+  /// turns out to still carry must_change_password (first PASSWORD_CHANGE_REQUIRED
+  /// 403 after a page refresh). The router sends the user to the change page.
+  void lockForPasswordChange() {
+    if (!state.isLoggedIn || state.mustChangePassword) return;
+    state = state.copyWith(mustChangePassword: true);
+  }
+
   /// NIX-191: clears the forced password-change lock after the initial
   /// password has been replaced successfully.
   void markPasswordChanged() {
     state = state.copyWith(mustChangePassword: false);
+    // 改密锁生效期间 /farms 会被拦截器拒掉，loadFarms 以 loadFailed 终态收场；
+    // 锁一解除就补一次加载，牧场页无需重启应用。
+    final role = state.role;
+    if (role == UserRole.owner || role == UserRole.worker) {
+      final farms = ref.read(farmSwitcherControllerProvider);
+      if (!farms.hasFarms && !farms.isLoading) {
+        ref.read(farmSwitcherControllerProvider.notifier).loadFarms();
+      }
+    }
   }
 
   Future<void> logout() async {

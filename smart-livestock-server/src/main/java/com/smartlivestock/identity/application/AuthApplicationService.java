@@ -22,7 +22,8 @@ public class AuthApplicationService {
     private final JwtTokenProvider jwtTokenProvider;
     private final com.smartlivestock.identity.domain.repository.TenantRepository tenantRepository;
 
-    @Transactional(readOnly = true)
+    // 写事务：recordLogin 需要落库（last_login_at）；readOnly 会让 save 静默不 flush。
+    @Transactional
     public AuthTokenDto login(LoginCommand command) {
         // Identifier routing (ruling 2026-10-12): email → phone (E.164 +
         // legacy bare-number fallback) → account. Message stays generic

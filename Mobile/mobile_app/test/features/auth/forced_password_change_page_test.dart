@@ -26,14 +26,17 @@ void main() {
     await tester.tap(find.byKey(const Key('forced-submit')));
     await tester.pump();
 
-    expect(find.text('新密码至少 10 位，且必须同时包含字母和数字'), findsOneWidget);
+    // 密码策略(2026-10-15)：≥8 位 + 大写/小写/数字/特殊符号
+    expect(find.text('新密码至少 8 位，且须包含大写字母、小写字母、数字和特殊符号'),
+        findsOneWidget);
   });
 
   testWidgets('mismatched confirmation surfaces the mismatch error', (tester) async {
     await pumpPage(tester);
     await tester.enterText(find.byKey(const Key('forced-current')), 'OldPass123');
-    await tester.enterText(find.byKey(const Key('forced-new')), 'NewPass123456');
-    await tester.enterText(find.byKey(const Key('forced-confirm')), 'NewPass654321');
+    // 两侧都满足新策略，才不会先被强度校验拦下，走不到一致性检查
+    await tester.enterText(find.byKey(const Key('forced-new')), 'NewPass#123');
+    await tester.enterText(find.byKey(const Key('forced-confirm')), 'NewPass#456');
     await tester.tap(find.byKey(const Key('forced-submit')));
     await tester.pump();
 
