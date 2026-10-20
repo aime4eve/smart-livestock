@@ -12,6 +12,7 @@ import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/core/widgets/phone_field.dart';
+import 'package:hkt_livestock_agentic/features/auth/presentation/acting_as_banner.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_card.dart';
 import 'package:hkt_livestock_agentic/features/highfi/widgets/highfi_status_chip.dart';
 import 'package:hkt_livestock_agentic/features/mine/presentation/mine_controller.dart';
@@ -543,7 +544,8 @@ class MinePage extends ConsumerWidget {
 
   Widget _buildLogoutSection(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    return HighfiCard(
+    final session = ref.watch(sessionControllerProvider);
+    final logoutCard = HighfiCard(
       child: ListTile(
         key: const Key('mine-logout'),
         contentPadding: EdgeInsets.zero,
@@ -574,6 +576,28 @@ class MinePage extends ConsumerWidget {
           );
         },
       ),
+    );
+    // Super-admin context sessions get a switch-identity entry above logout
+    // (UI spec §3 mount point 5; same behavior as the banner's switch).
+    if (!session.impersonated) {
+      return logoutCard;
+    }
+    return Column(
+      children: [
+        HighfiCard(
+          child: ListTile(
+            key: const Key('mine-switch-identity'),
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.swap_horiz, color: AppColors.warning),
+            title: Text(l10n.superMineSwitchIdentity,
+                style: const TextStyle(
+                    fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+            onTap: () => showQuickSwitchSheet(context),
+          ),
+        ),
+        const SizedBox(height: 8),
+        logoutCard,
+      ],
     );
   }
 }

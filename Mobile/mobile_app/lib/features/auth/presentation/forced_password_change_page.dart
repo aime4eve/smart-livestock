@@ -59,10 +59,15 @@ class _ForcedPasswordChangePageState
         content: Text(l10n.forcedChangeSuccess),
         backgroundColor: AppColors.success,
       ));
-      final role = ref.read(sessionControllerProvider).role;
-      context.go(role == UserRole.platformAdmin
-          ? AppRoute.platformAdmin.path
-          : AppRoute.ranch.path);
+      final session = ref.read(sessionControllerProvider);
+      // Root super-admin sessions land on the context picker after the
+      // forced change (design 2026-10-19 §4.7); switched context sessions
+      // navigate by their context role like everyone else.
+      context.go(session.role == UserRole.superAdmin && !session.impersonated
+          ? AppRoute.selectContext.path
+          : (session.role == UserRole.platformAdmin
+              ? AppRoute.platformAdmin.path
+              : AppRoute.ranch.path));
     } on AuthException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(

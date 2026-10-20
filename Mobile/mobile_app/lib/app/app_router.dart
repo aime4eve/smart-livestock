@@ -14,6 +14,7 @@ import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 import 'package:hkt_livestock_agentic/features/auth/login_page.dart';
+import 'package:hkt_livestock_agentic/features/auth/presentation/context_picker_page.dart';
 import 'package:hkt_livestock_agentic/features/auth/presentation/forced_password_change_page.dart'
     as features_auth;
 import 'package:hkt_livestock_agentic/features/b2b_admin/presentation/b2b_contract_page.dart';
@@ -97,6 +98,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       final role = session.role!;
+
+      // Super-admin root session (design 2026-10-19 §4.7): the picker is the
+      // only destination until an entry context is chosen. Switched context
+      // sessions (impersonated) fall through to the normal role branches —
+      // the context token carries the target role.
+      if (role == UserRole.superAdmin && !session.impersonated) {
+        const pickerPath = '/select-context';
+        return location == pickerPath ? null : pickerPath;
+      }
+
       if (role == UserRole.platformAdmin) {
         return location.startsWith(AppRoute.platformAdmin.path) ||
                 location.startsWith('/admin/')
@@ -131,6 +142,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return AppRoute.ranch.path;
       }
 
+      // Switched context sessions (impersonated OWNER/WORKER) land back on
+      // the picker right after the confirm sheet — the picker is root-only,
+      // so route them to their role home. Platform/B2B contexts are already
+      // redirected by their own branches above (2026-10-20 fix: without
+      // this the ranch page never appeared after tapping "进入").
+      if (location == AppRoute.selectContext.path) {
+        return AppRoute.ranch.path;
+      }
+
       return null;
     },
     routes: [
@@ -138,6 +158,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoute.login.path,
         name: AppRoute.login.routeName,
         builder: (context, state) => const LoginPage(),
+      ),
+      // Super-admin entry-context picker (design 2026-10-19): top-level,
+      // outside shells — the redirect above sends every root SUPER_ADMIN
+      // session here until a context is chosen.
+      GoRoute(
+        path: AppRoute.selectContext.path,
+        name: AppRoute.selectContext.routeName,
+        builder: (context, state) => const ContextPickerPage(),
       ),
       // NIX-191: forced initial-password change (top-level, outside shells —
       // the redirect lock above routes every other location here until done).

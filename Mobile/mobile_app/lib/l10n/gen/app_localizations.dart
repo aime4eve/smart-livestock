@@ -13580,6 +13580,294 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'两次输入的密码不一致'**
   String get userCreateConfirmMismatch;
+
+  /// No description provided for @superPickerTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择进入身份'**
+  String get superPickerTitle;
+
+  /// No description provided for @superPickerSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'登录成功，请选择本次会话的进入身份'**
+  String get superPickerSubtitle;
+
+  /// No description provided for @superPickerAuditNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'进入后的页面与数据范围，与所选角色的真实用户完全一致；全程记录审计日志。'**
+  String get superPickerAuditNote;
+
+  /// No description provided for @superPickerRolePlatformAdmin.
+  ///
+  /// In zh, this message translates to:
+  /// **'平台管理员'**
+  String get superPickerRolePlatformAdmin;
+
+  /// No description provided for @superPickerRoleB2bAdmin.
+  ///
+  /// In zh, this message translates to:
+  /// **'租户管理员'**
+  String get superPickerRoleB2bAdmin;
+
+  /// No description provided for @superPickerRoleOwner.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧场主'**
+  String get superPickerRoleOwner;
+
+  /// No description provided for @superPickerRoleWorker.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧工'**
+  String get superPickerRoleWorker;
+
+  /// No description provided for @superPickerDescPlatformAdmin.
+  ///
+  /// In zh, this message translates to:
+  /// **'平台运维 · 租户与用户管理 · 审计查询'**
+  String get superPickerDescPlatformAdmin;
+
+  /// No description provided for @superPickerDescB2bAdmin.
+  ///
+  /// In zh, this message translates to:
+  /// **'B2B 控制台 · 设备 · 成员 · 订阅'**
+  String get superPickerDescB2bAdmin;
+
+  /// No description provided for @superPickerDescOwner.
+  ///
+  /// In zh, this message translates to:
+  /// **'牧场完整功能 · 畜群 · 围栏 · 告警'**
+  String get superPickerDescOwner;
+
+  /// No description provided for @superPickerDescWorker.
+  ///
+  /// In zh, this message translates to:
+  /// **'日常作业视角 · 以查看为主'**
+  String get superPickerDescWorker;
+
+  /// No description provided for @superPickerScopePlatform.
+  ///
+  /// In zh, this message translates to:
+  /// **'平台级 · 免选租户'**
+  String get superPickerScopePlatform;
+
+  /// No description provided for @superPickerScopeTenant.
+  ///
+  /// In zh, this message translates to:
+  /// **'需选租户'**
+  String get superPickerScopeTenant;
+
+  /// No description provided for @superPickerLogout.
+  ///
+  /// In zh, this message translates to:
+  /// **'退出登录'**
+  String get superPickerLogout;
+
+  /// No description provided for @superPickerBadge.
+  ///
+  /// In zh, this message translates to:
+  /// **'超级管理员'**
+  String get superPickerBadge;
+
+  /// No description provided for @superTenantTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择租户'**
+  String get superTenantTitle;
+
+  /// No description provided for @superTenantSearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索租户名称'**
+  String get superTenantSearchHint;
+
+  /// No description provided for @superTenantCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'共 {count} 个租户（已删除的不显示）'**
+  String superTenantCount(int count);
+
+  /// No description provided for @superTenantDisabledHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'排障可进入'**
+  String get superTenantDisabledHint;
+
+  /// No description provided for @superTenantTrialExpired.
+  ///
+  /// In zh, this message translates to:
+  /// **'试点已到期'**
+  String get superTenantTrialExpired;
+
+  /// No description provided for @superTenantNotEnterable.
+  ///
+  /// In zh, this message translates to:
+  /// **'不可进入'**
+  String get superTenantNotEnterable;
+
+  /// No description provided for @superTenantPhaseTrial.
+  ///
+  /// In zh, this message translates to:
+  /// **'试点'**
+  String get superTenantPhaseTrial;
+
+  /// No description provided for @superTenantPhaseBatch.
+  ///
+  /// In zh, this message translates to:
+  /// **'批量'**
+  String get superTenantPhaseBatch;
+
+  /// No description provided for @superTenantFarms.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 个牧场'**
+  String superTenantFarms(int count);
+
+  /// No description provided for @superConfirmTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认进入身份'**
+  String get superConfirmTitle;
+
+  /// No description provided for @superConfirmBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'将以「{tenant} · {role}」身份进入系统，进入后可随时在顶部横幅切换或退出该身份。'**
+  String superConfirmBody(String tenant, String role);
+
+  /// No description provided for @superConfirmAuditNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'本次会话内的操作将以该身份记录审计日志（含超管代登标记）。'**
+  String get superConfirmAuditNote;
+
+  /// No description provided for @superConfirmDisabledWarning.
+  ///
+  /// In zh, this message translates to:
+  /// **'该租户已停用：数据可能不是最新状态，仅建议用于售后排障查看。'**
+  String get superConfirmDisabledWarning;
+
+  /// No description provided for @superConfirmEnter.
+  ///
+  /// In zh, this message translates to:
+  /// **'进入'**
+  String get superConfirmEnter;
+
+  /// No description provided for @superConfirmEnterAnyway.
+  ///
+  /// In zh, this message translates to:
+  /// **'仍要进入'**
+  String get superConfirmEnterAnyway;
+
+  /// No description provided for @superActionCancel.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消'**
+  String get superActionCancel;
+
+  /// No description provided for @superTenantStatusActive.
+  ///
+  /// In zh, this message translates to:
+  /// **'正常'**
+  String get superTenantStatusActive;
+
+  /// No description provided for @superTenantStatusDisabled.
+  ///
+  /// In zh, this message translates to:
+  /// **'已停用'**
+  String get superTenantStatusDisabled;
+
+  /// No description provided for @superBannerTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'超管代登'**
+  String get superBannerTag;
+
+  /// No description provided for @superBannerActingAs.
+  ///
+  /// In zh, this message translates to:
+  /// **'以【{tenant} · {role}】身份操作'**
+  String superBannerActingAs(String tenant, String role);
+
+  /// No description provided for @superBannerActingAsPlatform.
+  ///
+  /// In zh, this message translates to:
+  /// **'以【{role}】身份操作'**
+  String superBannerActingAsPlatform(String role);
+
+  /// No description provided for @superBannerAuditSubtext.
+  ///
+  /// In zh, this message translates to:
+  /// **'本次会话操作将记录审计日志'**
+  String get superBannerAuditSubtext;
+
+  /// No description provided for @superBannerSwitch.
+  ///
+  /// In zh, this message translates to:
+  /// **'切换'**
+  String get superBannerSwitch;
+
+  /// No description provided for @superBannerExit.
+  ///
+  /// In zh, this message translates to:
+  /// **'退出'**
+  String get superBannerExit;
+
+  /// No description provided for @superBannerSwitchExpired.
+  ///
+  /// In zh, this message translates to:
+  /// **'免密切换已过期，请退出后重新登录'**
+  String get superBannerSwitchExpired;
+
+  /// No description provided for @superSwitchTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'切换身份'**
+  String get superSwitchTitle;
+
+  /// No description provided for @superSwitchCurrent.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前：{value}'**
+  String superSwitchCurrent(String value);
+
+  /// No description provided for @superSwitchRecent.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近使用'**
+  String get superSwitchRecent;
+
+  /// No description provided for @superSwitchMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择其他身份…'**
+  String get superSwitchMore;
+
+  /// No description provided for @superSwitchMoreSub.
+  ///
+  /// In zh, this message translates to:
+  /// **'返回完整选择器'**
+  String get superSwitchMoreSub;
+
+  /// No description provided for @superSwitchLogoutAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'退出全部身份并登出'**
+  String get superSwitchLogoutAll;
+
+  /// No description provided for @superSwitchExpiryHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'免密切换在登录后 60 分钟内可用，超时需重新登录'**
+  String get superSwitchExpiryHint;
+
+  /// No description provided for @superMineSwitchIdentity.
+  ///
+  /// In zh, this message translates to:
+  /// **'切换身份'**
+  String get superMineSwitchIdentity;
 }
 
 class _AppLocalizationsDelegate

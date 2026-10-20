@@ -7371,4 +7371,160 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get userCreateConfirmMismatch => '两次输入的密码不一致';
+
+  @override
+  String get superPickerTitle => '选择进入身份';
+
+  @override
+  String get superPickerSubtitle => '登录成功，请选择本次会话的进入身份';
+
+  @override
+  String get superPickerAuditNote => '进入后的页面与数据范围，与所选角色的真实用户完全一致；全程记录审计日志。';
+
+  @override
+  String get superPickerRolePlatformAdmin => '平台管理员';
+
+  @override
+  String get superPickerRoleB2bAdmin => '租户管理员';
+
+  @override
+  String get superPickerRoleOwner => '牧场主';
+
+  @override
+  String get superPickerRoleWorker => '牧工';
+
+  @override
+  String get superPickerDescPlatformAdmin => '平台运维 · 租户与用户管理 · 审计查询';
+
+  @override
+  String get superPickerDescB2bAdmin => 'B2B 控制台 · 设备 · 成员 · 订阅';
+
+  @override
+  String get superPickerDescOwner => '牧场完整功能 · 畜群 · 围栏 · 告警';
+
+  @override
+  String get superPickerDescWorker => '日常作业视角 · 以查看为主';
+
+  @override
+  String get superPickerScopePlatform => '平台级 · 免选租户';
+
+  @override
+  String get superPickerScopeTenant => '需选租户';
+
+  @override
+  String get superPickerLogout => '退出登录';
+
+  @override
+  String get superPickerBadge => '超级管理员';
+
+  @override
+  String get superTenantTitle => '选择租户';
+
+  @override
+  String get superTenantSearchHint => '搜索租户名称';
+
+  @override
+  String superTenantCount(int count) {
+    return '共 $count 个租户（已删除的不显示）';
+  }
+
+  @override
+  String get superTenantDisabledHint => '排障可进入';
+
+  @override
+  String get superTenantTrialExpired => '试点已到期';
+
+  @override
+  String get superTenantNotEnterable => '不可进入';
+
+  @override
+  String get superTenantPhaseTrial => '试点';
+
+  @override
+  String get superTenantPhaseBatch => '批量';
+
+  @override
+  String superTenantFarms(int count) {
+    return '$count 个牧场';
+  }
+
+  @override
+  String get superConfirmTitle => '确认进入身份';
+
+  @override
+  String superConfirmBody(String tenant, String role) {
+    return '将以「$tenant · $role」身份进入系统，进入后可随时在顶部横幅切换或退出该身份。';
+  }
+
+  @override
+  String get superConfirmAuditNote => '本次会话内的操作将以该身份记录审计日志（含超管代登标记）。';
+
+  @override
+  String get superConfirmDisabledWarning => '该租户已停用：数据可能不是最新状态，仅建议用于售后排障查看。';
+
+  @override
+  String get superConfirmEnter => '进入';
+
+  @override
+  String get superConfirmEnterAnyway => '仍要进入';
+
+  @override
+  String get superActionCancel => '取消';
+
+  @override
+  String get superTenantStatusActive => '正常';
+
+  @override
+  String get superTenantStatusDisabled => '已停用';
+
+  @override
+  String get superBannerTag => '超管代登';
+
+  @override
+  String superBannerActingAs(String tenant, String role) {
+    return '以【$tenant · $role】身份操作';
+  }
+
+  @override
+  String superBannerActingAsPlatform(String role) {
+    return '以【$role】身份操作';
+  }
+
+  @override
+  String get superBannerAuditSubtext => '本次会话操作将记录审计日志';
+
+  @override
+  String get superBannerSwitch => '切换';
+
+  @override
+  String get superBannerExit => '退出';
+
+  @override
+  String get superBannerSwitchExpired => '免密切换已过期，请退出后重新登录';
+
+  @override
+  String get superSwitchTitle => '切换身份';
+
+  @override
+  String superSwitchCurrent(String value) {
+    return '当前：$value';
+  }
+
+  @override
+  String get superSwitchRecent => '最近使用';
+
+  @override
+  String get superSwitchMore => '选择其他身份…';
+
+  @override
+  String get superSwitchMoreSub => '返回完整选择器';
+
+  @override
+  String get superSwitchLogoutAll => '退出全部身份并登出';
+
+  @override
+  String get superSwitchExpiryHint => '免密切换在登录后 60 分钟内可用，超时需重新登录';
+
+  @override
+  String get superMineSwitchIdentity => '切换身份';
 }

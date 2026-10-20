@@ -50,12 +50,13 @@ public class FarmController {
     public ResponseEntity<ApiResponse<FarmDto>> createFarm(@RequestBody Map<String, Object> body) {
         Long userId = getCurrentUserId();
 
-        var userOpt = userRepository.findById(userId);
-        if (userOpt.isEmpty()) {
-            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "用户不存在");
-        }
-        var user = userOpt.get();
-        if (!user.isOwner() && !user.getRole().name().equals("B2B_ADMIN")) {
+        // Authorization follows the token authorities (JwtAuthenticationFilter),
+        // never the stored user row: a super-admin OWNER/B2B_ADMIN context must
+        // pass exactly like a real user (design 2026-10-19 §4.5). The
+        // downstream autoAssignOwner still checks the stored row, so a context
+        // entry never lands in the tenant's member assignments.
+        boolean isOwnerContext = hasAuthority("ROLE_OWNER");
+        if (!isOwnerContext && !hasAuthority("ROLE_B2B_ADMIN")) {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "仅 owner 或 b2b_admin 可创建牧场");
         }
 
@@ -88,11 +89,17 @@ public class FarmController {
         Long ownerId = null;
         if (body.get("ownerId") != null) {
             ownerId = ((Number) body.get("ownerId")).longValue();
-        } else if (user.isOwner()) {
+        } else if (isOwnerContext) {
             ownerId = userId;
         }
         FarmDto farm = farmApplicationService.createFarm(tenantId, command, ownerId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(farm));
+    }
+
+    private boolean hasAuthority(String required) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> required.equals(a.getAuthority()));
     }
 
     @GetMapping("/farms/{farmId}")

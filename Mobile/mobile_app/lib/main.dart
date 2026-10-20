@@ -70,12 +70,35 @@ Future<AppSession> _restoreSession() async {
   if (token == null) return AppSession.loggedOut;
 
   final payload = JwtDecoder.tryDecode(token);
-  if (payload == null) {
-    await JwtStorage.instance.clear();
-    return AppSession.loggedOut;
-  }
-
-  if (JwtDecoder.isExpired(payload)) {
+  final tokenDead = payload == null || JwtDecoder.isExpired(payload);
+  if (tokenDead) {
+    // Super-admin context entry (design 2026-10-19 §4.2): when the context
+    // token is gone but the root token is still alive, restore the root
+    // (picker) session instead of a full logout — quick switch stays
+    // passwordless within the token lifetime.
+    final rootToken = await JwtStorage.instance.getRootToken();
+    final rootInfo = await JwtStorage.instance.getRootUserInfo();
+    final rootPayload =
+        rootToken == null ? null : JwtDecoder.tryDecode(rootToken);
+    if (rootToken != null &&
+        rootInfo != null &&
+        rootPayload != null &&
+        !JwtDecoder.isExpired(rootPayload)) {
+      await JwtStorage.instance.saveAccessToken(rootToken);
+      await JwtStorage.instance.saveUserInfo(rootInfo);
+      await JwtStorage.instance.clearRoot();
+      await JwtStorage.instance.deleteActiveFarmId();
+      return AppSession.authenticated(
+        role: UserRole.fromString(rootPayload['role'] as String? ?? ''),
+        accessToken: rootToken,
+        userId: rootInfo['id'] as int?,
+        userName: rootInfo['name'] as String?,
+        phone: rootInfo['phone'] as String?,
+        tenantId: rootInfo['tenantId'] as int?,
+        username: rootInfo['username'] as String?,
+        mustChangePassword: rootInfo['mustChangePassword'] == true,
+      );
+    }
     await JwtStorage.instance.clear();
     return AppSession.loggedOut;
   }
@@ -105,6 +128,10 @@ Future<AppSession> _restoreSession() async {
     // 恢复会话时必须还原，否则刷新后强制改密锁失效，
     // 业务接口全部 403 PASSWORD_CHANGE_REQUIRED 被当成"暂无关联牧场"。
     mustChangePassword: userInfo['mustChangePassword'] == true,
+    // Super-admin context token: the act claim marks the switched session;
+    // the banner needs the display tenant name stashed at switch time.
+    impersonated: payload['act'] != null,
+    impersonatedTenantName: userInfo['impersonatedTenantName'] as String?,
   );
 }
 // build-1783647087

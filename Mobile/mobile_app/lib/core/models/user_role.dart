@@ -7,7 +7,8 @@ enum UserRole {
   worker,
   platformAdmin,
   b2bAdmin,
-  apiConsumer;
+  apiConsumer,
+  superAdmin;
 
   static UserRole fromString(String value) {
     return switch (value.toUpperCase()) {
@@ -16,6 +17,7 @@ enum UserRole {
       'PLATFORM_ADMIN' => UserRole.platformAdmin,
       'B2B_ADMIN' => UserRole.b2bAdmin,
       'API_CONSUMER' => UserRole.apiConsumer,
+      'SUPER_ADMIN' => UserRole.superAdmin,
       _ => _unknown(value),
     };
   }
@@ -32,6 +34,7 @@ enum UserRole {
         platformAdmin => 'platform_admin',
         b2bAdmin => 'b2b_admin',
         apiConsumer => 'api_consumer',
+        superAdmin => 'super_admin',
       };
 
   bool get canAccessAdminTab => this == UserRole.owner;
@@ -40,4 +43,9 @@ enum UserRole {
   bool get isApiConsumer => this == UserRole.apiConsumer;
   bool get isOwner => this == UserRole.owner;
   bool get isWorker => this == UserRole.worker;
+
+  /// Root super-admin identity: login-only, no business authority — the
+  /// session enters the system via a switched context token instead
+  /// (design 2026-10-19 §4.1).
+  bool get isSuperAdmin => this == UserRole.superAdmin;
 }

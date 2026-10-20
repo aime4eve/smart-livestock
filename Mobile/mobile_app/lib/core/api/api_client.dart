@@ -383,6 +383,70 @@ class ApiClient {
   Future<void> logout() async {
     await JwtStorage.instance.clear();
   }
+
+  // ── Super-admin context entry (design 2026-10-19 §4.3) ───────────
+  // Both calls authorize with the ROOT super-admin token explicitly: they
+  // must keep working while a context token is the active session, and the
+  // server rejects any non-root caller (anti escalation).
+
+  Future<Map<String, dynamic>> entryContexts() async {
+    final token = await JwtStorage.instance.getRootToken() ??
+        await JwtStorage.instance.getAccessToken();
+    final response = await http.get(
+      Uri.parse('$_baseUrl/auth/entry-contexts'),
+      headers: {
+        'Content-Type': 'application/json',
+        if (_localeHeader != null) 'Accept-Language': _localeHeader!,
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+    ).timeout(_timeout);
+    return _handleResponse(response);
+  }
+
+  /// Returns the switch response data {accessToken, user, impersonated} and
+  /// persists it as the active session; the root token stays untouched in
+  /// storage for exit / quick switch. [tenantName] is display-only metadata
+  /// stored alongside the user info for the acting-as banner.
+  Future<Map<String, dynamic>> switchContext({
+    required String role,
+    int? tenantId,
+    String? tenantName,
+  }) async {
+    final rootToken = await JwtStorage.instance.getRootToken() ??
+        await JwtStorage.instance.getAccessToken();
+    final response = await http.post(
+      Uri.parse('$_baseUrl/auth/switch-context'),
+      headers: {
+        'Content-Type': 'application/json',
+        if (_localeHeader != null) 'Accept-Language': _localeHeader!,
+        if (rootToken != null) 'Authorization': 'Bearer $rootToken',
+      },
+      body: jsonEncode({
+        'role': role,
+        if (tenantId != null) 'tenantId': tenantId,
+      }),
+    ).timeout(_timeout);
+
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode != 200) {
+      throw AuthException(
+        message: body['message'] as String? ?? '切换身份失败',
+        statusCode: response.statusCode,
+        code: body['code'] as String?,
+      );
+    }
+
+    final data = body['data'] as Map<String, dynamic>;
+    final token = data['accessToken'] as String;
+    final user = data['user'] as Map<String, dynamic>;
+    if (tenantName != null) {
+      user['impersonatedTenantName'] = tenantName;
+    }
+    await JwtStorage.instance.saveAccessToken(token);
+    await JwtStorage.instance.saveUserInfo(user);
+    return data;
+  }
+
   /// Upload a file via multipart/form-data POST.
   /// The response is parsed through the standard JSON handler.
   /// Optional [fields] are added as extra multipart form fields.

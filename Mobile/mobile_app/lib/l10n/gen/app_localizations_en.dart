@@ -7550,4 +7550,170 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get userCreateConfirmMismatch => 'Passwords do not match';
+
+  @override
+  String get superPickerTitle => 'Choose an identity to enter';
+
+  @override
+  String get superPickerSubtitle =>
+      'Logged in. Choose the identity for this session';
+
+  @override
+  String get superPickerAuditNote =>
+      'Pages and data scope match a real user of the chosen role; every action is audited.';
+
+  @override
+  String get superPickerRolePlatformAdmin => 'Platform admin';
+
+  @override
+  String get superPickerRoleB2bAdmin => 'Tenant admin';
+
+  @override
+  String get superPickerRoleOwner => 'Farm owner';
+
+  @override
+  String get superPickerRoleWorker => 'Worker';
+
+  @override
+  String get superPickerDescPlatformAdmin =>
+      'Platform ops · tenant & user management · audit';
+
+  @override
+  String get superPickerDescB2bAdmin =>
+      'B2B console · devices · members · subscriptions';
+
+  @override
+  String get superPickerDescOwner =>
+      'Full farm features · herd · fences · alerts';
+
+  @override
+  String get superPickerDescWorker =>
+      'Daily operations view · mostly read-only';
+
+  @override
+  String get superPickerScopePlatform => 'Platform-wide · no tenant';
+
+  @override
+  String get superPickerScopeTenant => 'Tenant required';
+
+  @override
+  String get superPickerLogout => 'Log out';
+
+  @override
+  String get superPickerBadge => 'Super admin';
+
+  @override
+  String get superTenantTitle => 'Select tenant';
+
+  @override
+  String get superTenantSearchHint => 'Search tenant name';
+
+  @override
+  String superTenantCount(int count) {
+    return '$count tenants (deleted hidden)';
+  }
+
+  @override
+  String get superTenantDisabledHint => 'Enterable for triage';
+
+  @override
+  String get superTenantTrialExpired => 'Trial expired';
+
+  @override
+  String get superTenantNotEnterable => 'Not enterable';
+
+  @override
+  String get superTenantPhaseTrial => 'Trial';
+
+  @override
+  String get superTenantPhaseBatch => 'Batch';
+
+  @override
+  String superTenantFarms(int count) {
+    return '$count farms';
+  }
+
+  @override
+  String get superConfirmTitle => 'Confirm entry identity';
+
+  @override
+  String superConfirmBody(String tenant, String role) {
+    return 'You will enter as \"$tenant · $role\"; switch or exit anytime from the top banner.';
+  }
+
+  @override
+  String get superConfirmAuditNote =>
+      'Actions in this session are audited under that identity (with the super-admin marker).';
+
+  @override
+  String get superConfirmDisabledWarning =>
+      'This tenant is disabled: data may be stale; recommended for support triage only.';
+
+  @override
+  String get superConfirmEnter => 'Enter';
+
+  @override
+  String get superConfirmEnterAnyway => 'Enter anyway';
+
+  @override
+  String get superActionCancel => 'Cancel';
+
+  @override
+  String get superTenantStatusActive => 'Active';
+
+  @override
+  String get superTenantStatusDisabled => 'Disabled';
+
+  @override
+  String get superBannerTag => 'Super-admin session';
+
+  @override
+  String superBannerActingAs(String tenant, String role) {
+    return 'acting as $tenant · $role';
+  }
+
+  @override
+  String superBannerActingAsPlatform(String role) {
+    return 'acting as $role';
+  }
+
+  @override
+  String get superBannerAuditSubtext => 'Actions in this session are audited';
+
+  @override
+  String get superBannerSwitch => 'Switch';
+
+  @override
+  String get superBannerExit => 'Exit';
+
+  @override
+  String get superBannerSwitchExpired =>
+      'Passwordless switch expired — log in again after exiting';
+
+  @override
+  String get superSwitchTitle => 'Switch identity';
+
+  @override
+  String superSwitchCurrent(String value) {
+    return 'Current: $value';
+  }
+
+  @override
+  String get superSwitchRecent => 'Recently used';
+
+  @override
+  String get superSwitchMore => 'Choose another identity…';
+
+  @override
+  String get superSwitchMoreSub => 'Back to the full picker';
+
+  @override
+  String get superSwitchLogoutAll => 'Exit all identities and log out';
+
+  @override
+  String get superSwitchExpiryHint =>
+      'Passwordless switching works within 60 minutes of login';
+
+  @override
+  String get superMineSwitchIdentity => 'Switch identity';
 }

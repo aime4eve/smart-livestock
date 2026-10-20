@@ -2,6 +2,7 @@ package com.smartlivestock.shared.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Map;
 
 @Component
 public class JwtTokenProvider {
@@ -30,13 +32,28 @@ public class JwtTokenProvider {
     }
 
     public String generateToken(Long userId, Long tenantId, String role) {
+        return generateToken(userId, tenantId, role, null);
+    }
+
+    /**
+     * Context tokens (super-admin role entry, design 2026-10-19 §4.2) carry an
+     * RFC 8693 style "act" delegation claim: sub keeps pointing at the real
+     * super-admin user while role/tid carry the chosen entry context, so the
+     * token stays structurally identical to a real user token. The act claim
+     * must survive refresh unchanged (see {@link #refreshToken}).
+     */
+    public String generateToken(Long userId, Long tenantId, String role, Map<String, Object> act) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + accessExpiration);
 
-        return Jwts.builder()
+        JwtBuilder builder = Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim("tid", tenantId)
-                .claim("role", role)
+                .claim("role", role);
+        if (act != null && !act.isEmpty()) {
+            builder.claim("act", act);
+        }
+        return builder
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(key)
@@ -93,10 +110,13 @@ public class JwtTokenProvider {
         } catch (JwtException | IllegalArgumentException e) {
             return null;
         }
+        @SuppressWarnings("unchecked")
+        Map<String, Object> act = (Map<String, Object>) claims.get("act");
         return generateToken(
                 Long.valueOf(claims.getSubject()),
                 claims.get("tid", Long.class),
-                claims.get("role", String.class)
+                claims.get("role", String.class),
+                act
         );
     }
 }

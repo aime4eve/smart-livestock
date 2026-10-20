@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>超管选角色进入系统 — HTML 高保真原型（2026-10-19）</title>
+<style>
+  /* === Design Tokens（对齐 core/theme/app_colors.dart / app_spacing.dart，新增项仅 4 个角色 soft 底） === */
+  :root {
+    --color-primary:       #2F6B3B;
+    --color-primary-dark:  #244F2D;
+    --color-primary-soft:  #E3F0E4;
+    --color-accent:        #8BA95A;
+    --color-surface:       #F8F6F0;
+    --color-white:         #FFFFFF;
+    --color-text-primary:  #263126;
+    --color-text-secondary:#617061;
+    --color-success:       #4C9A5F;
+    --color-success-soft:  #E3F0E4;
+    --color-warning:       #D28A2D;
+    --color-warning-soft:  #F7ECDC;
+    --color-danger:        #C2564B;
+    --color-danger-soft:   #F6E4E2;
+    --color-info:          #4A7F9D;
+    --color-info-soft:     #E2EDF3;
+    --color-border:        #D7D2C6;
+
+    /* 角色识别色（全部取自既有色板家族） */
+    --role-platform:       #4A7F9D;  /* 平台管理员 = info 蓝 */
+    --role-platform-soft:  #E2EDF3;
+    --role-b2b:            #8D6E4F;  /* 租户管理员 = digestive 棕 */
+    --role-b2b-soft:       #F0E9E0;
+    --role-owner:          #2F6B3B;  /* 牧场主 = primary 绿 */
+    --role-owner-soft:     #E3F0E4;
+    --role-worker:         #8BA95A;  /* 牧工 = accent 橄榄 */
+    --role-worker-soft:    #EFF3E7;
+
+    --space-xs: 4px;  --space-sm: 8px;  --space-md: 16px;
+    --space-lg: 24px; --space-xl: 32px;
+
+    --radius-lg: 16px; --radius-md: 12px; --radius-sm: 8px;
+    --shadow-card: 0 2px 10px rgba(38,49,38,.08);
+    --shadow-elev: 0 4px 16px rgba(38,49,38,.12);
+    --shadow-sheet: 0 -4px 24px rgba(38,49,38,.15);
+
+    --font-size-title: 20px; --font-size-body: 14px; --font-size-caption: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(180deg, #E8F2E5, var(--color-surface));
+    color: var(--color-text-primary);
+    min-height: 100vh;
+    padding-bottom: var(--space-xl);
+  }
+
+  /* === 原型控制条（评审用，非产品 UI） === */
+  .proto-bar {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--color-white);
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--space-sm) var(--space-lg);
+    display: flex; flex-wrap: wrap; gap: var(--space-sm);
+    align-items: center; font-size: 13px;
+  }
+  .proto-bar .title { font-weight: 700; color: var(--color-primary); margin-right: var(--space-md); }
+  .proto-bar a { color: var(--color-info); text-decoration: none; padding: 2px 6px; border-radius: 4px; }
+  .proto-bar a:hover { background: var(--color-info-soft); }
+
+  /* === 画布 === */
+  .flow-grid {
+    display: flex; flex-wrap: wrap; gap: 32px;
+    padding: var(--space-xl); align-items: flex-start;
+  }
+  .screen-label {
+    font-size: 13px; font-weight: 700; color: var(--color-primary);
+    display: flex; gap: 6px; align-items: center; margin-bottom: 4px;
+  }
+  .num {
+    font-size: 12px; font-weight: 700; color: #fff; background: var(--color-primary);
+    width: 22px; height: 22px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .screen-sublabel {
+    font-size: 11px; color: var(--color-text-secondary);
+    line-height: 1.4; max-width: 390px; margin-bottom: 10px;
+  }
+  .frame-col { display: flex; flex-direction: column; }
+
+  /* === 手机壳 === */
+  .phone-shell {
+    width: 390px; border-radius: 24px; border: 1px solid var(--color-border);
+    background: var(--color-surface); box-shadow: var(--shadow-elev);
+    overflow: hidden; display: flex; flex-direction: column;
+  }
+  .status-bar {
+    font-size: 10px; font-weight: 600; color: var(--color-text-primary);
+    background: var(--color-white); padding: 6px 14px;
+    display: flex; justify-content: space-between;
+  }
+  .nav-bar {
+    background: var(--color-white); padding: 10px 12px;
+    display: flex; align-items: center; gap: var(--space-sm);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .nav-bar .back { font-size: 15px; color: var(--color-text-primary); }
+  .nav-bar .title { font-size: 14px; font-weight: 700; flex: 1; }
+  .screen-body {
+    padding: 12px; display: flex; flex-direction: column; gap: 10px;
+    height: 560px; overflow: hidden; position: relative;
+  }
+
+  /* === 通用元件 === */
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 600;
+    border-radius: 999px; padding: 3px 8px; white-space: nowrap;
+  }
+  .chip.normal  { color: var(--color-success); background: var(--color-success-soft); }
+  .chip.warn    { color: var(--color-warning); background: var(--color-warning-soft); }
+  .chip.expired { color: var(--color-danger);  background: var(--color-danger-soft); }
+  .chip.info    { color: var(--color-info);    background: var(--color-info-soft); }
+  .chip.role-owner  { color: var(--role-owner);  background: var(--role-owner-soft); }
+  .chip.role-b2b    { color: var(--role-b2b);    background: var(--role-b2b-soft); }
+  .chip.role-worker { color: var(--role-worker); background: var(--role-worker-soft); }
+  .chip.role-platform { color: var(--role-platform); background: var(--role-platform-soft); }
+  .subtle { font-size: 11px; color: var(--color-text-secondary); line-height: 1.45; }
+
+  .note-box {
+    border-radius: var(--radius-sm); padding: 9px 10px;
+    background: var(--color-info-soft);
+    display: flex; gap: 7px; align-items: flex-start;
+  }
+  .note-box .icon { font-size: 13px; line-height: 1.2; color: var(--color-info); }
+  .note-box .text { font-size: 10.5px; color: var(--color-info); line-height: 1.5; }
+  .note-box.warn-box { background: var(--color-warning-soft); }
+  .note-box.warn-box .icon, .note-box.warn-box .text { color: var(--color-warning); }
+
+  .btn {
+    border: none; border-radius: var(--radius-sm); font-weight: 600;
+    padding: 11px 14px; font-size: 13px; cursor: pointer; text-align: center;
+  }
+  .btn-primary { background: var(--color-primary); color: var(--color-white); }
+  .btn-warning { background: var(--color-warning); color: var(--color-white); }
+  .btn-ghost {
+    background: var(--color-white); color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+  }
+
+  /* === ① 角色选择 === */
+  .who-card {
+    background: var(--color-white); border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card); padding: 12px;
+    display: flex; gap: 10px; align-items: center;
+  }
+  .avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--color-primary); color: var(--color-white);
+    font-size: 15px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .who-card .name { font-size: 14px; font-weight: 700; display: flex; gap: 6px; align-items: center; }
+  .role-card {
+    background: var(--color-white); border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card); padding: 12px;
+    display: flex; gap: 10px; align-items: center;
+    border: 2px solid transparent; cursor: pointer;
+  }
+  .role-card.selected { border-color: var(--color-primary); }
+  .role-ic {
+    width: 40px; height: 40px; border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0;
+  }
+  .role-card .meta { flex: 1; min-width: 0; }
+  .role-card .t { font-size: 13px; font-weight: 700; }
+  .role-card .d { font-size: 10.5px; color: var(--color-text-secondary); line-height: 1.45; margin-top: 2px; }
+  .check-dot {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--color-primary); color: #fff; font-size: 11px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .picker-foot {
+    margin-top: auto; display: flex; justify-content: space-between; align-items: center;
+    padding: 0 4px;
+  }
+  .logout-link { font-size: 12px; color: var(--color-danger); font-weight: 600; }
+
+  /* === ② 租户列表 === */
+  .search-input {
+    display: flex; align-items: center; gap: 8px;
+    border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+    padding: 9px 12px; font-size: 13px; color: var(--color-text-secondary);
+    background: var(--color-white);
+  }
+  .tenant-card {
+    background: var(--color-white); border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card); padding: 12px;
+    border-left: 4px solid var(--color-border);
+    display: flex; gap: 10px; align-items: center; cursor: pointer;
+  }
+  .tenant-card.selected { border-left-color: var(--color-primary); }
+  .tenant-card.warn-tenant { border-left-color: var(--color-warning); }
+  .tenant-card.expired { opacity: .55; cursor: not-allowed; }
+  .tenant-card .meta { flex: 1; min-width: 0; }
+  .tenant-card .t { font-size: 13.5px; font-weight: 700; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .tenant-card .d { font-size: 10.5px; color: var(--color-text-secondary); margin-top: 3px; }
+  .radio {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 2px solid var(--color-border); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tenant-card.selected .radio { border-color: var(--color-primary); }
+  .tenant-card.selected .radio::after {
+    content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--color-primary);
+  }
+
+  /* === ③ 确认 sheet（覆盖层） === */
+  .overlay { position: absolute; inset: 0; background: rgba(38,49,38,.38); }
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: var(--color-white); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: var(--shadow-sheet); padding: 8px 16px 16px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .grabber { width: 36px; height: 4px; border-radius: 2px; background: var(--color-border); margin: 0 auto; }
+  .sheet h3 { font-size: 15px; font-weight: 700; }
+  .identity-block {
+    border-radius: var(--radius-sm); background: var(--color-surface);
+    padding: 12px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  }
+  .identity-block .big { font-size: 14px; font-weight: 700; }
+  .sheet .btn-row { display: flex; gap: 10px; }
+  .sheet .btn-row .btn { flex: 1; }
+
+  /* === ④ 超管代登横幅（牧场端） === */
+  .acting-banner {
+    background: var(--color-warning-soft);
+    border: 1px solid rgba(210,138,45,.45);
+    border-radius: var(--radius-sm); padding: 8px 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .acting-banner .shield { font-size: 15px; line-height: 1; color: var(--color-warning); }
+  .acting-banner .tx { flex: 1; min-width: 0; font-size: 10.5px; font-weight: 600; color: var(--color-warning); line-height: 1.4; }
+  .acting-banner .tx small { display: block; font-weight: 400; font-size: 9.5px; opacity: .85; }
+  .mini-btn {
+    font-size: 10px; font-weight: 700; border-radius: 6px; padding: 5px 10px; cursor: pointer;
+    border: 1px solid rgba(210,138,45,.55); color: var(--color-warning); background: var(--color-white);
+    white-space: nowrap;
+  }
+  .mini-btn.solid { background: var(--color-warning); color: #fff; }
+  .farm-appbar {
+    background: var(--color-white); padding: 10px 12px;
+    display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--color-border);
+  }
+  .farm-appbar .t { font-size: 14px; font-weight: 700; flex: 1; }
+  .farm-chip {
+    font-size: 11px; font-weight: 600; color: var(--color-primary);
+    background: var(--color-primary-soft); border-radius: 999px; padding: 4px 10px;
+  }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-card {
+    background: var(--color-white); border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card); padding: 12px;
+  }
+  .stat-card .k { font-size: 10.5px; color: var(--color-text-secondary); }
+  .stat-card .v { font-size: 20px; font-weight: 800; margin-top: 4px; }
+  .bottom-nav {
+    margin-top: auto; background: var(--color-white);
+    border-top: 1px solid var(--color-border);
+    display: flex; padding: 8px 0 10px;
+  }
+  .bottom-nav .item { flex: 1; text-align: center; font-size: 10px; color: var(--color-text-secondary); }
+  .bottom-nav .item.on { color: var(--color-primary); font-weight: 700; }
+  .bottom-nav .item .gi { font-size: 16px; display: block; margin-bottom: 2px; }
+
+  /* === ⑤⑥ 桌面壳 === */
+  .desk-shell {
+    width: 760px; border-radius: 16px; border: 1px solid var(--color-border);
+    background: var(--color-surface); box-shadow: var(--shadow-elev);
+    overflow: hidden; display: flex; height: 460px;
+  }
+  .desk-side {
+    width: 200px; background: var(--color-white);
+    border-right: 1px solid var(--color-border); padding: 14px 10px;
+    display: flex; flex-direction: column; gap: 4px; flex-shrink: 0;
+  }
+  .desk-side .brand { font-size: 13px; font-weight: 700; color: var(--color-primary); padding: 0 8px 10px; }
+  .side-item {
+    font-size: 12px; color: var(--color-text-secondary);
+    padding: 8px 10px; border-radius: var(--radius-sm);
+  }
+  .side-item.on { background: var(--color-primary-soft); color: var(--color-primary); font-weight: 700; }
+  .desk-rail {
+    width: 56px; background: var(--color-primary-dark); padding: 12px 0;
+    display: flex; flex-direction: column; align-items: center; gap: 14px; flex-shrink: 0;
+  }
+  .desk-rail .ri {
+    width: 34px; height: 34px; border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: rgba(255,255,255,.75);
+  }
+  .desk-rail .ri.on { background: rgba(255,255,255,.18); color: #fff; }
+  .desk-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .desk-banner-row { padding: 10px 12px 0; }
+  .desk-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+  .desk-body .card {
+    background: var(--color-white); border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card); padding: 12px;
+  }
+  .skel { border-radius: 5px; background: linear-gradient(90deg, var(--color-surface) 25%, #ECE9E1 50%, var(--color-surface) 75%); height: 10px; }
+  .desk-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .desk-table th { text-align: left; color: var(--color-text-secondary); font-weight: 700; padding: 6px 8px; border-bottom: 1px solid var(--color-border); }
+  .desk-table td { padding: 7px 8px; border-bottom: 1px solid var(--color-border); color: var(--color-text-primary); }
+
+  /* === ⑦ 快速切换 sheet 行 === */
+  .quick-row {
+    display: flex; gap: 10px; align-items: center;
+    padding: 11px 12px; border-radius: var(--radius-sm);
+    background: var(--color-white); border: 1px solid var(--color-border); cursor: pointer;
+  }
+  .quick-row .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .quick-row .t { flex: 1; font-size: 12.5px; font-weight: 600; }
+  .quick-row .t small { display: block; font-weight: 400; font-size: 10px; color: var(--color-text-secondary); }
+  .quick-row.more { border-style: dashed; color: var(--color-info); }
+  .danger-link { text-align: center; font-size: 12px; font-weight: 600; color: var(--color-danger); padding: 4px 0; }
+
+  /* === 规格面板 === */
+  .spec-panel {
+    width: 860px; margin: 28px auto 0; background: var(--color-white);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: 20px 24px;
+  }
+  .spec-panel h2 { font-size: 15px; color: var(--color-primary); }
+  .spec-panel h3 { font-size: 13px; margin: 14px 0 6px; color: var(--color-text-primary); }
+  .spec-panel li { font-size: 12px; color: var(--color-text-secondary); line-height: 1.7; }
+  .spec-panel table { font-size: 11px; width: 100%; margin: 8px 0; border-collapse: collapse; }
+  .spec-panel td, .spec-panel th { padding: 5px 8px; border: 1px solid var(--color-border); }
+  .spec-panel th { font-weight: 700; background: var(--color-surface); }
+</style>
+</head>
+<body>
+
+<div class="proto-bar">
+  <span class="title">超管选角色进入系统 · 高保真原型 2026-10-19</span>
+  <a href="#s1">① 角色选择</a><a href="#s2">② 选择租户</a><a href="#s3a">③a 确认</a><a href="#s3b">③b 停用警示</a>
+  <a href="#s4">④ 牧场端横幅</a><a href="#s5">⑤ B2B 横幅</a><a href="#s6">⑥ 平台台横幅</a><a href="#s7">⑦ 快速切换</a>
+</div>
+
+<div class="flow-grid">
+
+  <!-- ① 角色选择 -->
+  <div class="frame-col" id="s1">
+    <div class="screen-label"><span class="num">1</span>角色选择 · 登录后第一步</div>
+    <div class="screen-sublabel">超管密码验证成功后的落地页（路由 /select-context）。四类可进入角色；平台级无需选租户，点卡即出确认；租户型进入第二步。</div>
+    <div class="phone-shell">
+      <div class="status-bar"><span>9:41</span><span>●●● 📶 🔋</span></div>
+      <div class="nav-bar"><div class="title">选择进入身份</div></div>
+      <div class="screen-body">
+        <div class="who-card">
+          <div class="avatar">超</div>
+          <div class="meta">
+            <div class="name">Admin@hkt.com <span class="chip role-platform">超级管理员</span></div>
+            <div class="subtle">登录成功，请选择本次会话的进入身份</div>
+          </div>
+        </div>
+        <div class="note-box"><span class="icon">ⓘ</span><span class="text">进入后的页面与数据范围，与所选角色的真实用户完全一致；全程记录审计日志。</span></div>
+
+        <div class="role-card">
+          <div class="role-ic" style="background:var(--role-platform-soft);color:var(--role-platform)">⚙</div>
+          <div class="meta"><div class="t">平台管理员</div><div class="d">平台运维 · 租户与用户管理 · 审计查询</div></div>
+          <span class="chip info">平台级 · 免选租户</span>
+        </div>
+        <div class="role-card">
+          <div class="role-ic" style="background:var(--role-b2b-soft);color:var(--role-b2b)">▤</div>
+          <div class="meta"><div class="t">租户管理员</div><div class="d">B2B 控制台 · 设备 · 成员 · 订阅</div></div>
+          <span class="chip role-b2b">需选租户</span>
+        </div>
+        <div class="role-card selected">
+          <div class="role-ic" style="background:var(--role-owner-soft);color:var(--role-owner)">🐄</div>
+          <div class="meta"><div class="t">牧场主</div><div class="d">牧场完整功能 · 畜群 · 围栏 · 告警</div></div>
+          <span class="chip role-owner">需选租户</span>
+          <div class="check-dot">✓</div>
+        </div>
+        <div class="role-card">
+          <div class="role-ic" style="background:var(--role-worker-soft);color:var(--role-worker)">🔨</div>
+          <div class="meta"><div class="t">牧工</div><div class="d">日常作业视角 · 以查看为主</div></div>
+          <span class="chip role-worker">需选租户</span>
+        </div>
+
+        <div class="picker-foot">
+          <span class="subtle">v0.7.0</span>
+          <span class="logout-link">退出登录</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 选择租户 -->
+  <div class="frame-col" id="s2">
+    <div class="screen-label"><span class="num">2</span>选择租户 · 租户型角色第二步</div>
+    <div class="screen-sublabel">搜索 + 状态徽标；已停用租户可进入但带警示样式（裁决①）；试点已到期置灰不可选、switch 即拒（裁决④）；已删除不显示。</div>
+    <div class="phone-shell">
+      <div class="status-bar"><span>9:41</span><span>●●● 📶 🔋</span></div>
+      <div class="nav-bar"><span class="back">‹</span><div class="title">选择租户</div><span class="chip role-owner">已选：牧场主</span></div>
+      <div class="screen-body">
+        <div class="search-input">🔍 搜索租户名称</div>
+
+        <div class="tenant-card selected">
+          <div class="meta">
+            <div class="t">南非-市场 <span class="chip normal">正常</span></div>
+            <div class="d">试点 · 3 个牧场 · Africa/Johannesburg（UTC+2）</div>
+          </div>
+          <div class="radio"></div>
+        </div>
+        <div class="tenant-card">
+          <div class="meta">
+            <div class="t">肯尼亚试点 <span class="chip normal">正常</span></div>
+            <div class="d">试点 · 2 个牧场 · Africa/Nairobi（UTC+3）</div>
+          </div>
+          <div class="radio"></div>
+        </div>
+        <div class="tenant-card warn-tenant">
+          <div class="meta">
+            <div class="t">Demo Ranch <span class="chip warn">已停用</span></div>
+            <div class="d">⚠ 排障可进入 · 批量 · 1 个牧场 · Asia/Shanghai（UTC+8）</div>
+          </div>
+          <div class="radio"></div>
+        </div>
+        <div class="tenant-card expired">
+          <div class="meta">
+            <div class="t">内部压测租户 <span class="chip expired">试点已到期</span></div>
+            <div class="d">批量 · 2 个牧场 · 不可进入</div>
+          </div>
+        </div>
+
+        <div class="subtle" style="text-align:center">共 4 个租户（已删除的不显示）· 选中后进入确认页</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③a 确认（正常） -->
+  <div class="frame-col" id="s3a">
+    <div class="screen-label"><span class="num">3a</span>确认进入 · 正常租户</div>
+    <div class="screen-sublabel">点击租户卡片弹出底部确认 sheet；明确告知审计含义。进入后按目标角色走现有路由（牧场主 → 牧场首页）。</div>
+    <div class="phone-shell">
+      <div class="status-bar"><span>9:41</span><span>●●● 📶 🔋</span></div>
+      <div class="nav-bar"><span class="back">‹</span><div class="title">选择租户</div></div>
+      <div class="screen-body">
+        <div class="search-input">🔍 搜索租户名称</div>
+        <div class="tenant-card selected"><div class="meta"><div class="t">南非-市场 <span class="chip normal">正常</span></div><div class="d">试点 · 3 个牧场 · UTC+2</div></div><div class="radio"></div></div>
+        <div class="overlay"></div>
+        <div class="sheet">
+          <div class="grabber"></div>
+          <h3>确认进入身份</h3>
+          <div class="identity-block">
+            <span class="big">南非-市场</span><span>·</span><span class="big" style="color:var(--role-owner)">牧场主</span>
+          </div>
+          <div class="subtle">将以「南非-市场 · 牧场主」身份进入系统，进入后可随时在顶部横幅切换或退出该身份。</div>
+          <div class="note-box"><span class="icon">ⓘ</span><span class="text">本次会话内的操作将以该身份记录审计日志（含超管代登标记）。</span></div>
+          <div class="btn-row"><button class="btn btn-ghost">取消</button><button class="btn btn-primary">进入</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③b 确认（停用警示） -->
+  <div class="frame-col" id="s3b">
+    <div class="screen-label"><span class="num">3b</span>确认进入 · 已停用租户（裁决①）</div>
+    <div class="screen-sublabel">停用租户允许进入但必须过显著警示确认；主按钮换警示色且文案直说后果。删除租户根本不出现。</div>
+    <div class="phone-shell">
+      <div class="status-bar"><span>9:41</span><span>●●● 📶 🔋</span></div>
+      <div class="nav-bar"><span class="back">‹</span><div class="title">选择租户</div></div>
+      <div class="screen-body">
+        <div class="search-input">🔍 搜索租户名称</div>
+        <div class="tenant-card warn-tenant"><div class="meta"><div class="t">Demo Ranch <span class="chip warn">已停用</span></div><div class="d">⚠ 排障可进入 · 批量 · 1 个牧场</div></div><div class="radio"></div></div>
+        <div class="overlay"></div>
+        <div class="sheet">
+          <div class="grabber"></div>
+          <h3>确认进入身份</h3>
+          <div class="identity-block">
+            <span class="big">Demo Ranch</span><span>·</span><span class="big" style="color:var(--role-owner)">牧场主</span>
+            <span class="chip warn">已停用</span>
+          </div>
+          <div class="note-box warn-box"><span class="icon">⚠</span><span class="text">该租户已停用：数据可能不是最新状态，仅建议用于售后排障查看。</span></div>
+          <div class="note-box"><span class="icon">ⓘ</span><span class="text">本次会话内的操作将以该身份记录审计日志（含超管代登标记）。</span></div>
+          <div class="btn-row"><button class="btn btn-ghost">取消</button><button class="btn btn-warning">仍要进入</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ 牧场端横幅 -->
+  <div class="frame-col" id="s4">
+    <div class="screen-label"><span class="num">4</span>牧场端 · 超管代登横幅</div>
+    <div class="screen-sublabel">以牧场主/牧工身份进入后，横幅常驻于 AppBar 之下；「切换」弹⑦、「退出」回到选择器（裁决②③）。下方页面为现有牧场页。</div>
+    <div class="phone-shell">
+      <div class="status-bar"><span>9:41</span><span>●●● 📶 🔋</span></div>
+      <div class="farm-appbar"><div class="t">牧场</div><span class="farm-chip">南非-市场 · A 牧场 ▾</span></div>
+      <div class="screen-body" style="height:520px">
+        <div class="acting-banner">
+          <span class="shield">🛡</span>
+          <span class="tx">超管代登 · 以【南非-市场 · 牧场主】身份操作<small>本次会话操作将记录审计日志</small></span>
+          <button class="mini-btn">切换</button>
+          <button class="mini-btn solid">退出</button>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="k">在栏牲畜</div><div class="v">248</div></div>
+          <div class="stat-card"><div class="k">今日告警</div><div class="v" style="color:var(--color-warning)">3</div></div>
+          <div class="stat-card"><div class="k">设备在线</div><div class="v" style="color:var(--color-success)">96%</div></div>
+          <div class="stat-card"><div class="k">今日饮水事件</div><div class="v">57</div></div>
+        </div>
+        <div class="bottom-nav">
+          <div class="item on"><span class="gi">🐄</span>牧场</div>
+          <div class="item"><span class="gi">👤</span>我的</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑤ B2B 控制台横幅 -->
+  <div class="frame-col" id="s5">
+    <div class="screen-label"><span class="num">5</span>B2B 控制台 · 横幅（Flutter Web 桌面壳）</div>
+    <div class="screen-sublabel">以租户管理员身份进入后，横幅横贯内容区顶部；侧栏为现有 B2B 壳。</div>
+    <div class="desk-shell">
+      <div class="desk-side">
+        <div class="brand">B2B 控制台</div>
+        <div class="side-item on">概览</div>
+        <div class="side-item">设备管理</div>
+        <div class="side-item">成员管理</div>
+        <div class="side-item">订阅</div>
+        <div class="side-item">告警</div>
+      </div>
+      <div class="desk-main">
+        <div class="desk-banner-row">
+          <div class="acting-banner">
+            <span class="shield">🛡</span>
+            <span class="tx">超管代登 · 以【南非-市场 · 租户管理员】身份操作</span>
+            <button class="mini-btn">切换</button>
+            <button class="mini-btn solid">退出</button>
+          </div>
+        </div>
+        <div class="desk-body">
+          <div class="card"><div class="skel" style="width:30%"></div><div class="skel" style="width:70%;margin-top:8px"></div></div>
+          <div class="card"><div class="skel" style="width:50%"></div><div class="skel" style="width:90%;margin-top:8px"></div><div class="skel" style="width:80%;margin-top:8px"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑥ 平台管理台横幅 -->
+  <div class="frame-col" id="s6">
+    <div class="screen-label"><span class="num">6</span>平台管理台 · 横幅（Flutter Web 桌面壳）</div>
+    <div class="screen-sublabel">以平台管理员身份进入后的现有平台壳 + 横幅；此身份与今日平台管理员体验一致（裁决⑤之外无新增平台权限）。</div>
+    <div class="desk-shell">
+      <div class="desk-rail">
+        <div class="ri on">📋</div><div class="ri">🏢</div><div class="ri">👥</div><div class="ri">🧾</div><div class="ri">🛠</div>
+      </div>
+      <div class="desk-main">
+        <div class="desk-banner-row">
+          <div class="acting-banner">
+            <span class="shield">🛡</span>
+            <span class="tx">超管代登 · 以【平台管理员】身份操作</span>
+            <button class="mini-btn">切换</button>
+            <button class="mini-btn solid">退出</button>
+          </div>
+        </div>
+        <div class="desk-body">
+          <div class="card">
+            <table class="desk-table">
+              <tr><th>租户</th><th>状态</th><th>阶段</th><th>牧场数</th><th>时区</th></tr>
+              <tr><td>南非-市场</td><td>正常</td><td>试点</td><td>3</td><td>UTC+2</td></tr>
+              <tr><td>肯尼亚试点</td><td>正常</td><td>试点</td><td>2</td><td>UTC+3</td></tr>
+              <tr><td>Demo Ranch</td><td>已停用</td><td>批量</td><td>1</td><td>UTC+8</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑦ 快速切换 -->
+  <div class="frame-col" id="s7">
+    <div class="screen-label"><span class="num">7</span>快速切换 sheet（裁决③）</div>
+    <div class="screen-sublabel">横幅「切换」弹出：近期身份直达 + 完整选择器入口 + 登出。切换用根 token 调同一 switch 端点，免密 60 分钟内有效（裁决②）。</div>
+    <div class="phone-shell">
+      <div class="status-bar"><span>9:41</span><span>●●● 📶 🔋</span></div>
+      <div class="farm-appbar"><div class="t">牧场</div><span class="farm-chip">南非-市场 · A 牧场 ▾</span></div>
+      <div class="screen-body" style="height:520px">
+        <div class="acting-banner">
+          <span class="shield">🛡</span>
+          <span class="tx">超管代登 · 以【南非-市场 · 牧场主】身份操作</span>
+          <button class="mini-btn solid">切换</button>
+          <button class="mini-btn">退出</button>
+        </div>
+        <div class="overlay"></div>
+        <div class="sheet">
+          <div class="grabber"></div>
+          <h3>切换身份</h3>
+          <div class="subtle">当前：南非-市场 · 牧场主</div>
+          <div class="quick-row"><span class="dot" style="background:var(--role-platform)"></span><span class="t">平台管理员<small>平台级 · 无需选租户</small></span></div>
+          <div class="quick-row"><span class="dot" style="background:var(--role-b2b)"></span><span class="t">南非-市场 · 租户管理员<small>最近使用</small></span></div>
+          <div class="quick-row"><span class="dot" style="background:var(--role-owner)"></span><span class="t">肯尼亚试点 · 牧场主<small>最近使用</small></span></div>
+          <div class="quick-row more"><span>⊞</span><span class="t">选择其他身份…<small>返回完整选择器</small></span></div>
+          <div class="danger-link">退出全部身份并登出</div>
+          <div class="subtle" style="text-align:center">免密切换在登录后 60 分钟内可用，超时需重新登录</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- === 规格面板（供 spec 阶段细化，令牌确认后锁定） === -->
+<div class="spec-panel">
+  <h2>令牌与组件规格摘要</h2>
+  <h3>新增令牌（4 个，均为既有色板家族复用）</h3>
+  <table>
+    <tr><th>Token</th><th>值</th><th>用途</th></tr>
+    <tr><td>--role-platform / --role-platform-soft</td><td>#4A7F9D / #E2EDF3</td><td>平台管理员识别色（=info）</td></tr>
+    <tr><td>--role-b2b / --role-b2b-soft</td><td>#8D6E4F / #F0E9E0</td><td>租户管理员识别色（=digestive）</td></tr>
+    <tr><td>--role-owner / --role-owner-soft</td><td>#2F6B3B / #E3F0E4</td><td>牧场主识别色（=primary）</td></tr>
+    <tr><td>--role-worker / --role-worker-soft</td><td>#8BA95A / #EFF3E7</td><td>牧工识别色（=accent）</td></tr>
+  </table>
+  <h3>关键组件规格</h3>
+  <ul>
+    <li><b>角色卡 role-card</b>：白底卡 + 2px 透明边框，选中态边框 primary + 右侧 20px 对勾圆点；左 40px 圆角方形图标（角色 soft 底 + 角色色前景）。</li>
+    <li><b>租户卡 tenant-card</b>：左侧 4px 状态色条（正常=border 灰/选中=primary/停用=warning），到期态 opacity .55 不可点；徽标 chip 三态 normal/warn/expired。</li>
+    <li><b>代登横幅 acting-banner</b>：warning-soft 底 + 1px rgba(210,138,45,.45) 边 + radius-sm；左盾牌图标、双行文案（主 10.5px 粗 / 副 9.5px 细）、右侧「切换」线框 +「退出」实心两个 mini 按钮（10px/700/radius 6）；三个 Shell（牧场 AppBar 下、B2B 与平台桌面壳内容区顶）同规格。</li>
+    <li><b>确认/切换 sheet</b>：底部弹出，顶部圆角 radius-lg + shadow-sheet + 36×4 grabber；确认页含身份块（surface 底大字）+ 审计提示 note-box；停用租户追加 warn-box 且主按钮变 warning 色「仍要进入」。</li>
+    <li><b>文案</b>：本页所有用户可见文案在实现时全部走 AppLocalizations（中英 arb 同步），禁止硬编码。</li>
+  </ul>
+</div>
+
+</body>
+</html>

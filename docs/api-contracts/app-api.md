@@ -8,55 +8,105 @@
 
 ---
 
-## 1. 认证（Auth）— 3 端点
+## 1. 认证（Auth）— 5 端点
 
 ### POST /auth/login
 
-登录，手机号 + 密码 → JWT token。
+登录，标识符（账号 / E.164 手机号 / 邮箱）+ 密码 → JWT token（2026-10-12 标识符泛化；无独立 refreshToken，60 分钟 TTL）。
 
 ```
 Request:
-{ "phone": "13800138000", "password": "aB3$xK9@pQ2" }
+{ "identifier": "Admin@hkt.com", "password": "aB3$xK9@pQ2" }
 
 Response 200:
 {
   "code": "OK", "message": "success", "requestId": "req-001",
   "data": {
     "accessToken": "eyJhbGciOi...",
-    "refreshToken": "dGhpcyBpcyBh...",
-    "expiresIn": 3600
+    "user": { "id": 6, "account": "Admin@hkt.com", "username": "超级管理员", "role": "SUPER_ADMIN",
+              "tenantId": null, "mustChangePassword": true, "active": true },
+    "impersonated": false
   }
 }
 
 Error 401:
-{ "code": "AUTH_INVALID_TOKEN", "message": "手机号或密码错误", "requestId": "req-001" }
+{ "code": "AUTH_INVALID_TOKEN", "message": "账号或密码错误", "requestId": "req-001" }
 ```
 
 ### POST /auth/refresh
 
-刷新 Token（refreshToken 轮换，旧 token 立即失效）。
+刷新 access token：用当前（或 30 分钟内过期的）accessToken 换新。上下文 token（含 `act`）刷新后 act 保留，且 `user` 按令牌 claim 合成有效身份而非超管存储行。
 
 ```
 Request:
-{ "refreshToken": "dGhpcyBpcyBh..." }
+{ "accessToken": "eyJhbGciOi..." }
 
 Response 200:
 {
   "code": "OK", "message": "success", "requestId": "req-002",
-  "data": { "accessToken": "eyJhbGciOi...", "refreshToken": "bmV3IHJlZnJl...", "expiresIn": 3600 }
+  "data": { "accessToken": "eyJhbGciOi...", "user": { …同 login… }, "impersonated": false }
 }
 
 Error 401:
-{ "code": "AUTH_INVALID_TOKEN", "message": "refreshToken 无效或已过期", "requestId": "req-002" }
+{ "code": "AUTH_INVALID_TOKEN", "message": "Token 无法刷新，请重新登录", "requestId": "req-002" }
+```
+
+### GET /auth/entry-contexts
+
+超管选择器数据（2026-10-19 设计 §4.3）。仅根 `SUPER_ADMIN` token 可调（403 `AUTH_FORBIDDEN` / `auth.contextSwitchForbidden`）。
+
+```
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-010",
+  "data": {
+    "roles": [
+      { "role": "PLATFORM_ADMIN", "tenantScoped": false },
+      { "role": "B2B_ADMIN", "tenantScoped": true },
+      { "role": "OWNER", "tenantScoped": true },
+      { "role": "WORKER", "tenantScoped": true }
+    ],
+    "tenants": [
+      { "id": 2, "name": "南非-市场", "status": "active", "phase": "SAMPLE",
+        "timezone": "Africa/Johannesburg", "farmCount": 3, "trialExpired": false }
+    ]
+  }
+}
+```
+
+### POST /auth/switch-context
+
+以选定「角色+租户」换取上下文 token（与真实用户 token 逐 claim 同构 + `act` 代操作标记；每次调用写审计 `AUTH_CONTEXT_SWITCHED`）。仅根 token 可调；上下文 token 再调被拒（防提权）。Authorization 头须用根 token。
+
+```
+Request:
+{ "role": "OWNER", "tenantId": 2 }        // PLATFORM_ADMIN 时无 tenantId
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-011",
+  "data": {
+    "accessToken": "eyJhbGciOi...",       // claims: sub=超管id, tid=2, role=OWNER, act={sub,role:SUPER_ADMIN}
+    "user": { "id": 6, "account": "Admin@HKT", "role": "OWNER", "tenantId": 2, "mustChangePassword": false, … },
+    "impersonated": true
+  }
+}
+
+错误门（实测 ErrorCode→HTTP 由 GlobalExceptionHandler 决定）:
+  403 AUTH_FORBIDDEN / auth.contextSwitchForbidden   — 非超管根 token
+  403 PASSWORD_CHANGE_REQUIRED                       — mustChangePassword（防 /auth/** 白名单绕过）
+  400 VALIDATION_ERROR / auth.roleNotSelectable      — 白名单外角色（API_CONSUMER/SUPER_ADMIN）
+  400 VALIDATION_ERROR / auth.tenantRequired         — 租户型角色未带 tenantId
+  404 RESOURCE_NOT_FOUND / auth.tenantNotFound       — 租户不存在或已删除
+  403 LICENSE_EXPIRED / auth.tenantTrialExpired      — 试点到期（FREE / TRIAL 已逾期）；disabled 租户放行（裁决①）
 ```
 
 ### POST /auth/logout
 
-登出，吊销 refreshToken。
+登出，无状态 JWT——客户端丢弃 token 即可（无吊销）。
 
 ```
-Request:
-{ "refreshToken": "dGhpcyBpcyBh..." }
+Request: （无 body 要求）
 
 Response 200:
 { "code": "OK", "message": "success", "requestId": "req-003" }

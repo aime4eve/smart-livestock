@@ -5,6 +5,7 @@ import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/features/auth/data/deployment_info.dart';
+import 'package:hkt_livestock_agentic/features/auth/presentation/acting_as_banner.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/alerts_controller.dart';
@@ -92,7 +93,7 @@ class MainShell extends ConsumerWidget {
               ],
             )
           : null,
-      body: body,
+      body: SuperContextBannerScope(dense: false, child: body),
       bottomNavigationBar: Container(
         height: 72,
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -335,7 +336,9 @@ class _PlatformAdminShell extends ConsumerWidget {
             ]),
           ),
           // ── Content ──
-          Expanded(child: child),
+          Expanded(
+            child: SuperContextBannerScope(child: child),
+          ),
         ],
       ),
     );
@@ -426,7 +429,9 @@ class _B2bAdminShell extends ConsumerWidget {
             ),
           ),
           // ── Content ──
-          Expanded(child: child),
+          Expanded(
+            child: SuperContextBannerScope(child: child),
+          ),
         ],
       ),
     );

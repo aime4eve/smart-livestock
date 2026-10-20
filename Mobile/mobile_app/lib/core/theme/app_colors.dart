@@ -54,5 +54,17 @@ class AppColors {
   static const Color fenceApproach = Color(0xFF454F45);
   static const Color fenceBreach = Color(0xFF1A1F1A);
 
+  /// Role identity colors for the super-admin context picker
+  /// (2026-10-19 UI spec §1.1): main hue + soft background pair per
+  /// role, all reused from the existing palette family.
+  static const Color rolePlatform = Color(0xFF4A7F9D);
+  static const Color rolePlatformSoft = Color(0xFFE2EDF3);
+  static const Color roleB2b = Color(0xFF8D6E4F);
+  static const Color roleB2bSoft = Color(0xFFF0E9E0);
+  static const Color roleOwner = Color(0xFF2F6B3B);
+  static const Color roleOwnerSoft = Color(0xFFE3F0E4);
+  static const Color roleWorker = Color(0xFF8BA95A);
+  static const Color roleWorkerSoft = Color(0xFFEFF3E7);
+
   static const Color overlayDark = Color(0xB3000000);
 }

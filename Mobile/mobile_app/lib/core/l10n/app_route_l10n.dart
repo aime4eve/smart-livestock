@@ -10,6 +10,10 @@ extension AppRouteL10n on AppRoute {
     switch (this) {
       case AppRoute.login:
         return l10n.navLogin;
+      case AppRoute.selectContext:
+        // Super-admin picker title key lands with the picker UI task;
+        // the Chinese fallback label is used until then.
+        return label;
       case AppRoute.ranch:
         return l10n.navRanch;
       case AppRoute.twin:

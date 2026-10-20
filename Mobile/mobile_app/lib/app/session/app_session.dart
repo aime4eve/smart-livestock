@@ -11,6 +11,8 @@ class AppSession {
     this.username,
     this.activeFarmId,
     this.mustChangePassword = false,
+    this.impersonated = false,
+    this.impersonatedTenantName,
   });
 
   static const loggedOut = AppSession._();
@@ -25,6 +27,8 @@ class AppSession {
     this.username,
     this.activeFarmId,
     this.mustChangePassword = false,
+    this.impersonated = false,
+    this.impersonatedTenantName,
   });
 
   final UserRole? role;
@@ -40,6 +44,15 @@ class AppSession {
   /// before any other API can be used.
   final bool mustChangePassword;
 
+  /// Super-admin context entry (design 2026-10-19 §4.2): true while this
+  /// session runs on a switched context token — role/tenantId describe the
+  /// chosen context, and the root token stays in storage for quick switch.
+  final bool impersonated;
+
+  /// Display-only tenant name for the acting-as banner (null for the
+  /// platform context, where the banner shows just the role).
+  final String? impersonatedTenantName;
+
   bool get isLoggedIn => role != null;
 
   AppSession copyWith({String? activeFarmId, bool? mustChangePassword}) {
@@ -53,6 +66,8 @@ class AppSession {
       username: username,
       activeFarmId: activeFarmId ?? this.activeFarmId,
       mustChangePassword: mustChangePassword ?? this.mustChangePassword,
+      impersonated: impersonated,
+      impersonatedTenantName: impersonatedTenantName,
     );
   }
 }

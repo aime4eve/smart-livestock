@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hkt_livestock_agentic/app/app_route.dart';
 import 'package:hkt_livestock_agentic/app/app_router.dart';
 import 'package:hkt_livestock_agentic/app/session/app_session.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_theme.dart';
+import 'package:hkt_livestock_agentic/features/auth/presentation/context_picker_page.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
@@ -56,13 +59,53 @@ void main() {
       expect(find.byKey(const Key('nav-alerts')), findsNothing);
     });
   });
+
+  group('路由守卫 — super_admin（选角色进入，2026-10-19）', () {
+    testWidgets('根会话被锁进选择器页（无牧场底部导航）', (tester) async {
+      await _pumpApp(tester, UserRole.superAdmin, impersonated: false);
+      expect(find.byType(ContextPickerPage), findsOneWidget);
+      expect(find.byKey(const Key('nav-ranch')), findsNothing);
+    });
+
+    testWidgets('OWNER 上下文会话按上下文角色进牧场页', (tester) async {
+      await _pumpApp(tester, UserRole.owner, impersonated: true);
+      expect(find.byKey(const Key('nav-ranch')), findsOneWidget);
+      expect(find.byType(ContextPickerPage), findsNothing);
+    });
+
+    testWidgets('PLATFORM_ADMIN 上下文会话进平台管理台', (tester) async {
+      await _pumpApp(tester, UserRole.platformAdmin, impersonated: true);
+      expect(find.byKey(const Key('nav-ranch')), findsNothing);
+    });
+
+    testWidgets('根会话改密锁优先于选择器', (tester) async {
+      await _pumpApp(tester, UserRole.superAdmin,
+          impersonated: false, mustChangePassword: true);
+      expect(find.byType(ContextPickerPage), findsNothing);
+    });
+
+    testWidgets('OWNER 上下文会话在选择器页被送回牧场页（2026-10-20 修复回归）',
+        (tester) async {
+      await _pumpApp(tester, UserRole.owner, impersonated: true);
+      // Reproduce the real flow: after the confirm sheet the session is
+      // already a context session while the router still sits on the
+      // picker — the redirect must send it to the ranch home.
+      final element = tester.element(find.byType(Scaffold).first);
+      GoRouter.of(element).go(AppRoute.selectContext.path);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('nav-ranch')), findsOneWidget);
+      expect(find.byType(ContextPickerPage), findsNothing);
+    });
+  });
 }
 
-Future<void> _pumpApp(WidgetTester tester, UserRole role) async {
+Future<void> _pumpApp(WidgetTester tester, UserRole role,
+    {bool impersonated = false, bool mustChangePassword = false}) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        sessionControllerProvider.overrideWith(() => _TestSession(role)),
+        sessionControllerProvider.overrideWith(
+            () => _TestSession(role, impersonated, mustChangePassword)),
         farmSwitcherControllerProvider.overrideWith(() => _TestFarmSwitcher()),
       ],
       child: Consumer(
@@ -87,7 +130,9 @@ Future<void> _pumpApp(WidgetTester tester, UserRole role) async {
 
 class _TestSession extends SessionController {
   final UserRole _role;
-  _TestSession(this._role);
+  final bool _impersonated;
+  final bool _mustChangePassword;
+  _TestSession(this._role, this._impersonated, this._mustChangePassword);
   @override
   AppSession build() => AppSession.authenticated(
         role: _role,
@@ -98,6 +143,9 @@ class _TestSession extends SessionController {
         tenantId: 1,
         username: 'testuser',
         activeFarmId: '1',
+        mustChangePassword: _mustChangePassword,
+        impersonated: _impersonated,
+        impersonatedTenantName: _impersonated ? '南非-市场' : null,
       );
 }
 
