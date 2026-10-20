@@ -16,7 +16,11 @@ BUILD_NUMBER=$(tr -d '[:space:]' < release.number)
 APP_VERSION="${MAJOR_VERSION}-b${BUILD_NUMBER}"
 
 APK_SRC="../Mobile/mobile_app/build/app/outputs/flutter-apk/hkt-livestock-agentic-${APP_VERSION}.apk"
+# build_ios.sh emits smart-livestock-<ver>.ipa (the hkt-livestock-agentic
+# spelling never matched, silently staging a stale IPA since 09-30 — fixed
+# 2026-10-20 by accepting both names).
 IPA_SRC="../Mobile/mobile_app/build/ios/ipa/hkt-livestock-agentic-${APP_VERSION}.ipa"
+[ -f "$IPA_SRC" ] || IPA_SRC="../Mobile/mobile_app/build/ios/ipa/smart-livestock-${APP_VERSION}.ipa"
 
 OUT_DIR="downloads"
 mkdir -p "$OUT_DIR"
