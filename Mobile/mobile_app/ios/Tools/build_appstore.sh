@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Smart Livestock App Store / TestFlight build:
+# BoviScout (Smart Livestock) App Store / TestFlight build:
 #   flutter build ipa (archive + app-store-connect export) -> optional upload to ASC
 #
 # Version source: smart-livestock-server release.number (user-facing single
@@ -28,7 +28,7 @@ cd "$(dirname "$0")/../.."   # mobile_app root
 
 TEAM="QQC56X32GR"
 BUNDLE_ID="com.hktlora.smartlivestock"
-APP_NAME="Smart Livestock"   # keep in sync with Info.plist CFBundleDisplayName
+APP_NAME="BoviScout"   # keep in sync with Info.plist CFBundleDisplayName
 SERVER_DIR="../../smart-livestock-server"
 
 DO_UPLOAD=0

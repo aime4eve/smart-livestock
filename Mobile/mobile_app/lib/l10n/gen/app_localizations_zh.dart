@@ -156,7 +156,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get farmEmptyGuidance => '暂无关联牧场，请联系管理员为您分配牧场。';
 
   @override
-  String get authAppTitle => '智慧畜牧';
+  String get authAppTitle => 'BoviScout';
 
   @override
   String get authSubtitle => '智能畜牧管理平台';

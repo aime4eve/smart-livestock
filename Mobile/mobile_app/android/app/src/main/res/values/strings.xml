@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Default (English) launcher name; zh override in values-zh. -->
-    <string name="app_name">Smart Livestock</string>
+    <!-- Launcher name: single global brand, not localized. -->
+    <string name="app_name">BoviScout</string>
 </resources>

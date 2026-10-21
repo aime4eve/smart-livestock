@@ -395,7 +395,7 @@ abstract class AppLocalizations {
   /// No description provided for @authAppTitle.
   ///
   /// In zh, this message translates to:
-  /// **'智慧畜牧'**
+  /// **'BoviScout'**
   String get authAppTitle;
 
   /// No description provided for @authSubtitle.

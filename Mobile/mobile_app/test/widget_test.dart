@@ -16,6 +16,6 @@ void main() {
       ],
       child: const DemoApp(),
     ));
-    expect(find.text('智慧畜牧'), findsOneWidget);
+    expect(find.text('BoviScout'), findsOneWidget);
   });
 }

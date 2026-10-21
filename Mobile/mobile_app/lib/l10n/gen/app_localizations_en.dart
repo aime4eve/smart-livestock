@@ -159,7 +159,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'No farm assigned yet. Please contact your administrator.';
 
   @override
-  String get authAppTitle => 'Smart Livestock';
+  String get authAppTitle => 'BoviScout';
 
   @override
   String get authSubtitle => 'Intelligent Livestock Management';
