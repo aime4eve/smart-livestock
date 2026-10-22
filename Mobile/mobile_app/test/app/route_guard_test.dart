@@ -8,6 +8,10 @@ import 'package:hkt_livestock_agentic/app/session/app_session.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_theme.dart';
+import 'package:hkt_livestock_agentic/features/admin/device_profile_rules/data/device_profile_rule_api_repository.dart';
+import 'package:hkt_livestock_agentic/features/admin/device_profile_rules/domain/device_profile_rule_models.dart';
+import 'package:hkt_livestock_agentic/features/admin/device_profile_rules/presentation/device_profile_rule_controller.dart';
+import 'package:hkt_livestock_agentic/features/admin/device_profile_rules/presentation/device_profile_rules_page.dart';
 import 'package:hkt_livestock_agentic/features/auth/presentation/context_picker_page.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
@@ -41,6 +45,23 @@ void main() {
     testWidgets('b2b_admin 无 App 底部导航', (tester) async {
       await _pumpApp(tester, UserRole.b2bAdmin);
       expect(find.byKey(const Key('nav-ranch')), findsNothing);
+    });
+
+    testWidgets('b2b_admin 可打开设备配置管理页（2026-10-22 修复回归）',
+        (tester) async {
+      // Desktop-width viewport: the rules header Row is not phone-narrow.
+      tester.view.physicalSize = const Size(1400, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await _pumpApp(tester, UserRole.b2bAdmin,
+          ruleRepo: _ListOnlyRepo());
+      // Reproduce the real flow: the B2B shell sidebar navigates straight
+      // to /admin/device-profile-rules — the b2b_admin allowlist must let
+      // it through (it bounced back to /b2b/admin before the fix).
+      final element = tester.element(find.byType(Scaffold).first);
+      GoRouter.of(element).go(AppRoute.platformDeviceProfiles.path);
+      await tester.pumpAndSettle();
+      expect(find.byType(DeviceProfileRulesPage), findsOneWidget);
     });
   });
 
@@ -100,13 +121,17 @@ void main() {
 }
 
 Future<void> _pumpApp(WidgetTester tester, UserRole role,
-    {bool impersonated = false, bool mustChangePassword = false}) async {
+    {bool impersonated = false,
+    bool mustChangePassword = false,
+    DeviceProfileRuleApiRepository? ruleRepo}) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         sessionControllerProvider.overrideWith(
             () => _TestSession(role, impersonated, mustChangePassword)),
         farmSwitcherControllerProvider.overrideWith(() => _TestFarmSwitcher()),
+        if (ruleRepo != null)
+          deviceProfileRuleRepositoryProvider.overrideWithValue(ruleRepo),
       ],
       child: Consumer(
         builder: (context, ref, _) {
@@ -158,4 +183,25 @@ class _TestFarmSwitcher extends FarmSwitcherController {
       activeFarmId: '1',
     );
   }
+}
+
+/// Minimal repository stub: the route-guard test only needs the rules list
+/// endpoint to resolve so the page renders its data state.
+class _ListOnlyRepo implements DeviceProfileRuleApiRepository {
+  @override
+  Future<List<DeviceProfileRule>> listRules() async => const [];
+
+  @override
+  Future<List<TbProfile>> listTbProfiles() async => const [];
+
+  @override
+  Future<DeviceProfileRule> createRule(Map<String, dynamic> body) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> deleteRule(int id) async => throw UnimplementedError();
+
+  @override
+  Future<DeviceProfileRule> updateRule(int id, Map<String, dynamic> body) async =>
+      throw UnimplementedError();
 }

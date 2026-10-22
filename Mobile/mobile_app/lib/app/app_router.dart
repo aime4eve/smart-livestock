@@ -116,10 +116,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (role == UserRole.b2bAdmin) {
-        // b2b_admin 可访问 /b2b/admin/* 及瓦片管理页（/admin/tiles，后端允许 B2B_ADMIN）
+        // b2b_admin 可访问 /b2b/admin/*、瓦片管理页（/admin/tiles）及设备配置
+        // 管理页（/admin/device-profile-rules，后端 @PreAuthorize 均允许 B2B_ADMIN）
         if (location.startsWith(AppRoute.b2bAdmin.path) ||
             location.startsWith(AppRoute.platformDatagen.path) ||
-            location.startsWith(AppRoute.platformTileAdmin.path)) {
+            location.startsWith(AppRoute.platformTileAdmin.path) ||
+            location.startsWith(AppRoute.platformDeviceProfiles.path)) {
           return null;
         }
         return AppRoute.b2bAdmin.path;
