@@ -28,6 +28,7 @@
 | `solution-brochure.html` | 中英双语方案册 |
 | `technical-support-guide.md` | 技术支持 / FAQ |
 | `market-development-kit.md` | 市场开发工具包 |
+| `BoviScout-告警与监测体系说明-Alerts-and-Monitoring-v0.6.1.xlsx` | 告警与监测体系说明（中英双语：体系总览 / 13 种告警定义 / 行为监测 / AI 观察，阈值口径以 master 代码为准，2026-10-22 审计） |
 
 > 内部交互原型不再放本目录，统一在 `prototypes/`。
 
