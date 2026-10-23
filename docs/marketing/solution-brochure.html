@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+<!-- 内容基线 2026-10-23：同步方案介绍 v1.6（App 品牌 BoviScout、免费试用统一截止 2027-09-30、全球登录与多租户、饮水行为监测、iOS TestFlight；移除未上线的离线作业表述）。静态 zh 正文 + I18N.zh + I18N.en 三副本须同步修改。 -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -561,8 +562,8 @@
         <div class="hero-stat-label" data-i18n="hero.stat3.label">LoRaWAN 覆盖半径，无需蜂窝基站</div>
       </div>
       <div class="hero-stat">
-        <div class="hero-stat-number" data-i18n="hero.stat4.num">14 天</div>
-        <div class="hero-stat-label" data-i18n="hero.stat4.label">全功能免费试用，零风险上手</div>
+        <div class="hero-stat-number" data-i18n="hero.stat4.num">2027-09-30</div>
+        <div class="hero-stat-label" data-i18n="hero.stat4.label">免费试用统一截止日，专业版全功能零风险上手</div>
       </div>
     </div>
     <div class="hero-cta">
@@ -636,6 +637,7 @@
           <li data-i18n="sol.step3.i3">统一信号同步</li>
           <li data-i18n="sol.step3.i4">跨资产告警闭环</li>
           <li data-i18n="sol.step3.i5">数据分析报表</li>
+          <li data-i18n="sol.step3.i6">BoviScout App 三端统一（Web / Android / iOS）</li>
         </ul>
       </div>
     </div>
@@ -650,7 +652,7 @@
       <div class="cap-card reveal reveal-delay-1">
         <div class="cap-card-icon">&#128506;</div>
         <h3 data-i18n="cap1.title">实时定位追踪</h3>
-        <p data-i18n="cap1.desc">GPS + LoRaWAN 双模定位，全球覆盖。历史轨迹回放与热力图分析，位置一目了然；底图按地区自动适配（中国高德 / 海外 OSM）。</p>
+        <p data-i18n="cap1.desc">GPS + LoRaWAN 双模定位，全球覆盖。历史轨迹回放与热力图分析，位置一目了然；底图按牧场所在地区自动适配（中国高德 / 海外 OSM）。</p>
       </div>
       <div class="cap-card reveal reveal-delay-2">
         <div class="cap-card-icon">&#128737;</div>
@@ -660,7 +662,7 @@
       <div class="cap-card reveal reveal-delay-3">
         <div class="cap-card-icon">&#10084;</div>
         <h3 data-i18n="cap3.title">AI 健康监测</h3>
-        <p data-i18n="cap3.desc">发热、消化、发情、疫病四大分析引擎，覆盖牲畜全生命周期。位置与健康状态由统一 Signal 通道秒级感知；疫病接触链按处置等级排出先处理顺序。</p>
+        <p data-i18n="cap3.desc">发热、消化、发情、疫病四大分析引擎 + 体温 / 蠕动 / 活动 / 饮水四项行为监测，覆盖牲畜全生命周期。位置与健康状态由统一 Signal 通道秒级感知；一键标记病畜即时触发接触分析，疫病接触链按处置等级排出先处理顺序。</p>
       </div>
       <div class="cap-card reveal reveal-delay-1">
         <div class="cap-card-icon">&#128202;</div>
@@ -670,12 +672,12 @@
       <div class="cap-card reveal reveal-delay-2">
         <div class="cap-card-icon">&#128295;</div>
         <h3 data-i18n="cap5.title">设备全生命周期管理</h3>
-        <p data-i18n="cap5.desc">追踪器、瘤胃胶囊、耳标统一管理。电量、信号、在线状态实时监控；设备离线自动开单、恢复自动消解。批量入网与安装追溯；千台级设备搜索绑定，牲畜详情页一键解绑。</p>
+        <p data-i18n="cap5.desc">追踪器、瘤胃胶囊、耳标统一管理。电量、信号、在线状态实时监控（在线率按租户真实计算）；设备离线自动开单、恢复自动消解。设备 EUI 全球唯一、支持跨租户移交；批量入网与安装追溯；千台级设备搜索绑定，牲畜详情页一键解绑。</p>
       </div>
       <div class="cap-card reveal reveal-delay-3">
         <div class="cap-card-icon">&#128190;</div>
-        <h3 data-i18n="cap6.title">离线与弱网作业</h3>
-        <p data-i18n="cap6.desc">无网络环境下完整运行：离线地图瓦片、离线围栏数据、离线牲畜缓存。推送异常时自动退回增量轮询，网络恢复后自动同步，牧场深处也不中断。</p>
+        <h3 data-i18n="cap6.title">弱网连续作业</h3>
+        <p data-i18n="cap6.desc">LoRaWAN 免蜂窝广覆盖，偏远牧场不依赖基站。推送不可用时自动退回 3 秒增量轮询，断线保留最近数据并明确标注滞后，网络恢复后自动对账，牧场深处也不中断。</p>
       </div>
     </div>
   </section>
@@ -701,8 +703,8 @@
       <div class="arch-layer arch-layer-api">
         <span class="arch-layer-label" data-i18n="arch.layer.api">API 层</span>
         <div class="arch-layer-items">
-          <span data-i18n="arch.api.controller">REST Controller × 74</span>
-          <span data-i18n="arch.api.endpoint">API 端点 × 387</span>
+          <span data-i18n="arch.api.controller">REST Controller × 80</span>
+          <span data-i18n="arch.api.endpoint">API 端点 × 411</span>
           <span data-i18n="arch.api.tenant">多租户拦截</span>
           <span data-i18n="arch.api.quota">配额门控</span>
           <span data-i18n="arch.api.rate">限流</span>
@@ -774,8 +776,8 @@
         <span data-i18n="arch.hl4.desc">STL + CUSUM + iForest 无监督异常检测，体温/蠕动/活动三维联合，Python 微服务独立部署</span>
       </div>
       <div class="arch-hl-item reveal">
-        <strong data-i18n="arch.hl5.title">离线优先</strong>
-        <span data-i18n="arch.hl5.desc">逐瓦片智能路由 + MBTiles 本地缓存，无网络环境全功能作业，网络恢复自动同步</span>
+        <strong data-i18n="arch.hl5.title">全球化就绪</strong>
+        <span data-i18n="arch.hl5.desc">账号 / 手机（E.164）/ 邮箱多标识登录，牧场 → 租户 → 平台时区链，底图随牧场地区切换，中英双语开箱即用</span>
       </div>
       <div class="arch-hl-item reveal">
         <strong data-i18n="arch.hl6.title">时序数据原生分区</strong>
@@ -793,7 +795,7 @@
         <ul>
           <li data-i18n="deploy.hosted.i1">平台开通即用，无需自建基础设施</li>
           <li data-i18n="deploy.hosted.i2">多租户隔离，运维、监控与升级由我方负责</li>
-          <li data-i18n="deploy.hosted.i3">支持首年免费试点（365 天），按需平滑升级订阅档位</li>
+          <li data-i18n="deploy.hosted.i3">免费试用统一截止 2027-09-30，按需平滑升级订阅档位</li>
         </ul>
       </div>
       <div class="deploy-card alt reveal">
@@ -802,7 +804,7 @@
         <ul>
           <li data-i18n="deploy.onprem.i1">离线镜像整包交付，运行不依赖公网</li>
           <li data-i18n="deploy.onprem.i2">离线授权文件签名校验，绑定安装 ID 与主机指纹</li>
-          <li data-i18n="deploy.onprem.i3">同样适用首年免费试点（离线试点证书）；数据完整保留在客户内网，续费通过授权文件导入完成</li>
+          <li data-i18n="deploy.onprem.i3">同样适用免费试点（离线试点证书，统一截止 2027-09-30）；数据完整保留在客户内网，续费通过授权文件导入完成</li>
         </ul>
       </div>
     </div>
@@ -898,14 +900,6 @@
             <td class="adv-cross">✗</td>
             <td class="adv-col-ours"><strong data-i18n="adv.ours.row9">防拆卸即时告警</strong></td>
           </tr>
-          <tr>
-            <td data-i18n="adv.row10">离线作业</td>
-            <td class="adv-cross">✗</td>
-            <td class="adv-cross">✗</td>
-            <td class="adv-cross">✗</td>
-            <td class="adv-cross">✗</td>
-            <td class="adv-col-ours"><strong data-i18n="adv.ours.row10">无网络全功能</strong></td>
-          </tr>
         </tbody>
       </table>
     </div>
@@ -985,10 +979,10 @@
       </div>
     </div>
     <div class="pricing-trial" data-i18n-html="price.trial">
-      新租户注册即享 <strong>14 天 PREMIUM 全功能试用</strong>（免商务流程快速体验），到期自动降为免费版，数据保留；完整评估可升级 365 天免费试点
+      新租户注册即可<strong>自助开通 PREMIUM 全功能试用</strong>（免商务流程快速体验），试用统一截止 <strong>2027-09-30</strong>，到期自动降为免费版，数据保留；完整评估可申请我方开通试点授权（同一截止日）
     </div>
     <div class="pricing-trial" style="margin-top:var(--space-md);" data-i18n-html="price.pilot">
-      配套软件服务<strong>首年免费</strong>：开通 <strong>365 天全功能试点</strong>（按专业版 PREMIUM 能力完整体验），到期自动降级为基础免费版，数据完整保留。两种方式任选：<strong>自备服务器部署</strong>（地端离线授权，数据不出场）或<strong>云端小批量试用</strong>（开通即用）。首年后订阅按上表规模档位计算，以商务合同确认。
+      配套软件服务<strong>免费试用统一截止 2027-09-30</strong>：开通免费试点授权后按专业版 PREMIUM 能力完整体验，越早开通免费期越长；到期自动降级为基础免费版，数据完整保留。两种方式任选：<strong>自备服务器部署</strong>（地端离线授权，数据不出场）或<strong>云端小批量试用</strong>（开通即用）。截止后订阅按上表规模档位计算，以商务合同确认。
     </div>
     <div class="pricing-trial" style="margin-top:var(--space-md);" data-i18n="price.note">
       订阅单价为美元报价、不含增值税（VAT），按存栏头数 × 所在档位单价计月费（付费档无头数上限）；物联网设备 $65/台一次性购买、设备归客户所有，LoRaWAN 网关按牧场规模另报
@@ -999,7 +993,7 @@
   <!-- SECTION: cta -->
   <section class="cta-section" id="cta">
     <h2 class="cta-title" data-i18n="cta.title">开启智慧养殖之旅</h2>
-    <p class="cta-subtitle" data-i18n="cta.subtitle">设备买断归您所有，订阅按头计费，首年免费试点</p>
+    <p class="cta-subtitle" data-i18n="cta.subtitle">设备买断归您所有，订阅按头计费，免费试用至 2027-09-30</p>
     <div class="cta-buttons">
       <a href="#" class="btn-cta-primary" data-i18n="cta.btn1">预约演示</a>
       <a href="#" class="btn-cta-secondary" data-i18n="cta.btn2">免费试用</a>
@@ -1028,8 +1022,8 @@
         'hero.stat2.label': 'AI 提前预警，早于临床症状',
         'hero.stat3.num': '5–10 公里',
         'hero.stat3.label': 'LoRaWAN 覆盖半径，无需蜂窝基站',
-        'hero.stat4.num': '14 天',
-        'hero.stat4.label': '全功能免费试用，零风险上手',
+        'hero.stat4.num': '2027-09-30',
+        'hero.stat4.label': '免费试用统一截止日，专业版全功能零风险上手',
         'hero.cta1': '预约演示',
         'hero.cta2': '免费试用',
         /* Pain Points */
@@ -1063,21 +1057,22 @@
         'sol.step3.i3': '统一信号同步',
         'sol.step3.i4': '跨资产告警闭环',
         'sol.step3.i5': '数据分析报表',
+        'sol.step3.i6': 'BoviScout App 三端统一（Web / Android / iOS）',
         /* Capabilities */
         'cap.title': '六大核心能力',
         'cap.subtitle': '覆盖牲畜管理全场景，从定位到健康一站式解决',
         'cap1.title': '实时定位追踪',
-        'cap1.desc': 'GPS + LoRaWAN 双模定位，全球覆盖。历史轨迹回放与热力图分析，位置一目了然；底图按地区自动适配（中国高德 / 海外 OSM）。',
+        'cap1.desc': 'GPS + LoRaWAN 双模定位，全球覆盖。历史轨迹回放与热力图分析，位置一目了然；底图按牧场所在地区自动适配（中国高德 / 海外 OSM）。',
         'cap2.title': '电子围栏告警',
         'cap2.desc': '手绘多边形或模板快速创建虚拟围栏，越界实时推送告警。围栏、健康、疫病和设备告警统一进入跨资产工作台闭环。',
         'cap3.title': 'AI 健康监测',
-        'cap3.desc': '发热、消化、发情、疫病四大分析引擎，覆盖牲畜全生命周期。位置与健康状态由统一 Signal 通道秒级感知；疫病接触链按处置等级排出先处理顺序。',
+        'cap3.desc': '发热、消化、发情、疫病四大分析引擎 + 体温 / 蠕动 / 活动 / 饮水四项行为监测，覆盖牲畜全生命周期。位置与健康状态由统一 Signal 通道秒级感知；一键标记病畜即时触发接触分析，疫病接触链按处置等级排出先处理顺序。',
         'cap4.title': '无监督异常检测',
         'cap4.desc': 'STL 节律剥离 + CUSUM 突变检测，体温、蠕动、活动三维联合分析。规则引擎与 AI 双轨并行，误报率大幅降低。',
         'cap5.title': '设备全生命周期管理',
-        'cap5.desc': '追踪器、瘤胃胶囊、耳标统一管理。电量、信号、在线状态实时监控；设备离线自动开单、恢复自动消解。批量入网与安装追溯；千台级设备搜索绑定，牲畜详情页一键解绑。',
-        'cap6.title': '离线与弱网作业',
-        'cap6.desc': '无网络环境下完整运行：离线地图瓦片、离线围栏数据、离线牲畜缓存。推送异常时自动退回增量轮询，网络恢复后自动同步，牧场深处也不中断。',
+        'cap5.desc': '追踪器、瘤胃胶囊、耳标统一管理。电量、信号、在线状态实时监控（在线率按租户真实计算）；设备离线自动开单、恢复自动消解。设备 EUI 全球唯一、支持跨租户移交；批量入网与安装追溯；千台级设备搜索绑定，牲畜详情页一键解绑。',
+        'cap6.title': '弱网连续作业',
+        'cap6.desc': 'LoRaWAN 免蜂窝广覆盖，偏远牧场不依赖基站。推送不可用时自动退回 3 秒增量轮询，断线保留最近数据并明确标注滞后，网络恢复后自动对账，牧场深处也不中断。',
         /* Architecture */
         'arch.title': '企业级技术架构',
         'arch.subtitle': 'DDD 领域驱动 + 事件驱动 + AI 原生，支撑规模化运营',
@@ -1118,8 +1113,8 @@
         'arch.hl3.desc': 'JWT → ThreadLocal → DB 层三级隔离，请求级自动过滤。支持 partner / farm / api 三级租户类型',
         'arch.hl4.title': 'AI 原生健康引擎',
         'arch.hl4.desc': 'STL + CUSUM + iForest 无监督异常检测，体温/蠕动/活动三维联合，Python 微服务独立部署',
-        'arch.hl5.title': '离线优先',
-        'arch.hl5.desc': '逐瓦片智能路由 + MBTiles 本地缓存，无网络环境全功能作业，网络恢复自动同步',
+        'arch.hl5.title': '全球化就绪',
+        'arch.hl5.desc': '账号 / 手机（E.164）/ 邮箱多标识登录，牧场 → 租户 → 平台时区链，底图随牧场地区切换，中英双语开箱即用',
         'arch.hl6.title': '时序数据原生分区',
         'arch.hl6.desc': 'PostgreSQL 按月 RANGE 分区管理海量传感器数据，无需专用 TSDB，运维栈统一',
         'arch.deploy.title': '灵活的部署形态',
@@ -1128,12 +1123,12 @@
         'deploy.hosted.desc': '由我们负责运维与升级的开箱即用模式，注册即可使用，适合快速启动试点与规模化扩展。',
         'deploy.hosted.i1': '平台开通即用，无需自建基础设施',
         'deploy.hosted.i2': '多租户隔离，运维、监控与升级由我方负责',
-        'deploy.hosted.i3': '支持首年免费试点（365 天），按需平滑升级订阅档位',
+        'deploy.hosted.i3': '免费试用统一截止 2027-09-30，按需平滑升级订阅档位',
         'deploy.onprem.title': '地端独立部署 ONPREM',
         'deploy.onprem.desc': '离线镜像整包交付到客户机房，授权绑定主机，数据不出场，适合对数据驻留有严格要求的客户。',
         'deploy.onprem.i1': '离线镜像整包交付，运行不依赖公网',
         'deploy.onprem.i2': '离线授权文件签名校验，绑定安装 ID 与主机指纹',
-        'deploy.onprem.i3': '同样适用首年免费试点（离线试点证书）；数据完整保留在客户内网，续费通过授权文件导入完成',
+        'deploy.onprem.i3': '同样适用免费试点（离线试点证书，统一截止 2027-09-30）；数据完整保留在客户内网，续费通过授权文件导入完成',
         /* Advantages */
         'adv.col.dim': '功能维度',
         'adv.cell.cellular': '蜂窝',
@@ -1148,7 +1143,6 @@
         'adv.row7': 'AI 异常检测',
         'adv.row8': '数智孪生',
         'adv.row9': '设备防拆',
-        'adv.row10': '离线作业',
         'adv.ours.battery': '>3 年',
         'adv.ours.row2': '✓ 核心',
         'adv.ours.row5': '可选订阅',
@@ -1156,7 +1150,6 @@
         'adv.ours.row7': '无监督 + 三维联合',
         'adv.ours.row8': '4 大场景',
         'adv.ours.row9': '防拆卸即时告警',
-        'adv.ours.row10': '无网络全功能',
         'adv.note': '数据来源：各品牌公开产品文档及独立评测，截止 2026 年 7 月',
         /* Pricing */
         'price.title': '透明的按头订阅定价',
@@ -1210,20 +1203,20 @@
         'price.ent.f7': '7×24 电话支持',
         'price.ent.f8': 'SLA 99.99%',
         'price.ent.cta': '联系销售',
-        'price.trial': '新租户注册即享 <strong>14 天 PREMIUM 全功能试用</strong>（免商务流程快速体验），到期自动降为免费版，数据保留；完整评估可升级 365 天免费试点',
-        'price.pilot': '配套软件服务<strong>首年免费</strong>：开通 <strong>365 天全功能试点</strong>（按专业版 PREMIUM 能力完整体验），到期自动降级为基础免费版，数据完整保留。两种方式任选：<strong>自备服务器部署</strong>（地端离线授权，数据不出场）或<strong>云端小批量试用</strong>（开通即用）。首年后订阅按上表规模档位计算，以商务合同确认。',
+        'price.trial': '新租户注册即可<strong>自助开通 PREMIUM 全功能试用</strong>（免商务流程快速体验），试用统一截止 <strong>2027-09-30</strong>，到期自动降为免费版，数据保留；完整评估可申请我方开通试点授权（同一截止日）',
+        'price.pilot': '配套软件服务<strong>免费试用统一截止 2027-09-30</strong>：开通免费试点授权后按专业版 PREMIUM 能力完整体验，越早开通免费期越长；到期自动降级为基础免费版，数据完整保留。两种方式任选：<strong>自备服务器部署</strong>（地端离线授权，数据不出场）或<strong>云端小批量试用</strong>（开通即用）。截止后订阅按上表规模档位计算，以商务合同确认。',
         'price.note': '订阅单价为美元报价、不含增值税（VAT），按存栏头数 × 所在档位单价计月费（付费档无头数上限）；物联网设备 $65/台一次性购买、设备归客户所有，LoRaWAN 网关按牧场规模另报',
         /* CTA */
         'cta.title': '开启智慧养殖之旅',
-        'cta.subtitle': '设备买断归您所有，订阅按头计费，首年免费试点',
+        'cta.subtitle': '设备买断归您所有，订阅按头计费，免费试用至 2027-09-30',
         'cta.btn1': '预约演示',
         'cta.btn2': '免费试用',
         'cta.btn3': '联系销售',
         /* Footer */
         'footer': '© 2026 SmartLivestock. 智慧畜牧，数据驱动的精准养殖。',
         /* API layer items (architecture diagram) */
-        'arch.api.controller': 'REST Controller × 74',
-        'arch.api.endpoint': 'API 端点 × 387',
+        'arch.api.controller': 'REST Controller × 80',
+        'arch.api.endpoint': 'API 端点 × 411',
         'arch.api.tenant': '多租户拦截',
         'arch.api.quota': '配额门控',
         'arch.api.rate': '限流',
@@ -1239,8 +1232,8 @@
         'hero.stat2.label': 'AI early warning, ahead of clinical symptoms',
         'hero.stat3.num': '5–10 km',
         'hero.stat3.label': 'LoRaWAN coverage, no cellular tower needed',
-        'hero.stat4.num': '14 Days',
-        'hero.stat4.label': 'Full-featured free trial, zero risk',
+        'hero.stat4.num': '2027-09-30',
+        'hero.stat4.label': 'Unified free-trial deadline — full PREMIUM features, zero risk',
         'hero.cta1': 'Request Demo',
         'hero.cta2': 'Free Trial',
         'pain.title': 'Challenges Facing Traditional Ranches',
@@ -1272,20 +1265,21 @@
         'sol.step3.i3': 'Unified Signal Sync',
         'sol.step3.i4': 'Cross-Asset Alert Workflow',
         'sol.step3.i5': 'Data Analytics & Reports',
+        'sol.step3.i6': 'BoviScout app — one experience across Web / Android / iOS',
         'cap.title': 'Six Core Capabilities',
         'cap.subtitle': 'Covering the full spectrum of livestock management, from tracking to health — all in one platform',
         'cap1.title': 'Real-Time GPS Tracking',
-        'cap1.desc': 'GPS + LoRaWAN dual-mode positioning with global coverage. Historical trajectory playback and heatmap analysis; map baselines adapt automatically by region (AMap in China, OSM elsewhere).',
+        'cap1.desc': 'GPS + LoRaWAN dual-mode positioning with global coverage. Historical trajectory playback and heatmap analysis; map baselines adapt automatically to the region of each farm (AMap in China, OSM elsewhere).',
         'cap2.title': 'Virtual Fence Alerts',
         'cap2.desc': 'Create virtual fences via freehand polygons or templates. Real-time breach alerts flow with health, epidemic, and device alerts into one cross-asset workflow.',
         'cap3.title': 'AI Health Monitoring',
-        'cap3.desc': 'Four analysis engines — fever, digestion, estrus, and epidemic — covering the full livestock lifecycle. Location and health changes are sensed through one unified Signal channel; epidemic contact chains are ranked by disposition priority.',
+        'cap3.desc': 'Four analysis engines — fever, digestion, estrus, and epidemic — plus four behavior monitors (temperature, rumen motility, activity, drinking) covering the full livestock lifecycle. Location and health changes are sensed through one unified Signal channel; one-tap disease marking triggers contact analysis instantly, and epidemic contact chains are ranked by disposition priority.',
         'cap4.title': 'Unsupervised Anomaly Detection',
         'cap4.desc': 'STL seasonal decomposition + CUSUM change detection with 3D joint analysis of temperature, motility, and activity. Rule engine and AI run in parallel for low false positives.',
         'cap5.title': 'Device Lifecycle Management',
-        'cap5.desc': 'Unified management of trackers, rumen capsules, and ear tags. Real-time battery, signal, and online status monitoring; offline devices raise tickets automatically and tickets resolve on recovery. Batch onboarding with installation traceability, keyword-search binding for farms with 1,000+ devices, and one-tap unbinding from the livestock page.',
-        'cap6.title': 'Offline & Weak-Network Operation',
-        'cap6.desc': 'Complete functionality without network: offline map tiles, offline fence data, offline livestock cache. Sync falls back to incremental polling when push is unavailable, then resumes automatically when connectivity returns.',
+        'cap5.desc': 'Unified management of trackers, rumen capsules, and ear tags. Real-time battery, signal, and online status monitoring (online rate computed per tenant); offline devices raise tickets automatically and tickets resolve on recovery. Globally unique device EUIs with cross-tenant transfer; batch onboarding with installation traceability, keyword-search binding for farms with 1,000+ devices, and one-tap unbinding from the livestock page.',
+        'cap6.title': 'Weak-Network Continuity',
+        'cap6.desc': 'LoRaWAN wide-area coverage without cellular towers. When push is unavailable the app falls back to 3-second incremental polling, keeps the last authoritative data clearly marked as stale while disconnected, and reconciles automatically when connectivity returns.',
         'arch.title': 'Enterprise-Grade Architecture',
         'arch.subtitle': 'DDD + Event-Driven + AI-Native, built for scale',
         'arch.client.portal': 'Developer Portal',
@@ -1317,8 +1311,8 @@
         'arch.arrow.auth': '▼ JWT Dual Token + API Key Authentication ▼',
         'arch.arrow.mq': '▼ RocketMQ Event Bus ▼',
         'arch.arrow.infra': '▼ Infrastructure + AI Platform ▼',
-        'arch.api.controller': 'REST Controller × 74',
-        'arch.api.endpoint': 'API Endpoints × 387',
+        'arch.api.controller': 'REST Controller × 80',
+        'arch.api.endpoint': 'API Endpoints × 411',
         'arch.api.tenant': 'Multi-Tenant',
         'arch.api.quota': 'Quota Gate',
         'arch.api.rate': 'Rate Limit',
@@ -1330,8 +1324,8 @@
         'arch.hl3.desc': 'JWT → ThreadLocal → DB-layer three-tier isolation with request-level automatic filtering. Supports partner / farm / api tenant types.',
         'arch.hl4.title': 'AI-Native Health Engine',
         'arch.hl4.desc': 'STL + CUSUM + iForest unsupervised anomaly detection with 3D joint analysis. Python microservice independently deployed.',
-        'arch.hl5.title': 'Offline-First',
-        'arch.hl5.desc': 'Per-tile smart routing + MBTiles local cache. Full functionality without network, automatic sync when connectivity returns.',
+        'arch.hl5.title': 'Global-Ready',
+        'arch.hl5.desc': 'Account / phone (E.164) / email login, farm → tenant → platform timezone chain, map baselines that follow the region of each farm, bilingual out of the box.',
         'arch.hl6.title': 'Native Time-Series Partitioning',
         'arch.hl6.desc': 'PostgreSQL monthly RANGE partitioning for massive sensor data. No dedicated TSDB needed — unified operations stack.',
         'arch.deploy.title': 'Flexible Deployment Options',
@@ -1340,12 +1334,12 @@
         'deploy.hosted.desc': 'A turnkey model operated and upgraded by us. Sign up and start immediately — ideal for fast pilots and scale-up.',
         'deploy.hosted.i1': 'Instant platform access, no infrastructure to build',
         'deploy.hosted.i2': 'Multi-tenant isolation with operations, monitoring, and upgrades handled by us',
-        'deploy.hosted.i3': 'First-year free pilot (365 days) supported, with smooth tier upgrades as needed',
+        'deploy.hosted.i3': 'Free trial until 30 Sep 2027 (unified deadline), with smooth tier upgrades as needed',
         'deploy.onprem.title': 'On-Premises (ONPREM)',
         'deploy.onprem.desc': 'Delivered as an offline image bundle to your own server room. License bound to the host, data never leaves the farm — for strict data-residency requirements.',
         'deploy.onprem.i1': 'Offline image bundle delivery, runs without public internet',
         'deploy.onprem.i2': 'Signed offline license file bound to installation ID and host fingerprint',
-        'deploy.onprem.i3': 'Also eligible for the first-year free pilot (offline pilot certificate); data stays entirely inside the customer intranet, renewal via license file import',
+        'deploy.onprem.i3': 'Also eligible for the free pilot (offline pilot certificate, unified deadline 30 Sep 2027); data stays entirely inside the customer intranet, renewal via license file import',
         'adv.col.dim': 'Feature',
         'adv.cell.cellular': 'Cellular',
         'adv.title': 'Why Choose SmartLivestock',
@@ -1359,7 +1353,6 @@
         'adv.row7': 'AI Anomaly Detection',
         'adv.row8': 'Digital Twin',
         'adv.row9': 'Tamper Detection',
-        'adv.row10': 'Offline Operation',
         'adv.ours.battery': '>3 Years',
         'adv.ours.row2': '✓ Core',
         'adv.ours.row5': 'Optional',
@@ -1367,7 +1360,6 @@
         'adv.ours.row7': 'Unsupervised + 3D Joint',
         'adv.ours.row8': '4 Scenarios',
         'adv.ours.row9': 'Instant Tamper Alert',
-        'adv.ours.row10': 'Full Offline',
         'adv.note': 'Data source: public product documentation and independent reviews, as of July 2026',
         'price.title': 'Transparent Per-Head Pricing',
         'price.subtitle': 'Devices are a one-time $65 purchase and stay yours; software is billed per head per month — the bigger the herd, the lower the rate',
@@ -1420,11 +1412,11 @@
         'price.ent.f7': '7×24 Phone Support',
         'price.ent.f8': 'SLA 99.99%',
         'price.ent.cta': 'Contact Sales',
-        'price.trial': 'New tenants get a <strong>14-day PREMIUM full-featured trial</strong> on sign-up (quick evaluation, no commercial process). Auto-downgrades to the free tier with data retained; upgrade to the 365-day free pilot for a full evaluation.',
-        'price.pilot': 'Your first year of the companion software is <strong>free</strong>: a <strong>365-day full-capability pilot</strong> at PREMIUM tier, automatically downgraded to the free tier on expiry with all data retained. Choose either <strong>your own servers</strong> (on-premise offline license, data never leaves your site) or <strong>our cloud for a small-scale trial</strong> (ready on activation). Subscription fees beyond the first year follow the herd-size bands above, confirmed by commercial contract.',
+        'price.trial': 'New tenants can <strong>self-activate a full-featured PREMIUM trial</strong> on sign-up (quick evaluation, no commercial process). The trial runs until the unified deadline of <strong>30 Sep 2027</strong>, then auto-downgrades to the free tier with data retained; for a full evaluation, request a pilot license (same deadline).',
+        'price.pilot': 'The companion software is <strong>free until 30 Sep 2027</strong> (one unified deadline): once your pilot license is activated you get full PREMIUM capability, and the earlier you start the longer the free period. On expiry it automatically downgrades to the free tier with all data retained. Choose either <strong>your own servers</strong> (on-premise offline license, data never leaves your site) or <strong>our cloud for a small-scale trial</strong> (ready on activation). Subscription fees after the deadline follow the herd-size bands above, confirmed by commercial contract.',
         'price.note': 'Subscription rates are quoted in USD, excl. VAT; the monthly fee is head count × the applicable band rate (paid tiers have no head cap). IoT devices are a one-time $65 per unit purchase and remain customer property; LoRaWAN gateways are quoted per farm.',
         'cta.title': 'Start Your Smart Farming Journey',
-        'cta.subtitle': 'Own your devices, pay per head, first-year pilot free',
+        'cta.subtitle': 'Own your devices, pay per head, free until 30 Sep 2027',
         'cta.btn1': 'Request Demo',
         'cta.btn2': 'Free Trial',
         'cta.btn3': 'Contact Sales',
