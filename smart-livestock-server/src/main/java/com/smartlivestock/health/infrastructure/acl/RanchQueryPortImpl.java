@@ -62,6 +62,15 @@ public class RanchQueryPortImpl implements RanchQueryPort {
     }
 
     @Override
+    public java.util.Map<String, Long> countAlertsByDay(Long farmId, Instant since) {
+        java.time.ZoneId zone = java.time.ZoneId.systemDefault();
+        return springDataAlertRepo.findByFarmIdAndCreatedAtGreaterThanEqual(farmId, since).stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        e -> java.time.LocalDate.ofInstant(e.getCreatedAt(), zone).toString(),
+                        java.util.stream.Collectors.counting()));
+    }
+
+    @Override
     public boolean hasActiveAlert(Long livestockId, String alertType) {
         return !alertRepository.findByLivestockIdAndTypeAndStatus(
                 livestockId, AlertType.valueOf(alertType), AlertStatus.ACTIVE).isEmpty();

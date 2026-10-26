@@ -1,5 +1,6 @@
 package com.smartlivestock.shared.security;
 
+import com.smartlivestock.identity.application.TenantSubscriptionResolver;
 import com.smartlivestock.identity.domain.model.ApiKey;
 import com.smartlivestock.shared.tenant.TenantContext;
 import jakarta.servlet.FilterChain;
@@ -25,7 +26,14 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(ApiKeyAuthFilter.class);
     private static final String API_KEY_HEADER = "X-API-Key";
     public static final String ATTR_API_KEY = "com.smartlivestock.apiKey";
+    /**
+     * NIX-323: subscription snapshot (status + degraded tier) attached after
+     * key validation. Degrade-don't-reject: an expired tenant still
+     * authenticates; downstream gates read the tier from here.
+     */
+    public static final String ATTR_SUBSCRIPTION = "com.smartlivestock.subscription";
     private final ApiKeyAuthService apiKeyAuthService;
+    private final TenantSubscriptionResolver tenantSubscriptionResolver;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -50,6 +58,8 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(auth);
             TenantContext.setCurrentTenant(apiKey.getTenantId());
             request.setAttribute(ATTR_API_KEY, apiKey);
+            request.setAttribute(ATTR_SUBSCRIPTION,
+                    tenantSubscriptionResolver.resolve(apiKey.getTenantId()));
         } catch (Exception e) {
             log.warn("API Key authentication failed: {}", e.getMessage());
             SecurityContextHolder.clearContext();

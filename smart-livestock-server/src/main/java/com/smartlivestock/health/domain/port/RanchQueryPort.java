@@ -24,6 +24,12 @@ public interface RanchQueryPort {
     int countActiveAlertsByFarmId(Long farmId);
 
     /**
+     * Alerts created per day (YYYY-MM-DD) for a farm since the given instant —
+     * real data for the /health/stats alert trend (NIX-323).
+     */
+    java.util.Map<String, Long> countAlertsByDay(Long farmId, Instant since);
+
+    /**
      * Whether the livestock already has an ACTIVE alert of the given
      * ranch AlertType name (e.g. "TEMPERATURE_ABNORMAL").
      * Used by the health alert bridge to deduplicate ticket creation.

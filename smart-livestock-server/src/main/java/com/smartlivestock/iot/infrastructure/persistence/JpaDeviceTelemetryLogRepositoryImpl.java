@@ -3,6 +3,7 @@ package com.smartlivestock.iot.infrastructure.persistence;
 import com.smartlivestock.iot.domain.model.DeviceTelemetryLog;
 import com.smartlivestock.iot.domain.repository.DeviceTelemetryLogRepository;
 import com.smartlivestock.iot.infrastructure.persistence.mapper.DeviceTelemetryLogMapper;
+import com.smartlivestock.shared.domain.TelemetryPage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
@@ -20,6 +21,15 @@ public class JpaDeviceTelemetryLogRepositoryImpl implements DeviceTelemetryLogRe
     @Override
     public DeviceTelemetryLog save(DeviceTelemetryLog log) {
         return DeviceTelemetryLogMapper.toDomain(springDataRepo.save(DeviceTelemetryLogMapper.toJpaEntity(log)));
+    }
+
+    @Override
+    public TelemetryPage<DeviceTelemetryLog> findPageByDevice(Long deviceId, Instant from, Instant to, int page, int pageSize) {
+        var result = springDataRepo.findPageByDeviceAndReportTimeBetween(
+                deviceId, from, to, PageRequest.of(Math.max(0, page - 1), pageSize));
+        return new TelemetryPage<>(
+                result.getContent().stream().map(DeviceTelemetryLogMapper::toDomain).toList(),
+                page, pageSize, result.getTotalElements());
     }
 
     @Override

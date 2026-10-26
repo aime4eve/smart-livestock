@@ -1124,20 +1124,36 @@ public class HealthApplicationService {
                 "warning", (int) warning,
                 "critical", (int) crit);
 
-        // Build 7-day trend from snapshot data
+        // Build 7-day trend from real aggregations (NIX-323: replaces
+        // Math.random placeholders — days without data are skipped for the
+        // temperature/health series; alert days simply count zero).
         List<HealthDtos.StatsTrendPoint> tempTrend = new java.util.ArrayList<>();
         List<HealthDtos.StatsTrendPoint> healthTrend = new java.util.ArrayList<>();
         List<HealthDtos.StatsTrendPoint> alertTrend = new java.util.ArrayList<>();
 
-        double baseTemp = avgTemp;
+        java.time.Instant trendSince = java.time.Instant.now().minus(Duration.ofDays(7));
+        List<Long> livestockIds = livestockList.stream().map(LivestockInfo::id).toList();
+        Map<String, DailyTemperatureStat> tempByDay = new HashMap<>();
+        if (!livestockIds.isEmpty()) {
+            for (DailyTemperatureStat stat : tempLogRepo.aggregateDailyStats(livestockIds, trendSince)) {
+                tempByDay.put(stat.date(), stat);
+            }
+        }
+        Map<String, Long> alertsByDay = ranchQueryPort.countAlertsByDay(farmId, trendSince);
+
         for (int i = 6; i >= 0; i--) {
             String dateStr = java.time.LocalDate.now().minusDays(i).toString();
-            double variation = (Math.random() - 0.5) * 0.3;
-            tempTrend.add(new HealthDtos.StatsTrendPoint(dateStr, Math.round((baseTemp + variation) * 100.0) / 100.0));
-            double rateVar = (healthyRate != null ? healthyRate : 0.0) + (Math.random() - 0.5) * 0.1;
-            healthTrend.add(new HealthDtos.StatsTrendPoint(dateStr, Math.min(1.0, Math.max(0.0, Math.round(rateVar * 100.0) / 100.0))));
-            int dayAlerts = Math.max(0, (int)(Math.random() * 5));
-            alertTrend.add(new HealthDtos.StatsTrendPoint(dateStr, dayAlerts));
+            DailyTemperatureStat stat = tempByDay.get(dateStr);
+            if (stat != null && stat.avgTemperature() != null) {
+                tempTrend.add(new HealthDtos.StatsTrendPoint(dateStr,
+                        Math.round(stat.avgTemperature().doubleValue() * 100.0) / 100.0));
+                healthTrend.add(new HealthDtos.StatsTrendPoint(dateStr,
+                        stat.readings() > 0
+                                ? Math.round(stat.normalReadings() * 100.0 / stat.readings()) / 100.0
+                                : 0.0));
+            }
+            alertTrend.add(new HealthDtos.StatsTrendPoint(dateStr,
+                    alertsByDay.getOrDefault(dateStr, 0L)));
         }
 
         return new HealthDtos.StatsResponse(summary, tempTrend, healthTrend, alertTrend, distribution);

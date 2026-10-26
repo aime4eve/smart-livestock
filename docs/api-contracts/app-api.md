@@ -1272,7 +1272,7 @@ Error 409:
 > ⚠️ **实现注意（如实在契约中标注）**：
 > 1. 服务层方法虽接收 `farmId`，但**未用它过滤 livestock 归属**（如 `getFeverDetail(farmId, livestockId)` 仅按 livestockId 查），存在跨 farm 查到他人牲畜的潜在越权点。
 > 2. 数据保留窗口受订阅 tier 的 feature gate 控制：fever detail 硬上限 **72h**、digestive detail 硬上限 **24h**；`health_score`/`estrus_detect` feature 未启用时，对应图表端点**不报错**，返回 `[]` 或 `null`。
-> 3. `/health/stats` 的三条 7 天趋势曲线当前由 `Math.random()` 生成，**非真实聚合数据**；`/health/overview` 的 `deviceOnlineRate`/`healthTrend`/`livestockTrend` 为硬编码占位。
+> 3. ~~`/health/stats` 的三条 7 天趋势曲线由 `Math.random()` 生成~~ **已修复（NIX-323，2026-10-26）**：temperatureTrend=temperature_logs 按日 AVG、healthRateTrend=按日正常读数占比（|delta|≤0.5℃）、alertTrend=alerts 按日 count；无数据日温度/健康率跳过该点、告警计 0。`/health/overview` 的 `deviceOnlineRate`/`healthTrend`/`livestockTrend` 仍为硬编码占位（待 NIX-324 或后续清理）。
 > 4. snapshot 不存在的 detail 端点返回占位（`status="NORMAL"`、`"暂无数据"`、空数组），不报错。
 
 **关键阈值**（来自代码常量）：体温基线 38.5°C；FEVER delta 1.0/1.5，CRITICAL delta 2.0 或绝对 ≥41.0°C，持续 2h 升级；蠕动基线 3.0，LOW 比值 0.7、ABNORMAL 比值 0.5；发情 score = step×0.4 + temp×0.3 + distance×0.3，≥70 建议配种；疫情 abnormalRate >0.15 警戒 / >0.05 关注。
@@ -1323,7 +1323,7 @@ Response 200:
 }
 ```
 
-> ⚠️ 三条 7 天趋势曲线当前由 `Math.random()` 生成，非真实数据；`healthDistribution` 键为 `healthy`/`warning`/`critical`。
+> 三条 7 天趋势曲线已改为真实聚合（NIX-323，2026-10-26）：温度按日 AVG / 健康率按日正常读数占比 / 告警按日 count；无数据日温度与健康率跳过该点（序列可能短于 7 点），告警日无则计 0。`healthDistribution` 键为 `healthy`/`warning`/`critical`。
 
 ### GET /farms/{farmId}/health/fever
 

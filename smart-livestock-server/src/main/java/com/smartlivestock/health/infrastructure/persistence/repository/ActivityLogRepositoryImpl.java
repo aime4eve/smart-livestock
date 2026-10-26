@@ -1,10 +1,13 @@
 package com.smartlivestock.health.infrastructure.persistence.repository;
 
 import com.smartlivestock.health.domain.model.ActivityLog;
+import com.smartlivestock.shared.domain.TelemetryPage;
 import com.smartlivestock.health.domain.repository.ActivityLogRepository;
 import com.smartlivestock.health.infrastructure.persistence.jpa.ActivityLogJpaRepository;
 import com.smartlivestock.health.infrastructure.persistence.mapper.HealthMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -20,6 +23,17 @@ public class ActivityLogRepositoryImpl implements ActivityLogRepository {
     public List<ActivityLog> findByLivestockIdAndTimeRange(Long livestockId, Instant from, Instant to) {
         return jpaRepo.findByLivestockIdAndRecordedAtBetweenOrderByRecordedAtAsc(livestockId, from, to)
                 .stream().map(HealthMapper::toDomain).toList();
+    }
+
+    @Override
+    public TelemetryPage<ActivityLog> findPageByLivestock(Long livestockId, Instant from, Instant to, int page, int pageSize) {
+        return toPage(jpaRepo.findByLivestockIdAndRecordedAtBetweenOrderByRecordedAtAsc(
+                        livestockId, from, to, PageRequest.of(Math.max(0, page - 1), pageSize))
+                .map(HealthMapper::toDomain), page, pageSize);
+    }
+
+    private static <T> TelemetryPage<T> toPage(Page<T> result, int page, int pageSize) {
+        return new TelemetryPage<>(result.getContent(), page, pageSize, result.getTotalElements());
     }
 
     @Override

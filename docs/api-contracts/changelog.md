@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-10-26 — Open API 遥测端点 + 订阅语义（NIX-323）
+
+**来源**: NIX-323（定位 A 裁决：平台增值；到期行为裁决：降档不拒绝）。
+
+**变更**:
+- `open-api.md`：端点总数 11 → 13，新增 §6 遥测历史与导出（`GET /open/farms/{farmId}/livestock/{id}/telemetry`、`GET /open/farms/{farmId}/devices/{id}/telemetry`）。每类遥测独立分页（pageSize ≤ 100）；档位差异=时间窗（retention_days 7/30/180/365）+ 24h 调用预算（1000/10000/100000/不限）。
+- 订阅语义落地：`ApiKeyAuthFilter` 认证后附加订阅快照（status+降档后 tier，60s 缓存）；到期/无订阅租户回落 basic 档仍可访问（不 403）。
+- 数据真实性修复：`/health/stats` 三条 7 天趋势由 `Math.random()` 占位改为真实聚合（app-api.md 已订正）。
+- 既有欠账记录（不在本单范围）：`GET /open/livestock/{id}` 与 `GET /open/livestock/{id}/gps-logs` 未校验牲畜归属 path farm（租户内跨 farm 可达），新遥测端点已做归属校验。
+
+---
+
 ## 2026-05-07 — 契约重设计（v1.0）
 
 **来源**: 旧契约文档 `docs/superpowers/specs/2026-05-07-multi-client-api-contract-design.md` 废弃，从头重写。

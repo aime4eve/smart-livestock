@@ -1,6 +1,7 @@
 package com.smartlivestock.iot.domain.repository;
 
 import com.smartlivestock.iot.domain.model.DeviceTelemetryLog;
+import com.smartlivestock.shared.domain.TelemetryPage;
 
 import java.time.Instant;
 import java.util.List;
@@ -8,6 +9,9 @@ import java.util.Optional;
 
 public interface DeviceTelemetryLogRepository {
     DeviceTelemetryLog save(DeviceTelemetryLog log);
+
+    /** Paged raw telemetry frames of a device for the Open API (NIX-323). */
+    TelemetryPage<DeviceTelemetryLog> findPageByDevice(Long deviceId, Instant from, Instant to, int page, int pageSize);
 
     /** Find the most recent telemetry log for a device (used for stepNumber delta calculation). */
     Optional<DeviceTelemetryLog> findLatestByDeviceId(Long deviceId);

@@ -1,6 +1,6 @@
 # Open API 端点（`/api/v1/open/`）
 
-> **端点总数**: 11
+> **端点总数**: 13
 > **认证**: API Key（`Authorization: Bearer <api-key>` 或 `X-API-Key: <api-key>`）
 > **Farm Scope**: API Key 绑定 tenantId，farmId 通过路径传入；Key 无权访问非本租户的农场
 > **设计原则**: 路径与 App API 对齐，以读操作为主，唯一写操作是 IoT 设备自注册
@@ -201,6 +201,54 @@ Error 401:
 Error 409 (Idempotency-Key 冲突):
 { "code": "DUPLICATE_RESOURCE", "message": "Idempotency-Key 已被使用", "requestId": "req-O11" }
 ```
+
+---
+
+## 6. 遥测历史与导出（只读）— 2 端点（NIX-323）
+
+> **订阅语义（2026-10-26 裁决：降档不拒绝）**：所有档位（含订阅到期后回落 basic 的租户）均可访问遥测端点；档位差异体现在两处——
+> - **时间窗**：`feature_gates.retention_days`（basic 7 天 / standard 30 / premium 180 / enterprise 365）。请求的 `startTime` 早于档位窗口下限时自动 clamp，响应回显实际生效窗口（`windowFrom`/`windowTo`/`windowDays`）；
+> - **调用预算**：`feature_gates.limit_value`（basic 1000 / standard 10000 / premium 100000 / enterprise 不限），按租户 24h 滚动窗口计数（Redis），超限返回 `QUOTA_EXCEEDED`。
+>
+> 每类遥测独立分页（各自 page/pageSize/total）；types 过滤缺省查全部。
+
+### GET /open/farms/{farmId}/livestock/{livestockId}/telemetry
+
+单牲畜遥测历史。`?types=temperature,motility,activity&startTime=...&endTime=...&page=1&pageSize=100`（pageSize 上限 100）。
+
+```
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-O12",
+  "data": {
+    "livestockId": "101",
+    "windowFrom": "2026-10-19T00:00:00Z", "windowTo": "2026-10-26T00:00:00Z", "windowDays": 7,
+    "temperature": { "items": [ { "temperature": 39.12, "baselineTemp": 38.50, "delta": 0.62, "source": "BOLUS", "recordedAt": "2026-10-25T10:00:00Z" } ], "page": 1, "pageSize": 100, "total": 48 },
+    "motility": { "items": [ { "frequency": 3.10, "intensity": 2.50, "rawCounter": 1234, "counterDelta": 40, "source": "BOLUS", "recordedAt": "2026-10-25T10:00:00Z" } ], "page": 1, "pageSize": 100, "total": 48 },
+    "activity": { "items": [ { "stepCount": 1250, "activityIndex": 42.10, "distanceMeters": 830.50, "source": "TRACKER", "recordedAt": "2026-10-25T10:00:00Z" } ], "page": 1, "pageSize": 100, "total": 48 }
+  }
+}
+```
+
+### GET /open/farms/{farmId}/devices/{deviceId}/telemetry
+
+设备维度原始遥测。`?types=frames,temperature,motility&startTime=...&endTime=...&page=1&pageSize=100`；`frames` 为设备原始帧（电量/RSSI/SNR/步数/胃动力计数/三轴加速度/坐标）。
+
+```
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-O13",
+  "data": {
+    "deviceId": "201", "deviceCode": "DEV-2026-00001",
+    "windowFrom": "2026-10-19T00:00:00Z", "windowTo": "2026-10-26T00:00:00Z", "windowDays": 7,
+    "frames": { "items": [ { "reportTime": "2026-10-25T10:00:00Z", "batteryLevel": 85, "rssi": -97, "snr": 6.0, "stepNumber": 1250, "accelMagnitudeG": 1.02, "latitude": 28.2459123, "longitude": 112.8521004, "source": "AGENTIC_PLATFORM" } ], "page": 1, "pageSize": 100, "total": 336 },
+    "temperature": { "items": [ ... ], "page": 1, "pageSize": 100, "total": 48 },
+    "motility": { "items": [ ... ], "page": 1, "pageSize": 100, "total": 48 }
+  }
+}
+```
+
+Error 403: 牲畜/设备不属于该牧场或租户（`RESOURCE_NOT_FOUND` / `AUTH_FORBIDDEN`）；配额用尽（`QUOTA_EXCEEDED`）。
 
 ---
 

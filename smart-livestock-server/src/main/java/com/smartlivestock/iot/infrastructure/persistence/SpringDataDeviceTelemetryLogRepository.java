@@ -1,6 +1,7 @@
 package com.smartlivestock.iot.infrastructure.persistence;
 
 import com.smartlivestock.iot.infrastructure.persistence.entity.DeviceTelemetryLogJpaEntity;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -54,6 +55,18 @@ public interface SpringDataDeviceTelemetryLogRepository extends JpaRepository<De
             Pageable pageable);
 
     boolean existsByDeviceIdAndReportTime(Long deviceId, Instant reportTime);
+
+    @Query("""
+            SELECT t FROM DeviceTelemetryLogJpaEntity t
+            WHERE t.deviceId = :deviceId
+              AND t.reportTime BETWEEN :from AND :to
+            ORDER BY t.reportTime ASC
+            """)
+    Page<DeviceTelemetryLogJpaEntity> findPageByDeviceAndReportTimeBetween(
+            @Param("deviceId") Long deviceId,
+            @Param("from") Instant from,
+            @Param("to") Instant to,
+            Pageable pageable);
 
     @Query("SELECT t.reportTime FROM DeviceTelemetryLogJpaEntity t WHERE t.deviceId = :deviceId AND t.reportTime BETWEEN :startTime AND :endTime")
     List<Instant> findReportTimesByDeviceIdAndReportTimeBetween(@Param("deviceId") Long deviceId,

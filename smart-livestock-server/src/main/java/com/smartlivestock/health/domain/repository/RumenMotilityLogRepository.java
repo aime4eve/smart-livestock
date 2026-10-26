@@ -1,6 +1,7 @@
 package com.smartlivestock.health.domain.repository;
 
 import com.smartlivestock.health.domain.model.RumenMotilityLog;
+import com.smartlivestock.shared.domain.TelemetryPage;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -8,6 +9,8 @@ import java.util.List;
 
 public interface RumenMotilityLogRepository {
     List<RumenMotilityLog> findByLivestockIdAndTimeRange(Long livestockId, Instant from, Instant to);
+    TelemetryPage<RumenMotilityLog> findPageByLivestock(Long livestockId, Instant from, Instant to, int page, int pageSize);
+    TelemetryPage<RumenMotilityLog> findPageByDevice(Long deviceId, Instant from, Instant to, int page, int pageSize);
     List<RumenMotilityLog> findByLivestockIdOrderByRecordedAtDesc(Long livestockId, int limit);
     List<RumenMotilityLog> findByDeviceIdAndTimeRange(Long deviceId, Instant from, Instant to);
 

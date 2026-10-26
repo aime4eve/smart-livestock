@@ -21,6 +21,9 @@ public interface SpringDataAlertRepository extends JpaRepository<AlertJpaEntity,
     List<AlertJpaEntity> findByFarmIdAndTypeInAndStatusInAndResolvedAtGreaterThanEqual(
             Long farmId, Collection<String> types, Collection<String> statuses, java.time.Instant resolvedAt);
 
+    /** Alerts created since the instant — /health/stats daily trend input (NIX-323). */
+    List<AlertJpaEntity> findByFarmIdAndCreatedAtGreaterThanEqual(Long farmId, java.time.Instant since);
+
     // ── Aggregated counters (alert summary endpoint) ──
 
     interface AlertCountProjection {
