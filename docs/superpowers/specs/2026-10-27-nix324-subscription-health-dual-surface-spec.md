@@ -70,6 +70,14 @@ platform_admin 专用。分页 + `?health=`（trial|renewal_failed|suspended|can
 
 ### 4.3 管理端不新增写操作；导出任务详情复用 `/admin/data-export-jobs`（NIX-325 已交付）。
 
+### 4.4 导出 API 认证双通道（v1.1 评审新增，⚠ 原方案在此卡死）
+
+`OpenDataExportController` 现有实现强依赖 `ApiKeyAuthFilter.ATTR_API_KEY` 属性——`SecurityConfig` 中 `/api/v1/open/**` 为 `.authenticated()`（JWT 本可通过认证链），但 JWT 路径下该属性不存在，controller 直接抛"API Key 上下文缺失"→ **App 登录态（JWT）无法发起/下载导出，导出权卡前端接不进去**。
+
+修订：**controller 请求主体解析回退两级**——优先 API Key 属性（第三方集成），缺失时回退 `TenantContext.getCurrentTenant()`（JWT 登录态，租户上下文由 JwtAuthenticationFilter 建立）。`requestedBy` 在 JWT 路径填当前用户 id。租户端 `ExportEntitlementCard` 一律走 JWT 通道；第三方走 X-API-Key 不变。
+
+**显示与判定时区分离**：`daysToExpiry`/窗口计算一律 UTC 墙钟（比较无歧义）；到期时刻的展示本地化由前端按租户时区链（TenantZoneResolver 既有设施）换算。
+
 ## 5. 组件视觉规格
 
 **租户端横幅**（四型，语义色对见 §3）：圆角 12、内边距 12、左侧 8px 状态圆点、标题 13/700、正文 12/1.55、CTA 主按钮（--primary 底白字）+可选 ghost 按钮；出现位置=订阅页顶部（首页横幅 Phase 2 评估，本单只做订阅页，避免首页信息噪音——⚠ 若用户要首页横幅为必做请指出）。
@@ -91,6 +99,9 @@ platform_admin 专用。分页 + `?health=`（trial|renewal_failed|suspended|can
 5. 管理端筛选/排序/同日分组正确；与 subscriptions 表逐条对账抽查。
 6. `flutter analyze` 零告警；gen-l10n 无缺失 key；中英文案双语齐。
 7. 新 UI 可达性倒查：owner 从「订阅管理」1 次点击到达；platform_admin 从管理后台租户菜单到达。
+8. **（v1.1）JWT 通道冒烟**：App 登录态（JWT）发起导出→下载全链路 200（不经 X-API-Key）。
+9. **（v1.1）b2b_admin 可达**：b2b_admin 角色可进入订阅页看到本租户提示（路由白名单回归）。
+10. **（v1.1）持久化冒烟**：导出完成后重启 app 容器，下载端点仍 200（文件不随容器重建丢失）。
 
 ## 7. 开放问题（⚠ 待裁决，不阻塞 spec 批准）
 
@@ -98,15 +109,17 @@ platform_admin 专用。分页 + `?health=`（trial|renewal_failed|suspended|can
 - ⚠ 临期分级阈值 14/7/3 是否需要可配置（当前硬编码常量）？
 - ⚠ 管理端"发送续费提醒"按钮：Phase 1 置灰占位（外呼非目标），还是先做站内信？默认置灰。
 
-## 8. 修订记录（v1.1，2026-10-27 用户评审）
+## 8. 修订记录
 
-评审要求"构思全面、高保真可实现、业务流程跑通"，逐项机械回查后对撞点修订如下：
+**v1.1（2026-10-27 用户 spec 评审）**：判定矩阵补 SUSPENDED 态；CANCELLED 复活 CTA 落 reactivate/changeTier 允许集；同日分组补 ≥2 租户阈值；管理端筛选枚举补全；删"changeTier 允许 CANCELLED"误断言。
 
-| # | 严重度 | 发现（按评审硬规则从原文倒推、代入调用方逐态求值得出） | 修订 |
+**v1.2（2026-10-27 用户 plan 落地性评审）**：
+| # | 严重度 | 发现（机械回查对撞点） | 修订 |
 |---|---|---|---|
-| 1 | **阻断** | 判定矩阵遗漏 SUSPENDED：挂起租户既非"已取消"（≠CANCELLED 状态）也非 healthy——且挂起态下已缴费用户看不到任何横幅，只剩唯一出口是"联系支持"但 spec 没给；真正危险的是操作语义：`reactivate()` 仅允许 SUSPENDED/CANCELLED，`changeTier` 不允许 SUSPENDED——若 CANCELLED 页渲染 `changeTier` 的"重新订阅"按钮，用户点击必报 409 | 矩阵新增态 3=SUSPENDED（CTA=联系支持）；CANCELLED 态 4 的 CTA 落实为 `reactivate`/`changeTier` 双通道并标明允许集 |
-| 2 | 温和 | 同日分组 `sameDayGroup` 无出现频率阈值，普通单日到期会被误读成分组 | 补"≥2 租户同日才标记"边界 |
-| 3 | 温和 | 管理端筛选枚举列不全（漏 suspended/cancelled），且与 `?health=` 矩阵值无交叉核对 | 枚举补全并列入验收 |
-| 4 | 评审自纠 | 初稿断言"changeTier 允许 CANCELLED"（读反原文）——实际 `requireStatusFor` 仅 ACTIVE/TRIAL/FREE/RENEWAL_FAILED；未逐态求值就下结论属评审硬规则自伤，正文已删该断言 | 态 4 CTA 改为复活的正确链路 |
-
-高保真可实现性核对：原型全部样式用现有令牌实现、无新依赖；Task 4/5 均用既有页面/列表扩展，无新导航孤岛；dart:html 不存在无构建障碍。
+| 1 | **阻断** | 导出权卡前端接不进去：`SecurityConfig` 里 `/api/v1/open/**`=`.authenticated()`（JWT 可过认证链），但 `OpenDataExportController` 只认 ApiKey 属性→JWT 调用抛"上下文缺失" 401。App 登录态无 Key 可用 | §4.4 认证双通道：Key 属性优先、回退 TenantContext（JWT）；前端导出一律 JWT |
+| 2 | **阻断** | 导出文件无持久化：app 容器仅挂 `tileserver-data:ro`，`/app/data/exports` 在容器层——dev 每次部署重建容器，30 天窗口期必然丢文件 | plan 新增部署配置 Task（compose 三环境加 `exports-data` 命名卷） |
+| 3 | **阻断** | b2b_admin 提示无处挂载：路由 redirect 白名单仅 /b2b/admin/*、瓦片、设备配置——访问订阅页被弹回 b2b 后台，"b2b_admin 归订阅端提示"成空话 | plan Task 4 子项：白名单加订阅页路径（与 owner 同源） |
+| 4 | 温和 | 导出卡轮询频率/停止条件未定义 | 定 10s 轮询、COMPLETED/FAILED/窗口关闭停止 |
+| 5 | 温和 | daysToExpiry 时区口径未定义 | 判定 UTC 墙钟、显示层按租户时区链本地化（§4.4） |
+| 6 | 温和 | 六态造态冒烟依赖改库，无恢复清单——参考今日 renewal_failed 并行冲突教训 | plan Task 6 附造态 SQL+恢复步骤脚本 |
+| 7 | 温和 | "三处判定口径一致"仅靠人审 | plan Task 1 升级为机械核对：同组状态样例喂 HealthEvaluator/Resolver/Policy 三组件断言一致 |
