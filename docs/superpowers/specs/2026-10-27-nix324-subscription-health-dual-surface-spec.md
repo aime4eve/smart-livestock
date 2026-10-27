@@ -123,3 +123,24 @@ platform_admin 专用。分页 + `?health=`（trial|renewal_failed|suspended|can
 | 5 | 温和 | daysToExpiry 时区口径未定义 | 判定 UTC 墙钟、显示层按租户时区链本地化（§4.4） |
 | 6 | 温和 | 六态造态冒烟依赖改库，无恢复清单——参考今日 renewal_failed 并行冲突教训 | plan Task 6 附造态 SQL+恢复步骤脚本 |
 | 7 | 温和 | "三处判定口径一致"仅靠人审 | plan Task 1 升级为机械核对：同组状态样例喂 HealthEvaluator/Resolver/Policy 三组件断言一致 |
+
+## 附录 A：令牌映射表（Task 0，原型 → Flutter）
+
+| 原型选择器/属性 | CSS 值 | Flutter 等价 |
+|---|---|---|
+| `.banner.info` 背景/边框 | `#E2EDF4` / `--info #4A7F9D` | `Color(0xFFE2EDF4)` / border `Color(0xFF4A7F9D)` |
+| `.banner.warn` 背景/边框 | `#F7EDDD` / `--warning #D28A2D` | `Color(0xFFF7EDDD)` / `Color(0xFFD28A2D)` |
+| `.banner.danger` 背景/边框 | `#F7E5E2` / `--danger #C2564B` | `Color(0xFFF7E5E2)` / `Color(0xFFC2564B)` |
+| `.banner` 容器 | radius 12 / padding 12 | `BorderRadius.circular(12)` / `EdgeInsets.all(12)` |
+| `.b-head` 标题 | 13px/700 | `TextStyle(fontSize: 13, fontWeight: w700)` |
+| `.banner` 正文 | 12px / line-height 1.55 | `fontSize: 12, height: 1.55` |
+| `.b-head .dot` | 8×8 圆 | `Container(width: 8, height: 8, BoxShape.circle)` |
+| `.cta` 主按钮 | `--primary #2F6B3B` 底白字 radius 8 | `Color(0xFF2F6B3B)` / white / `circular(8)` |
+| `.cta.ghost` | 透明底 `--primary` 描边 | `OutlinedButton` style primary |
+| `.sub-card .row` | 13px k=secondary v=w600 虚线分隔 | `TextStyle(13)`；`DottedBorder` 或 1px dashed `#D7D2C6` 底边 |
+| `.pill` | 11px/700 radius 999 padding 3×10 | `fontSize: 11, w700`，`StadiumBorder`/`circular(999)` |
+| `.pill.ok/warn/bad/info` | `#E3F0E4/#244F2D`、`#F7EDDD/#D28A2D`、`#F7E5E2/#C2564B`、`#E2EDF4/#4A7F9D` | 同值 Color 对 |
+| `.export-card` | 虚线 `--info` 边框 radius 12 padding 16 | `Border.all(color: info, width: 1, style: dashed)` |
+| `.progress` | 高 6 radius 999 底 `#E2EDF4` 填 `#4A7F9D` | `ClipRRect(circular(3))` 内 `FractionallySizedBox` |
+| 管理端表格 | 表头 12px w600 secondary 底 `--surface #F8F6F0`；行 padding 12×16；hover `#E3F0E4` | `DataTableCell`/自定义行容器；`TableCell` padding `EdgeInsets.symmetric(v:12,h:16)` |
+| `.chip(.active)` | 12px radius 999；active=`#2F6B3B` 底白字 | `ChoiceChip` selectedColor `0xFF2F6B3B` |
