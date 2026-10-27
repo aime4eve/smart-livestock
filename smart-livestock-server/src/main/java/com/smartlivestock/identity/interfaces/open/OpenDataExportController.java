@@ -3,6 +3,7 @@ package com.smartlivestock.identity.interfaces.open;
 import com.smartlivestock.identity.application.DataExportApplicationService;
 import com.smartlivestock.identity.domain.model.ApiKey;
 import com.smartlivestock.identity.domain.model.DataExportJob;
+import com.smartlivestock.shared.tenant.TenantContext;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -37,8 +38,8 @@ public class OpenDataExportController {
     /** GET /api/v1/open/data-export/status — channel state + job history. */
     @GetMapping("/status")
     public ResponseEntity<ApiResponse<Map<String, Object>>> status(HttpServletRequest request) {
-        ApiKey key = requireApiKeyEntity(request);
-        var jobs = dataExportApplicationService.listForTenant(key.getTenantId());
+        Subject subject = requireSubject(request);
+        var jobs = dataExportApplicationService.listForTenant(subject.tenantId());
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("jobs", jobs.stream().map(this::toView).toList());
         return ResponseEntity.ok().body(ApiResponse.ok(data));
@@ -49,14 +50,14 @@ public class OpenDataExportController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> requestExport(
             @PathVariable Long farmId,
             HttpServletRequest request) {
-        ApiKey key = requireApiKeyEntity(request);
+        Subject subject = requireSubject(request);
         com.smartlivestock.identity.domain.model.Farm farm = farmRepository.findById(farmId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "牧场不存在: " + farmId));
-        if (!farm.getTenantId().equals(key.getTenantId())) {
+        if (!farm.getTenantId().equals(subject.tenantId())) {
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "无权访问该牧场");
         }
         DataExportJob job = dataExportApplicationService.requestExport(
-                key.getTenantId(), farmId, null);
+                subject.tenantId(), farmId, subject.userId());
         return ResponseEntity.ok().body(ApiResponse.ok(toView(job)));
     }
 
@@ -65,8 +66,8 @@ public class OpenDataExportController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> getJob(
             @PathVariable Long jobId,
             HttpServletRequest request) {
-        ApiKey key = requireApiKeyEntity(request);
-        DataExportJob job = dataExportApplicationService.getJobForTenant(key.getTenantId(), jobId);
+        Subject subject = requireSubject(request);
+        DataExportJob job = dataExportApplicationService.getJobForTenant(subject.tenantId(), jobId);
         return ResponseEntity.ok().body(ApiResponse.ok(toView(job)));
     }
 
@@ -75,8 +76,8 @@ public class OpenDataExportController {
     public ResponseEntity<FileSystemResource> download(
             @PathVariable Long jobId,
             HttpServletRequest request) {
-        ApiKey key = requireApiKeyEntity(request);
-        DataExportJob job = dataExportApplicationService.getJobForTenant(key.getTenantId(), jobId);
+        Subject subject = requireSubject(request);
+        DataExportJob job = dataExportApplicationService.getJobForTenant(subject.tenantId(), jobId);
         Path path = dataExportApplicationService.resolveDownload(job);
         job.markDownloaded();
         dataExportApplicationService.markDownloaded(job);
@@ -107,11 +108,33 @@ public class OpenDataExportController {
         return view;
     }
 
-    private ApiKey requireApiKeyEntity(HttpServletRequest request) {
+    /**
+     * Request subject for the dual-channel auth (NIX-324 spec §4.4): the
+     * API-Key attribute when present (third-party), otherwise the JWT
+     * authenticated tenant (app login). userId is only resolvable on the JWT
+     * path here — API-Key requests keep requestedBy null.
+     */
+    private record Subject(Long tenantId, Long userId) {}
+
+    private Subject requireSubject(HttpServletRequest request) {
         Object attr = request.getAttribute(ApiKeyAuthFilter.ATTR_API_KEY);
         if (attr instanceof ApiKey key) {
-            return key;
+            return new Subject(key.getTenantId(), null);
         }
-        throw new ApiException(ErrorCode.AUTH_API_KEY_INVALID, "API Key 上下文缺失");
+        Long tenantId = TenantContext.getCurrentTenant();
+        if (tenantId != null) {
+            Long userId = resolveJwtUserId();
+            return new Subject(tenantId, userId);
+        }
+        throw new ApiException(ErrorCode.AUTH_API_KEY_INVALID, "缺少认证上下文（API Key 或登录态）");
+    }
+
+    private Long resolveJwtUserId() {
+        var auth = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof Long userId) {
+            return userId;
+        }
+        return null;
     }
 }

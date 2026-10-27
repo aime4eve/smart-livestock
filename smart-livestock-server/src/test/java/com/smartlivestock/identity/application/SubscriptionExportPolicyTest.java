@@ -32,7 +32,8 @@ class SubscriptionExportPolicyTest {
     private SubscriptionRepository subscriptionRepository;
 
     private SubscriptionExportPolicy policy() {
-        return new SubscriptionExportPolicy(subscriptionRepository, WINDOW_DAYS);
+        return new SubscriptionExportPolicy(subscriptionRepository,
+                new com.smartlivestock.commerce.application.service.TerminationAnchorResolver(), WINDOW_DAYS);
     }
 
     private Subscription activeExpiringAt(Instant end) {

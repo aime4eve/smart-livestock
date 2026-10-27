@@ -40,7 +40,7 @@ class TenantSubscriptionResolverTest {
             sub.activate(SubscriptionTier.STANDARD, "monthly", Instant.now().plusSeconds(30 * 24 * 3600));
             when(subscriptionRepository.findByTenantId(TENANT_ID)).thenReturn(Optional.of(sub));
 
-            SubscriptionSnapshot snapshot = new TenantSubscriptionResolver(subscriptionRepository).resolve(TENANT_ID);
+            SubscriptionSnapshot snapshot = new TenantSubscriptionResolver(subscriptionRepository, new com.smartlivestock.commerce.application.service.TerminationAnchorResolver()).resolve(TENANT_ID);
 
             assertThat(snapshot.status()).isEqualTo("ACTIVE");
             assertThat(snapshot.tier()).isEqualTo("standard");
@@ -53,7 +53,7 @@ class TenantSubscriptionResolverTest {
                     Instant.now().minusSeconds(60), Instant.now().plusSeconds(3600));
             when(subscriptionRepository.findByTenantId(TENANT_ID)).thenReturn(Optional.of(sub));
 
-            SubscriptionSnapshot snapshot = new TenantSubscriptionResolver(subscriptionRepository).resolve(TENANT_ID);
+            SubscriptionSnapshot snapshot = new TenantSubscriptionResolver(subscriptionRepository, new com.smartlivestock.commerce.application.service.TerminationAnchorResolver()).resolve(TENANT_ID);
 
             assertThat(snapshot.status()).isEqualTo("TRIAL");
             assertThat(snapshot.tier()).isEqualTo("premium");
@@ -69,7 +69,7 @@ class TenantSubscriptionResolverTest {
             sub.markExpired();
             when(subscriptionRepository.findByTenantId(TENANT_ID)).thenReturn(Optional.of(sub));
 
-            SubscriptionSnapshot snapshot = new TenantSubscriptionResolver(subscriptionRepository).resolve(TENANT_ID);
+            SubscriptionSnapshot snapshot = new TenantSubscriptionResolver(subscriptionRepository, new com.smartlivestock.commerce.application.service.TerminationAnchorResolver()).resolve(TENANT_ID);
 
             assertThat(snapshot.status()).isEqualTo("EXPIRED");
             assertThat(snapshot.tier()).isEqualTo("basic");
@@ -82,7 +82,7 @@ class TenantSubscriptionResolverTest {
             sub.expireTrial();
             when(subscriptionRepository.findByTenantId(TENANT_ID)).thenReturn(Optional.of(sub));
 
-            SubscriptionSnapshot snapshot = new TenantSubscriptionResolver(subscriptionRepository).resolve(TENANT_ID);
+            SubscriptionSnapshot snapshot = new TenantSubscriptionResolver(subscriptionRepository, new com.smartlivestock.commerce.application.service.TerminationAnchorResolver()).resolve(TENANT_ID);
 
             assertThat(snapshot.status()).isEqualTo("FREE");
             assertThat(snapshot.tier()).isEqualTo("basic");
@@ -92,7 +92,7 @@ class TenantSubscriptionResolverTest {
         void missingSubscriptionIsNoneAndBasic() {
             when(subscriptionRepository.findByTenantId(TENANT_ID)).thenReturn(Optional.empty());
 
-            SubscriptionSnapshot snapshot = new TenantSubscriptionResolver(subscriptionRepository).resolve(TENANT_ID);
+            SubscriptionSnapshot snapshot = new TenantSubscriptionResolver(subscriptionRepository, new com.smartlivestock.commerce.application.service.TerminationAnchorResolver()).resolve(TENANT_ID);
 
             assertThat(snapshot.status()).isEqualTo("NONE");
             assertThat(snapshot.tier()).isEqualTo("basic");
@@ -100,7 +100,7 @@ class TenantSubscriptionResolverTest {
 
         @Test
         void nullTenantIsNoneAndBasic() {
-            SubscriptionSnapshot snapshot = new TenantSubscriptionResolver(subscriptionRepository).resolve(null);
+            SubscriptionSnapshot snapshot = new TenantSubscriptionResolver(subscriptionRepository, new com.smartlivestock.commerce.application.service.TerminationAnchorResolver()).resolve(null);
 
             assertThat(snapshot.status()).isEqualTo("NONE");
             assertThat(snapshot.tier()).isEqualTo("basic");
@@ -116,7 +116,7 @@ class TenantSubscriptionResolverTest {
                     Instant.now().minusSeconds(60), Instant.now().plusSeconds(3600));
             when(subscriptionRepository.findByTenantId(TENANT_ID)).thenReturn(Optional.of(sub));
 
-            TenantSubscriptionResolver resolver = new TenantSubscriptionResolver(subscriptionRepository);
+            TenantSubscriptionResolver resolver = new TenantSubscriptionResolver(subscriptionRepository, new com.smartlivestock.commerce.application.service.TerminationAnchorResolver());
             resolver.resolve(TENANT_ID);
             resolver.resolve(TENANT_ID);
 
@@ -129,7 +129,7 @@ class TenantSubscriptionResolverTest {
                     Instant.now().minusSeconds(60), Instant.now().plusSeconds(3600));
             when(subscriptionRepository.findByTenantId(TENANT_ID)).thenReturn(Optional.of(sub));
 
-            TenantSubscriptionResolver resolver = new TenantSubscriptionResolver(subscriptionRepository);
+            TenantSubscriptionResolver resolver = new TenantSubscriptionResolver(subscriptionRepository, new com.smartlivestock.commerce.application.service.TerminationAnchorResolver());
             resolver.resolve(TENANT_ID);
             resolver.evictTenant(TENANT_ID);
             resolver.resolve(TENANT_ID);

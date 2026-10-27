@@ -74,6 +74,7 @@ services:
       # ONPREM host fingerprint source (SMARTLIVESTOCK_LICENSE_HOST_FINGERPRINT_FILE
       # defaults to /etc/machine-id); bind-mounted read-only from the Linux host.
       - /etc/machine-id:/etc/machine-id:ro
+      - exports-data:/app/data/exports
     depends_on:
       postgres:
         condition: service_healthy
@@ -212,6 +213,7 @@ services:
     restart: unless-stopped
 
 volumes:
+  exports-data:
   pgdata:
   tileserver-data:
   behavior-models:

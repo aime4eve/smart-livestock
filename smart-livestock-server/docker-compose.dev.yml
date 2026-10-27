@@ -64,6 +64,7 @@ services:
       - .env.dev
     volumes:
       - tileserver-data:/data:ro
+      - exports-data:/app/data/exports
     environment:
       DB_HOST: postgres
       # Pin the JVM/DB clock to UTC — do not rely on image defaults.
@@ -154,6 +155,7 @@ services:
     restart: unless-stopped
 
 volumes:
+  exports-data:
   pgdata:
   tileserver-data:
   behavior-models:

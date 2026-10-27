@@ -27,9 +27,33 @@ public class SubscriptionResponse {
     private SubscriptionTier.PriceBand applicableBand;
     private Integer unitPriceUsdCents;
     private Integer monthlyFeeUsdCents;
+    /** NIX-324 wall-clock health verdict (spec §2 matrix); never derive UI state from the raw status column. */
+    private Health health;
+
+    public record Health(
+            String healthStatus,
+            Integer level,
+            boolean trialActive,
+            String effectiveTier,
+            Long daysToExpiry,
+            boolean degraded,
+            Instant terminatedAt,
+            ExportWindow exportWindow) {}
+
+    /** NIX-325 export entitlement; null unless a termination window is open. */
+    public record ExportWindow(
+            Instant terminatedAt,
+            Instant windowEndsAt,
+            Long daysLeft,
+            Long latestJobId,
+            String latestJobStatus,
+            Instant latestJobDownloadedAt) {}
 
     public SubscriptionResponse() {
     }
+
+    public Health getHealth() { return health; }
+    public void setHealth(Health v) { this.health = v; }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

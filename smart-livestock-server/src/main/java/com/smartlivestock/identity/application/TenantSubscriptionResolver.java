@@ -36,10 +36,13 @@ public class TenantSubscriptionResolver {
     private static final String DEGRADED_TIER = "basic";
 
     private final SubscriptionRepository subscriptionRepository;
+    private final com.smartlivestock.commerce.application.service.TerminationAnchorResolver terminationAnchorResolver;
     private final Map<Long, CacheEntry> cache = new ConcurrentHashMap<>();
 
-    public TenantSubscriptionResolver(SubscriptionRepository subscriptionRepository) {
+    public TenantSubscriptionResolver(SubscriptionRepository subscriptionRepository,
+                                      com.smartlivestock.commerce.application.service.TerminationAnchorResolver terminationAnchorResolver) {
         this.subscriptionRepository = subscriptionRepository;
+        this.terminationAnchorResolver = terminationAnchorResolver;
     }
 
     public SubscriptionSnapshot resolve(Long tenantId) {
@@ -61,7 +64,20 @@ public class TenantSubscriptionResolver {
                 .map(sub -> {
                     String status = sub.getStatus() != null ? sub.getStatus().name() : "UNKNOWN";
                     boolean trialActive = sub.isTrialActive();
-                    String tier = sub.isActiveOrTrial()
+                    // Termination by wall clock (TerminationAnchorResolver, the
+                    // single source shared with the NIX-324 evaluator and the
+                    // NIX-325 export policy) degrades to basic even while the
+                    // status column still says ACTIVE/TRIAL — the "lapsed but
+                    // never flipped" case must not keep a paid window.
+                    // Revivable states (RENEWAL_FAILED/SUSPENDED) keep the
+                    // paid tier as a repayment grace.
+                    boolean terminated = terminationAnchorResolver
+                            .resolve(sub, Instant.now()).isPresent();
+                    boolean keepsTier = !terminated
+                            && (sub.isActiveOrTrial()
+                                || sub.getStatus() == com.smartlivestock.commerce.domain.model.SubscriptionStatus.RENEWAL_FAILED
+                                || sub.getStatus() == com.smartlivestock.commerce.domain.model.SubscriptionStatus.SUSPENDED);
+                    String tier = keepsTier
                             ? sub.effectiveTier().name().toLowerCase()
                             : DEGRADED_TIER;
                     return new SubscriptionSnapshot(status, tier, trialActive, Instant.now());

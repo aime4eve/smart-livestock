@@ -3,7 +3,15 @@ package com.smartlivestock.commerce.interfaces.app;
 import com.smartlivestock.commerce.application.dto.SubscriptionResponse;
 import com.smartlivestock.commerce.application.query.SubscriptionQueryService;
 import com.smartlivestock.commerce.application.service.SubscriptionApplicationService;
+import com.smartlivestock.commerce.application.service.SubscriptionHealthEvaluator;
+import com.smartlivestock.commerce.application.service.SubscriptionHealthEvaluator.HealthVerdict;
+import com.smartlivestock.commerce.domain.model.Subscription;
 import com.smartlivestock.commerce.domain.model.SubscriptionTier;
+import com.smartlivestock.commerce.domain.repository.SubscriptionRepository;
+import com.smartlivestock.identity.application.SubscriptionExportPolicy;
+import com.smartlivestock.identity.application.SubscriptionExportPolicy.Decision;
+import com.smartlivestock.identity.domain.model.DataExportJob;
+import com.smartlivestock.identity.domain.repository.DataExportJobRepository;
 import com.smartlivestock.licensing.application.LicenseModeGuard;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
@@ -13,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +43,10 @@ public class SubscriptionController {
     private final SubscriptionApplicationService subscriptionApplicationService;
     private final SubscriptionQueryService subscriptionQueryService;
     private final LicenseModeGuard licenseModeGuard;
+    private final SubscriptionHealthEvaluator subscriptionHealthEvaluator;
+    private final SubscriptionRepository subscriptionRepository;
+    private final SubscriptionExportPolicy subscriptionExportPolicy;
+    private final DataExportJobRepository dataExportJobRepository;
 
     /**
      * GET /api/v1/subscription
@@ -44,7 +58,46 @@ public class SubscriptionController {
         SubscriptionResponse sub = subscriptionQueryService.findByTenantId(tenantId)
                 .orElseThrow(() -> new ApiException(ErrorCode.SUBSCRIPTION_NOT_FOUND,
                         "Subscription not found for tenant: " + tenantId));
+        sub.setHealth(buildHealth(tenantId));
         return ResponseEntity.ok(ApiResponse.ok(sub));
+    }
+
+    /**
+     * NIX-324 health block: wall-clock verdict (spec §2) enriched with the
+     * NIX-325 export window when a termination window is open. UI state must
+     * come from here, never from the raw status column.
+     */
+    private SubscriptionResponse.Health buildHealth(Long tenantId) {
+        Subscription domain = subscriptionRepository.findByTenantId(tenantId).orElse(null);
+        if (domain == null) {
+            return null;
+        }
+        Instant now = Instant.now();
+        HealthVerdict verdict = subscriptionHealthEvaluator.evaluate(domain, now);
+
+        SubscriptionResponse.ExportWindow exportWindow = null;
+        Decision decision = subscriptionExportPolicy.assess(tenantId, now);
+        if (decision.isEligible()) {
+            DataExportJob latestJob = dataExportJobRepository
+                    .findByTenantIdOrderByIdDesc(tenantId).stream().findFirst().orElse(null);
+            exportWindow = new SubscriptionResponse.ExportWindow(
+                    decision.eligibility().terminatedAt(),
+                    decision.eligibility().windowEndsAt(),
+                    Math.max(0, Duration.between(now, decision.eligibility().windowEndsAt()).toDays()),
+                    latestJob != null ? latestJob.getId() : null,
+                    latestJob != null ? latestJob.getStatus().name() : null,
+                    latestJob != null ? latestJob.getDownloadedAt() : null);
+        }
+
+        return new SubscriptionResponse.Health(
+                verdict.healthStatus().name(),
+                verdict.level(),
+                verdict.trialActive(),
+                verdict.effectiveTier(),
+                verdict.daysToExpiry(),
+                verdict.degraded(),
+                verdict.terminatedAt(),
+                exportWindow);
     }
 
     /**

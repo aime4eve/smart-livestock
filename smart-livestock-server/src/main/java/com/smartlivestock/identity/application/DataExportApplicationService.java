@@ -51,14 +51,18 @@ public class DataExportApplicationService {
                     Map.of("reason", decision.denialReason().name(), "farmId", farmId));
             throw new ApiException(ErrorCode.AUTH_FORBIDDEN, describeDenial(decision.denialReason()));
         }
-        // One in-flight package per farm: a fresh request while one is PENDING or
-        // COMPLETED-and-undownloaded would just overwrite the same zip content.
+        // One in-flight package per farm: a fresh request while one is PENDING
+        // or COMPLETED-and-downloadable returns the existing job. A COMPLETED
+        // job whose package file is gone (created before the exports volume
+        // existed, or wiped) must NOT block a re-request.
         List<DataExportJob> existing = jobRepository.findByTenantIdOrderByIdDesc(tenantId);
         for (DataExportJob job : existing) {
             if (job.getFarmId().equals(farmId)
                     && (job.getStatus() == DataExportJob.Status.PENDING
                         || (job.getStatus() == DataExportJob.Status.COMPLETED
-                            && job.isWindowOpen(Instant.now())))) {
+                            && job.isWindowOpen(Instant.now())
+                            && job.getFilePath() != null
+                            && java.nio.file.Files.exists(java.nio.file.Path.of(job.getFilePath()))))) {
                 return job; // idempotent re-request
             }
         }

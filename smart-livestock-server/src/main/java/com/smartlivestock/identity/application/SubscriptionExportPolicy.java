@@ -1,5 +1,6 @@
 package com.smartlivestock.identity.application;
 
+import com.smartlivestock.commerce.application.service.TerminationAnchorResolver;
 import com.smartlivestock.commerce.domain.model.Subscription;
 import com.smartlivestock.commerce.domain.repository.SubscriptionRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,24 +13,25 @@ import java.util.Optional;
  * Decides whether a tenant may use the expired-tenant data export channel
  * (NIX-325, GDPR window ruling 2026-10-26).
  *
- * Terminated states: EXPIRED (anchor expiresAt), CANCELLED (anchor
- * cancelledAt), an ACTIVE whose expiresAt has passed, and TRIAL/FREE whose
- * trial end has passed (FREE is expireTrial()'s label for a lapsed trial and
- * keeps trial_ends_at — both labels anchor on it). Nothing auto-flips the
- * status column, so the wall clock decides. RENEWAL_FAILED is deliberately
- * excluded (repayment can revive it); SUSPENDED likewise. Window:
- * termination instant + windowDays (default 30, GDPR Art. 12(3) one-month
- * response standard, user ruling).
+ * Termination semantics live in {@link TerminationAnchorResolver} (single
+ * source of truth shared with the NIX-324 health evaluator): EXPIRED anchors
+ * expiresAt, CANCELLED anchors cancelledAt, a passed wall-clock column counts
+ * even when nobody flipped the status; RENEWAL_FAILED and SUSPENDED are
+ * revivable and get no channel. Window: termination instant + windowDays
+ * (default 30, GDPR Art. 12(3) one-month response standard, user ruling).
  */
 @Component
 public class SubscriptionExportPolicy {
 
     private final SubscriptionRepository subscriptionRepository;
+    private final TerminationAnchorResolver terminationAnchorResolver;
     private final long windowDays;
 
     public SubscriptionExportPolicy(SubscriptionRepository subscriptionRepository,
+                                    TerminationAnchorResolver terminationAnchorResolver,
                                     @Value("${smartlivestock.export.window-days:30}") long windowDays) {
         this.subscriptionRepository = subscriptionRepository;
+        this.terminationAnchorResolver = terminationAnchorResolver;
         this.windowDays = windowDays;
     }
 
@@ -49,34 +51,15 @@ public class SubscriptionExportPolicy {
         if (subOpt.isEmpty()) {
             return Decision.denied(DenialReason.NO_SUBSCRIPTION);
         }
-        Subscription sub = subOpt.get();
-
-        Optional<Instant> terminatedAtOpt = switch (sub.getStatus()) {
-            case EXPIRED -> Optional.of(firstNonNull(sub.getExpiresAt(), now));
-            case CANCELLED -> Optional.of(firstNonNull(sub.getCancelledAt(), now));
-            case ACTIVE -> Optional.of(sub.getExpiresAt())
-                    .filter(end -> now.isAfter(end));
-            // TRIAL lapsed in place, or flipped to FREE via expireTrial() —
-            // same fact, two labels: expireTrial keeps trial_ends_at, so both
-            // anchor on it (NIX-324 review: excluding FREE made the export
-            // right depend on whether an admin happened to flip the status).
-            case TRIAL, FREE -> Optional.of(sub.getTrialEndsAt())
-                    .filter(end -> now.isAfter(end));
-            default -> Optional.empty(); // SUSPENDED / RENEWAL_FAILED: no channel
-        };
-
-        if (terminatedAtOpt.isEmpty()) {
-            return Decision.denied(DenialReason.NOT_TERMINATED);
-        }
-        Instant terminatedAt = terminatedAtOpt.get();
-        Instant windowEndsAt = terminatedAt.plusSeconds(windowDays * 24 * 3600);
-        if (!now.isBefore(windowEndsAt)) {
-            return Decision.denied(DenialReason.WINDOW_CLOSED);
-        }
-        return Decision.eligible(new Eligibility(terminatedAt, windowEndsAt));
-    }
-
-    private static Instant firstNonNull(Instant a, Instant b) {
-        return a != null ? a : b;
+        return terminationAnchorResolver.resolve(subOpt.get(), now)
+                .map(termination -> {
+                    Instant terminatedAt = termination.anchoredAt();
+                    Instant windowEndsAt = terminatedAt.plusSeconds(windowDays * 24 * 3600);
+                    if (!now.isBefore(windowEndsAt)) {
+                        return Decision.denied(DenialReason.WINDOW_CLOSED);
+                    }
+                    return Decision.eligible(new Eligibility(terminatedAt, windowEndsAt));
+                })
+                .orElseGet(() -> Decision.denied(DenialReason.NOT_TERMINATED));
     }
 }
