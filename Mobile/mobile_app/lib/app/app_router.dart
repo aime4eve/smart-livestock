@@ -54,6 +54,7 @@ import 'package:hkt_livestock_agentic/features/tenant/presentation/pages/tenant_
 import 'package:hkt_livestock_agentic/features/worker_management/presentation/worker_list_page.dart';
 import 'package:hkt_livestock_agentic/features/admin/presentation/contracts_page.dart';
 import 'package:hkt_livestock_agentic/features/admin/presentation/revenue_page.dart';
+import 'package:hkt_livestock_agentic/features/admin/presentation/subscription_health_page.dart';
 import 'package:hkt_livestock_agentic/features/admin/presentation/subscriptions_page.dart';
 import 'package:hkt_livestock_agentic/features/admin/presentation/api_auth_page.dart';
 import 'package:hkt_livestock_agentic/features/mine/presentation/help_support_page.dart';
@@ -116,12 +117,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (role == UserRole.b2bAdmin) {
-        // b2b_admin 可访问 /b2b/admin/*、瓦片管理页（/admin/tiles）及设备配置
+        // b2b_admin 可访问 /b2b/admin/*、瓦片管理页（/admin/tiles）、设备配置
         // 管理页（/admin/device-profile-rules，后端 @PreAuthorize 均允许 B2B_ADMIN）
+        // 以及订阅页（NIX-324：b2b_admin 归订阅端提示，与 owner 同源横幅）
         if (location.startsWith(AppRoute.b2bAdmin.path) ||
             location.startsWith(AppRoute.platformDatagen.path) ||
             location.startsWith(AppRoute.platformTileAdmin.path) ||
-            location.startsWith(AppRoute.platformDeviceProfiles.path)) {
+            location.startsWith(AppRoute.platformDeviceProfiles.path) ||
+            location.startsWith(AppRoute.subscription.path) ||
+            location.startsWith(AppRoute.subscriptionPlan.path)) {
           return null;
         }
         return AppRoute.b2bAdmin.path;
@@ -463,6 +467,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoute.helpSupport.path,
             name: AppRoute.helpSupport.routeName,
             builder: (context, state) => const HelpSupportPage(),
+          ),
+          GoRoute(
+            path: AppRoute.platformSubscriptionHealth.path,
+            name: AppRoute.platformSubscriptionHealth.routeName,
+            builder: (context, state) => const SubscriptionHealthPage(),
           ),
           GoRoute(
             path: AppRoute.platformAuditLog.path,

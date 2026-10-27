@@ -279,6 +279,14 @@ class _PlatformAdminShell extends ConsumerWidget {
                       onTap: () => context.go(AppRoute.platformSubscriptions.path),
                     ),
                     _IconSidebarItem(
+                      icon: Icons.monitor_heart_outlined,
+                      tooltip: AppRoute.platformSubscriptionHealth.label,
+                      selected: location
+                          .startsWith(AppRoute.platformSubscriptionHealth.path),
+                      onTap: () =>
+                          context.go(AppRoute.platformSubscriptionHealth.path),
+                    ),
+                    _IconSidebarItem(
                       icon: Icons.key_outlined,
                       tooltip: AppRoute.platformDeploymentLicense.label,
                       selected: location

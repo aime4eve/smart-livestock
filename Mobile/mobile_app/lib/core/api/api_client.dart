@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'api_exception.dart';
+import '../file/save_downloaded_file.dart';
 import 'jwt_storage.dart';
 
 class ApiClient {
@@ -51,6 +52,20 @@ class ApiClient {
 
   /// Public accessor for auth headers (used by OfflineTileManager downloads).
   Future<Map<String, String>> authHeaders() => _headers();
+
+  /// Downloads a binary file with auth headers and saves it for the user
+  /// (NIX-324 export package). Returns the saved file name/path.
+  Future<String> downloadFile(String path, {String? fileName}) async {
+    final uri = Uri.parse('$_baseUrl$path');
+    final response = await http.get(uri, headers: await _headers())
+        .timeout(const Duration(minutes: 5));
+    if (response.statusCode != 200) {
+      throw Exception('download failed: ' + response.statusCode.toString());
+    }
+    final name = fileName ??
+        path.split('/').where((s) => s.isNotEmpty).last;
+    return saveDownloadedFile(response.bodyBytes, name);
+  }
 
   // ── Public CRUD methods (with auto-refresh retry) ────────────────
 

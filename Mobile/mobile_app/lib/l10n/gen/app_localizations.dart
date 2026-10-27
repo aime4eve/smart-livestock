@@ -13868,6 +13868,180 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'切换身份'**
   String get superMineSwitchIdentity;
+
+  /// No description provided for @subscriptionHealthTrialTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'云端试点授权生效中'**
+  String get subscriptionHealthTrialTitle;
+
+  /// No description provided for @subscriptionHealthTrialBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'{days, plural, =1{试点将于 1 天后到期} other{试点将于 {days} 天后到期}}，到期后自动切换基础档，不会停止数据访问。'**
+  String subscriptionHealthTrialBody(num days);
+
+  /// No description provided for @subscriptionHealthRenewalFailedTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'续费扣款失败 · 请补缴恢复'**
+  String get subscriptionHealthRenewalFailedTitle;
+
+  /// No description provided for @subscriptionHealthRenewalFailedBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'上次自动扣款未成功。完成补缴后立即恢复全部权益，无需等待。'**
+  String get subscriptionHealthRenewalFailedBody;
+
+  /// No description provided for @subscriptionHealthSuspendedTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅已暂停'**
+  String get subscriptionHealthSuspendedTitle;
+
+  /// No description provided for @subscriptionHealthSuspendedBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅被平台暂停，请联系支持团队恢复。'**
+  String get subscriptionHealthSuspendedBody;
+
+  /// No description provided for @subscriptionHealthCancelledTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅已取消'**
+  String get subscriptionHealthCancelledTitle;
+
+  /// No description provided for @subscriptionHealthCancelledBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅已取消。可随时重新订阅恢复服务；到期后 30 天内仍可导出全部数据。'**
+  String get subscriptionHealthCancelledBody;
+
+  /// No description provided for @subscriptionHealthExpiredTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅已到期 · 已切换基础档'**
+  String get subscriptionHealthExpiredTitle;
+
+  /// No description provided for @subscriptionHealthExpiredBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'平台不会停止您的数据访问：数据窗口已回落为 7 天，遥测导出预算降为 1000 次/天。续费后立即恢复。'**
+  String get subscriptionHealthExpiredBody;
+
+  /// No description provided for @subscriptionHealthExpiringTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'{days, plural, =1{订阅将于 1 天后到期} other{订阅将于 {days} 天后到期}}'**
+  String subscriptionHealthExpiringTitle(num days);
+
+  /// No description provided for @subscriptionHealthExpiringBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'到期后数据窗口将回落，建议提前续费保留完整回溯能力。'**
+  String get subscriptionHealthExpiringBody;
+
+  /// No description provided for @subscriptionHealthCtaRenew.
+  ///
+  /// In zh, this message translates to:
+  /// **'立即续费'**
+  String get subscriptionHealthCtaRenew;
+
+  /// No description provided for @subscriptionHealthCtaRepay.
+  ///
+  /// In zh, this message translates to:
+  /// **'前往补缴'**
+  String get subscriptionHealthCtaRepay;
+
+  /// No description provided for @subscriptionHealthCtaConvert.
+  ///
+  /// In zh, this message translates to:
+  /// **'转正式订阅'**
+  String get subscriptionHealthCtaConvert;
+
+  /// No description provided for @subscriptionHealthCtaExport.
+  ///
+  /// In zh, this message translates to:
+  /// **'导出我的数据'**
+  String get subscriptionHealthCtaExport;
+
+  /// No description provided for @subscriptionExportTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'到期数据导出权'**
+  String get subscriptionExportTitle;
+
+  /// No description provided for @subscriptionExportBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'您可以在到期后 30 天内一次性导出牧场全部历史数据（机器可读格式）。窗口剩余 {days} 天。'**
+  String subscriptionExportBody(Object days);
+
+  /// No description provided for @subscriptionExportRequest.
+  ///
+  /// In zh, this message translates to:
+  /// **'发起全量导出'**
+  String get subscriptionExportRequest;
+
+  /// No description provided for @subscriptionExportPending.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在生成导出包…'**
+  String get subscriptionExportPending;
+
+  /// No description provided for @subscriptionExportDownload.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载导出包'**
+  String get subscriptionExportDownload;
+
+  /// No description provided for @subscriptionExportRetry.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新生成'**
+  String get subscriptionExportRetry;
+
+  /// No description provided for @subscriptionHealthAdminTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'租户订阅健康度'**
+  String get subscriptionHealthAdminTitle;
+
+  /// No description provided for @subscriptionHealthFilterAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部'**
+  String get subscriptionHealthFilterAll;
+
+  /// No description provided for @subscriptionHealthFilterExpiring.
+  ///
+  /// In zh, this message translates to:
+  /// **'临期'**
+  String get subscriptionHealthFilterExpiring;
+
+  /// No description provided for @subscriptionHealthFilterExpired.
+  ///
+  /// In zh, this message translates to:
+  /// **'已到期'**
+  String get subscriptionHealthFilterExpired;
+
+  /// No description provided for @subscriptionHealthFilterRepayment.
+  ///
+  /// In zh, this message translates to:
+  /// **'待补缴'**
+  String get subscriptionHealthFilterRepayment;
+
+  /// No description provided for @subscriptionHealthFilterCancelled.
+  ///
+  /// In zh, this message translates to:
+  /// **'已取消'**
+  String get subscriptionHealthFilterCancelled;
+
+  /// No description provided for @subscriptionHealthFilterTrial.
+  ///
+  /// In zh, this message translates to:
+  /// **'试点中'**
+  String get subscriptionHealthFilterTrial;
 }
 
 class _AppLocalizationsDelegate

@@ -1588,7 +1588,6 @@
   },
   "offlineTileDownloadSuccess": "Download complete",
   "@offlineTileDownloadSuccess": {},
-
   "offlineTileDownloadedNamed": "Downloaded {region}",
   "@offlineTileDownloadedNamed": {
     "placeholders": {
@@ -1598,7 +1597,8 @@
     }
   },
   "offlineTileWebHint": "The web map is always online. Use the mobile app to download offline maps.",
-  "@offlineTileWebHint": {},  "offlineTileDelete": "Delete",
+  "@offlineTileWebHint": {},
+  "offlineTileDelete": "Delete",
   "@offlineTileDelete": {},
   "offlineTileDeleteConfirm": "Delete this offline map? You will need to re-download it to use offline.",
   "@offlineTileDeleteConfirm": {},
@@ -2260,8 +2260,12 @@
   "epidemicWorkbenchSynced": "Risk model {hours}h · Sync {time}",
   "@epidemicWorkbenchSynced": {
     "placeholders": {
-      "hours": {"type": "int"},
-      "time": {"type": "String"}
+      "hours": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
     }
   },
   "epidemicTabDisposition": "Disposition",
@@ -2313,7 +2317,9 @@
   "epidemicShowEvidence": "Evidence · {count}",
   "@epidemicShowEvidence": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "epidemicHideEvidence": "Hide evidence",
@@ -2321,7 +2327,9 @@
   "epidemicLastSeenMinutes": "Contacted {minutes} min ago",
   "@epidemicLastSeenMinutes": {
     "placeholders": {
-      "minutes": {"type": "int"}
+      "minutes": {
+        "type": "int"
+      }
     }
   },
   "epidemicContactNetworkAction": "Network",
@@ -2343,7 +2351,9 @@
   "epidemicWindowHours": "{hours}h",
   "@epidemicWindowHours": {
     "placeholders": {
-      "hours": {"type": "int"}
+      "hours": {
+        "type": "int"
+      }
     }
   },
   "epidemicWindowAll": "All",
@@ -5063,54 +5073,98 @@
   "@gatewayFollowLive": {},
   "gatewayFollowManual": "Manual mode",
   "@gatewayFollowManual": {},
-"overviewSectionStatus": "Ranch Status",
-"@overviewSectionStatus": {},
-"overviewSectionAlerts": "Alerts",
-"@overviewSectionAlerts": {},
-"overviewSectionHealth": "Health",
-"@overviewSectionHealth": {},
-"ranchSceneFeverMgmt": "Fever",
-"@ranchSceneFeverMgmt": {},
-"ranchSceneDigestiveMgmt": "Digestive",
-"@ranchSceneDigestiveMgmt": {},
-"ranchSceneEstrusMgmt": "Estrus",
-"@ranchSceneEstrusMgmt": {},
-"ranchSceneEpidemic": "Epidemic",
-"@ranchSceneEpidemic": {},
-"aiObserveTitle": "AI Health Watch",
-"@aiObserveTitle": {},
-"aiBandCalm": "Calm",
-"@aiBandCalm": {},
-"aiBandWatch": "Watch",
-"@aiBandWatch": {},
-"aiBandAlarm": "Alarm",
-"@aiBandAlarm": {},
-"reconcileSceneAbnormal": "Scene abnormal",
-"@reconcileSceneAbnormal": {},
-"reconcileHeadUnit": "",
-"@reconcileHeadUnit": {},
-"reconcileActiveTickets": "open tickets",
-"@reconcileActiveTickets": {},
-"reconcileTicketUnit": "",
-"@reconcileTicketUnit": {},
-"reconcileOffBy": "off by ",
-"@reconcileOffBy": {},
+  "overviewSectionStatus": "Ranch Status",
+  "@overviewSectionStatus": {},
+  "overviewSectionAlerts": "Alerts",
+  "@overviewSectionAlerts": {},
+  "overviewSectionHealth": "Health",
+  "@overviewSectionHealth": {},
+  "ranchSceneFeverMgmt": "Fever",
+  "@ranchSceneFeverMgmt": {},
+  "ranchSceneDigestiveMgmt": "Digestive",
+  "@ranchSceneDigestiveMgmt": {},
+  "ranchSceneEstrusMgmt": "Estrus",
+  "@ranchSceneEstrusMgmt": {},
+  "ranchSceneEpidemic": "Epidemic",
+  "@ranchSceneEpidemic": {},
+  "aiObserveTitle": "AI Health Watch",
+  "@aiObserveTitle": {},
+  "aiBandCalm": "Calm",
+  "@aiBandCalm": {},
+  "aiBandWatch": "Watch",
+  "@aiBandWatch": {},
+  "aiBandAlarm": "Alarm",
+  "@aiBandAlarm": {},
+  "reconcileSceneAbnormal": "Scene abnormal",
+  "@reconcileSceneAbnormal": {},
+  "reconcileHeadUnit": "",
+  "@reconcileHeadUnit": {},
+  "reconcileActiveTickets": "open tickets",
+  "@reconcileActiveTickets": {},
+  "reconcileTicketUnit": "",
+  "@reconcileTicketUnit": {},
+  "reconcileOffBy": "off by ",
+  "@reconcileOffBy": {},
   "heroTitleCalm": "All calm on the ranch",
   "@heroTitleCalm": {},
   "heroTitleNeedsAttention": "Ranch needs attention",
   "@heroTitleNeedsAttention": {},
   "heroDatePattern": "{w}, {m}/{d}",
-  "@heroDatePattern": {"placeholders": {"m": {"type": "int"}, "d": {"type": "int"}, "w": {"type": "String"}}},
-  "weekday0": "Sun", "weekday1": "Mon", "weekday2": "Tue", "weekday3": "Wed",
-  "weekday4": "Thu", "weekday5": "Fri", "weekday6": "Sat",
+  "@heroDatePattern": {
+    "placeholders": {
+      "m": {
+        "type": "int"
+      },
+      "d": {
+        "type": "int"
+      },
+      "w": {
+        "type": "String"
+      }
+    }
+  },
+  "weekday0": "Sun",
+  "weekday1": "Mon",
+  "weekday2": "Tue",
+  "weekday3": "Wed",
+  "weekday4": "Thu",
+  "weekday5": "Fri",
+  "weekday6": "Sat",
   "heroSub": "{healthy}/{total} healthy",
-  "@heroSub": {"placeholders": {"healthy": {"type": "int"}, "total": {"type": "int"}}},
+  "@heroSub": {
+    "placeholders": {
+      "healthy": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "heroAttentionHealth": "{count} critical livestock",
-  "@heroAttentionHealth": {"placeholders": {"count": {"type": "int"}}},
+  "@heroAttentionHealth": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "heroAttentionOutside": "{count} outside fence",
-  "@heroAttentionOutside": {"placeholders": {"count": {"type": "int"}}},
+  "@heroAttentionOutside": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "heroAttentionAlerts": "{count} severe alerts",
-  "@heroAttentionAlerts": {"placeholders": {"count": {"type": "int"}}},
+  "@heroAttentionAlerts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "ranchOutsideFenceTitle": "Livestock outside fences",
   "@ranchOutsideFenceTitle": {},
   "ranchOutsideFenceHint": "Tap an animal for details",
@@ -5138,645 +5192,861 @@
   "heroChipDevice": "devices online",
   "secNeedsAttention": "Needs attention",
   "secNeedsAttentionTotal": "{n} in total · tap to view",
-  "@secNeedsAttentionTotal": {"placeholders": {"n": {"type": "int"}}},
-  "tileFence": "Fence", "tileHealth": "Health", "tileDevice": "Device",
+  "@secNeedsAttentionTotal": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "tileFence": "Fence",
+  "tileHealth": "Health",
+  "tileDevice": "Device",
   "tileFenceSub": "{n} fences breached",
-  "@tileFenceSub": {"placeholders": {"n": {"type": "int"}}},
+  "@tileFenceSub": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "tileFenceSubClear": "no breach",
-  "tileHealthSubFever": "fever mainly", "tileHealthSubDigestive": "digestive mainly",
-  "tileHealthSubEstrus": "estrus", "tileHealthSubNone": "nothing pending",
-  "tileDeviceNormal": "normal", "tileDeviceAbnormal": "pending",
+  "tileHealthSubFever": "fever mainly",
+  "tileHealthSubDigestive": "digestive mainly",
+  "tileHealthSubEstrus": "estrus",
+  "tileHealthSubNone": "nothing pending",
+  "tileDeviceNormal": "normal",
+  "tileDeviceAbnormal": "pending",
   "secHealthMgmt": "Health Management",
   "secHealthAll": "All ›",
   "pillSteady": "Steady",
   "pillAbnormal": "{n} abnormal",
-  "@pillAbnormal": {"placeholders": {"n": {"type": "int"}}},
+  "@pillAbnormal": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "pillHigh": "{n} high score",
-  "@pillHigh": {"placeholders": {"n": {"type": "int"}}},
+  "@pillHigh": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "pillRate": "{rate}%",
-  "@pillRate": {"placeholders": {"rate": {"type": "String"}}},
+  "@pillRate": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "sceneFeverFoot": "{fever} feverish · {low} low-grade",
-  "@sceneFeverFoot": {"placeholders": {"fever": {"type": "int"}, "low": {"type": "int"}}},
+  "@sceneFeverFoot": {
+    "placeholders": {
+      "fever": {
+        "type": "int"
+      },
+      "low": {
+        "type": "int"
+      }
+    }
+  },
   "sceneFeverFootOver": ", {n} over 6 hours",
-  "@sceneFeverFootOver": {"placeholders": {"n": {"type": "int"}}},
+  "@sceneFeverFootOver": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "sceneFeverCalm": "All temperatures normal",
   "sceneDigestiveFoot": "{n} low rumination",
-  "@sceneDigestiveFoot": {"placeholders": {"n": {"type": "int"}}},
+  "@sceneDigestiveFoot": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "sceneDigestiveCalm": "Rumination all in normal range",
   "sceneEstrusFoot": "{n} in breeding window",
-  "@sceneEstrusFoot": {"placeholders": {"n": {"type": "int"}}},
+  "@sceneEstrusFoot": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "sceneEstrusCalm": "No high scores, good for patrol",
   "sceneEpidemicFootBelow": "7-day rate {rate}%, below warning line",
-  "@sceneEpidemicFootBelow": {"placeholders": {"rate": {"type": "String"}}},
+  "@sceneEpidemicFootBelow": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "sceneEpidemicFootAbove": "7-day rate {rate}%, above warning line",
-  "@sceneEpidemicFootAbove": {"placeholders": {"rate": {"type": "String"}}},
+  "@sceneEpidemicFootAbove": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "sceneEpidemicFootNoSource": "7-day rate {rate}% · ",
-  "@sceneEpidemicFootNoSource": {"placeholders": {"rate": {"type": "String"}}},
+  "@sceneEpidemicFootNoSource": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "sceneEpidemicFootNoSourceTag": "no source marked",
   "aiSummaryWatching": "{n} under watch",
-  "@aiSummaryWatching": {"placeholders": {"n": {"type": "int"}}},
+  "@aiSummaryWatching": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "aiNotReady": "AI watch not started yet; shows up automatically once ready",
-  "recHint": " (tickets may be missing — patrol advised)"
-
-  ,"workbenchImmediate": "Immediate"
-  ,"@workbenchImmediate": {}
-  ,"workbenchImmediateSub": "Breach · epidemic · tamper"
-  ,"@workbenchImmediateSub": {}
-  ,"workbenchField": "Field check"
-  ,"@workbenchField": {}
-  ,"workbenchFieldSub": "Approach · battery · offline"
-  ,"@workbenchFieldSub": {}
-  ,"workbenchObserve": "Observe"
-  ,"@workbenchObserve": {}
-  ,"workbenchObserveSub": "AI watch · no ticket"
-  ,"@workbenchObserveSub": {}
-  ,"workbenchResolved": "Handled today"
-  ,"@workbenchResolved": {}
-  ,"workbenchResolvedSub": "Closed today"
-  ,"@workbenchResolvedSub": {}
-  ,"workbenchAllBuckets": "All"
-  ,"@workbenchAllBuckets": {}
-  ,"workbenchAllAssets": "All assets"
-  ,"@workbenchAllAssets": {}
-  ,"workbenchLivestock": "Livestock"
-  ,"@workbenchLivestock": {}
-  ,"workbenchHerd": "Herd"
-  ,"@workbenchHerd": {}
-  ,"workbenchFence": "Fence"
-  ,"@workbenchFence": {}
-  ,"workbenchDevice": "Device"
-  ,"@workbenchDevice": {}
-  ,"workbenchActiveUnread": "{active} active · {unread} unread"
-  ,"@workbenchActiveUnread": {"placeholders": {"active": {"type": "int"}, "unread": {"type": "int"}}}
-  ,"workbenchContextOverview": "Overview: ranch state"
-  ,"@workbenchContextOverview": {}
-  ,"workbenchContextFence": "Fence: spatial assets"
-  ,"@workbenchContextFence": {}
-  ,"workbenchContextAlert": "Alerts: unified action"
-  ,"@workbenchContextAlert": {}
-  ,"workbenchViewAll": "View all {count}"
-  ,"@workbenchViewAll": {"placeholders": {"count": {"type": "int"}}}
-  ,"workbenchLoadMore": "Load more"
-  ,"@workbenchLoadMore": {}
-  ,"workbenchShownOf": "Showing {shown} / {total}"
-  ,"@workbenchShownOf": {"placeholders": {"shown": {"type": "int"}, "total": {"type": "int"}}}
-  ,"workbenchNextStep": "Next step"
-  ,"@workbenchNextStep": {}
-  ,"workbenchNow": "Now"
-  ,"@workbenchNow": {}
-  ,"workbenchKeyMetrics": "Key metrics"
-  ,"@workbenchKeyMetrics": {}
-  ,"workbenchEvidence": "Evidence"
-  ,"@workbenchEvidence": {}
-  ,"workbenchLifecycle": "Lifecycle"
-  ,"@workbenchLifecycle": {}
-  ,"workbenchAffected": "Affected"
-  ,"@workbenchAffected": {}
-  ,"workbenchSeverity": "Severity"
-  ,"@workbenchSeverity": {}
-  ,"workbenchFirstReport": "First report"
-  ,"@workbenchFirstReport": {}
-  ,"workbenchAiBand": "AI verdict"
-  ,"@workbenchAiBand": {}
-  ,"workbenchAiScore": "Technical score"
-  ,"@workbenchAiScore": {}
-  ,"workbenchEvidenceCount": "Evidence"
-  ,"@workbenchEvidenceCount": {}
-  ,"workbenchUnread": "Unread"
-  ,"@workbenchUnread": {}
-  ,"workbenchRecommendFence": "Locate the fence and affected livestock first"
-  ,"@workbenchRecommendFence": {}
-  ,"workbenchRecommendLivestock": "Review the episode and key metrics first"
-  ,"@workbenchRecommendLivestock": {}
-  ,"workbenchRecommendDevice": "Check fitment and signal first"
-  ,"@workbenchRecommendDevice": {}
-  ,"workbenchRecommendHerd": "Confirm the herd abnormal distribution first"
-  ,"@workbenchRecommendHerd": {}
-  ,"workbenchRecommendResolved": "Confirm the result and follow-up observation"
-  ,"@workbenchRecommendResolved": {}
-  ,"workbenchActionMap": "Map"
-  ,"@workbenchActionMap": {}
-  ,"workbenchActionTrajectory": "Track"
-  ,"@workbenchActionTrajectory": {}
-  ,"workbenchActionMarkRead": "Mark read"
-  ,"@workbenchActionMarkRead": {}
-  ,"workbenchActionProcess": "Handle"
-  ,"@workbenchActionProcess": {}
-  ,"workbenchActionLivestock": "Cattle"
-  ,"@workbenchActionLivestock": {}
-  ,"workbenchActionFence": "Fence"
-  ,"@workbenchActionFence": {}
-  ,"workbenchActionDevice": "Device"
-  ,"@workbenchActionDevice": {}
-  ,"workbenchActionAi": "AI evidence"
-  ,"@workbenchActionAi": {}
-  ,"workbenchTechnicalEvidence": "Technical evidence folded"
-  ,"@workbenchTechnicalEvidence": {}
-  ,"workbenchResolvedAt": "Resolved at"
-  ,"@workbenchResolvedAt": {}
-  ,"workbenchProcessedToast": "Alert handled"
-  ,"@workbenchProcessedToast": {}
-  ,"workbenchReadToast": "Marked as read"
-  ,"@workbenchReadToast": {}
-  ,"workbenchEmpty": "No alerts for this filter"
-  ,"@workbenchEmpty": {}
-  ,"workbenchEmptyHint": "Try another bucket or asset range"
-  ,"@workbenchEmptyHint": {}
-  ,"workbenchAiRanking": "Who needs attention"
-  ,"@workbenchAiRanking": {}
-  ,"workbenchClose": "Close"
-  ,"@workbenchClose": {}
-  ,"livestockSignalHealthNormal": "Healthy"
-  ,"@livestockSignalHealthNormal": {}
-  ,"livestockSignalHealthWatch": "Watch"
-  ,"@livestockSignalHealthWatch": {}
-  ,"livestockSignalHealthCritical": "Critical"
-  ,"@livestockSignalHealthCritical": {}
-  ,"livestockSignalAiObserve": "AI observe"
-  ,"@livestockSignalAiObserve": {}
-  ,"livestockSignalAiAlert": "AI alert"
-  ,"@livestockSignalAiAlert": {}
-  ,"livestockSignalFenceApproach": "Near fence"
-  ,"@livestockSignalFenceApproach": {}
-  ,"livestockSignalFenceBreach": "Out of fence"
-  ,"@livestockSignalFenceBreach": {}
-  ,"livestockSignalPresenceReturnHome": "Return home"
-  ,"@livestockSignalPresenceReturnHome": {}
-  ,"livestockSignalDeviceOffline": "Device offline"
-  ,"@livestockSignalDeviceOffline": {}
-  ,"livestockSignalDeviceFault": "Device fault"
-  ,"@livestockSignalDeviceFault": {}
-  ,"livestockSignalMoreCount": "+{count}"
-  ,"@livestockSignalMoreCount": {
+  "recHint": " (tickets may be missing — patrol advised)",
+  "workbenchImmediate": "Immediate",
+  "@workbenchImmediate": {},
+  "workbenchImmediateSub": "Breach · epidemic · tamper",
+  "@workbenchImmediateSub": {},
+  "workbenchField": "Field check",
+  "@workbenchField": {},
+  "workbenchFieldSub": "Approach · battery · offline",
+  "@workbenchFieldSub": {},
+  "workbenchObserve": "Observe",
+  "@workbenchObserve": {},
+  "workbenchObserveSub": "AI watch · no ticket",
+  "@workbenchObserveSub": {},
+  "workbenchResolved": "Handled today",
+  "@workbenchResolved": {},
+  "workbenchResolvedSub": "Closed today",
+  "@workbenchResolvedSub": {},
+  "workbenchAllBuckets": "All",
+  "@workbenchAllBuckets": {},
+  "workbenchAllAssets": "All assets",
+  "@workbenchAllAssets": {},
+  "workbenchLivestock": "Livestock",
+  "@workbenchLivestock": {},
+  "workbenchHerd": "Herd",
+  "@workbenchHerd": {},
+  "workbenchFence": "Fence",
+  "@workbenchFence": {},
+  "workbenchDevice": "Device",
+  "@workbenchDevice": {},
+  "workbenchActiveUnread": "{active} active · {unread} unread",
+  "@workbenchActiveUnread": {
+    "placeholders": {
+      "active": {
+        "type": "int"
+      },
+      "unread": {
+        "type": "int"
+      }
+    }
+  },
+  "workbenchContextOverview": "Overview: ranch state",
+  "@workbenchContextOverview": {},
+  "workbenchContextFence": "Fence: spatial assets",
+  "@workbenchContextFence": {},
+  "workbenchContextAlert": "Alerts: unified action",
+  "@workbenchContextAlert": {},
+  "workbenchViewAll": "View all {count}",
+  "@workbenchViewAll": {
     "placeholders": {
       "count": {
         "type": "int"
       }
     }
-  }
-  ,"livestockMetricRumenTemperature": "Rumen temp"
-  ,"@livestockMetricRumenTemperature": {}
-  ,"livestockMetricTemperatureValue": "{value}°C"
-  ,"@livestockMetricTemperatureValue": {
+  },
+  "workbenchLoadMore": "Load more",
+  "@workbenchLoadMore": {},
+  "workbenchShownOf": "Showing {shown} / {total}",
+  "@workbenchShownOf": {
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "workbenchNextStep": "Next step",
+  "@workbenchNextStep": {},
+  "workbenchNow": "Now",
+  "@workbenchNow": {},
+  "workbenchKeyMetrics": "Key metrics",
+  "@workbenchKeyMetrics": {},
+  "workbenchEvidence": "Evidence",
+  "@workbenchEvidence": {},
+  "workbenchLifecycle": "Lifecycle",
+  "@workbenchLifecycle": {},
+  "workbenchAffected": "Affected",
+  "@workbenchAffected": {},
+  "workbenchSeverity": "Severity",
+  "@workbenchSeverity": {},
+  "workbenchFirstReport": "First report",
+  "@workbenchFirstReport": {},
+  "workbenchAiBand": "AI verdict",
+  "@workbenchAiBand": {},
+  "workbenchAiScore": "Technical score",
+  "@workbenchAiScore": {},
+  "workbenchEvidenceCount": "Evidence",
+  "@workbenchEvidenceCount": {},
+  "workbenchUnread": "Unread",
+  "@workbenchUnread": {},
+  "workbenchRecommendFence": "Locate the fence and affected livestock first",
+  "@workbenchRecommendFence": {},
+  "workbenchRecommendLivestock": "Review the episode and key metrics first",
+  "@workbenchRecommendLivestock": {},
+  "workbenchRecommendDevice": "Check fitment and signal first",
+  "@workbenchRecommendDevice": {},
+  "workbenchRecommendHerd": "Confirm the herd abnormal distribution first",
+  "@workbenchRecommendHerd": {},
+  "workbenchRecommendResolved": "Confirm the result and follow-up observation",
+  "@workbenchRecommendResolved": {},
+  "workbenchActionMap": "Map",
+  "@workbenchActionMap": {},
+  "workbenchActionTrajectory": "Track",
+  "@workbenchActionTrajectory": {},
+  "workbenchActionMarkRead": "Mark read",
+  "@workbenchActionMarkRead": {},
+  "workbenchActionProcess": "Handle",
+  "@workbenchActionProcess": {},
+  "workbenchActionLivestock": "Cattle",
+  "@workbenchActionLivestock": {},
+  "workbenchActionFence": "Fence",
+  "@workbenchActionFence": {},
+  "workbenchActionDevice": "Device",
+  "@workbenchActionDevice": {},
+  "workbenchActionAi": "AI evidence",
+  "@workbenchActionAi": {},
+  "workbenchTechnicalEvidence": "Technical evidence folded",
+  "@workbenchTechnicalEvidence": {},
+  "workbenchResolvedAt": "Resolved at",
+  "@workbenchResolvedAt": {},
+  "workbenchProcessedToast": "Alert handled",
+  "@workbenchProcessedToast": {},
+  "workbenchReadToast": "Marked as read",
+  "@workbenchReadToast": {},
+  "workbenchEmpty": "No alerts for this filter",
+  "@workbenchEmpty": {},
+  "workbenchEmptyHint": "Try another bucket or asset range",
+  "@workbenchEmptyHint": {},
+  "workbenchAiRanking": "Who needs attention",
+  "@workbenchAiRanking": {},
+  "workbenchClose": "Close",
+  "@workbenchClose": {},
+  "livestockSignalHealthNormal": "Healthy",
+  "@livestockSignalHealthNormal": {},
+  "livestockSignalHealthWatch": "Watch",
+  "@livestockSignalHealthWatch": {},
+  "livestockSignalHealthCritical": "Critical",
+  "@livestockSignalHealthCritical": {},
+  "livestockSignalAiObserve": "AI observe",
+  "@livestockSignalAiObserve": {},
+  "livestockSignalAiAlert": "AI alert",
+  "@livestockSignalAiAlert": {},
+  "livestockSignalFenceApproach": "Near fence",
+  "@livestockSignalFenceApproach": {},
+  "livestockSignalFenceBreach": "Out of fence",
+  "@livestockSignalFenceBreach": {},
+  "livestockSignalPresenceReturnHome": "Return home",
+  "@livestockSignalPresenceReturnHome": {},
+  "livestockSignalDeviceOffline": "Device offline",
+  "@livestockSignalDeviceOffline": {},
+  "livestockSignalDeviceFault": "Device fault",
+  "@livestockSignalDeviceFault": {},
+  "livestockSignalMoreCount": "+{count}",
+  "@livestockSignalMoreCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "livestockMetricRumenTemperature": "Rumen temp",
+  "@livestockMetricRumenTemperature": {},
+  "livestockMetricTemperatureValue": "{value}°C",
+  "@livestockMetricTemperatureValue": {
     "placeholders": {
       "value": {
         "type": "double",
         "format": "decimalPattern"
       }
     }
-  }
-  ,"livestockMetricRumenMotility": "Motility"
-  ,"@livestockMetricRumenMotility": {}
-  ,"livestockMetricMotilityValue": "{value} contractions/min"
-  ,"@livestockMetricMotilityValue": {
+  },
+  "livestockMetricRumenMotility": "Motility",
+  "@livestockMetricRumenMotility": {},
+  "livestockMetricMotilityValue": "{value} contractions/min",
+  "@livestockMetricMotilityValue": {
     "placeholders": {
       "value": {
         "type": "double",
         "format": "decimalPattern"
       }
     }
-  }
-  ,"livestockMetricNoData": "No data"
-  ,"@livestockMetricNoData": {}
-  ,"livestockMetricDelayed": "Delayed data"
-  ,"@livestockMetricDelayed": {}
-  ,"livestockMetricStale": "Stale data"
-  ,"@livestockMetricStale": {}
-  ,"mapSignalNoPosition": "No position"
-  ,"@mapSignalNoPosition": {}
-  ,"mapSignalNoPositionLivestock": "No position: {codes}"
-  ,"@mapSignalNoPositionLivestock": {
+  },
+  "livestockMetricNoData": "No data",
+  "@livestockMetricNoData": {},
+  "livestockMetricDelayed": "Delayed data",
+  "@livestockMetricDelayed": {},
+  "livestockMetricStale": "Stale data",
+  "@livestockMetricStale": {},
+  "mapSignalNoPosition": "No position",
+  "@mapSignalNoPosition": {},
+  "mapSignalNoPositionLivestock": "No position: {codes}",
+  "@mapSignalNoPositionLivestock": {
     "placeholders": {
-      "codes": {"type": "String"}
+      "codes": {
+        "type": "String"
+      }
     }
-  }
-  ,"mapSignalDelayedPosition": "Delayed position"
-  ,"@mapSignalDelayedPosition": {}
-  ,"mapSignalStalePosition": "Stale position"
-  ,"@mapSignalStalePosition": {}
-  ,"signalSyncStale": "Live signal sync is interrupted; recovering automatically"
-  ,"@signalSyncStale": {}
-  ,"signalSyncRetry": "Retry now"
-  ,"@signalSyncRetry": {}
-
-  ,"epidemicNoSourceTitle": "No suspected source marked"
-  ,"@epidemicNoSourceTitle": {}
-  ,"epidemicNoSourceBodyV2": "None confirmed diseased yet. Pick an animal from the fence tab and mark it suspected on its detail page; tracing and dispositions generate automatically."
-  ,"@epidemicNoSourceBodyV2": {}
-  ,"epidemicGoPickLivestock": "Pick a diseased animal"
-  ,"@epidemicGoPickLivestock": {}
-  ,"markDiseasedFromAlarm": "from alert"
-  ,"@markDiseasedFromAlarm": {}
-  ,"alertsMarkAsSource": "Mark as source"
-  ,"@alertsMarkAsSource": {}
-
-  ,"markDiseasedTitle": "Mark suspected source"
-  ,"@markDiseasedTitle": {}
-  ,"markDiseasedDiseaseLabel": "Disease (single choice)"
-  ,"@markDiseasedDiseaseLabel": {}
-  ,"markDiseasedFootMouth": "Suspected FMD"
-  ,"@markDiseasedFootMouth": {}
-  ,"markDiseasedTuberculosis": "Suspected bovine tuberculosis"
-  ,"@markDiseasedTuberculosis": {}
-  ,"markDiseasedBrucellosis": "Suspected brucellosis"
-  ,"@markDiseasedBrucellosis": {}
-  ,"markDiseasedDiarrhea": "Diarrheal disease"
-  ,"@markDiseasedDiarrhea": {}
-  ,"markDiseasedOther": "Other"
-  ,"@markDiseasedOther": {}
-  ,"markDiseasedOtherHint": "Enter disease name (required)"
-  ,"@markDiseasedOtherHint": {}
-  ,"markDiseasedHint": "Marking will immediately analyze this animal's contacts over the last 72 hours and generate tracing and disposition advice."
-  ,"@markDiseasedHint": {}
-  ,"markDiseasedConfirm": "Confirm mark"
-  ,"@markDiseasedConfirm": {}
-  ,"markDiseasedDone": "Marked. Contact analysis finished ({contacts} contacts)"
-  ,"@markDiseasedDone": {
+  },
+  "mapSignalDelayedPosition": "Delayed position",
+  "@mapSignalDelayedPosition": {},
+  "mapSignalStalePosition": "Stale position",
+  "@mapSignalStalePosition": {},
+  "signalSyncStale": "Live signal sync is interrupted; recovering automatically",
+  "@signalSyncStale": {},
+  "signalSyncRetry": "Retry now",
+  "@signalSyncRetry": {},
+  "epidemicNoSourceTitle": "No suspected source marked",
+  "@epidemicNoSourceTitle": {},
+  "epidemicNoSourceBodyV2": "None confirmed diseased yet. Pick an animal from the fence tab and mark it suspected on its detail page; tracing and dispositions generate automatically.",
+  "@epidemicNoSourceBodyV2": {},
+  "epidemicGoPickLivestock": "Pick a diseased animal",
+  "@epidemicGoPickLivestock": {},
+  "markDiseasedFromAlarm": "from alert",
+  "@markDiseasedFromAlarm": {},
+  "alertsMarkAsSource": "Mark as source",
+  "@alertsMarkAsSource": {},
+  "markDiseasedTitle": "Mark suspected source",
+  "@markDiseasedTitle": {},
+  "markDiseasedDiseaseLabel": "Disease (single choice)",
+  "@markDiseasedDiseaseLabel": {},
+  "markDiseasedFootMouth": "Suspected FMD",
+  "@markDiseasedFootMouth": {},
+  "markDiseasedTuberculosis": "Suspected bovine tuberculosis",
+  "@markDiseasedTuberculosis": {},
+  "markDiseasedBrucellosis": "Suspected brucellosis",
+  "@markDiseasedBrucellosis": {},
+  "markDiseasedDiarrhea": "Diarrheal disease",
+  "@markDiseasedDiarrhea": {},
+  "markDiseasedOther": "Other",
+  "@markDiseasedOther": {},
+  "markDiseasedOtherHint": "Enter disease name (required)",
+  "@markDiseasedOtherHint": {},
+  "markDiseasedHint": "Marking will immediately analyze this animal's contacts over the last 72 hours and generate tracing and disposition advice.",
+  "@markDiseasedHint": {},
+  "markDiseasedConfirm": "Confirm mark",
+  "@markDiseasedConfirm": {},
+  "markDiseasedDone": "Marked. Contact analysis finished ({contacts} contacts)",
+  "@markDiseasedDone": {
     "placeholders": {
-      "contacts": {"type": "int"}
+      "contacts": {
+        "type": "int"
+      }
     }
-  }
-  ,"markDiseasedNoGps": "Marked, but no GPS fixes in the last 72 hours; contact network is empty"
-  ,"@markDiseasedNoGps": {}
-  ,"markDiseasedFailedTryAgain": "Marking failed, please retry"
-  ,"@markDiseasedFailedTryAgain": {}
-
-  ,"markDiseasedEntryButton": "🦠 Mark suspected diseased"
-  ,"@markDiseasedEntryButton": {}
-  ,"unmarkDiseasedButton": "Remove disease mark"
-  ,"@unmarkDiseasedButton": {}
-  ,"viewWorkbenchButton": "Open Epidemic Prevention"
-  ,"@viewWorkbenchButton": {}
-  ,"markedSourceDuration": "Marked {duration} ago"
-  ,"@markedSourceDuration": {
+  },
+  "markDiseasedNoGps": "Marked, but no GPS fixes in the last 72 hours; contact network is empty",
+  "@markDiseasedNoGps": {},
+  "markDiseasedFailedTryAgain": "Marking failed, please retry",
+  "@markDiseasedFailedTryAgain": {},
+  "markDiseasedEntryButton": "🦠 Mark suspected diseased",
+  "@markDiseasedEntryButton": {},
+  "unmarkDiseasedButton": "Remove disease mark",
+  "@unmarkDiseasedButton": {},
+  "viewWorkbenchButton": "Open Epidemic Prevention",
+  "@viewWorkbenchButton": {},
+  "markedSourceDuration": "Marked {duration} ago",
+  "@markedSourceDuration": {
     "placeholders": {
-      "duration": {"type": "String"}
+      "duration": {
+        "type": "String"
+      }
     }
-  }
-  ,"markedSourceContacts": "{count} contacts · see the Epidemic Prevention workbench"
-  ,"@markedSourceContacts": {
+  },
+  "markedSourceContacts": "{count} contacts · see the Epidemic Prevention workbench",
+  "@markedSourceContacts": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
-  }
-  ,"unmarkConfirmTitle": "Remove disease mark?"
-  ,"@unmarkConfirmTitle": {}
-  ,"unmarkConfirmBody": "All unfinished dispositions with {livestockCode} as their source will be cancelled too."
-  ,"@unmarkConfirmBody": {
+  },
+  "unmarkConfirmTitle": "Remove disease mark?",
+  "@unmarkConfirmTitle": {},
+  "unmarkConfirmBody": "All unfinished dispositions with {livestockCode} as their source will be cancelled too.",
+  "@unmarkConfirmBody": {
     "placeholders": {
-      "livestockCode": {"type": "String"}
+      "livestockCode": {
+        "type": "String"
+      }
     }
-  }
-  ,"unmarkKeep": "Keep mark"
-  ,"@unmarkKeep": {}
-  ,"unmarkConfirm": "Confirm removal"
-  ,"@unmarkConfirm": {}
-  ,"unmarkDone": "Disease mark removed"
-  ,"@unmarkDone": {}
-  ,"upsellTitle": "Epidemic Prevention requires Premium"
-  ,"@upsellTitle": {}
-  ,"upsellBody": "Marking suspected disease, contact tracing and four-tier disposition are Premium features (epidemic_alert)."
-  ,"@upsellBody": {}
-  ,"upsellLater": "Not now"
-  ,"@upsellLater": {}
-  ,"upsellLearnMore": "Learn about Premium"
-  ,"@upsellLearnMore": {}
-  ,"durationMinutesShort": "{minutes} min"
-  ,"@durationMinutesShort": {
+  },
+  "unmarkKeep": "Keep mark",
+  "@unmarkKeep": {},
+  "unmarkConfirm": "Confirm removal",
+  "@unmarkConfirm": {},
+  "unmarkDone": "Disease mark removed",
+  "@unmarkDone": {},
+  "upsellTitle": "Epidemic Prevention requires Premium",
+  "@upsellTitle": {},
+  "upsellBody": "Marking suspected disease, contact tracing and four-tier disposition are Premium features (epidemic_alert).",
+  "@upsellBody": {},
+  "upsellLater": "Not now",
+  "@upsellLater": {},
+  "upsellLearnMore": "Learn about Premium",
+  "@upsellLearnMore": {},
+  "durationMinutesShort": "{minutes} min",
+  "@durationMinutesShort": {
     "placeholders": {
-      "minutes": {"type": "int"}
+      "minutes": {
+        "type": "int"
+      }
     }
-  }
-  ,"durationHoursShort": "{hours} h"
-  ,"@durationHoursShort": {
+  },
+  "durationHoursShort": "{hours} h",
+  "@durationHoursShort": {
     "placeholders": {
-      "hours": {"type": "int"}
+      "hours": {
+        "type": "int"
+      }
     }
-  }
-  ,"durationDaysShort": "{days} d"
-  ,"@durationDaysShort": {
+  },
+  "durationDaysShort": "{days} d",
+  "@durationDaysShort": {
     "placeholders": {
-      "days": {"type": "int"}
-    }
-  }
-  ,"fenceEditTargetMissing": "This fence was deleted; the edit was discarded"
-  ,"@fenceEditTargetMissing": {}
-  ,"epidemicPathRiskHint": "Cumulative contact-event risk (0-100); only paths scoring 70+ are shown"
-  ,"@epidemicPathRiskHint": {}
-  ,"epidemicPathSourceTag": "source"
-  ,"@epidemicPathSourceTag": {}
-  ,"epidemicDispositionRegistered": "Registered '{action}' for {livestock}{due}"
-  ,"@epidemicDispositionRegistered": {"placeholders":{"livestock":{"type":"String"},"action":{"type":"String"},"due":{"type":"String"}}}
-  ,"epidemicDispositionExisting": "{livestock} already has an active '{action}' task"
-  ,"@epidemicDispositionExisting": {"livestock":{"type":"String"},"action":{"type":"String"}}
-  ,"epidemicDispositionDone": "'{action}' for {livestock} is complete"
-  ,"@epidemicDispositionDone": {"livestock":{"type":"String"},"action":{"type":"String"}}
-  ,"epidemicDispositionCancelled": "'{action}' for {livestock} was cancelled"
-  ,"@epidemicDispositionCancelled": {"livestock":{"type":"String"},"action":{"type":"String"}}
-  ,"epidemicDispositionRegisterFailed": "Registration failed, please retry"
-  ,"@epidemicDispositionRegisterFailed": {}
-  ,"epidemicCompleteAction": "Done"
-  ,"@epidemicCompleteAction": {}
-  ,"epidemicCancelAction": "Cancel"
-  ,"@epidemicCancelAction": {}
-  ,"epidemicCompleteConfirm": "Mark the '{action}' task for {livestock} as completed?"
-  ,"@epidemicCompleteConfirm": {"livestock":{"type":"String"},"action":{"type":"String"}}
-  ,"epidemicCancelConfirm": "Cancel the '{action}' task for {livestock}? You can register it again later."
-  ,"@epidemicCancelConfirm": {"livestock":{"type":"String"},"action":{"type":"String"}}
-  ,"epidemicDispRegisteredTag": "Registered"
-  ,"@epidemicDispRegisteredTag": {}
-  ,"epidemicDispositionDueBy": ", complete by {due}"
-  ,"@epidemicDispositionDueBy": {"due":{"type":"String"}}
-  ,"epidemicDispCompletedTag": "completed"
-  ,"@epidemicDispCompletedTag": {}
-  ,"epidemicDispCancelledTag": "cancelled"
-  ,"@epidemicDispCancelledTag": {}
-
-  ,"healthPhysiologyTitle": "Physiology Records"
-  ,"@healthPhysiologyTitle": {}
-  ,"healthPhysiologyStageLactating": "Lactating · day {n}"
-  ,"@healthPhysiologyStageLactating": {
-      "placeholders": {
-        "n": {"type": "int"}
+      "days": {
+        "type": "int"
       }
     }
-  ,"healthPhysiologyStageDry": "Dry off"
-  ,"@healthPhysiologyStageDry": {}
-  ,"healthPhysiologyEventCalving": "Calving"
-  ,"@healthPhysiologyEventCalving": {}
-  ,"healthPhysiologyEventBreeding": "Breeding"
-  ,"@healthPhysiologyEventBreeding": {}
-  ,"healthPhysiologyEventPregnancyCheck": "Pregnancy check"
-  ,"@healthPhysiologyEventPregnancyCheck": {}
-  ,"healthPhysiologyEventDryOff": "Dry-off"
-  ,"@healthPhysiologyEventDryOff": {}
-  ,"healthPhysiologyEventIllness": "Illness onset"
-  ,"@healthPhysiologyEventIllness": {}
-  ,"healthPhysiologyEventRecovery": "Recovery"
-  ,"@healthPhysiologyEventRecovery": {}
-  ,"healthPhysiologyAddRecord": "+ Add record"
-  ,"@healthPhysiologyAddRecord": {}
-  ,"healthPhysiologyEmptyTitle": "No records yet"
-  ,"@healthPhysiologyEmptyTitle": {}
-  ,"healthPhysiologyEmptyHint": "Tap \"+ Add record\" to start"
-  ,"@healthPhysiologyEmptyHint": {}
-  ,"healthPhysiologyWindowActive": "In window"
-  ,"@healthPhysiologyWindowActive": {}
-  ,"healthPhysiologySourceManual": "Manual entry"
-  ,"@healthPhysiologySourceManual": {}
-  ,"healthPhysiologySourceDisposition": "From epidemic disposition #{refId} · in progress"
-  ,"@healthPhysiologySourceDisposition": {
-      "placeholders": {
-        "refId": {"type": "int"}
+  },
+  "fenceEditTargetMissing": "This fence was deleted; the edit was discarded",
+  "@fenceEditTargetMissing": {},
+  "epidemicPathRiskHint": "Cumulative contact-event risk (0-100); only paths scoring 70+ are shown",
+  "@epidemicPathRiskHint": {},
+  "epidemicPathSourceTag": "source",
+  "@epidemicPathSourceTag": {},
+  "epidemicDispositionRegistered": "Registered '{action}' for {livestock}{due}",
+  "@epidemicDispositionRegistered": {
+    "placeholders": {
+      "livestock": {
+        "type": "String"
+      },
+      "action": {
+        "type": "String"
+      },
+      "due": {
+        "type": "String"
       }
     }
-  ,"healthPhysiologySourceAlertConfirm": "Alert confirmed"
-  ,"@healthPhysiologySourceAlertConfirm": {}
-  ,"healthPhysiologyErrorTitle": "⚠️ Physiology records unavailable"
-  ,"@healthPhysiologyErrorTitle": {}
-  ,"healthPhysiologyErrorDesc": "No data is lost — it will retry automatically once the service recovers."
-  ,"@healthPhysiologyErrorDesc": {}
-  ,"healthPhysiologyRetry": "Reload"
-  ,"@healthPhysiologyRetry": {}
-  ,"healthPhysiologySheetTitle": "New physiology record"
-  ,"@healthPhysiologySheetTitle": {}
-  ,"healthPhysiologyOccurredDate": "Date occurred"
-  ,"@healthPhysiologyOccurredDate": {}
-  ,"healthPhysiologyNoteHint": "Note (optional, ≤500 chars)…"
-  ,"@healthPhysiologyNoteHint": {}
-  ,"healthPhysiologyIllnessNote": "Recording “Illness onset” has no end-date field — add a “Recovery” event later to close the window."
-  ,"@healthPhysiologyIllnessNote": {}
-  ,"healthPhysiologySaveFailed": "Save failed, please try again later"
-  ,"@healthPhysiologySaveFailed": {}
-  ,"healthPhysiologyEditSheetTitle": "Edit physiology record"
-  ,"@healthPhysiologyEditSheetTitle": {}
-  ,"healthPhysiologyDeleteTitle": "Delete physiology record"
-  ,"@healthPhysiologyDeleteTitle": {}
-  ,"healthPhysiologyDeleteConfirm": "This cannot be undone. Delete this record?"
-  ,"@healthPhysiologyDeleteConfirm": {}
-  ,"healthPhysiologyDelete": "Delete"
-  ,"@healthPhysiologyDelete": {}
-  ,"healthDrinkingTitle": "Drinking Behavior"
-  ,"@healthDrinkingTitle": {}
-  ,"healthDrinkingTodayCount": "{n} today"
-  ,"@healthDrinkingTodayCount": {
-      "placeholders": {
-        "n": {"type": "int"}
+  },
+  "epidemicDispositionExisting": "{livestock} already has an active '{action}' task",
+  "@epidemicDispositionExisting": {
+    "livestock": {
+      "type": "String"
+    },
+    "action": {
+      "type": "String"
+    }
+  },
+  "epidemicDispositionDone": "'{action}' for {livestock} is complete",
+  "@epidemicDispositionDone": {
+    "livestock": {
+      "type": "String"
+    },
+    "action": {
+      "type": "String"
+    }
+  },
+  "epidemicDispositionCancelled": "'{action}' for {livestock} was cancelled",
+  "@epidemicDispositionCancelled": {
+    "livestock": {
+      "type": "String"
+    },
+    "action": {
+      "type": "String"
+    }
+  },
+  "epidemicDispositionRegisterFailed": "Registration failed, please retry",
+  "@epidemicDispositionRegisterFailed": {},
+  "epidemicCompleteAction": "Done",
+  "@epidemicCompleteAction": {},
+  "epidemicCancelAction": "Cancel",
+  "@epidemicCancelAction": {},
+  "epidemicCompleteConfirm": "Mark the '{action}' task for {livestock} as completed?",
+  "@epidemicCompleteConfirm": {
+    "livestock": {
+      "type": "String"
+    },
+    "action": {
+      "type": "String"
+    }
+  },
+  "epidemicCancelConfirm": "Cancel the '{action}' task for {livestock}? You can register it again later.",
+  "@epidemicCancelConfirm": {
+    "livestock": {
+      "type": "String"
+    },
+    "action": {
+      "type": "String"
+    }
+  },
+  "epidemicDispRegisteredTag": "Registered",
+  "@epidemicDispRegisteredTag": {},
+  "epidemicDispositionDueBy": ", complete by {due}",
+  "@epidemicDispositionDueBy": {
+    "due": {
+      "type": "String"
+    }
+  },
+  "epidemicDispCompletedTag": "completed",
+  "@epidemicDispCompletedTag": {},
+  "epidemicDispCancelledTag": "cancelled",
+  "@epidemicDispCancelledTag": {},
+  "healthPhysiologyTitle": "Physiology Records",
+  "@healthPhysiologyTitle": {},
+  "healthPhysiologyStageLactating": "Lactating · day {n}",
+  "@healthPhysiologyStageLactating": {
+    "placeholders": {
+      "n": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingTodayUnit": "visits / today"
-  ,"@healthDrinkingTodayUnit": {}
-  ,"healthDrinkingLastDrink": "Last drink"
-  ,"@healthDrinkingLastDrink": {}
-  ,"healthDrinkingMinutesAgo": "{n} min ago"
-  ,"@healthDrinkingMinutesAgo": {
-      "placeholders": {
-        "n": {"type": "int"}
+  },
+  "healthPhysiologyStageDry": "Dry off",
+  "@healthPhysiologyStageDry": {},
+  "healthPhysiologyEventCalving": "Calving",
+  "@healthPhysiologyEventCalving": {},
+  "healthPhysiologyEventBreeding": "Breeding",
+  "@healthPhysiologyEventBreeding": {},
+  "healthPhysiologyEventPregnancyCheck": "Pregnancy check",
+  "@healthPhysiologyEventPregnancyCheck": {},
+  "healthPhysiologyEventDryOff": "Dry-off",
+  "@healthPhysiologyEventDryOff": {},
+  "healthPhysiologyEventIllness": "Illness onset",
+  "@healthPhysiologyEventIllness": {},
+  "healthPhysiologyEventRecovery": "Recovery",
+  "@healthPhysiologyEventRecovery": {},
+  "healthPhysiologyAddRecord": "+ Add record",
+  "@healthPhysiologyAddRecord": {},
+  "healthPhysiologyEmptyTitle": "No records yet",
+  "@healthPhysiologyEmptyTitle": {},
+  "healthPhysiologyEmptyHint": "Tap \"+ Add record\" to start",
+  "@healthPhysiologyEmptyHint": {},
+  "healthPhysiologyWindowActive": "In window",
+  "@healthPhysiologyWindowActive": {},
+  "healthPhysiologySourceManual": "Manual entry",
+  "@healthPhysiologySourceManual": {},
+  "healthPhysiologySourceDisposition": "From epidemic disposition #{refId} · in progress",
+  "@healthPhysiologySourceDisposition": {
+    "placeholders": {
+      "refId": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingYesterdayAt": "yesterday {time}"
-  ,"@healthDrinkingYesterdayAt": {
-      "placeholders": {
-        "time": {"type": "String"}
+  },
+  "healthPhysiologySourceAlertConfirm": "Alert confirmed",
+  "@healthPhysiologySourceAlertConfirm": {},
+  "healthPhysiologyErrorTitle": "⚠️ Physiology records unavailable",
+  "@healthPhysiologyErrorTitle": {},
+  "healthPhysiologyErrorDesc": "No data is lost — it will retry automatically once the service recovers.",
+  "@healthPhysiologyErrorDesc": {},
+  "healthPhysiologyRetry": "Reload",
+  "@healthPhysiologyRetry": {},
+  "healthPhysiologySheetTitle": "New physiology record",
+  "@healthPhysiologySheetTitle": {},
+  "healthPhysiologyOccurredDate": "Date occurred",
+  "@healthPhysiologyOccurredDate": {},
+  "healthPhysiologyNoteHint": "Note (optional, ≤500 chars)…",
+  "@healthPhysiologyNoteHint": {},
+  "healthPhysiologyIllnessNote": "Recording “Illness onset” has no end-date field — add a “Recovery” event later to close the window.",
+  "@healthPhysiologyIllnessNote": {},
+  "healthPhysiologySaveFailed": "Save failed, please try again later",
+  "@healthPhysiologySaveFailed": {},
+  "healthPhysiologyEditSheetTitle": "Edit physiology record",
+  "@healthPhysiologyEditSheetTitle": {},
+  "healthPhysiologyDeleteTitle": "Delete physiology record",
+  "@healthPhysiologyDeleteTitle": {},
+  "healthPhysiologyDeleteConfirm": "This cannot be undone. Delete this record?",
+  "@healthPhysiologyDeleteConfirm": {},
+  "healthPhysiologyDelete": "Delete",
+  "@healthPhysiologyDelete": {},
+  "healthDrinkingTitle": "Drinking Behavior",
+  "@healthDrinkingTitle": {},
+  "healthDrinkingTodayCount": "{n} today",
+  "@healthDrinkingTodayCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingPeerBaseline": "{group} peer avg {n}/day"
-  ,"@healthDrinkingPeerBaseline": {
-      "placeholders": {
-        "group": {"type": "String"},
-        "n": {"type": "String"}
+  },
+  "healthDrinkingTodayUnit": "visits / today",
+  "@healthDrinkingTodayUnit": {},
+  "healthDrinkingLastDrink": "Last drink",
+  "@healthDrinkingLastDrink": {},
+  "healthDrinkingMinutesAgo": "{n} min ago",
+  "@healthDrinkingMinutesAgo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingOwnBaseline": "own baseline {m}/day"
-  ,"@healthDrinkingOwnBaseline": {
-      "placeholders": {
-        "m": {"type": "String"}
+  },
+  "healthDrinkingYesterdayAt": "yesterday {time}",
+  "@healthDrinkingYesterdayAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
       }
     }
-  ,"healthDrinkingPeerInsufficient": "Peer sample insufficient (needs ≥{minDays} qualifying sample days)"
-  ,"@healthDrinkingPeerInsufficient": {
-      "placeholders": {
-        "minDays": {"type": "int"}
+  },
+  "healthDrinkingPeerBaseline": "{group} peer avg {n}/day",
+  "@healthDrinkingPeerBaseline": {
+    "placeholders": {
+      "group": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
       }
     }
-  ,"healthDrinkingPeerGroupLactating": "cow"
-  ,"@healthDrinkingPeerGroupLactating": {}
-  ,"healthDrinkingPeerGroupDry": "dry"
-  ,"@healthDrinkingPeerGroupDry": {}
-  ,"healthDrinkingFeverContext": "{date}: {n} visits with ~{percent}% fever coverage — reduced drinking is expected during fever; fever data is excluded from anomaly detection and baselines"
-  ,"@healthDrinkingFeverContext": {
-      "placeholders": {
-        "date": {"type": "String"},
-        "n": {"type": "int"},
-        "percent": {"type": "int"}
+  },
+  "healthDrinkingOwnBaseline": "own baseline {m}/day",
+  "@healthDrinkingOwnBaseline": {
+    "placeholders": {
+      "m": {
+        "type": "String"
       }
     }
-  ,"healthDrinkingDayMon": "Mon"
-  ,"@healthDrinkingDayMon": {}
-  ,"healthDrinkingDayTue": "Tue"
-  ,"@healthDrinkingDayTue": {}
-  ,"healthDrinkingDayWed": "Wed"
-  ,"@healthDrinkingDayWed": {}
-  ,"healthDrinkingDayThu": "Thu"
-  ,"@healthDrinkingDayThu": {}
-  ,"healthDrinkingDayFri": "Fri"
-  ,"@healthDrinkingDayFri": {}
-  ,"healthDrinkingDaySat": "Sat"
-  ,"@healthDrinkingDaySat": {}
-  ,"healthDrinkingDaySun": "Sun"
-  ,"@healthDrinkingDaySun": {}
-  ,"healthDrinkingDayToday": "Today"
-  ,"@healthDrinkingDayToday": {}
-  ,"healthDrinkingWeekdayPrefix": ""
-  ,"@healthDrinkingWeekdayPrefix": {}
-  ,"healthDrinkingStateNoData": "No drinking data yet"
-  ,"@healthDrinkingStateNoData": {}
-  ,"healthDrinkingNoDataDesc": "This livestock has no rumen capsule bound; binding one establishes a baseline and starts statistics within ~24 hours"
-  ,"@healthDrinkingNoDataDesc": {}
-  ,"healthDrinkingNoDataChip": "No RBC capsule bound"
-  ,"@healthDrinkingNoDataChip": {}
-  ,"healthDrinkingStateBuilding": "Building baseline"
-  ,"@healthDrinkingStateBuilding": {}
-  ,"healthDrinkingBuildingDesc": "{n} day(s) collected so far — the detector needs ≥{min} valid days to reliably separate drinking valleys from temperature noise"
-  ,"@healthDrinkingBuildingDesc": {
-      "placeholders": {
-        "n": {"type": "int"},
-        "min": {"type": "int"}
+  },
+  "healthDrinkingPeerInsufficient": "Peer sample insufficient (needs ≥{minDays} qualifying sample days)",
+  "@healthDrinkingPeerInsufficient": {
+    "placeholders": {
+      "minDays": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingBuildingChip": "{n} / {min} days"
-  ,"@healthDrinkingBuildingChip": {
-      "placeholders": {
-        "n": {"type": "int"},
-        "min": {"type": "int"}
+  },
+  "healthDrinkingPeerGroupLactating": "cow",
+  "@healthDrinkingPeerGroupLactating": {},
+  "healthDrinkingPeerGroupDry": "dry",
+  "@healthDrinkingPeerGroupDry": {},
+  "healthDrinkingFeverContext": "{date}: {n} visits with ~{percent}% fever coverage — reduced drinking is expected during fever; fever data is excluded from anomaly detection and baselines",
+  "@healthDrinkingFeverContext": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingStateBackfill": "Backfilling"
-  ,"@healthDrinkingStateBackfill": {}
-  ,"healthDrinkingStateError": "Drinking data temporarily unavailable"
-  ,"@healthDrinkingStateError": {}
-  ,"healthDrinkingErrorDesc": "The detection service is unreachable — your data is not lost; today's statistics will be recalculated automatically once it recovers (usually within minutes)."
-  ,"@healthDrinkingErrorDesc": {}
-  ,"healthDrinkingRetry": "Retry"
-  ,"@healthDrinkingRetry": {}
-  ,"healthDrinkingDetailTitle": "Drinking Behavior Detail"
-  ,"@healthDrinkingDetailTitle": {}
-  ,"healthDrinkingTimeDistribution": "Today's drinking timeline"
-  ,"@healthDrinkingTimeDistribution": {}
-  ,"healthDrinkingTotalToday": "{n} total"
-  ,"@healthDrinkingTotalToday": {
-      "placeholders": {
-        "n": {"type": "int"}
+  },
+  "healthDrinkingDayMon": "Mon",
+  "@healthDrinkingDayMon": {},
+  "healthDrinkingDayTue": "Tue",
+  "@healthDrinkingDayTue": {},
+  "healthDrinkingDayWed": "Wed",
+  "@healthDrinkingDayWed": {},
+  "healthDrinkingDayThu": "Thu",
+  "@healthDrinkingDayThu": {},
+  "healthDrinkingDayFri": "Fri",
+  "@healthDrinkingDayFri": {},
+  "healthDrinkingDaySat": "Sat",
+  "@healthDrinkingDaySat": {},
+  "healthDrinkingDaySun": "Sun",
+  "@healthDrinkingDaySun": {},
+  "healthDrinkingDayToday": "Today",
+  "@healthDrinkingDayToday": {},
+  "healthDrinkingWeekdayPrefix": "",
+  "@healthDrinkingWeekdayPrefix": {},
+  "healthDrinkingStateNoData": "No drinking data yet",
+  "@healthDrinkingStateNoData": {},
+  "healthDrinkingNoDataDesc": "This livestock has no rumen capsule bound; binding one establishes a baseline and starts statistics within ~24 hours",
+  "@healthDrinkingNoDataDesc": {},
+  "healthDrinkingNoDataChip": "No RBC capsule bound",
+  "@healthDrinkingNoDataChip": {},
+  "healthDrinkingStateBuilding": "Building baseline",
+  "@healthDrinkingStateBuilding": {},
+  "healthDrinkingBuildingDesc": "{n} day(s) collected so far — the detector needs ≥{min} valid days to reliably separate drinking valleys from temperature noise",
+  "@healthDrinkingBuildingDesc": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "min": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingConcentration": "{percent}% of drinks cluster after feeding/milking, consistent with this cow's routine"
-  ,"@healthDrinkingConcentration": {
-      "placeholders": {
-        "percent": {"type": "int"}
+  },
+  "healthDrinkingBuildingChip": "{n} / {min} days",
+  "@healthDrinkingBuildingChip": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "min": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingTempOverlay": "48h temp × drinking"
-  ,"@healthDrinkingTempOverlay": {}
-  ,"healthDrinkingSegSelf": "Self"
-  ,"@healthDrinkingSegSelf": {}
-  ,"healthDrinkingSegPeer": "Peers"
-  ,"@healthDrinkingSegPeer": {}
-  ,"healthDrinkingHonestyNote": "Auto-detected from rumen temperature with ~30 min delay. Some drinks may be missed in summer when water is near body temperature (detected events are reliable). Fever data is excluded from anomaly detection and baselines."
-  ,"@healthDrinkingHonestyNote": {}
-  ,"healthDrinkingTempUnavailable": "No temperature data"
-  ,"@healthDrinkingTempUnavailable": {}
-  ,"healthDrinkingLegendTemp": "Rumen temperature"
-  ,"@healthDrinkingLegendTemp": {}
-  ,"healthDrinkingLegendValley": "Drinking valley (dot = trough)"
-  ,"@healthDrinkingLegendValley": {}
-  ,"healthDrinkingLegendBaseline": "Baseline"
-  ,"@healthDrinkingLegendBaseline": {}
-  ,"healthDrinkingLegendFever": "Fever period +6h buffer"
-  ,"@healthDrinkingLegendFever": {}
-  ,"healthDrinkingLegendEvent": "Drinking event (trough ≈ drink end)"
-  ,"@healthDrinkingLegendEvent": {}
-  ,"healthDrinkingLegendZone": "Feeding / milking window"
-  ,"@healthDrinkingLegendZone": {}
-  ,"healthDrinkingZoneFeed": "After feeding"
-  ,"@healthDrinkingZoneFeed": {}
-  ,"healthDrinkingZoneMilking": "After milking"
-  ,"@healthDrinkingZoneMilking": {}
-  ,"healthDrinkingZoneEvening": "Evening peak"
-  ,"@healthDrinkingZoneEvening": {}
-  ,"healthDrinkingAxisHour": "{h}h"
-  ,"@healthDrinkingAxisHour": {
-      "placeholders": {
-        "h": {"type": "int"}
+  },
+  "healthDrinkingStateBackfill": "Backfilling",
+  "@healthDrinkingStateBackfill": {},
+  "healthDrinkingStateError": "Drinking data temporarily unavailable",
+  "@healthDrinkingStateError": {},
+  "healthDrinkingErrorDesc": "The detection service is unreachable — your data is not lost; today's statistics will be recalculated automatically once it recovers (usually within minutes).",
+  "@healthDrinkingErrorDesc": {},
+  "healthDrinkingRetry": "Retry",
+  "@healthDrinkingRetry": {},
+  "healthDrinkingDetailTitle": "Drinking Behavior Detail",
+  "@healthDrinkingDetailTitle": {},
+  "healthDrinkingTimeDistribution": "Today's drinking timeline",
+  "@healthDrinkingTimeDistribution": {},
+  "healthDrinkingTotalToday": "{n} total",
+  "@healthDrinkingTotalToday": {
+    "placeholders": {
+      "n": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingPeerCompareTitle": "Peer cow average comparison"
-  ,"@healthDrinkingPeerCompareTitle": {}
-  ,"healthDrinkingPeerCompareSelf": "Own last 7 days"
-  ,"@healthDrinkingPeerCompareSelf": {}
-  ,"healthDrinkingPeerComparePeer": "Peer average"
-  ,"@healthDrinkingPeerComparePeer": {}
-  ,"healthDrinkingPerDay": "{v}/day"
-  ,"@healthDrinkingPerDay": {
-      "placeholders": {
-        "v": {"type": "String"}
+  },
+  "healthDrinkingConcentration": "{percent}% of drinks cluster after feeding/milking, consistent with this cow's routine",
+  "@healthDrinkingConcentration": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingPendingGroupTitle": "To be marked ({n})"
-  ,"@healthDrinkingPendingGroupTitle": {
-      "placeholders": {
-        "n": {"type": "int"}
+  },
+  "healthDrinkingTempOverlay": "48h temp × drinking",
+  "@healthDrinkingTempOverlay": {},
+  "healthDrinkingSegSelf": "Self",
+  "@healthDrinkingSegSelf": {},
+  "healthDrinkingSegPeer": "Peers",
+  "@healthDrinkingSegPeer": {},
+  "healthDrinkingHonestyNote": "Auto-detected from rumen temperature with ~30 min delay. Some drinks may be missed in summer when water is near body temperature (detected events are reliable). Fever data is excluded from anomaly detection and baselines.",
+  "@healthDrinkingHonestyNote": {},
+  "healthDrinkingTempUnavailable": "No temperature data",
+  "@healthDrinkingTempUnavailable": {},
+  "healthDrinkingLegendTemp": "Rumen temperature",
+  "@healthDrinkingLegendTemp": {},
+  "healthDrinkingLegendValley": "Drinking valley (dot = trough)",
+  "@healthDrinkingLegendValley": {},
+  "healthDrinkingLegendBaseline": "Baseline",
+  "@healthDrinkingLegendBaseline": {},
+  "healthDrinkingLegendFever": "Fever period +6h buffer",
+  "@healthDrinkingLegendFever": {},
+  "healthDrinkingLegendEvent": "Drinking event (trough ≈ drink end)",
+  "@healthDrinkingLegendEvent": {},
+  "healthDrinkingLegendZone": "Feeding / milking window",
+  "@healthDrinkingLegendZone": {},
+  "healthDrinkingZoneFeed": "After feeding",
+  "@healthDrinkingZoneFeed": {},
+  "healthDrinkingZoneMilking": "After milking",
+  "@healthDrinkingZoneMilking": {},
+  "healthDrinkingZoneEvening": "Evening peak",
+  "@healthDrinkingZoneEvening": {},
+  "healthDrinkingAxisHour": "{h}h",
+  "@healthDrinkingAxisHour": {
+    "placeholders": {
+      "h": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingEventListTitle": "Today's events ({n})"
-  ,"@healthDrinkingEventListTitle": {
-      "placeholders": {
-        "n": {"type": "int"}
+  },
+  "healthDrinkingPeerCompareTitle": "Peer cow average comparison",
+  "@healthDrinkingPeerCompareTitle": {},
+  "healthDrinkingPeerCompareSelf": "Own last 7 days",
+  "@healthDrinkingPeerCompareSelf": {},
+  "healthDrinkingPeerComparePeer": "Peer average",
+  "@healthDrinkingPeerComparePeer": {},
+  "healthDrinkingPerDay": "{v}/day",
+  "@healthDrinkingPerDay": {
+    "placeholders": {
+      "v": {
+        "type": "String"
       }
     }
-  ,"healthDrinkingConfirm": "Confirm"
-  ,"@healthDrinkingConfirm": {}
-  ,"healthDrinkingReject": "False"
-  ,"@healthDrinkingReject": {}
-  ,"healthDrinkingLabelConfirmed": "Confirmed"
-  ,"@healthDrinkingLabelConfirmed": {}
-  ,"healthDrinkingLabelRejected": "Rejected"
-  ,"@healthDrinkingLabelRejected": {}
-  ,"healthDrinkingLabelUnlabeled": "Unlabeled"
-  ,"@healthDrinkingLabelUnlabeled": {}
-  ,"healthDrinkingNeedsVerification": "Verify"
-  ,"@healthDrinkingNeedsVerification": {}
-  ,"healthDrinkingSourceManual": "Back-filled"
-  ,"@healthDrinkingSourceManual": {}
-  ,"healthDrinkingAddManual": "+ Back-fill missed"
-  ,"@healthDrinkingAddManual": {}
-  ,"healthDrinkingNoEventsToday": "No drinking events detected today"
-  ,"@healthDrinkingNoEventsToday": {}
-  ,"healthDrinkingSaveFailed": "Save failed, please try again later"
-  ,"@healthDrinkingSaveFailed": {}
-  ,"healthDrinkingManualSheetTitle": "Back-fill drinking event"
-  ,"@healthDrinkingManualSheetTitle": {}
-  ,"healthDrinkingManualTimeLabel": "Time"
-  ,"@healthDrinkingManualTimeLabel": {}
-  ,"healthDrinkingManualTimeHint": "yyyy-MM-dd HH:mm (local time)"
-  ,"@healthDrinkingManualTimeHint": {}
-  ,"healthDrinkingManualTimeInvalid": "Invalid time format, expected yyyy-MM-dd HH:mm"
-  ,"@healthDrinkingManualTimeInvalid": {}
-  ,"healthDrinkingManualTimeFuture": "Time cannot be in the future"
-  ,"@healthDrinkingManualTimeFuture": {}
-  ,"healthDrinkingManualNoteHint": "Note (optional, ≤500 chars)…"
-  ,"@healthDrinkingManualNoteHint": {}
-  ,"healthDrinkingTierBadge": "Premium+"
-  ,"@healthDrinkingTierBadge": {}
-  ,"healthDrinkingLockedMessage": "Peer comparison (grouped by breed / stage) is a Premium feature"
-  ,"@healthDrinkingLockedMessage": {}
-  ,"healthDrinkingUpgrade": "Upgrade"
-  ,"@healthDrinkingUpgrade": {}
-  ,"healthDrinkingLayerFever": "Fever marks ✓"
-  ,"@healthDrinkingLayerFever": {}
-  ,"healthDrinkingLayerDrinking": "Drinking events ✓"
-  ,"@healthDrinkingLayerDrinking": {}
-  ,"healthDrinkingLayerBaseline": "Baseline ✓"
-  ,"@healthDrinkingLayerBaseline": {},
+  },
+  "healthDrinkingPendingGroupTitle": "To be marked ({n})",
+  "@healthDrinkingPendingGroupTitle": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "healthDrinkingEventListTitle": "Today's events ({n})",
+  "@healthDrinkingEventListTitle": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "healthDrinkingConfirm": "Confirm",
+  "@healthDrinkingConfirm": {},
+  "healthDrinkingReject": "False",
+  "@healthDrinkingReject": {},
+  "healthDrinkingLabelConfirmed": "Confirmed",
+  "@healthDrinkingLabelConfirmed": {},
+  "healthDrinkingLabelRejected": "Rejected",
+  "@healthDrinkingLabelRejected": {},
+  "healthDrinkingLabelUnlabeled": "Unlabeled",
+  "@healthDrinkingLabelUnlabeled": {},
+  "healthDrinkingNeedsVerification": "Verify",
+  "@healthDrinkingNeedsVerification": {},
+  "healthDrinkingSourceManual": "Back-filled",
+  "@healthDrinkingSourceManual": {},
+  "healthDrinkingAddManual": "+ Back-fill missed",
+  "@healthDrinkingAddManual": {},
+  "healthDrinkingNoEventsToday": "No drinking events detected today",
+  "@healthDrinkingNoEventsToday": {},
+  "healthDrinkingSaveFailed": "Save failed, please try again later",
+  "@healthDrinkingSaveFailed": {},
+  "healthDrinkingManualSheetTitle": "Back-fill drinking event",
+  "@healthDrinkingManualSheetTitle": {},
+  "healthDrinkingManualTimeLabel": "Time",
+  "@healthDrinkingManualTimeLabel": {},
+  "healthDrinkingManualTimeHint": "yyyy-MM-dd HH:mm (local time)",
+  "@healthDrinkingManualTimeHint": {},
+  "healthDrinkingManualTimeInvalid": "Invalid time format, expected yyyy-MM-dd HH:mm",
+  "@healthDrinkingManualTimeInvalid": {},
+  "healthDrinkingManualTimeFuture": "Time cannot be in the future",
+  "@healthDrinkingManualTimeFuture": {},
+  "healthDrinkingManualNoteHint": "Note (optional, ≤500 chars)…",
+  "@healthDrinkingManualNoteHint": {},
+  "healthDrinkingTierBadge": "Premium+",
+  "@healthDrinkingTierBadge": {},
+  "healthDrinkingLockedMessage": "Peer comparison (grouped by breed / stage) is a Premium feature",
+  "@healthDrinkingLockedMessage": {},
+  "healthDrinkingUpgrade": "Upgrade",
+  "@healthDrinkingUpgrade": {},
+  "healthDrinkingLayerFever": "Fever marks ✓",
+  "@healthDrinkingLayerFever": {},
+  "healthDrinkingLayerDrinking": "Drinking events ✓",
+  "@healthDrinkingLayerDrinking": {},
+  "healthDrinkingLayerBaseline": "Baseline ✓",
+  "@healthDrinkingLayerBaseline": {},
   "tenantCreateTitle": "Create Tenant",
   "@tenantCreateTitle": {},
   "tenantCreateNameLabel": "Name *",
@@ -5824,7 +6094,16 @@
   "tenantPilotDeadlineNone": "Pilot end: platform campaign date (tap to pick)",
   "@tenantPilotDeadlineNone": {},
   "tenantPilotDeadlineChosen": "Pilot end: {date} ({tz} local midnight)",
-  "@tenantPilotDeadlineChosen": {"placeholders": {"date": {"type": "String"}, "tz": {"type": "String"}}},
+  "@tenantPilotDeadlineChosen": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "tz": {
+        "type": "String"
+      }
+    }
+  },
   "authEmailInvalid": "\"Invalid email format\"",
   "deviceTransferCardTitle": "Device handover",
   "@deviceTransferCardTitle": {},
@@ -5849,7 +6128,13 @@
   "deviceTransferConfirm": "Confirm handover",
   "@deviceTransferConfirm": {},
   "deviceTransferSuccess": "Device {eui} handed over to this tenant",
-  "@deviceTransferSuccess": {"placeholders": {"eui": {"type": "String"}}},
+  "@deviceTransferSuccess": {
+    "placeholders": {
+      "eui": {
+        "type": "String"
+      }
+    }
+  },
   "userCreatePasswordPolicyHint": "8+ chars with upper/lower case, digit and symbol",
   "@userCreatePasswordPolicyHint": {},
   "userCreatePasswordInvalid": "Password must be 8+ chars with upper case, lower case, digit and symbol",
@@ -5893,7 +6178,13 @@
   "superTenantSearchHint": "Search tenant name",
   "@superTenantSearchHint": {},
   "superTenantCount": "{count} tenants (deleted hidden)",
-  "@superTenantCount": {"placeholders": {"count": {"type": "int"}}},
+  "@superTenantCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "superTenantDisabledHint": "Enterable for triage",
   "@superTenantDisabledHint": {},
   "superTenantTrialExpired": "Trial expired",
@@ -5905,11 +6196,26 @@
   "superTenantPhaseBatch": "Batch",
   "@superTenantPhaseBatch": {},
   "superTenantFarms": "{count} farms",
-  "@superTenantFarms": {"placeholders": {"count": {"type": "int"}}},
+  "@superTenantFarms": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "superConfirmTitle": "Confirm entry identity",
   "@superConfirmTitle": {},
   "superConfirmBody": "You will enter as \"{tenant} · {role}\"; switch or exit anytime from the top banner.",
-  "@superConfirmBody": {"placeholders": {"tenant": {"type": "String"}, "role": {"type": "String"}}},
+  "@superConfirmBody": {
+    "placeholders": {
+      "tenant": {
+        "type": "String"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
   "superConfirmAuditNote": "Actions in this session are audited under that identity (with the super-admin marker).",
   "@superConfirmAuditNote": {},
   "superConfirmDisabledWarning": "This tenant is disabled: data may be stale; recommended for support triage only.",
@@ -5927,9 +6233,24 @@
   "superBannerTag": "Super-admin session",
   "@superBannerTag": {},
   "superBannerActingAs": "acting as {tenant} · {role}",
-  "@superBannerActingAs": {"placeholders": {"tenant": {"type": "String"}, "role": {"type": "String"}}},
+  "@superBannerActingAs": {
+    "placeholders": {
+      "tenant": {
+        "type": "String"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
   "superBannerActingAsPlatform": "acting as {role}",
-  "@superBannerActingAsPlatform": {"placeholders": {"role": {"type": "String"}}},
+  "@superBannerActingAsPlatform": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
   "superBannerAuditSubtext": "Actions in this session are audited",
   "@superBannerAuditSubtext": {},
   "superBannerSwitch": "Switch",
@@ -5941,7 +6262,13 @@
   "superSwitchTitle": "Switch identity",
   "@superSwitchTitle": {},
   "superSwitchCurrent": "Current: {value}",
-  "@superSwitchCurrent": {"placeholders": {"value": {"type": "String"}}},
+  "@superSwitchCurrent": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "superSwitchRecent": "Recently used",
   "@superSwitchRecent": {},
   "superSwitchMore": "Choose another identity…",
@@ -5953,5 +6280,34 @@
   "superSwitchExpiryHint": "Passwordless switching works within 60 minutes of login",
   "@superSwitchExpiryHint": {},
   "superMineSwitchIdentity": "Switch identity",
-  "@superMineSwitchIdentity": {}
+  "@superMineSwitchIdentity": {},
+  "subscriptionHealthTrialTitle": "Cloud pilot licence active",
+  "subscriptionHealthTrialBody": "{days, plural, =1{Pilot ends in 1 day} other{Pilot ends in {days} days}}; it then falls back to Basic — data access never stops.",
+  "subscriptionHealthRenewalFailedTitle": "Renewal charge failed · repay to restore",
+  "subscriptionHealthRenewalFailedBody": "The last automatic charge failed. Repay to restore all benefits immediately.",
+  "subscriptionHealthSuspendedTitle": "Subscription suspended",
+  "subscriptionHealthSuspendedBody": "The subscription is suspended by the platform. Contact support to restore it.",
+  "subscriptionHealthCancelledTitle": "Subscription cancelled",
+  "subscriptionHealthCancelledBody": "The subscription is cancelled. Resubscribe anytime; you can still export all data within 30 days after expiry.",
+  "subscriptionHealthExpiredTitle": "Subscription expired · Basic tier active",
+  "subscriptionHealthExpiredBody": "Data access never stops: the query window fell back to 7 days and the export budget to 1000 calls/day. Renew to restore instantly.",
+  "subscriptionHealthExpiringTitle": "{days, plural, =1{Subscription ends in 1 day} other{Subscription ends in {days} days}}",
+  "subscriptionHealthExpiringBody": "The data window will fall back after expiry — renew early to keep full history.",
+  "subscriptionHealthCtaRenew": "Renew now",
+  "subscriptionHealthCtaRepay": "Repay",
+  "subscriptionHealthCtaConvert": "Switch to paid plan",
+  "subscriptionHealthCtaExport": "Export my data",
+  "subscriptionExportTitle": "Expiry data export right",
+  "subscriptionExportBody": "You may export the farm's full history once within 30 days after expiry (machine-readable). {days} days left.",
+  "subscriptionExportRequest": "Request full export",
+  "subscriptionExportPending": "Generating export package…",
+  "subscriptionExportDownload": "Download package",
+  "subscriptionExportRetry": "Regenerate",
+  "subscriptionHealthAdminTitle": "Tenant subscription health",
+  "subscriptionHealthFilterAll": "All",
+  "subscriptionHealthFilterExpiring": "Expiring",
+  "subscriptionHealthFilterExpired": "Expired",
+  "subscriptionHealthFilterRepayment": "Repayment",
+  "subscriptionHealthFilterCancelled": "Cancelled",
+  "subscriptionHealthFilterTrial": "Trial"
 }

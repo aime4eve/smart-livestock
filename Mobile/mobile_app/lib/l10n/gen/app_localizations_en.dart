@@ -7716,4 +7716,116 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get superMineSwitchIdentity => 'Switch identity';
+
+  @override
+  String get subscriptionHealthTrialTitle => 'Cloud pilot licence active';
+
+  @override
+  String subscriptionHealthTrialBody(num days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Pilot ends in $days days',
+      one: 'Pilot ends in 1 day',
+    );
+    return '$_temp0; it then falls back to Basic — data access never stops.';
+  }
+
+  @override
+  String get subscriptionHealthRenewalFailedTitle =>
+      'Renewal charge failed · repay to restore';
+
+  @override
+  String get subscriptionHealthRenewalFailedBody =>
+      'The last automatic charge failed. Repay to restore all benefits immediately.';
+
+  @override
+  String get subscriptionHealthSuspendedTitle => 'Subscription suspended';
+
+  @override
+  String get subscriptionHealthSuspendedBody =>
+      'The subscription is suspended by the platform. Contact support to restore it.';
+
+  @override
+  String get subscriptionHealthCancelledTitle => 'Subscription cancelled';
+
+  @override
+  String get subscriptionHealthCancelledBody =>
+      'The subscription is cancelled. Resubscribe anytime; you can still export all data within 30 days after expiry.';
+
+  @override
+  String get subscriptionHealthExpiredTitle =>
+      'Subscription expired · Basic tier active';
+
+  @override
+  String get subscriptionHealthExpiredBody =>
+      'Data access never stops: the query window fell back to 7 days and the export budget to 1000 calls/day. Renew to restore instantly.';
+
+  @override
+  String subscriptionHealthExpiringTitle(num days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Subscription ends in $days days',
+      one: 'Subscription ends in 1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get subscriptionHealthExpiringBody =>
+      'The data window will fall back after expiry — renew early to keep full history.';
+
+  @override
+  String get subscriptionHealthCtaRenew => 'Renew now';
+
+  @override
+  String get subscriptionHealthCtaRepay => 'Repay';
+
+  @override
+  String get subscriptionHealthCtaConvert => 'Switch to paid plan';
+
+  @override
+  String get subscriptionHealthCtaExport => 'Export my data';
+
+  @override
+  String get subscriptionExportTitle => 'Expiry data export right';
+
+  @override
+  String subscriptionExportBody(Object days) {
+    return 'You may export the farm\'s full history once within 30 days after expiry (machine-readable). $days days left.';
+  }
+
+  @override
+  String get subscriptionExportRequest => 'Request full export';
+
+  @override
+  String get subscriptionExportPending => 'Generating export package…';
+
+  @override
+  String get subscriptionExportDownload => 'Download package';
+
+  @override
+  String get subscriptionExportRetry => 'Regenerate';
+
+  @override
+  String get subscriptionHealthAdminTitle => 'Tenant subscription health';
+
+  @override
+  String get subscriptionHealthFilterAll => 'All';
+
+  @override
+  String get subscriptionHealthFilterExpiring => 'Expiring';
+
+  @override
+  String get subscriptionHealthFilterExpired => 'Expired';
+
+  @override
+  String get subscriptionHealthFilterRepayment => 'Repayment';
+
+  @override
+  String get subscriptionHealthFilterCancelled => 'Cancelled';
+
+  @override
+  String get subscriptionHealthFilterTrial => 'Trial';
 }

@@ -1585,7 +1585,6 @@
   },
   "offlineTileDownloadSuccess": "下载完成",
   "@offlineTileDownloadSuccess": {},
-
   "offlineTileDownloadedNamed": "已下载 {region}",
   "@offlineTileDownloadedNamed": {
     "placeholders": {
@@ -1595,7 +1594,8 @@
     }
   },
   "offlineTileWebHint": "网页版地图始终在线可用；离线包下载请使用移动端 App",
-  "@offlineTileWebHint": {},  "offlineTileDelete": "删除",
+  "@offlineTileWebHint": {},
+  "offlineTileDelete": "删除",
   "@offlineTileDelete": {},
   "offlineTileDeleteConfirm": "确定删除此离线地图？删除后需要重新下载才能离线使用。",
   "@offlineTileDeleteConfirm": {},
@@ -2257,8 +2257,12 @@
   "epidemicWorkbenchSynced": "风险模型 {hours}h · 同步 {time}",
   "@epidemicWorkbenchSynced": {
     "placeholders": {
-      "hours": {"type": "int"},
-      "time": {"type": "String"}
+      "hours": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
     }
   },
   "epidemicTabDisposition": "处置",
@@ -2310,7 +2314,9 @@
   "epidemicShowEvidence": "接触证据 · {count} 条",
   "@epidemicShowEvidence": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "epidemicHideEvidence": "收起接触证据",
@@ -2318,7 +2324,9 @@
   "epidemicLastSeenMinutes": "最近接触 {minutes} 分钟前",
   "@epidemicLastSeenMinutes": {
     "placeholders": {
-      "minutes": {"type": "int"}
+      "minutes": {
+        "type": "int"
+      }
     }
   },
   "epidemicContactNetworkAction": "传播链",
@@ -2340,7 +2348,9 @@
   "epidemicWindowHours": "{hours}h",
   "@epidemicWindowHours": {
     "placeholders": {
-      "hours": {"type": "int"}
+      "hours": {
+        "type": "int"
+      }
     }
   },
   "epidemicWindowAll": "全部",
@@ -5060,54 +5070,98 @@
   "@gatewayFollowLive": {},
   "gatewayFollowManual": "手动模式",
   "@gatewayFollowManual": {},
-"overviewSectionStatus": "牧场状态",
-"@overviewSectionStatus": {},
-"overviewSectionAlerts": "告警",
-"@overviewSectionAlerts": {},
-"overviewSectionHealth": "健康管理",
-"@overviewSectionHealth": {},
-"ranchSceneFeverMgmt": "发热管理",
-"@ranchSceneFeverMgmt": {},
-"ranchSceneDigestiveMgmt": "消化管理",
-"@ranchSceneDigestiveMgmt": {},
-"ranchSceneEstrusMgmt": "发情管理",
-"@ranchSceneEstrusMgmt": {},
-"ranchSceneEpidemic": "疫病防控",
-"@ranchSceneEpidemic": {},
-"aiObserveTitle": "智能健康观察",
-"@aiObserveTitle": {},
-"aiBandCalm": "平稳",
-"@aiBandCalm": {},
-"aiBandWatch": "留意",
-"@aiBandWatch": {},
-"aiBandAlarm": "警惕",
-"@aiBandAlarm": {},
-"reconcileSceneAbnormal": "场景异常",
-"@reconcileSceneAbnormal": {},
-"reconcileHeadUnit": "只",
-"@reconcileHeadUnit": {},
-"reconcileActiveTickets": "活跃健康单",
-"@reconcileActiveTickets": {},
-"reconcileTicketUnit": "张",
-"@reconcileTicketUnit": {},
-"reconcileOffBy": "差",
-"@reconcileOffBy": {},
+  "overviewSectionStatus": "牧场状态",
+  "@overviewSectionStatus": {},
+  "overviewSectionAlerts": "告警",
+  "@overviewSectionAlerts": {},
+  "overviewSectionHealth": "健康管理",
+  "@overviewSectionHealth": {},
+  "ranchSceneFeverMgmt": "发热管理",
+  "@ranchSceneFeverMgmt": {},
+  "ranchSceneDigestiveMgmt": "消化管理",
+  "@ranchSceneDigestiveMgmt": {},
+  "ranchSceneEstrusMgmt": "发情管理",
+  "@ranchSceneEstrusMgmt": {},
+  "ranchSceneEpidemic": "疫病防控",
+  "@ranchSceneEpidemic": {},
+  "aiObserveTitle": "智能健康观察",
+  "@aiObserveTitle": {},
+  "aiBandCalm": "平稳",
+  "@aiBandCalm": {},
+  "aiBandWatch": "留意",
+  "@aiBandWatch": {},
+  "aiBandAlarm": "警惕",
+  "@aiBandAlarm": {},
+  "reconcileSceneAbnormal": "场景异常",
+  "@reconcileSceneAbnormal": {},
+  "reconcileHeadUnit": "只",
+  "@reconcileHeadUnit": {},
+  "reconcileActiveTickets": "活跃健康单",
+  "@reconcileActiveTickets": {},
+  "reconcileTicketUnit": "张",
+  "@reconcileTicketUnit": {},
+  "reconcileOffBy": "差",
+  "@reconcileOffBy": {},
   "heroTitleCalm": "牧场一切平稳",
   "@heroTitleCalm": {},
   "heroTitleNeedsAttention": "牧场需要关注",
   "@heroTitleNeedsAttention": {},
   "heroDatePattern": "{m}月{d}日 星期{w}",
-  "@heroDatePattern": {"placeholders": {"m": {"type": "int"}, "d": {"type": "int"}, "w": {"type": "String"}}},
-  "weekday0": "日", "weekday1": "一", "weekday2": "二", "weekday3": "三",
-  "weekday4": "四", "weekday5": "五", "weekday6": "六",
+  "@heroDatePattern": {
+    "placeholders": {
+      "m": {
+        "type": "int"
+      },
+      "d": {
+        "type": "int"
+      },
+      "w": {
+        "type": "String"
+      }
+    }
+  },
+  "weekday0": "日",
+  "weekday1": "一",
+  "weekday2": "二",
+  "weekday3": "三",
+  "weekday4": "四",
+  "weekday5": "五",
+  "weekday6": "六",
   "heroSub": "{healthy}/{total} 只健康",
-  "@heroSub": {"placeholders": {"healthy": {"type": "int"}, "total": {"type": "int"}}},
+  "@heroSub": {
+    "placeholders": {
+      "healthy": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "heroAttentionHealth": "{count} 只健康严重",
-  "@heroAttentionHealth": {"placeholders": {"count": {"type": "int"}}},
+  "@heroAttentionHealth": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "heroAttentionOutside": "{count} 头越栏",
-  "@heroAttentionOutside": {"placeholders": {"count": {"type": "int"}}},
+  "@heroAttentionOutside": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "heroAttentionAlerts": "{count} 条严重告警",
-  "@heroAttentionAlerts": {"placeholders": {"count": {"type": "int"}}},
+  "@heroAttentionAlerts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "ranchOutsideFenceTitle": "越栏牲畜",
   "@ranchOutsideFenceTitle": {},
   "ranchOutsideFenceHint": "点击查看个体详情",
@@ -5135,645 +5189,861 @@
   "heroChipDevice": "设备在线",
   "secNeedsAttention": "需要处理",
   "secNeedsAttentionTotal": "共 {n} 起 · 点击进入",
-  "@secNeedsAttentionTotal": {"placeholders": {"n": {"type": "int"}}},
-  "tileFence": "围栏", "tileHealth": "健康", "tileDevice": "设备",
+  "@secNeedsAttentionTotal": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "tileFence": "围栏",
+  "tileHealth": "健康",
+  "tileDevice": "设备",
   "tileFenceSub": "{n} 个围栏越界",
-  "@tileFenceSub": {"placeholders": {"n": {"type": "int"}}},
+  "@tileFenceSub": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "tileFenceSubClear": "无越界",
-  "tileHealthSubFever": "发热为主", "tileHealthSubDigestive": "消化为主",
-  "tileHealthSubEstrus": "发情提醒", "tileHealthSubNone": "暂无异常",
-  "tileDeviceNormal": "正常", "tileDeviceAbnormal": "待处理",
+  "tileHealthSubFever": "发热为主",
+  "tileHealthSubDigestive": "消化为主",
+  "tileHealthSubEstrus": "发情提醒",
+  "tileHealthSubNone": "暂无异常",
+  "tileDeviceNormal": "正常",
+  "tileDeviceAbnormal": "待处理",
   "secHealthMgmt": "健康管理",
   "secHealthAll": "全部 ›",
   "pillSteady": "平稳",
   "pillAbnormal": "{n} 只异常",
-  "@pillAbnormal": {"placeholders": {"n": {"type": "int"}}},
+  "@pillAbnormal": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "pillHigh": "{n} 只高分",
-  "@pillHigh": {"placeholders": {"n": {"type": "int"}}},
+  "@pillHigh": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "pillRate": "{rate}%",
-  "@pillRate": {"placeholders": {"rate": {"type": "String"}}},
+  "@pillRate": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "sceneFeverFoot": "{fever} 只发烧 · {low} 只低热",
-  "@sceneFeverFoot": {"placeholders": {"fever": {"type": "int"}, "low": {"type": "int"}}},
+  "@sceneFeverFoot": {
+    "placeholders": {
+      "fever": {
+        "type": "int"
+      },
+      "low": {
+        "type": "int"
+      }
+    }
+  },
   "sceneFeverFootOver": "，{n} 只持续超 6 小时",
-  "@sceneFeverFootOver": {"placeholders": {"n": {"type": "int"}}},
+  "@sceneFeverFootOver": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "sceneFeverCalm": "体温均在正常区间",
   "sceneDigestiveFoot": "{n} 只反刍偏低",
-  "@sceneDigestiveFoot": {"placeholders": {"n": {"type": "int"}}},
+  "@sceneDigestiveFoot": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "sceneDigestiveCalm": "反刍频率均在正常区间",
   "sceneEstrusFoot": "{n} 只进入配种窗口",
-  "@sceneEstrusFoot": {"placeholders": {"n": {"type": "int"}}},
+  "@sceneEstrusFoot": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "sceneEstrusCalm": "暂无高分个体，适合巡查",
   "sceneEpidemicFootBelow": "7 日异常率 {rate}%，低于警戒线",
-  "@sceneEpidemicFootBelow": {"placeholders": {"rate": {"type": "String"}}},
+  "@sceneEpidemicFootBelow": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "sceneEpidemicFootAbove": "7 日异常率 {rate}%，已超警戒线",
-  "@sceneEpidemicFootAbove": {"placeholders": {"rate": {"type": "String"}}},
+  "@sceneEpidemicFootAbove": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "sceneEpidemicFootNoSource": "7 日异常率 {rate}% · ",
-  "@sceneEpidemicFootNoSource": {"placeholders": {"rate": {"type": "String"}}},
+  "@sceneEpidemicFootNoSource": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "sceneEpidemicFootNoSourceTag": "未标记源头",
   "aiSummaryWatching": "{n} 只持续观察",
-  "@aiSummaryWatching": {"placeholders": {"n": {"type": "int"}}},
+  "@aiSummaryWatching": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "aiNotReady": "AI 观察暂未开启，恢复后自动展示",
-  "recHint": "（可能有单未开出，建议巡检）"
-
-  ,"workbenchImmediate": "立即处置"
-  ,"@workbenchImmediate": {}
-  ,"workbenchImmediateSub": "越界 · 疫病 · 拆卸"
-  ,"@workbenchImmediateSub": {}
-  ,"workbenchField": "现场巡检"
-  ,"@workbenchField": {}
-  ,"workbenchFieldSub": "接近 · 低电 · 离线"
-  ,"@workbenchFieldSub": {}
-  ,"workbenchObserve": "持续观察"
-  ,"@workbenchObserve": {}
-  ,"workbenchObserveSub": "AI 留意 · 未开单"
-  ,"@workbenchObserveSub": {}
-  ,"workbenchResolved": "今日已处理"
-  ,"@workbenchResolved": {}
-  ,"workbenchResolvedSub": "今日关单"
-  ,"@workbenchResolvedSub": {}
-  ,"workbenchAllBuckets": "全部"
-  ,"@workbenchAllBuckets": {}
-  ,"workbenchAllAssets": "全部资产"
-  ,"@workbenchAllAssets": {}
-  ,"workbenchLivestock": "牲畜"
-  ,"@workbenchLivestock": {}
-  ,"workbenchHerd": "牛群"
-  ,"@workbenchHerd": {}
-  ,"workbenchFence": "围栏"
-  ,"@workbenchFence": {}
-  ,"workbenchDevice": "设备"
-  ,"@workbenchDevice": {}
-  ,"workbenchActiveUnread": "{active} 活跃 · {unread} 未读"
-  ,"@workbenchActiveUnread": {"placeholders": {"active": {"type": "int"}, "unread": {"type": "int"}}}
-  ,"workbenchContextOverview": "概览：牧场现状"
-  ,"@workbenchContextOverview": {}
-  ,"workbenchContextFence": "围栏：空间资产"
-  ,"@workbenchContextFence": {}
-  ,"workbenchContextAlert": "告警：统一处置"
-  ,"@workbenchContextAlert": {}
-  ,"workbenchViewAll": "查看全部 {count} 条"
-  ,"@workbenchViewAll": {"placeholders": {"count": {"type": "int"}}}
-  ,"workbenchLoadMore": "加载更多"
-  ,"@workbenchLoadMore": {}
-  ,"workbenchShownOf": "已显示 {shown} / {total}"
-  ,"@workbenchShownOf": {"placeholders": {"shown": {"type": "int"}, "total": {"type": "int"}}}
-  ,"workbenchNextStep": "下一步建议"
-  ,"@workbenchNextStep": {}
-  ,"workbenchNow": "现在"
-  ,"@workbenchNow": {}
-  ,"workbenchKeyMetrics": "关键指标"
-  ,"@workbenchKeyMetrics": {}
-  ,"workbenchEvidence": "证据"
-  ,"@workbenchEvidence": {}
-  ,"workbenchLifecycle": "生命周期"
-  ,"@workbenchLifecycle": {}
-  ,"workbenchAffected": "影响数量"
-  ,"@workbenchAffected": {}
-  ,"workbenchSeverity": "级别"
-  ,"@workbenchSeverity": {}
-  ,"workbenchFirstReport": "最早上报"
-  ,"@workbenchFirstReport": {}
-  ,"workbenchAiBand": "AI 结论"
-  ,"@workbenchAiBand": {}
-  ,"workbenchAiScore": "技术评分"
-  ,"@workbenchAiScore": {}
-  ,"workbenchEvidenceCount": "证据数量"
-  ,"@workbenchEvidenceCount": {}
-  ,"workbenchUnread": "未读"
-  ,"@workbenchUnread": {}
-  ,"workbenchRecommendFence": "先定位围栏与受影响牲畜"
-  ,"@workbenchRecommendFence": {}
-  ,"workbenchRecommendLivestock": "先查看病程与关键指标"
-  ,"@workbenchRecommendLivestock": {}
-  ,"workbenchRecommendDevice": "先检查设备佩戴与信号"
-  ,"@workbenchRecommendDevice": {}
-  ,"workbenchRecommendHerd": "先确认牛群异常分布"
-  ,"@workbenchRecommendHerd": {}
-  ,"workbenchRecommendResolved": "确认处理结果与后续观察"
-  ,"@workbenchRecommendResolved": {}
-  ,"workbenchActionMap": "联动地图"
-  ,"@workbenchActionMap": {}
-  ,"workbenchActionTrajectory": "轨迹"
-  ,"@workbenchActionTrajectory": {}
-  ,"workbenchActionMarkRead": "标记已读"
-  ,"@workbenchActionMarkRead": {}
-  ,"workbenchActionProcess": "处理"
-  ,"@workbenchActionProcess": {}
-  ,"workbenchActionLivestock": "牛详情"
-  ,"@workbenchActionLivestock": {}
-  ,"workbenchActionFence": "围栏"
-  ,"@workbenchActionFence": {}
-  ,"workbenchActionDevice": "设备"
-  ,"@workbenchActionDevice": {}
-  ,"workbenchActionAi": "AI 证据"
-  ,"@workbenchActionAi": {}
-  ,"workbenchTechnicalEvidence": "技术证据已折叠"
-  ,"@workbenchTechnicalEvidence": {}
-  ,"workbenchResolvedAt": "处理时间"
-  ,"@workbenchResolvedAt": {}
-  ,"workbenchProcessedToast": "告警已处理"
-  ,"@workbenchProcessedToast": {}
-  ,"workbenchReadToast": "已标记为已读"
-  ,"@workbenchReadToast": {}
-  ,"workbenchEmpty": "当前筛选无告警"
-  ,"@workbenchEmpty": {}
-  ,"workbenchEmptyHint": "试试切换风险桶或资产范围"
-  ,"@workbenchEmptyHint": {}
-  ,"workbenchAiRanking": "谁最需要关注"
-  ,"@workbenchAiRanking": {}
-  ,"workbenchClose": "关闭"
-  ,"@workbenchClose": {}
-  ,"livestockSignalHealthNormal": "健康"
-  ,"@livestockSignalHealthNormal": {}
-  ,"livestockSignalHealthWatch": "关注"
-  ,"@livestockSignalHealthWatch": {}
-  ,"livestockSignalHealthCritical": "异常"
-  ,"@livestockSignalHealthCritical": {}
-  ,"livestockSignalAiObserve": "AI 观察"
-  ,"@livestockSignalAiObserve": {}
-  ,"livestockSignalAiAlert": "AI 异常"
-  ,"@livestockSignalAiAlert": {}
-  ,"livestockSignalFenceApproach": "接近围栏"
-  ,"@livestockSignalFenceApproach": {}
-  ,"livestockSignalFenceBreach": "越出围栏"
-  ,"@livestockSignalFenceBreach": {}
-  ,"livestockSignalPresenceReturnHome": "待归栏"
-  ,"@livestockSignalPresenceReturnHome": {}
-  ,"livestockSignalDeviceOffline": "设备离线"
-  ,"@livestockSignalDeviceOffline": {}
-  ,"livestockSignalDeviceFault": "设备故障"
-  ,"@livestockSignalDeviceFault": {}
-  ,"livestockSignalMoreCount": "+{count}"
-  ,"@livestockSignalMoreCount": {
+  "recHint": "（可能有单未开出，建议巡检）",
+  "workbenchImmediate": "立即处置",
+  "@workbenchImmediate": {},
+  "workbenchImmediateSub": "越界 · 疫病 · 拆卸",
+  "@workbenchImmediateSub": {},
+  "workbenchField": "现场巡检",
+  "@workbenchField": {},
+  "workbenchFieldSub": "接近 · 低电 · 离线",
+  "@workbenchFieldSub": {},
+  "workbenchObserve": "持续观察",
+  "@workbenchObserve": {},
+  "workbenchObserveSub": "AI 留意 · 未开单",
+  "@workbenchObserveSub": {},
+  "workbenchResolved": "今日已处理",
+  "@workbenchResolved": {},
+  "workbenchResolvedSub": "今日关单",
+  "@workbenchResolvedSub": {},
+  "workbenchAllBuckets": "全部",
+  "@workbenchAllBuckets": {},
+  "workbenchAllAssets": "全部资产",
+  "@workbenchAllAssets": {},
+  "workbenchLivestock": "牲畜",
+  "@workbenchLivestock": {},
+  "workbenchHerd": "牛群",
+  "@workbenchHerd": {},
+  "workbenchFence": "围栏",
+  "@workbenchFence": {},
+  "workbenchDevice": "设备",
+  "@workbenchDevice": {},
+  "workbenchActiveUnread": "{active} 活跃 · {unread} 未读",
+  "@workbenchActiveUnread": {
+    "placeholders": {
+      "active": {
+        "type": "int"
+      },
+      "unread": {
+        "type": "int"
+      }
+    }
+  },
+  "workbenchContextOverview": "概览：牧场现状",
+  "@workbenchContextOverview": {},
+  "workbenchContextFence": "围栏：空间资产",
+  "@workbenchContextFence": {},
+  "workbenchContextAlert": "告警：统一处置",
+  "@workbenchContextAlert": {},
+  "workbenchViewAll": "查看全部 {count} 条",
+  "@workbenchViewAll": {
     "placeholders": {
       "count": {
         "type": "int"
       }
     }
-  }
-  ,"livestockMetricRumenTemperature": "瘤胃温度"
-  ,"@livestockMetricRumenTemperature": {}
-  ,"livestockMetricTemperatureValue": "{value}°C"
-  ,"@livestockMetricTemperatureValue": {
+  },
+  "workbenchLoadMore": "加载更多",
+  "@workbenchLoadMore": {},
+  "workbenchShownOf": "已显示 {shown} / {total}",
+  "@workbenchShownOf": {
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "workbenchNextStep": "下一步建议",
+  "@workbenchNextStep": {},
+  "workbenchNow": "现在",
+  "@workbenchNow": {},
+  "workbenchKeyMetrics": "关键指标",
+  "@workbenchKeyMetrics": {},
+  "workbenchEvidence": "证据",
+  "@workbenchEvidence": {},
+  "workbenchLifecycle": "生命周期",
+  "@workbenchLifecycle": {},
+  "workbenchAffected": "影响数量",
+  "@workbenchAffected": {},
+  "workbenchSeverity": "级别",
+  "@workbenchSeverity": {},
+  "workbenchFirstReport": "最早上报",
+  "@workbenchFirstReport": {},
+  "workbenchAiBand": "AI 结论",
+  "@workbenchAiBand": {},
+  "workbenchAiScore": "技术评分",
+  "@workbenchAiScore": {},
+  "workbenchEvidenceCount": "证据数量",
+  "@workbenchEvidenceCount": {},
+  "workbenchUnread": "未读",
+  "@workbenchUnread": {},
+  "workbenchRecommendFence": "先定位围栏与受影响牲畜",
+  "@workbenchRecommendFence": {},
+  "workbenchRecommendLivestock": "先查看病程与关键指标",
+  "@workbenchRecommendLivestock": {},
+  "workbenchRecommendDevice": "先检查设备佩戴与信号",
+  "@workbenchRecommendDevice": {},
+  "workbenchRecommendHerd": "先确认牛群异常分布",
+  "@workbenchRecommendHerd": {},
+  "workbenchRecommendResolved": "确认处理结果与后续观察",
+  "@workbenchRecommendResolved": {},
+  "workbenchActionMap": "联动地图",
+  "@workbenchActionMap": {},
+  "workbenchActionTrajectory": "轨迹",
+  "@workbenchActionTrajectory": {},
+  "workbenchActionMarkRead": "标记已读",
+  "@workbenchActionMarkRead": {},
+  "workbenchActionProcess": "处理",
+  "@workbenchActionProcess": {},
+  "workbenchActionLivestock": "牛详情",
+  "@workbenchActionLivestock": {},
+  "workbenchActionFence": "围栏",
+  "@workbenchActionFence": {},
+  "workbenchActionDevice": "设备",
+  "@workbenchActionDevice": {},
+  "workbenchActionAi": "AI 证据",
+  "@workbenchActionAi": {},
+  "workbenchTechnicalEvidence": "技术证据已折叠",
+  "@workbenchTechnicalEvidence": {},
+  "workbenchResolvedAt": "处理时间",
+  "@workbenchResolvedAt": {},
+  "workbenchProcessedToast": "告警已处理",
+  "@workbenchProcessedToast": {},
+  "workbenchReadToast": "已标记为已读",
+  "@workbenchReadToast": {},
+  "workbenchEmpty": "当前筛选无告警",
+  "@workbenchEmpty": {},
+  "workbenchEmptyHint": "试试切换风险桶或资产范围",
+  "@workbenchEmptyHint": {},
+  "workbenchAiRanking": "谁最需要关注",
+  "@workbenchAiRanking": {},
+  "workbenchClose": "关闭",
+  "@workbenchClose": {},
+  "livestockSignalHealthNormal": "健康",
+  "@livestockSignalHealthNormal": {},
+  "livestockSignalHealthWatch": "关注",
+  "@livestockSignalHealthWatch": {},
+  "livestockSignalHealthCritical": "异常",
+  "@livestockSignalHealthCritical": {},
+  "livestockSignalAiObserve": "AI 观察",
+  "@livestockSignalAiObserve": {},
+  "livestockSignalAiAlert": "AI 异常",
+  "@livestockSignalAiAlert": {},
+  "livestockSignalFenceApproach": "接近围栏",
+  "@livestockSignalFenceApproach": {},
+  "livestockSignalFenceBreach": "越出围栏",
+  "@livestockSignalFenceBreach": {},
+  "livestockSignalPresenceReturnHome": "待归栏",
+  "@livestockSignalPresenceReturnHome": {},
+  "livestockSignalDeviceOffline": "设备离线",
+  "@livestockSignalDeviceOffline": {},
+  "livestockSignalDeviceFault": "设备故障",
+  "@livestockSignalDeviceFault": {},
+  "livestockSignalMoreCount": "+{count}",
+  "@livestockSignalMoreCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "livestockMetricRumenTemperature": "瘤胃温度",
+  "@livestockMetricRumenTemperature": {},
+  "livestockMetricTemperatureValue": "{value}°C",
+  "@livestockMetricTemperatureValue": {
     "placeholders": {
       "value": {
         "type": "double",
         "format": "decimalPattern"
       }
     }
-  }
-  ,"livestockMetricRumenMotility": "蠕动次数"
-  ,"@livestockMetricRumenMotility": {}
-  ,"livestockMetricMotilityValue": "{value} 次/分"
-  ,"@livestockMetricMotilityValue": {
+  },
+  "livestockMetricRumenMotility": "蠕动次数",
+  "@livestockMetricRumenMotility": {},
+  "livestockMetricMotilityValue": "{value} 次/分",
+  "@livestockMetricMotilityValue": {
     "placeholders": {
       "value": {
         "type": "double",
         "format": "decimalPattern"
       }
     }
-  }
-  ,"livestockMetricNoData": "暂无数据"
-  ,"@livestockMetricNoData": {}
-  ,"livestockMetricDelayed": "数据延迟"
-  ,"@livestockMetricDelayed": {}
-  ,"livestockMetricStale": "数据过期"
-  ,"@livestockMetricStale": {}
-  ,"mapSignalNoPosition": "无定位"
-  ,"@mapSignalNoPosition": {}
-  ,"mapSignalNoPositionLivestock": "无定位：{codes}"
-  ,"@mapSignalNoPositionLivestock": {
+  },
+  "livestockMetricNoData": "暂无数据",
+  "@livestockMetricNoData": {},
+  "livestockMetricDelayed": "数据延迟",
+  "@livestockMetricDelayed": {},
+  "livestockMetricStale": "数据过期",
+  "@livestockMetricStale": {},
+  "mapSignalNoPosition": "无定位",
+  "@mapSignalNoPosition": {},
+  "mapSignalNoPositionLivestock": "无定位：{codes}",
+  "@mapSignalNoPositionLivestock": {
     "placeholders": {
-      "codes": {"type": "String"}
+      "codes": {
+        "type": "String"
+      }
     }
-  }
-  ,"mapSignalDelayedPosition": "定位延迟"
-  ,"@mapSignalDelayedPosition": {}
-  ,"mapSignalStalePosition": "定位过期"
-  ,"@mapSignalStalePosition": {}
-  ,"signalSyncStale": "实时信号同步中断，正在自动恢复"
-  ,"@signalSyncStale": {}
-  ,"signalSyncRetry": "立即重试"
-  ,"@signalSyncRetry": {}
-
-  ,"epidemicNoSourceTitle": "暂无标记的疑似源头"
-  ,"@epidemicNoSourceTitle": {}
-  ,"epidemicNoSourceBodyV2": "当前牧场还没有确认染病的牲畜。从围栏页选择牛只，在详情页即可标记疑似患病，系统将自动生成接触追踪与处置建议。"
-  ,"@epidemicNoSourceBodyV2": {}
-  ,"epidemicGoPickLivestock": "去选择病牛"
-  ,"@epidemicGoPickLivestock": {}
-  ,"markDiseasedFromAlarm": "来自告警"
-  ,"@markDiseasedFromAlarm": {}
-  ,"alertsMarkAsSource": "标记为源头"
-  ,"@alertsMarkAsSource": {}
-
-  ,"markDiseasedTitle": "标记疑似患病源头"
-  ,"@markDiseasedTitle": {}
-  ,"markDiseasedDiseaseLabel": "病种（单选）"
-  ,"@markDiseasedDiseaseLabel": {}
-  ,"markDiseasedFootMouth": "口蹄疫疑似"
-  ,"@markDiseasedFootMouth": {}
-  ,"markDiseasedTuberculosis": "牛结核疑似"
-  ,"@markDiseasedTuberculosis": {}
-  ,"markDiseasedBrucellosis": "布病疑似"
-  ,"@markDiseasedBrucellosis": {}
-  ,"markDiseasedDiarrhea": "腹泻类疾病"
-  ,"@markDiseasedDiarrhea": {}
-  ,"markDiseasedOther": "其他"
-  ,"@markDiseasedOther": {}
-  ,"markDiseasedOtherHint": "请输入病种名称（必填）"
-  ,"@markDiseasedOtherHint": {}
-  ,"markDiseasedHint": "标记后将立即分析该牛近 72 小时的接触轨迹，生成接触追踪与处置建议。"
-  ,"@markDiseasedHint": {}
-  ,"markDiseasedConfirm": "确认标记"
-  ,"@markDiseasedConfirm": {}
-  ,"markDiseasedDone": "已标记，接触分析完成（{contacts} 次接触）"
-  ,"@markDiseasedDone": {
+  },
+  "mapSignalDelayedPosition": "定位延迟",
+  "@mapSignalDelayedPosition": {},
+  "mapSignalStalePosition": "定位过期",
+  "@mapSignalStalePosition": {},
+  "signalSyncStale": "实时信号同步中断，正在自动恢复",
+  "@signalSyncStale": {},
+  "signalSyncRetry": "立即重试",
+  "@signalSyncRetry": {},
+  "epidemicNoSourceTitle": "暂无标记的疑似源头",
+  "@epidemicNoSourceTitle": {},
+  "epidemicNoSourceBodyV2": "当前牧场还没有确认染病的牲畜。从围栏页选择牛只，在详情页即可标记疑似患病，系统将自动生成接触追踪与处置建议。",
+  "@epidemicNoSourceBodyV2": {},
+  "epidemicGoPickLivestock": "去选择病牛",
+  "@epidemicGoPickLivestock": {},
+  "markDiseasedFromAlarm": "来自告警",
+  "@markDiseasedFromAlarm": {},
+  "alertsMarkAsSource": "标记为源头",
+  "@alertsMarkAsSource": {},
+  "markDiseasedTitle": "标记疑似患病源头",
+  "@markDiseasedTitle": {},
+  "markDiseasedDiseaseLabel": "病种（单选）",
+  "@markDiseasedDiseaseLabel": {},
+  "markDiseasedFootMouth": "口蹄疫疑似",
+  "@markDiseasedFootMouth": {},
+  "markDiseasedTuberculosis": "牛结核疑似",
+  "@markDiseasedTuberculosis": {},
+  "markDiseasedBrucellosis": "布病疑似",
+  "@markDiseasedBrucellosis": {},
+  "markDiseasedDiarrhea": "腹泻类疾病",
+  "@markDiseasedDiarrhea": {},
+  "markDiseasedOther": "其他",
+  "@markDiseasedOther": {},
+  "markDiseasedOtherHint": "请输入病种名称（必填）",
+  "@markDiseasedOtherHint": {},
+  "markDiseasedHint": "标记后将立即分析该牛近 72 小时的接触轨迹，生成接触追踪与处置建议。",
+  "@markDiseasedHint": {},
+  "markDiseasedConfirm": "确认标记",
+  "@markDiseasedConfirm": {},
+  "markDiseasedDone": "已标记，接触分析完成（{contacts} 次接触）",
+  "@markDiseasedDone": {
     "placeholders": {
-      "contacts": {"type": "int"}
+      "contacts": {
+        "type": "int"
+      }
     }
-  }
-  ,"markDiseasedNoGps": "已标记，但近 72 小时无定位轨迹，接触网络为空"
-  ,"@markDiseasedNoGps": {}
-  ,"markDiseasedFailedTryAgain": "标记失败，请重试"
-  ,"@markDiseasedFailedTryAgain": {}
-
-  ,"markDiseasedEntryButton": "🦠 标记疑似患病"
-  ,"@markDiseasedEntryButton": {}
-  ,"unmarkDiseasedButton": "取消染病标记"
-  ,"@unmarkDiseasedButton": {}
-  ,"viewWorkbenchButton": "查看疫病防控"
-  ,"@viewWorkbenchButton": {}
-  ,"markedSourceDuration": "已标记 {duration}"
-  ,"@markedSourceDuration": {
+  },
+  "markDiseasedNoGps": "已标记，但近 72 小时无定位轨迹，接触网络为空",
+  "@markDiseasedNoGps": {},
+  "markDiseasedFailedTryAgain": "标记失败，请重试",
+  "@markDiseasedFailedTryAgain": {},
+  "markDiseasedEntryButton": "🦠 标记疑似患病",
+  "@markDiseasedEntryButton": {},
+  "unmarkDiseasedButton": "取消染病标记",
+  "@unmarkDiseasedButton": {},
+  "viewWorkbenchButton": "查看疫病防控",
+  "@viewWorkbenchButton": {},
+  "markedSourceDuration": "已标记 {duration}",
+  "@markedSourceDuration": {
     "placeholders": {
-      "duration": {"type": "String"}
+      "duration": {
+        "type": "String"
+      }
     }
-  }
-  ,"markedSourceContacts": "接触 {count} 头 · 见「疫病防控」工作台"
-  ,"@markedSourceContacts": {
+  },
+  "markedSourceContacts": "接触 {count} 头 · 见「疫病防控」工作台",
+  "@markedSourceContacts": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
-  }
-  ,"unmarkConfirmTitle": "取消染病标记？"
-  ,"@unmarkConfirmTitle": {}
-  ,"unmarkConfirmBody": "将同时取消 {livestockCode} 作为源头的全部未完成处置单。"
-  ,"@unmarkConfirmBody": {
+  },
+  "unmarkConfirmTitle": "取消染病标记？",
+  "@unmarkConfirmTitle": {},
+  "unmarkConfirmBody": "将同时取消 {livestockCode} 作为源头的全部未完成处置单。",
+  "@unmarkConfirmBody": {
     "placeholders": {
-      "livestockCode": {"type": "String"}
+      "livestockCode": {
+        "type": "String"
+      }
     }
-  }
-  ,"unmarkKeep": "保留标记"
-  ,"@unmarkKeep": {}
-  ,"unmarkConfirm": "确认取消"
-  ,"@unmarkConfirm": {}
-  ,"unmarkDone": "已取消染病标记"
-  ,"@unmarkDone": {}
-  ,"upsellTitle": "疫病防控需要 Premium"
-  ,"@upsellTitle": {}
-  ,"upsellBody": "标记疑似患病、接触追踪与四级处置属于 Premium 功能（epidemic_alert）。"
-  ,"@upsellBody": {}
-  ,"upsellLater": "暂不升级"
-  ,"@upsellLater": {}
-  ,"upsellLearnMore": "了解 Premium"
-  ,"@upsellLearnMore": {}
-  ,"durationMinutesShort": "{minutes} 分钟"
-  ,"@durationMinutesShort": {
+  },
+  "unmarkKeep": "保留标记",
+  "@unmarkKeep": {},
+  "unmarkConfirm": "确认取消",
+  "@unmarkConfirm": {},
+  "unmarkDone": "已取消染病标记",
+  "@unmarkDone": {},
+  "upsellTitle": "疫病防控需要 Premium",
+  "@upsellTitle": {},
+  "upsellBody": "标记疑似患病、接触追踪与四级处置属于 Premium 功能（epidemic_alert）。",
+  "@upsellBody": {},
+  "upsellLater": "暂不升级",
+  "@upsellLater": {},
+  "upsellLearnMore": "了解 Premium",
+  "@upsellLearnMore": {},
+  "durationMinutesShort": "{minutes} 分钟",
+  "@durationMinutesShort": {
     "placeholders": {
-      "minutes": {"type": "int"}
+      "minutes": {
+        "type": "int"
+      }
     }
-  }
-  ,"durationHoursShort": "{hours} 小时"
-  ,"@durationHoursShort": {
+  },
+  "durationHoursShort": "{hours} 小时",
+  "@durationHoursShort": {
     "placeholders": {
-      "hours": {"type": "int"}
+      "hours": {
+        "type": "int"
+      }
     }
-  }
-  ,"durationDaysShort": "{days} 天"
-  ,"@durationDaysShort": {
+  },
+  "durationDaysShort": "{days} 天",
+  "@durationDaysShort": {
     "placeholders": {
-      "days": {"type": "int"}
-    }
-  }
-  ,"fenceEditTargetMissing": "该围栏已被删除，编辑已取消"
-  ,"@fenceEditTargetMissing": {}
-  ,"epidemicPathRiskHint": "按接触事件风险分累加（0-100），仅显示 ≥70 的高风险路径"
-  ,"@epidemicPathRiskHint": {}
-  ,"epidemicPathSourceTag": "源头"
-  ,"@epidemicPathSourceTag": {}
-  ,"epidemicDispositionRegistered": "已为 {livestock} 登记「{action}」任务{due}"
-  ,"@epidemicDispositionRegistered": {"placeholders":{"livestock":{"type":"String"},"action":{"type":"String"},"due":{"type":"String"}}}
-  ,"epidemicDispositionExisting": "{livestock} 已有进行中的「{action}」任务"
-  ,"@epidemicDispositionExisting": {"livestock":{"type":"String"},"action":{"type":"String"}}
-  ,"epidemicDispositionDone": "{livestock} 的「{action}」任务已完成"
-  ,"@epidemicDispositionDone": {"livestock":{"type":"String"},"action":{"type":"String"}}
-  ,"epidemicDispositionCancelled": "{livestock} 的「{action}」任务已取消"
-  ,"@epidemicDispositionCancelled": {"livestock":{"type":"String"},"action":{"type":"String"}}
-  ,"epidemicDispositionRegisterFailed": "登记失败，请重试"
-  ,"@epidemicDispositionRegisterFailed": {}
-  ,"epidemicCompleteAction": "完成"
-  ,"@epidemicCompleteAction": {}
-  ,"epidemicCancelAction": "取消"
-  ,"@epidemicCancelAction": {}
-  ,"epidemicCompleteConfirm": "确认将 {livestock} 的「{action}」任务标记为已完成？"
-  ,"@epidemicCompleteConfirm": {"livestock":{"type":"String"},"action":{"type":"String"}}
-  ,"epidemicCancelConfirm": "确认取消 {livestock} 的「{action}」任务？取消后可重新登记。"
-  ,"@epidemicCancelConfirm": {"livestock":{"type":"String"},"action":{"type":"String"}}
-  ,"epidemicDispRegisteredTag": "已登记"
-  ,"@epidemicDispRegisteredTag": {}
-  ,"epidemicDispositionDueBy": "，请在 {due} 前完成"
-  ,"@epidemicDispositionDueBy": {"due":{"type":"String"}}
-  ,"epidemicDispCompletedTag": "已完成"
-  ,"@epidemicDispCompletedTag": {}
-  ,"epidemicDispCancelledTag": "已取消"
-  ,"@epidemicDispCancelledTag": {}
-
-  ,"healthPhysiologyTitle": "生理记录"
-  ,"@healthPhysiologyTitle": {}
-  ,"healthPhysiologyStageLactating": "泌乳期 · 第 {n} 天"
-  ,"@healthPhysiologyStageLactating": {
-      "placeholders": {
-        "n": {"type": "int"}
+      "days": {
+        "type": "int"
       }
     }
-  ,"healthPhysiologyStageDry": "干奶期"
-  ,"@healthPhysiologyStageDry": {}
-  ,"healthPhysiologyEventCalving": "产犊"
-  ,"@healthPhysiologyEventCalving": {}
-  ,"healthPhysiologyEventBreeding": "配种"
-  ,"@healthPhysiologyEventBreeding": {}
-  ,"healthPhysiologyEventPregnancyCheck": "妊娠检查"
-  ,"@healthPhysiologyEventPregnancyCheck": {}
-  ,"healthPhysiologyEventDryOff": "干奶"
-  ,"@healthPhysiologyEventDryOff": {}
-  ,"healthPhysiologyEventIllness": "发病"
-  ,"@healthPhysiologyEventIllness": {}
-  ,"healthPhysiologyEventRecovery": "康复"
-  ,"@healthPhysiologyEventRecovery": {}
-  ,"healthPhysiologyAddRecord": "＋ 记录"
-  ,"@healthPhysiologyAddRecord": {}
-  ,"healthPhysiologyEmptyTitle": "尚无生理记录"
-  ,"@healthPhysiologyEmptyTitle": {}
-  ,"healthPhysiologyEmptyHint": "点“＋ 记录”开始建档"
-  ,"@healthPhysiologyEmptyHint": {}
-  ,"healthPhysiologyWindowActive": "窗口中"
-  ,"@healthPhysiologyWindowActive": {}
-  ,"healthPhysiologySourceManual": "手工录入"
-  ,"@healthPhysiologySourceManual": {}
-  ,"healthPhysiologySourceDisposition": "来源：疫病处置单 #{refId} · 处置中"
-  ,"@healthPhysiologySourceDisposition": {
-      "placeholders": {
-        "refId": {"type": "int"}
+  },
+  "fenceEditTargetMissing": "该围栏已被删除，编辑已取消",
+  "@fenceEditTargetMissing": {},
+  "epidemicPathRiskHint": "按接触事件风险分累加（0-100），仅显示 ≥70 的高风险路径",
+  "@epidemicPathRiskHint": {},
+  "epidemicPathSourceTag": "源头",
+  "@epidemicPathSourceTag": {},
+  "epidemicDispositionRegistered": "已为 {livestock} 登记「{action}」任务{due}",
+  "@epidemicDispositionRegistered": {
+    "placeholders": {
+      "livestock": {
+        "type": "String"
+      },
+      "action": {
+        "type": "String"
+      },
+      "due": {
+        "type": "String"
       }
     }
-  ,"healthPhysiologySourceAlertConfirm": "告警确认"
-  ,"@healthPhysiologySourceAlertConfirm": {}
-  ,"healthPhysiologyErrorTitle": "⚠️ 生理记录暂时不可用"
-  ,"@healthPhysiologyErrorTitle": {}
-  ,"healthPhysiologyErrorDesc": "数据没有丢失——服务恢复后自动重试。"
-  ,"@healthPhysiologyErrorDesc": {}
-  ,"healthPhysiologyRetry": "重新加载"
-  ,"@healthPhysiologyRetry": {}
-  ,"healthPhysiologySheetTitle": "新增生理记录"
-  ,"@healthPhysiologySheetTitle": {}
-  ,"healthPhysiologyOccurredDate": "发生日期"
-  ,"@healthPhysiologyOccurredDate": {}
-  ,"healthPhysiologyNoteHint": "备注（选填，≤500 字）…"
-  ,"@healthPhysiologyNoteHint": {}
-  ,"healthPhysiologyIllnessNote": "录“发病”无结束日期字段——康复日后录“康复”事件即闭合窗口。"
-  ,"@healthPhysiologyIllnessNote": {}
-  ,"healthPhysiologySaveFailed": "保存失败，请稍后重试"
-  ,"@healthPhysiologySaveFailed": {}
-  ,"healthPhysiologyEditSheetTitle": "编辑生理记录"
-  ,"@healthPhysiologyEditSheetTitle": {}
-  ,"healthPhysiologyDeleteTitle": "删除生理记录"
-  ,"@healthPhysiologyDeleteTitle": {}
-  ,"healthPhysiologyDeleteConfirm": "删除后不可恢复，确定删除这条记录吗？"
-  ,"@healthPhysiologyDeleteConfirm": {}
-  ,"healthPhysiologyDelete": "删除"
-  ,"@healthPhysiologyDelete": {}
-  ,"healthDrinkingTitle": "饮水行为"
-  ,"@healthDrinkingTitle": {}
-  ,"healthDrinkingTodayCount": "{n} 次 / 今日"
-  ,"@healthDrinkingTodayCount": {
-      "placeholders": {
-        "n": {"type": "int"}
+  },
+  "epidemicDispositionExisting": "{livestock} 已有进行中的「{action}」任务",
+  "@epidemicDispositionExisting": {
+    "livestock": {
+      "type": "String"
+    },
+    "action": {
+      "type": "String"
+    }
+  },
+  "epidemicDispositionDone": "{livestock} 的「{action}」任务已完成",
+  "@epidemicDispositionDone": {
+    "livestock": {
+      "type": "String"
+    },
+    "action": {
+      "type": "String"
+    }
+  },
+  "epidemicDispositionCancelled": "{livestock} 的「{action}」任务已取消",
+  "@epidemicDispositionCancelled": {
+    "livestock": {
+      "type": "String"
+    },
+    "action": {
+      "type": "String"
+    }
+  },
+  "epidemicDispositionRegisterFailed": "登记失败，请重试",
+  "@epidemicDispositionRegisterFailed": {},
+  "epidemicCompleteAction": "完成",
+  "@epidemicCompleteAction": {},
+  "epidemicCancelAction": "取消",
+  "@epidemicCancelAction": {},
+  "epidemicCompleteConfirm": "确认将 {livestock} 的「{action}」任务标记为已完成？",
+  "@epidemicCompleteConfirm": {
+    "livestock": {
+      "type": "String"
+    },
+    "action": {
+      "type": "String"
+    }
+  },
+  "epidemicCancelConfirm": "确认取消 {livestock} 的「{action}」任务？取消后可重新登记。",
+  "@epidemicCancelConfirm": {
+    "livestock": {
+      "type": "String"
+    },
+    "action": {
+      "type": "String"
+    }
+  },
+  "epidemicDispRegisteredTag": "已登记",
+  "@epidemicDispRegisteredTag": {},
+  "epidemicDispositionDueBy": "，请在 {due} 前完成",
+  "@epidemicDispositionDueBy": {
+    "due": {
+      "type": "String"
+    }
+  },
+  "epidemicDispCompletedTag": "已完成",
+  "@epidemicDispCompletedTag": {},
+  "epidemicDispCancelledTag": "已取消",
+  "@epidemicDispCancelledTag": {},
+  "healthPhysiologyTitle": "生理记录",
+  "@healthPhysiologyTitle": {},
+  "healthPhysiologyStageLactating": "泌乳期 · 第 {n} 天",
+  "@healthPhysiologyStageLactating": {
+    "placeholders": {
+      "n": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingTodayUnit": "次 / 今日"
-  ,"@healthDrinkingTodayUnit": {}
-  ,"healthDrinkingLastDrink": "上次饮水"
-  ,"@healthDrinkingLastDrink": {}
-  ,"healthDrinkingMinutesAgo": "{n} 分钟前"
-  ,"@healthDrinkingMinutesAgo": {
-      "placeholders": {
-        "n": {"type": "int"}
+  },
+  "healthPhysiologyStageDry": "干奶期",
+  "@healthPhysiologyStageDry": {},
+  "healthPhysiologyEventCalving": "产犊",
+  "@healthPhysiologyEventCalving": {},
+  "healthPhysiologyEventBreeding": "配种",
+  "@healthPhysiologyEventBreeding": {},
+  "healthPhysiologyEventPregnancyCheck": "妊娠检查",
+  "@healthPhysiologyEventPregnancyCheck": {},
+  "healthPhysiologyEventDryOff": "干奶",
+  "@healthPhysiologyEventDryOff": {},
+  "healthPhysiologyEventIllness": "发病",
+  "@healthPhysiologyEventIllness": {},
+  "healthPhysiologyEventRecovery": "康复",
+  "@healthPhysiologyEventRecovery": {},
+  "healthPhysiologyAddRecord": "＋ 记录",
+  "@healthPhysiologyAddRecord": {},
+  "healthPhysiologyEmptyTitle": "尚无生理记录",
+  "@healthPhysiologyEmptyTitle": {},
+  "healthPhysiologyEmptyHint": "点“＋ 记录”开始建档",
+  "@healthPhysiologyEmptyHint": {},
+  "healthPhysiologyWindowActive": "窗口中",
+  "@healthPhysiologyWindowActive": {},
+  "healthPhysiologySourceManual": "手工录入",
+  "@healthPhysiologySourceManual": {},
+  "healthPhysiologySourceDisposition": "来源：疫病处置单 #{refId} · 处置中",
+  "@healthPhysiologySourceDisposition": {
+    "placeholders": {
+      "refId": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingYesterdayAt": "昨天 {time}"
-  ,"@healthDrinkingYesterdayAt": {
-      "placeholders": {
-        "time": {"type": "String"}
+  },
+  "healthPhysiologySourceAlertConfirm": "告警确认",
+  "@healthPhysiologySourceAlertConfirm": {},
+  "healthPhysiologyErrorTitle": "⚠️ 生理记录暂时不可用",
+  "@healthPhysiologyErrorTitle": {},
+  "healthPhysiologyErrorDesc": "数据没有丢失——服务恢复后自动重试。",
+  "@healthPhysiologyErrorDesc": {},
+  "healthPhysiologyRetry": "重新加载",
+  "@healthPhysiologyRetry": {},
+  "healthPhysiologySheetTitle": "新增生理记录",
+  "@healthPhysiologySheetTitle": {},
+  "healthPhysiologyOccurredDate": "发生日期",
+  "@healthPhysiologyOccurredDate": {},
+  "healthPhysiologyNoteHint": "备注（选填，≤500 字）…",
+  "@healthPhysiologyNoteHint": {},
+  "healthPhysiologyIllnessNote": "录“发病”无结束日期字段——康复日后录“康复”事件即闭合窗口。",
+  "@healthPhysiologyIllnessNote": {},
+  "healthPhysiologySaveFailed": "保存失败，请稍后重试",
+  "@healthPhysiologySaveFailed": {},
+  "healthPhysiologyEditSheetTitle": "编辑生理记录",
+  "@healthPhysiologyEditSheetTitle": {},
+  "healthPhysiologyDeleteTitle": "删除生理记录",
+  "@healthPhysiologyDeleteTitle": {},
+  "healthPhysiologyDeleteConfirm": "删除后不可恢复，确定删除这条记录吗？",
+  "@healthPhysiologyDeleteConfirm": {},
+  "healthPhysiologyDelete": "删除",
+  "@healthPhysiologyDelete": {},
+  "healthDrinkingTitle": "饮水行为",
+  "@healthDrinkingTitle": {},
+  "healthDrinkingTodayCount": "{n} 次 / 今日",
+  "@healthDrinkingTodayCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingPeerBaseline": "同类{group}均值 {n} 次/日"
-  ,"@healthDrinkingPeerBaseline": {
-      "placeholders": {
-        "group": {"type": "String"},
-        "n": {"type": "String"}
+  },
+  "healthDrinkingTodayUnit": "次 / 今日",
+  "@healthDrinkingTodayUnit": {},
+  "healthDrinkingLastDrink": "上次饮水",
+  "@healthDrinkingLastDrink": {},
+  "healthDrinkingMinutesAgo": "{n} 分钟前",
+  "@healthDrinkingMinutesAgo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingOwnBaseline": "本牛基线 {m} 次/日"
-  ,"@healthDrinkingOwnBaseline": {
-      "placeholders": {
-        "m": {"type": "String"}
+  },
+  "healthDrinkingYesterdayAt": "昨天 {time}",
+  "@healthDrinkingYesterdayAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
       }
     }
-  ,"healthDrinkingPeerInsufficient": "同类样本暂不足（需 ≥{minDays} 个达标样本日）"
-  ,"@healthDrinkingPeerInsufficient": {
-      "placeholders": {
-        "minDays": {"type": "int"}
+  },
+  "healthDrinkingPeerBaseline": "同类{group}均值 {n} 次/日",
+  "@healthDrinkingPeerBaseline": {
+    "placeholders": {
+      "group": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
       }
     }
-  ,"healthDrinkingPeerGroupLactating": "成母牛"
-  ,"@healthDrinkingPeerGroupLactating": {}
-  ,"healthDrinkingPeerGroupDry": "干奶"
-  ,"@healthDrinkingPeerGroupDry": {}
-  ,"healthDrinkingFeverContext": "{date} {n} 次：当日发热覆盖约 {percent}%，发热期间饮水减少属常见现象；发热期数据不参与异常判定与基线计算"
-  ,"@healthDrinkingFeverContext": {
-      "placeholders": {
-        "date": {"type": "String"},
-        "n": {"type": "int"},
-        "percent": {"type": "int"}
+  },
+  "healthDrinkingOwnBaseline": "本牛基线 {m} 次/日",
+  "@healthDrinkingOwnBaseline": {
+    "placeholders": {
+      "m": {
+        "type": "String"
       }
     }
-  ,"healthDrinkingDayMon": "一"
-  ,"@healthDrinkingDayMon": {}
-  ,"healthDrinkingDayTue": "二"
-  ,"@healthDrinkingDayTue": {}
-  ,"healthDrinkingDayWed": "三"
-  ,"@healthDrinkingDayWed": {}
-  ,"healthDrinkingDayThu": "四"
-  ,"@healthDrinkingDayThu": {}
-  ,"healthDrinkingDayFri": "五"
-  ,"@healthDrinkingDayFri": {}
-  ,"healthDrinkingDaySat": "六"
-  ,"@healthDrinkingDaySat": {}
-  ,"healthDrinkingDaySun": "日"
-  ,"@healthDrinkingDaySun": {}
-  ,"healthDrinkingDayToday": "今"
-  ,"@healthDrinkingDayToday": {}
-  ,"healthDrinkingWeekdayPrefix": "周"
-  ,"@healthDrinkingWeekdayPrefix": {}
-  ,"healthDrinkingStateNoData": "暂无饮水数据"
-  ,"@healthDrinkingStateNoData": {}
-  ,"healthDrinkingNoDataDesc": "该牲畜尚未绑定瘤胃胶囊，绑定后约 24 小时内建立基线并开始统计"
-  ,"@healthDrinkingNoDataDesc": {}
-  ,"healthDrinkingNoDataChip": "未绑定 RBC 胶囊"
-  ,"@healthDrinkingNoDataChip": {}
-  ,"healthDrinkingStateBuilding": "基线建立中"
-  ,"@healthDrinkingStateBuilding": {}
-  ,"healthDrinkingBuildingDesc": "已积累 {n} 天数据，检测算法需 ≥{min} 天有效数据才能可靠区分饮水谷与体温波动"
-  ,"@healthDrinkingBuildingDesc": {
-      "placeholders": {
-        "n": {"type": "int"},
-        "min": {"type": "int"}
+  },
+  "healthDrinkingPeerInsufficient": "同类样本暂不足（需 ≥{minDays} 个达标样本日）",
+  "@healthDrinkingPeerInsufficient": {
+    "placeholders": {
+      "minDays": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingBuildingChip": "{n} / {min} 天"
-  ,"@healthDrinkingBuildingChip": {
-      "placeholders": {
-        "n": {"type": "int"},
-        "min": {"type": "int"}
+  },
+  "healthDrinkingPeerGroupLactating": "成母牛",
+  "@healthDrinkingPeerGroupLactating": {},
+  "healthDrinkingPeerGroupDry": "干奶",
+  "@healthDrinkingPeerGroupDry": {},
+  "healthDrinkingFeverContext": "{date} {n} 次：当日发热覆盖约 {percent}%，发热期间饮水减少属常见现象；发热期数据不参与异常判定与基线计算",
+  "@healthDrinkingFeverContext": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingStateBackfill": "数据补传中"
-  ,"@healthDrinkingStateBackfill": {}
-  ,"healthDrinkingStateError": "饮水数据暂时不可用"
-  ,"@healthDrinkingStateError": {}
-  ,"healthDrinkingErrorDesc": "检测服务暂时无法访问，你的数据没有丢失——恢复后（通常几分钟内）将自动补算今日统计。"
-  ,"@healthDrinkingErrorDesc": {}
-  ,"healthDrinkingRetry": "重新加载"
-  ,"@healthDrinkingRetry": {}
-  ,"healthDrinkingDetailTitle": "饮水行为详情"
-  ,"@healthDrinkingDetailTitle": {}
-  ,"healthDrinkingTimeDistribution": "今日饮水时刻分布"
-  ,"@healthDrinkingTimeDistribution": {}
-  ,"healthDrinkingTotalToday": "共 {n} 次"
-  ,"@healthDrinkingTotalToday": {
-      "placeholders": {
-        "n": {"type": "int"}
+  },
+  "healthDrinkingDayMon": "一",
+  "@healthDrinkingDayMon": {},
+  "healthDrinkingDayTue": "二",
+  "@healthDrinkingDayTue": {},
+  "healthDrinkingDayWed": "三",
+  "@healthDrinkingDayWed": {},
+  "healthDrinkingDayThu": "四",
+  "@healthDrinkingDayThu": {},
+  "healthDrinkingDayFri": "五",
+  "@healthDrinkingDayFri": {},
+  "healthDrinkingDaySat": "六",
+  "@healthDrinkingDaySat": {},
+  "healthDrinkingDaySun": "日",
+  "@healthDrinkingDaySun": {},
+  "healthDrinkingDayToday": "今",
+  "@healthDrinkingDayToday": {},
+  "healthDrinkingWeekdayPrefix": "周",
+  "@healthDrinkingWeekdayPrefix": {},
+  "healthDrinkingStateNoData": "暂无饮水数据",
+  "@healthDrinkingStateNoData": {},
+  "healthDrinkingNoDataDesc": "该牲畜尚未绑定瘤胃胶囊，绑定后约 24 小时内建立基线并开始统计",
+  "@healthDrinkingNoDataDesc": {},
+  "healthDrinkingNoDataChip": "未绑定 RBC 胶囊",
+  "@healthDrinkingNoDataChip": {},
+  "healthDrinkingStateBuilding": "基线建立中",
+  "@healthDrinkingStateBuilding": {},
+  "healthDrinkingBuildingDesc": "已积累 {n} 天数据，检测算法需 ≥{min} 天有效数据才能可靠区分饮水谷与体温波动",
+  "@healthDrinkingBuildingDesc": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "min": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingConcentration": "{percent}% 饮水集中在饲喂/挤奶后，与本牛日常习惯一致"
-  ,"@healthDrinkingConcentration": {
-      "placeholders": {
-        "percent": {"type": "int"}
+  },
+  "healthDrinkingBuildingChip": "{n} / {min} 天",
+  "@healthDrinkingBuildingChip": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "min": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingTempOverlay": "48h 温度×饮水"
-  ,"@healthDrinkingTempOverlay": {}
-  ,"healthDrinkingSegSelf": "本牛"
-  ,"@healthDrinkingSegSelf": {}
-  ,"healthDrinkingSegPeer": "同类"
-  ,"@healthDrinkingSegPeer": {}
-  ,"healthDrinkingHonestyNote": "数据为瘤胃温度自动检测，更新延迟约 30 分钟；夏季水温接近体温时部分饮水可能未被识别（检出的均可靠）。发热期数据不参与异常判定与基线计算。"
-  ,"@healthDrinkingHonestyNote": {}
-  ,"healthDrinkingTempUnavailable": "暂无温度数据"
-  ,"@healthDrinkingTempUnavailable": {}
-  ,"healthDrinkingLegendTemp": "瘤胃温度"
-  ,"@healthDrinkingLegendTemp": {}
-  ,"healthDrinkingLegendValley": "饮水谷（点=谷底）"
-  ,"@healthDrinkingLegendValley": {}
-  ,"healthDrinkingLegendBaseline": "基线"
-  ,"@healthDrinkingLegendBaseline": {}
-  ,"healthDrinkingLegendFever": "发热期+6h 缓冲"
-  ,"@healthDrinkingLegendFever": {}
-  ,"healthDrinkingLegendEvent": "饮水事件（谷底≈饮水结束）"
-  ,"@healthDrinkingLegendEvent": {}
-  ,"healthDrinkingLegendZone": "饲喂/挤奶时段"
-  ,"@healthDrinkingLegendZone": {}
-  ,"healthDrinkingZoneFeed": "饲喂后"
-  ,"@healthDrinkingZoneFeed": {}
-  ,"healthDrinkingZoneMilking": "挤奶后"
-  ,"@healthDrinkingZoneMilking": {}
-  ,"healthDrinkingZoneEvening": "傍晚高峰"
-  ,"@healthDrinkingZoneEvening": {}
-  ,"healthDrinkingAxisHour": "{h}时"
-  ,"@healthDrinkingAxisHour": {
-      "placeholders": {
-        "h": {"type": "int"}
+  },
+  "healthDrinkingStateBackfill": "数据补传中",
+  "@healthDrinkingStateBackfill": {},
+  "healthDrinkingStateError": "饮水数据暂时不可用",
+  "@healthDrinkingStateError": {},
+  "healthDrinkingErrorDesc": "检测服务暂时无法访问，你的数据没有丢失——恢复后（通常几分钟内）将自动补算今日统计。",
+  "@healthDrinkingErrorDesc": {},
+  "healthDrinkingRetry": "重新加载",
+  "@healthDrinkingRetry": {},
+  "healthDrinkingDetailTitle": "饮水行为详情",
+  "@healthDrinkingDetailTitle": {},
+  "healthDrinkingTimeDistribution": "今日饮水时刻分布",
+  "@healthDrinkingTimeDistribution": {},
+  "healthDrinkingTotalToday": "共 {n} 次",
+  "@healthDrinkingTotalToday": {
+    "placeholders": {
+      "n": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingPeerCompareTitle": "同类成母牛均值对比"
-  ,"@healthDrinkingPeerCompareTitle": {}
-  ,"healthDrinkingPeerCompareSelf": "本牛近 7 日"
-  ,"@healthDrinkingPeerCompareSelf": {}
-  ,"healthDrinkingPeerComparePeer": "同类均值"
-  ,"@healthDrinkingPeerComparePeer": {}
-  ,"healthDrinkingPerDay": "{v} 次/日"
-  ,"@healthDrinkingPerDay": {
-      "placeholders": {
-        "v": {"type": "String"}
+  },
+  "healthDrinkingConcentration": "{percent}% 饮水集中在饲喂/挤奶后，与本牛日常习惯一致",
+  "@healthDrinkingConcentration": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingPendingGroupTitle": "待标记（{n}）"
-  ,"@healthDrinkingPendingGroupTitle": {
-      "placeholders": {
-        "n": {"type": "int"}
+  },
+  "healthDrinkingTempOverlay": "48h 温度×饮水",
+  "@healthDrinkingTempOverlay": {},
+  "healthDrinkingSegSelf": "本牛",
+  "@healthDrinkingSegSelf": {},
+  "healthDrinkingSegPeer": "同类",
+  "@healthDrinkingSegPeer": {},
+  "healthDrinkingHonestyNote": "数据为瘤胃温度自动检测，更新延迟约 30 分钟；夏季水温接近体温时部分饮水可能未被识别（检出的均可靠）。发热期数据不参与异常判定与基线计算。",
+  "@healthDrinkingHonestyNote": {},
+  "healthDrinkingTempUnavailable": "暂无温度数据",
+  "@healthDrinkingTempUnavailable": {},
+  "healthDrinkingLegendTemp": "瘤胃温度",
+  "@healthDrinkingLegendTemp": {},
+  "healthDrinkingLegendValley": "饮水谷（点=谷底）",
+  "@healthDrinkingLegendValley": {},
+  "healthDrinkingLegendBaseline": "基线",
+  "@healthDrinkingLegendBaseline": {},
+  "healthDrinkingLegendFever": "发热期+6h 缓冲",
+  "@healthDrinkingLegendFever": {},
+  "healthDrinkingLegendEvent": "饮水事件（谷底≈饮水结束）",
+  "@healthDrinkingLegendEvent": {},
+  "healthDrinkingLegendZone": "饲喂/挤奶时段",
+  "@healthDrinkingLegendZone": {},
+  "healthDrinkingZoneFeed": "饲喂后",
+  "@healthDrinkingZoneFeed": {},
+  "healthDrinkingZoneMilking": "挤奶后",
+  "@healthDrinkingZoneMilking": {},
+  "healthDrinkingZoneEvening": "傍晚高峰",
+  "@healthDrinkingZoneEvening": {},
+  "healthDrinkingAxisHour": "{h}时",
+  "@healthDrinkingAxisHour": {
+    "placeholders": {
+      "h": {
+        "type": "int"
       }
     }
-  ,"healthDrinkingEventListTitle": "今日饮水事件（{n}）"
-  ,"@healthDrinkingEventListTitle": {
-      "placeholders": {
-        "n": {"type": "int"}
+  },
+  "healthDrinkingPeerCompareTitle": "同类成母牛均值对比",
+  "@healthDrinkingPeerCompareTitle": {},
+  "healthDrinkingPeerCompareSelf": "本牛近 7 日",
+  "@healthDrinkingPeerCompareSelf": {},
+  "healthDrinkingPeerComparePeer": "同类均值",
+  "@healthDrinkingPeerComparePeer": {},
+  "healthDrinkingPerDay": "{v} 次/日",
+  "@healthDrinkingPerDay": {
+    "placeholders": {
+      "v": {
+        "type": "String"
       }
     }
-  ,"healthDrinkingConfirm": "确认"
-  ,"@healthDrinkingConfirm": {}
-  ,"healthDrinkingReject": "误报"
-  ,"@healthDrinkingReject": {}
-  ,"healthDrinkingLabelConfirmed": "已确认"
-  ,"@healthDrinkingLabelConfirmed": {}
-  ,"healthDrinkingLabelRejected": "误报"
-  ,"@healthDrinkingLabelRejected": {}
-  ,"healthDrinkingLabelUnlabeled": "未标记"
-  ,"@healthDrinkingLabelUnlabeled": {}
-  ,"healthDrinkingNeedsVerification": "待核实"
-  ,"@healthDrinkingNeedsVerification": {}
-  ,"healthDrinkingSourceManual": "补录"
-  ,"@healthDrinkingSourceManual": {}
-  ,"healthDrinkingAddManual": "＋ 漏报补录"
-  ,"@healthDrinkingAddManual": {}
-  ,"healthDrinkingNoEventsToday": "今日未检出饮水事件"
-  ,"@healthDrinkingNoEventsToday": {}
-  ,"healthDrinkingSaveFailed": "保存失败，请稍后重试"
-  ,"@healthDrinkingSaveFailed": {}
-  ,"healthDrinkingManualSheetTitle": "补录饮水事件"
-  ,"@healthDrinkingManualSheetTitle": {}
-  ,"healthDrinkingManualTimeLabel": "时刻"
-  ,"@healthDrinkingManualTimeLabel": {}
-  ,"healthDrinkingManualTimeHint": "yyyy-MM-dd HH:mm（本地时间）"
-  ,"@healthDrinkingManualTimeHint": {}
-  ,"healthDrinkingManualTimeInvalid": "时刻格式不正确，应为 yyyy-MM-dd HH:mm"
-  ,"@healthDrinkingManualTimeInvalid": {}
-  ,"healthDrinkingManualTimeFuture": "时刻不能晚于现在"
-  ,"@healthDrinkingManualTimeFuture": {}
-  ,"healthDrinkingManualNoteHint": "备注（选填，≤500 字）…"
-  ,"@healthDrinkingManualNoteHint": {}
-  ,"healthDrinkingTierBadge": "Premium+"
-  ,"@healthDrinkingTierBadge": {}
-  ,"healthDrinkingLockedMessage": "同类对比（按品种/月龄段分组）为 Premium 权益"
-  ,"@healthDrinkingLockedMessage": {}
-  ,"healthDrinkingUpgrade": "升级解锁"
-  ,"@healthDrinkingUpgrade": {}
-  ,"healthDrinkingLayerFever": "发热标记 ✓"
-  ,"@healthDrinkingLayerFever": {}
-  ,"healthDrinkingLayerDrinking": "饮水事件 ✓"
-  ,"@healthDrinkingLayerDrinking": {}
-  ,"healthDrinkingLayerBaseline": "基线 ✓"
-  ,"@healthDrinkingLayerBaseline": {},
+  },
+  "healthDrinkingPendingGroupTitle": "待标记（{n}）",
+  "@healthDrinkingPendingGroupTitle": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "healthDrinkingEventListTitle": "今日饮水事件（{n}）",
+  "@healthDrinkingEventListTitle": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "healthDrinkingConfirm": "确认",
+  "@healthDrinkingConfirm": {},
+  "healthDrinkingReject": "误报",
+  "@healthDrinkingReject": {},
+  "healthDrinkingLabelConfirmed": "已确认",
+  "@healthDrinkingLabelConfirmed": {},
+  "healthDrinkingLabelRejected": "误报",
+  "@healthDrinkingLabelRejected": {},
+  "healthDrinkingLabelUnlabeled": "未标记",
+  "@healthDrinkingLabelUnlabeled": {},
+  "healthDrinkingNeedsVerification": "待核实",
+  "@healthDrinkingNeedsVerification": {},
+  "healthDrinkingSourceManual": "补录",
+  "@healthDrinkingSourceManual": {},
+  "healthDrinkingAddManual": "＋ 漏报补录",
+  "@healthDrinkingAddManual": {},
+  "healthDrinkingNoEventsToday": "今日未检出饮水事件",
+  "@healthDrinkingNoEventsToday": {},
+  "healthDrinkingSaveFailed": "保存失败，请稍后重试",
+  "@healthDrinkingSaveFailed": {},
+  "healthDrinkingManualSheetTitle": "补录饮水事件",
+  "@healthDrinkingManualSheetTitle": {},
+  "healthDrinkingManualTimeLabel": "时刻",
+  "@healthDrinkingManualTimeLabel": {},
+  "healthDrinkingManualTimeHint": "yyyy-MM-dd HH:mm（本地时间）",
+  "@healthDrinkingManualTimeHint": {},
+  "healthDrinkingManualTimeInvalid": "时刻格式不正确，应为 yyyy-MM-dd HH:mm",
+  "@healthDrinkingManualTimeInvalid": {},
+  "healthDrinkingManualTimeFuture": "时刻不能晚于现在",
+  "@healthDrinkingManualTimeFuture": {},
+  "healthDrinkingManualNoteHint": "备注（选填，≤500 字）…",
+  "@healthDrinkingManualNoteHint": {},
+  "healthDrinkingTierBadge": "Premium+",
+  "@healthDrinkingTierBadge": {},
+  "healthDrinkingLockedMessage": "同类对比（按品种/月龄段分组）为 Premium 权益",
+  "@healthDrinkingLockedMessage": {},
+  "healthDrinkingUpgrade": "升级解锁",
+  "@healthDrinkingUpgrade": {},
+  "healthDrinkingLayerFever": "发热标记 ✓",
+  "@healthDrinkingLayerFever": {},
+  "healthDrinkingLayerDrinking": "饮水事件 ✓",
+  "@healthDrinkingLayerDrinking": {},
+  "healthDrinkingLayerBaseline": "基线 ✓",
+  "@healthDrinkingLayerBaseline": {},
   "tenantCreateTitle": "创建租户",
   "@tenantCreateTitle": {},
   "tenantCreateNameLabel": "名称 *",
@@ -5821,8 +6091,17 @@
   "tenantPilotDeadlineNone": "试点截止日：平台统一推广期(点击选择)",
   "@tenantPilotDeadlineNone": {},
   "tenantPilotDeadlineChosen": "试点截止日：{date}（{tz} 当地 00:00）",
-  "@tenantPilotDeadlineChosen": {"placeholders": {"date": {"type": "String"}, "tz": {"type": "String"}}},
-  "authEmailInvalid": "\"\u90ae\u7bb1\u683c\u5f0f\u4e0d\u6b63\u786e\"",
+  "@tenantPilotDeadlineChosen": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "tz": {
+        "type": "String"
+      }
+    }
+  },
+  "authEmailInvalid": "\"邮箱格式不正确\"",
   "deviceTransferCardTitle": "设备移交",
   "@deviceTransferCardTitle": {},
   "deviceTransferCardHint": "将其他租户名下的设备 EUI 移交到本租户（平台管理员操作，写入审计）",
@@ -5846,7 +6125,13 @@
   "deviceTransferConfirm": "确认移交",
   "@deviceTransferConfirm": {},
   "deviceTransferSuccess": "设备 {eui} 已移交到本租户",
-  "@deviceTransferSuccess": {"placeholders": {"eui": {"type": "String"}}},
+  "@deviceTransferSuccess": {
+    "placeholders": {
+      "eui": {
+        "type": "String"
+      }
+    }
+  },
   "userCreatePasswordPolicyHint": "≥8 位，须含大写/小写/数字/符号",
   "@userCreatePasswordPolicyHint": {},
   "userCreatePasswordInvalid": "密码至少 8 位，且须同时包含大写字母、小写字母、数字和特殊符号",
@@ -5890,7 +6175,13 @@
   "superTenantSearchHint": "搜索租户名称",
   "@superTenantSearchHint": {},
   "superTenantCount": "共 {count} 个租户（已删除的不显示）",
-  "@superTenantCount": {"placeholders": {"count": {"type": "int"}}},
+  "@superTenantCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "superTenantDisabledHint": "排障可进入",
   "@superTenantDisabledHint": {},
   "superTenantTrialExpired": "试点已到期",
@@ -5902,11 +6193,26 @@
   "superTenantPhaseBatch": "批量",
   "@superTenantPhaseBatch": {},
   "superTenantFarms": "{count} 个牧场",
-  "@superTenantFarms": {"placeholders": {"count": {"type": "int"}}},
+  "@superTenantFarms": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "superConfirmTitle": "确认进入身份",
   "@superConfirmTitle": {},
   "superConfirmBody": "将以「{tenant} · {role}」身份进入系统，进入后可随时在顶部横幅切换或退出该身份。",
-  "@superConfirmBody": {"placeholders": {"tenant": {"type": "String"}, "role": {"type": "String"}}},
+  "@superConfirmBody": {
+    "placeholders": {
+      "tenant": {
+        "type": "String"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
   "superConfirmAuditNote": "本次会话内的操作将以该身份记录审计日志（含超管代登标记）。",
   "@superConfirmAuditNote": {},
   "superConfirmDisabledWarning": "该租户已停用：数据可能不是最新状态，仅建议用于售后排障查看。",
@@ -5923,9 +6229,24 @@
   "superBannerTag": "超管代登",
   "@superBannerTag": {},
   "superBannerActingAs": "以【{tenant} · {role}】身份操作",
-  "@superBannerActingAs": {"placeholders": {"tenant": {"type": "String"}, "role": {"type": "String"}}},
+  "@superBannerActingAs": {
+    "placeholders": {
+      "tenant": {
+        "type": "String"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
   "superBannerActingAsPlatform": "以【{role}】身份操作",
-  "@superBannerActingAsPlatform": {"placeholders": {"role": {"type": "String"}}},
+  "@superBannerActingAsPlatform": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
   "superBannerAuditSubtext": "本次会话操作将记录审计日志",
   "@superBannerAuditSubtext": {},
   "superBannerSwitch": "切换",
@@ -5937,7 +6258,13 @@
   "superSwitchTitle": "切换身份",
   "@superSwitchTitle": {},
   "superSwitchCurrent": "当前：{value}",
-  "@superSwitchCurrent": {"placeholders": {"value": {"type": "String"}}},
+  "@superSwitchCurrent": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "superSwitchRecent": "最近使用",
   "@superSwitchRecent": {},
   "superSwitchMore": "选择其他身份…",
@@ -5949,5 +6276,34 @@
   "superSwitchExpiryHint": "免密切换在登录后 60 分钟内可用，超时需重新登录",
   "@superSwitchExpiryHint": {},
   "superMineSwitchIdentity": "切换身份",
-  "@superMineSwitchIdentity": {}
+  "@superMineSwitchIdentity": {},
+  "subscriptionHealthTrialTitle": "云端试点授权生效中",
+  "subscriptionHealthTrialBody": "{days, plural, =1{试点将于 1 天后到期} other{试点将于 {days} 天后到期}}，到期后自动切换基础档，不会停止数据访问。",
+  "subscriptionHealthRenewalFailedTitle": "续费扣款失败 · 请补缴恢复",
+  "subscriptionHealthRenewalFailedBody": "上次自动扣款未成功。完成补缴后立即恢复全部权益，无需等待。",
+  "subscriptionHealthSuspendedTitle": "订阅已暂停",
+  "subscriptionHealthSuspendedBody": "订阅被平台暂停，请联系支持团队恢复。",
+  "subscriptionHealthCancelledTitle": "订阅已取消",
+  "subscriptionHealthCancelledBody": "订阅已取消。可随时重新订阅恢复服务；到期后 30 天内仍可导出全部数据。",
+  "subscriptionHealthExpiredTitle": "订阅已到期 · 已切换基础档",
+  "subscriptionHealthExpiredBody": "平台不会停止您的数据访问：数据窗口已回落为 7 天，遥测导出预算降为 1000 次/天。续费后立即恢复。",
+  "subscriptionHealthExpiringTitle": "{days, plural, =1{订阅将于 1 天后到期} other{订阅将于 {days} 天后到期}}",
+  "subscriptionHealthExpiringBody": "到期后数据窗口将回落，建议提前续费保留完整回溯能力。",
+  "subscriptionHealthCtaRenew": "立即续费",
+  "subscriptionHealthCtaRepay": "前往补缴",
+  "subscriptionHealthCtaConvert": "转正式订阅",
+  "subscriptionHealthCtaExport": "导出我的数据",
+  "subscriptionExportTitle": "到期数据导出权",
+  "subscriptionExportBody": "您可以在到期后 30 天内一次性导出牧场全部历史数据（机器可读格式）。窗口剩余 {days} 天。",
+  "subscriptionExportRequest": "发起全量导出",
+  "subscriptionExportPending": "正在生成导出包…",
+  "subscriptionExportDownload": "下载导出包",
+  "subscriptionExportRetry": "重新生成",
+  "subscriptionHealthAdminTitle": "租户订阅健康度",
+  "subscriptionHealthFilterAll": "全部",
+  "subscriptionHealthFilterExpiring": "临期",
+  "subscriptionHealthFilterExpired": "已到期",
+  "subscriptionHealthFilterRepayment": "待补缴",
+  "subscriptionHealthFilterCancelled": "已取消",
+  "subscriptionHealthFilterTrial": "试点中"
 }

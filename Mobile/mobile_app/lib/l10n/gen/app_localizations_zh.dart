@@ -7527,4 +7527,112 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get superMineSwitchIdentity => '切换身份';
+
+  @override
+  String get subscriptionHealthTrialTitle => '云端试点授权生效中';
+
+  @override
+  String subscriptionHealthTrialBody(num days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '试点将于 $days 天后到期',
+      one: '试点将于 1 天后到期',
+    );
+    return '$_temp0，到期后自动切换基础档，不会停止数据访问。';
+  }
+
+  @override
+  String get subscriptionHealthRenewalFailedTitle => '续费扣款失败 · 请补缴恢复';
+
+  @override
+  String get subscriptionHealthRenewalFailedBody =>
+      '上次自动扣款未成功。完成补缴后立即恢复全部权益，无需等待。';
+
+  @override
+  String get subscriptionHealthSuspendedTitle => '订阅已暂停';
+
+  @override
+  String get subscriptionHealthSuspendedBody => '订阅被平台暂停，请联系支持团队恢复。';
+
+  @override
+  String get subscriptionHealthCancelledTitle => '订阅已取消';
+
+  @override
+  String get subscriptionHealthCancelledBody =>
+      '订阅已取消。可随时重新订阅恢复服务；到期后 30 天内仍可导出全部数据。';
+
+  @override
+  String get subscriptionHealthExpiredTitle => '订阅已到期 · 已切换基础档';
+
+  @override
+  String get subscriptionHealthExpiredBody =>
+      '平台不会停止您的数据访问：数据窗口已回落为 7 天，遥测导出预算降为 1000 次/天。续费后立即恢复。';
+
+  @override
+  String subscriptionHealthExpiringTitle(num days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '订阅将于 $days 天后到期',
+      one: '订阅将于 1 天后到期',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get subscriptionHealthExpiringBody => '到期后数据窗口将回落，建议提前续费保留完整回溯能力。';
+
+  @override
+  String get subscriptionHealthCtaRenew => '立即续费';
+
+  @override
+  String get subscriptionHealthCtaRepay => '前往补缴';
+
+  @override
+  String get subscriptionHealthCtaConvert => '转正式订阅';
+
+  @override
+  String get subscriptionHealthCtaExport => '导出我的数据';
+
+  @override
+  String get subscriptionExportTitle => '到期数据导出权';
+
+  @override
+  String subscriptionExportBody(Object days) {
+    return '您可以在到期后 30 天内一次性导出牧场全部历史数据（机器可读格式）。窗口剩余 $days 天。';
+  }
+
+  @override
+  String get subscriptionExportRequest => '发起全量导出';
+
+  @override
+  String get subscriptionExportPending => '正在生成导出包…';
+
+  @override
+  String get subscriptionExportDownload => '下载导出包';
+
+  @override
+  String get subscriptionExportRetry => '重新生成';
+
+  @override
+  String get subscriptionHealthAdminTitle => '租户订阅健康度';
+
+  @override
+  String get subscriptionHealthFilterAll => '全部';
+
+  @override
+  String get subscriptionHealthFilterExpiring => '临期';
+
+  @override
+  String get subscriptionHealthFilterExpired => '已到期';
+
+  @override
+  String get subscriptionHealthFilterRepayment => '待补缴';
+
+  @override
+  String get subscriptionHealthFilterCancelled => '已取消';
+
+  @override
+  String get subscriptionHealthFilterTrial => '试点中';
 }

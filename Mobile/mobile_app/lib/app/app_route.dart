@@ -53,6 +53,7 @@ enum AppRoute {
   helpSupport('/mine/help', 'help-support', '帮助与支持'),
   farmCreation('/farm/create', 'farm-creation', '创建牧场'),
   platformAuditLog('/admin/audit-logs', 'platform-audit-log', '审计日志'),
+  platformSubscriptionHealth('/admin/subscription-overview', 'platform-subscription-health', '订阅健康度'),
   platformFeatureGates('/admin/feature-gates', 'platform-feature-gates', '功能门控'),
   platformAnalytics('/admin/analytics', 'platform-analytics', '用量分析'),
   platformTileAdmin('/admin/tiles', 'platform-tile-admin', '瓦片管理'),

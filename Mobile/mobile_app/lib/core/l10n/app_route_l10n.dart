@@ -65,6 +65,7 @@ extension AppRouteL10n on AppRoute {
       case AppRoute.admin:
       case AppRoute.platformAdmin:
       case AppRoute.platformSubscriptions:
+      case AppRoute.platformSubscriptionHealth:
       case AppRoute.platformDeploymentLicense:
       case AppRoute.platformApiAuth:
       case AppRoute.platformAuditLog:

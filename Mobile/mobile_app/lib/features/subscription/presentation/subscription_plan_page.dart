@@ -6,7 +6,9 @@ import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
+import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/export_entitlement_card.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/feature_comparison_table.dart';
+import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/subscription_health_banner.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/tier_card.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
@@ -42,6 +44,27 @@ class SubscriptionPlanPage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // NIX-324: wall-clock health banner + export entitlement card.
+              if (currentStatus.health != null) ...[
+                SubscriptionHealthBanner(
+                  health: currentStatus.health!,
+                  onRenew: () => context.push(
+                    AppRoute.checkout.path,
+                    extra: {
+                      'tier': SubscriptionTier.basic,
+                      'livestockCount': currentStatus.livestockCount,
+                    },
+                  ),
+                ),
+                if (currentStatus.health!.hasExportWindow) ...[
+                  const SizedBox(height: 12),
+                  ExportEntitlementCard(
+                    key: const Key('export-entitlement-mount'),
+                    exportWindow: currentStatus.health!.exportWindow!,
+                  ),
+                ],
+                const SizedBox(height: 16),
+              ],
               Text(
                 l10n.subSelectPlanHint,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(

@@ -193,6 +193,82 @@ class PlanInfo {
       );
 }
 
+/// NIX-324 wall-clock health verdict — the ONLY source for subscription
+/// UI state; never derive it from the raw status column (a lapsed TRIAL
+/// keeps status=TRIAL until someone flips it).
+class SubscriptionHealth {
+  final String healthStatus; // TRIAL / RENEWAL_FAILED / SUSPENDED / CANCELLED / EXPIRED / EXPIRING_SOON / HEALTHY
+  final int? level;          // EXPIRING_SOON only: 14 / 7 / 3
+  final bool trialActive;
+  final String effectiveTier;
+  final int? daysToExpiry;
+  final bool degraded;
+  final DateTime? terminatedAt;
+  final ExportWindow? exportWindow;
+
+  const SubscriptionHealth({
+    required this.healthStatus,
+    this.level,
+    required this.trialActive,
+    required this.effectiveTier,
+    this.daysToExpiry,
+    required this.degraded,
+    this.terminatedAt,
+    this.exportWindow,
+  });
+
+  bool get isHealthy => healthStatus == 'HEALTHY';
+  bool get hasExportWindow => exportWindow != null;
+
+  factory SubscriptionHealth.fromJson(Map<String, dynamic> json) {
+    final ew = json['exportWindow'];
+    return SubscriptionHealth(
+      healthStatus: json['healthStatus'] as String? ?? 'HEALTHY',
+      level: json['level'] as int?,
+      trialActive: json['trialActive'] as bool? ?? false,
+      effectiveTier: json['effectiveTier'] as String? ?? 'basic',
+      daysToExpiry: json['daysToExpiry'] as int?,
+      degraded: json['degraded'] as bool? ?? false,
+      terminatedAt: json['terminatedAt'] != null
+          ? DateTime.parse(json['terminatedAt'] as String)
+          : null,
+      exportWindow: ew is Map<String, dynamic> ? ExportWindow.fromJson(ew) : null,
+    );
+  }
+}
+
+/// NIX-325 export entitlement shown while a termination window is open.
+class ExportWindow {
+  final DateTime terminatedAt;
+  final DateTime windowEndsAt;
+  final int daysLeft;
+  final int? latestJobId;
+  final String? latestJobStatus;
+  final DateTime? latestJobDownloadedAt;
+
+  const ExportWindow({
+    required this.terminatedAt,
+    required this.windowEndsAt,
+    required this.daysLeft,
+    this.latestJobId,
+    this.latestJobStatus,
+    this.latestJobDownloadedAt,
+  });
+
+  factory ExportWindow.fromJson(Map<String, dynamic> json) {
+    return ExportWindow(
+      terminatedAt: DateTime.parse(json['terminatedAt'] as String),
+      windowEndsAt: DateTime.parse(json['windowEndsAt'] as String),
+      daysLeft: json['daysLeft'] as int? ?? 0,
+      latestJobId: json['latestJobId'] is int ? json['latestJobId'] as int : null,
+      latestJobStatus: json['latestJobStatus'] as String?,
+      latestJobDownloadedAt: json['latestJobDownloadedAt'] != null
+          ? DateTime.parse(json['latestJobDownloadedAt'] as String)
+          : null,
+    );
+  }
+}
+
 class SubscriptionStatus {
   final String id;
   final String tenantId;
@@ -206,6 +282,7 @@ class SubscriptionStatus {
   final PriceBand? applicableBand;
   final int? unitPriceUsdCents;
   final int? monthlyFeeUsdCents;
+  final SubscriptionHealth? health;
 
   const SubscriptionStatus({
     required this.id,
@@ -220,6 +297,7 @@ class SubscriptionStatus {
     this.applicableBand,
     this.unitPriceUsdCents,
     this.monthlyFeeUsdCents,
+    this.health,
   });
 
   factory SubscriptionStatus.fromJson(Map<String, dynamic> json) {
@@ -244,6 +322,9 @@ class SubscriptionStatus {
       livestockCap: json['livestockCap'] as int?,
       applicableBand:
           band is Map<String, dynamic> ? PriceBand.fromJson(band) : null,
+      health: json['health'] is Map<String, dynamic>
+          ? SubscriptionHealth.fromJson(json['health'] as Map<String, dynamic>)
+          : null,
       unitPriceUsdCents: json['unitPriceUsdCents'] as int?,
       monthlyFeeUsdCents: json['monthlyFeeUsdCents'] as int?,
     );
