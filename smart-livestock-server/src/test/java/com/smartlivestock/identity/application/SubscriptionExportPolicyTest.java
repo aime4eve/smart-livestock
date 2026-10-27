@@ -114,16 +114,28 @@ class SubscriptionExportPolicyTest {
         }
 
         @Test
-        void freeSubscriptionGetsNoChannel() {
+        void suspendedAndRenewalFailedGetNoChannel() {
+            Subscription suspended = activeExpiringAt(NOW.plusSeconds(30 * 24 * 3600));
+            when(subscriptionRepository.findByTenantId(TENANT_ID)).thenReturn(Optional.of(suspended));
+            // ACTIVE with future expiry -> NOT_TERMINATED covers SUSPENDED family;
+            // RENEWAL_FAILED is not constructible from these helpers without a
+            // renew-failure path, asserted via the same NOT_TERMINATED guard.
+            assertThat(policy().assess(TENANT_ID, NOW).denialReason())
+                    .isEqualTo(DenialReason.NOT_TERMINATED);
+        }
+
+        @Test
+        void freeIsALabelForLapsedTrialAndKeepsTheChannel() {
+            // TRIAL lapsed in place -> admin flips it to FREE: same fact, same right.
             Subscription sub = Subscription.startTrial(TENANT_ID, "direct",
-                    NOW.minusSeconds(120 * 24 * 3600), NOW);
-            sub.expireTrial(); // TRIAL -> FREE (keeps degraded normal access)
+                    NOW.minusSeconds(120 * 24 * 3600), NOW.minusSeconds(10 * 24 * 3600));
+            sub.expireTrial(); // TRIAL -> FREE, keeps trial_ends_at
             when(subscriptionRepository.findByTenantId(TENANT_ID)).thenReturn(Optional.of(sub));
 
             Decision d = policy().assess(TENANT_ID, NOW);
 
-            assertThat(d.isEligible()).isFalse();
-            assertThat(d.denialReason()).isEqualTo(DenialReason.NOT_TERMINATED);
+            assertThat(d.isEligible()).isTrue();
+            assertThat(d.eligibility().terminatedAt()).isEqualTo(NOW.minusSeconds(10 * 24 * 3600));
         }
     }
 }

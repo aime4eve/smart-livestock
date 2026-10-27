@@ -106,6 +106,11 @@ public class Subscription extends AggregateRoot {
                 "Cannot grantTrial: subscription is ACTIVE");
         }
         this.status = SubscriptionStatus.TRIAL;
+        // Reset to the trial tier: a re-granted trial after ACTIVE/EXPIRED must
+        // not inherit the paid tier, otherwise effectiveTier() returns the
+        // stale PREMIUM once the trial lapses (degrade-don't-reject would then
+        // hand premium windows to a lapsed trial — NIX-324 review finding).
+        this.tier = SubscriptionTier.BASIC;
         this.trialEndsAt = newTrialEndsAt;
         this.expiresAt = null;
         this.cancelledAt = null;

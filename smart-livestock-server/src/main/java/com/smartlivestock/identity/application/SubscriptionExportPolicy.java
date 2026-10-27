@@ -13,12 +13,13 @@ import java.util.Optional;
  * (NIX-325, GDPR window ruling 2026-10-26).
  *
  * Terminated states: EXPIRED (anchor expiresAt), CANCELLED (anchor
- * cancelledAt) — plus an ACTIVE/TRIAL subscription whose expiry/trial-end
- * timestamp has already passed (nothing auto-flips the status column, so the
- * wall clock decides). RENEWAL_FAILED is deliberately excluded (repayment can
- * revive it) and FREE keeps the normal degraded access, so neither gets the
- * channel. Window: termination instant + windowDays (default 30, GDPR
- * Art. 12(3) one-month response standard, user ruling).
+ * cancelledAt), an ACTIVE whose expiresAt has passed, and TRIAL/FREE whose
+ * trial end has passed (FREE is expireTrial()'s label for a lapsed trial and
+ * keeps trial_ends_at — both labels anchor on it). Nothing auto-flips the
+ * status column, so the wall clock decides. RENEWAL_FAILED is deliberately
+ * excluded (repayment can revive it); SUSPENDED likewise. Window:
+ * termination instant + windowDays (default 30, GDPR Art. 12(3) one-month
+ * response standard, user ruling).
  */
 @Component
 public class SubscriptionExportPolicy {
@@ -55,9 +56,13 @@ public class SubscriptionExportPolicy {
             case CANCELLED -> Optional.of(firstNonNull(sub.getCancelledAt(), now));
             case ACTIVE -> Optional.of(sub.getExpiresAt())
                     .filter(end -> now.isAfter(end));
-            case TRIAL -> Optional.of(sub.getTrialEndsAt())
+            // TRIAL lapsed in place, or flipped to FREE via expireTrial() —
+            // same fact, two labels: expireTrial keeps trial_ends_at, so both
+            // anchor on it (NIX-324 review: excluding FREE made the export
+            // right depend on whether an admin happened to flip the status).
+            case TRIAL, FREE -> Optional.of(sub.getTrialEndsAt())
                     .filter(end -> now.isAfter(end));
-            default -> Optional.empty(); // FREE / SUSPENDED / RENEWAL_FAILED: no channel
+            default -> Optional.empty(); // SUSPENDED / RENEWAL_FAILED: no channel
         };
 
         if (terminatedAtOpt.isEmpty()) {

@@ -288,4 +288,41 @@ class SubscriptionApplicationServiceTest {
             verify(domainEventPublisher, never()).publishDomainEvents(any());
         }
     }
+
+    // ── grantTrial tier reset (NIX-324 review finding) ─────────────
+
+    @Nested
+    class GrantTrialTierReset {
+
+        @Test
+        void regrantAfterPremiumDropsTierToBasic() {
+            Subscription sub = createActiveSubscription(); // STANDARD after activate
+            sub.changeTier(SubscriptionTier.PREMIUM, "monthly", Instant.now().plusSeconds(30 * 86400));
+            sub.suspend();
+            Instant newEnd = Instant.now().plusSeconds(300 * 86400);
+
+            sub.grantTrial(newEnd);
+
+            assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.TRIAL);
+            assertThat(sub.getTier()).isEqualTo(SubscriptionTier.BASIC);
+            // While the trial is active the effective tier is PREMIUM again;
+            // after it lapses effectiveTier() falls back to BASIC, not the
+            // stale PREMIUM.
+            assertThat(sub.effectiveTier()).isEqualTo(SubscriptionTier.PREMIUM);
+        }
+
+        @Test
+        void lapsedRegrantedTrialResolvesToBasicNotStalePremium() {
+            Subscription sub = createActiveSubscription();
+            sub.changeTier(SubscriptionTier.PREMIUM, "monthly", Instant.now().plusSeconds(30 * 86400));
+            sub.suspend();
+            // Grant a trial that is ALREADY in the past (hosted-pilot edge: admin
+            // grants with the shared campaign end that has since passed).
+            sub.grantTrial(Instant.now().minusSeconds(86400));
+
+            assertThat(sub.isTrialActive()).isFalse();
+            assertThat(sub.effectiveTier()).isEqualTo(SubscriptionTier.BASIC);
+            assertThat(sub.isActiveOrTrial()).isTrue(); // degrade-don't-reject still applies
+        }
+    }
 }

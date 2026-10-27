@@ -164,6 +164,24 @@ tbody tr:hover { background: var(--primary-soft); }
       </div>
       <p class="screen-note">态③ RENEWAL_FAILED：warn 橙横幅 + 补缴直达（衔接 changeTier 补缴→ACTIVE 链路，0237fc9a）。RENEWAL_FAILED 有复活通道，**不出现**到期导出权卡（与 EXPIRED 的关键区别）。</p>
     </div>
+  <!-- 态 0：试点中（TRIAL，云端试点授权） -->
+  <div class="phone">
+    <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁ 100%</span></div>
+    <div class="appbar"><h2>订阅管理</h2><p>Hosted Pilot Ranch · 租户 #7</p></div>
+    <div class="body">
+      <div class="banner info">
+        <div class="b-head"><span class="dot"></span>云端试点授权生效中</div>
+        您正在免费试点期（全功能 Premium），截止 <b>2027-10-01</b>（平台统一推广期）。到期前 14 天起本页将出现分级提醒；到期后自动切换基础档，<b>不会停止数据访问</b>。
+        <br><a class="cta" href="#">转正式订阅</a><a class="cta ghost" href="#">试点说明</a>
+      </div>
+      <div class="sub-card">
+        <div class="row"><span class="k">当前套餐</span><span class="v">试点 · Premium 权益 <span class="pill info">试点中</span></span></div>
+        <div class="row"><span class="k">试点截止</span><span class="v">2027-10-01（平台统一）</span></div>
+        <div class="row"><span class="k">到期后</span><span class="v">自动降档 Basic（数据窗口 7 天）</span></div>
+        <div class="row"><span class="k">到期导出权</span><span class="v">到期后 30 天内可全量导出</span></div>
+      </div>
+      <p class="screen-note">态⓪ 试点中（TRIAL）：状态判定必须用 isTrialActive()/effectiveTier()（订阅快照），<b>禁止裸 status</b>——TRIAL 已过期但未被翻转时裸 status 仍显示 TRIAL，会误报"试点中"。试点到期与 ACTIVE 到期走同一套降档/导出权链路。转正式订阅 = activate（锚 expiresAt，续后走 ACTIVE 临期分级）。</p>
+    </div>
   </div>
 </div>
 
@@ -173,7 +191,8 @@ tbody tr:hover { background: var(--primary-soft); }
     <div class="admin-head">
       <h3>租户订阅健康度</h3>
       <div class="filters">
-        <span class="chip active">全部 6</span>
+        <span class="chip active">全部 7</span>
+        <span class="chip">试点中 1</span>
         <span class="chip">临期 2</span>
         <span class="chip">已到期 1</span>
         <span class="chip">待补缴 1</span>
@@ -184,6 +203,7 @@ tbody tr:hover { background: var(--primary-soft); }
       <thead><tr><th>租户</th><th>套餐 / 状态</th><th>到期时间</th><th>健康度</th><th>运营动作</th></tr></thead>
       <tbody>
         <tr><td><b>South Hill Ranch</b><br><span style="color:var(--text-secondary);font-size:11px">租户 #1</span></td><td>Premium <span class="pill ok">生效中</span></td><td>2027-06-30</td><td><span class="pill ok">健康</span></td><td>—</td></tr>
+        <tr><td><b>Hosted Pilot Ranch</b><br><span style="color:var(--text-secondary);font-size:11px">租户 #7</span></td><td>试点 · Premium 权益 <span class="pill info">试点中</span></td><td>2027-10-01<br><span style="color:var(--text-secondary);font-size:11px">平台统一截止</span></td><td><span class="pill info">试点</span></td><td><a href="#" style="color:var(--info)">转正式引导</a></td></tr>
         <tr><td><b>east-africa</b><br><span style="color:var(--text-secondary);font-size:11px">租户 #7</span></td><td>Premium <span class="pill warn">临期 13 天</span></td><td>2026-11-09</td><td><span class="pill warn">临期</span></td><td><a href="#" style="color:var(--info)">发送续费提醒</a></td></tr>
         <tr><td><b>Nix-lievstocks</b><br><span style="color:var(--text-secondary);font-size:11px">租户 #2</span></td><td>Standard <span class="pill warn">临期 5 天</span></td><td>2026-11-01</td><td><span class="pill warn">临期</span></td><td><a href="#" style="color:var(--info)">发送续费提醒</a></td></tr>
         <tr><td><b>超管排障验证-20261019</b><br><span style="color:var(--text-secondary);font-size:11px">租户 #1 分场</span></td><td>— <span class="pill bad">已到期（降档）</span></td><td>2026-10-17</td><td><span class="pill bad">到期</span></td><td><a href="#" style="color:var(--info)">跟进续费</a> · <a href="#" style="color:var(--text-secondary)">导出窗口剩 20 天</a></td></tr>
@@ -195,7 +215,7 @@ tbody tr:hover { background: var(--primary-soft); }
         <span><b style="background:var(--success)"></b>健康（>14 天）</span>
         <span><b style="background:var(--warning)"></b>临期（14/7/3 分级）</span>
         <span><b style="background:var(--danger)"></b>已到期降档</span>
-        <span><b style="background:var(--info)"></b>RENEWAL_FAILED 可复活</span>
+        <span><b style="background:var(--info)"></b>RENEWAL_FAILED 可复活 / 试点中</span>
       </div>
       <p class="count-note">默认按紧迫度排序（临期天数升序 → 到期 → 待补缴）；导出窗口中的租户显示 NIX-325 窗口剩余天数，关闭后标记移除。</p>
     </div>
