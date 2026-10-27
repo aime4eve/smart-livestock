@@ -22,6 +22,16 @@ public class JpaGpsLogRepositoryImpl implements GpsLogRepository {
     private final SpringDataGpsLogRepository springDataRepo;
 
     @Override
+    public com.smartlivestock.shared.domain.TelemetryPage<GpsLog> findPageByDeviceId(Long deviceId, int page, int pageSize) {
+        var result = springDataRepo.findByDeviceId(deviceId,
+                org.springframework.data.domain.PageRequest.of(Math.max(0, page - 1), pageSize));
+        return new com.smartlivestock.shared.domain.TelemetryPage<>(
+                result.getContent().stream().map(GpsLogMapper::toDomain).toList(),
+                page, pageSize, result.getTotalElements());
+    }
+
+
+    @Override
     public GpsLog save(GpsLog gpsLog) {
         // Idempotent upsert on (device_id, recorded_at): re-syncs from the
         // agentic-platform no longer stack duplicate rows. Then re-read the

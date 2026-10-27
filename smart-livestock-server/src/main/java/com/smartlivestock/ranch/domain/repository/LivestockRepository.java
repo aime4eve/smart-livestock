@@ -10,6 +10,8 @@ public interface LivestockRepository {
     Livestock save(Livestock livestock);
     Optional<Livestock> findById(Long id);
     List<Livestock> findByFarmId(Long farmId);
+    /** Excludes soft-deleted rows (deleted_at IS NULL) — export and admin surfaces. */
+    List<Livestock> findActiveByFarmId(Long farmId);
 
     /** Batch lookup by ids, soft-deleted rows excluded. */
     List<Livestock> findAllByIdIn(Collection<Long> ids);

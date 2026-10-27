@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface SpringDataLivestockRepository extends JpaRepository<LivestockJpaEntity, Long> {
     @Query("SELECT l FROM LivestockJpaEntity l WHERE l.farmId = :farmId AND l.deletedAt IS NULL")
     List<LivestockJpaEntity> findByFarmId(@Param("farmId") Long farmId);
+    List<LivestockJpaEntity> findByFarmIdAndDeletedAtIsNull(@Param("farmId") Long farmId);
 
     @Query("SELECT l FROM LivestockJpaEntity l WHERE l.id IN :ids AND l.deletedAt IS NULL")
     List<LivestockJpaEntity> findAllByIdIn(@Param("ids") Collection<Long> ids);

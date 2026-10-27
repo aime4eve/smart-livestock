@@ -10,6 +10,8 @@ import java.util.Optional;
 public interface GpsLogRepository {
     GpsLog save(GpsLog gpsLog);
     List<GpsLog> findByDeviceId(Long deviceId);
+    /** Paged read for full-farm data export (NIX-325); keeps memory bounded. */
+    com.smartlivestock.shared.domain.TelemetryPage<GpsLog> findPageByDeviceId(Long deviceId, int page, int pageSize);
     List<GpsLog> findByDeviceIdAndRecordedAtBetween(Long deviceId, Instant from, Instant to);
     long countByDeviceIdAndRecordedAtBetween(Long deviceId, Instant from, Instant to);
 

@@ -40,6 +40,16 @@ public class TemperatureLogRepositoryImpl implements TemperatureLogRepository {
                 .map(HealthMapper::toDomain), page, pageSize);
     }
 
+
+    @Override
+    public com.smartlivestock.shared.domain.TelemetryPage<TemperatureLog> findPageByLivestockIn(java.util.List<Long> livestockIds, org.springframework.data.domain.Pageable pageable) {
+        if (livestockIds == null || livestockIds.isEmpty()) {
+            return com.smartlivestock.shared.domain.TelemetryPage.empty(pageable.getPageNumber() + 1, pageable.getPageSize());
+        }
+        return toPage(jpaRepo.findPageByLivestockIdIn(livestockIds, pageable).map(HealthMapper::toDomain),
+                pageable.getPageNumber() + 1, pageable.getPageSize());
+    }
+
     private static <T> TelemetryPage<T> toPage(Page<T> result, int page, int pageSize) {
         return new TelemetryPage<>(result.getContent(), page, pageSize, result.getTotalElements());
     }

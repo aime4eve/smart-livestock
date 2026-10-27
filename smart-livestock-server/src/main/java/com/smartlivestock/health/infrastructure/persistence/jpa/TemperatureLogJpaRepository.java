@@ -47,4 +47,12 @@ public interface TemperatureLogJpaRepository extends JpaRepository<TemperatureLo
             """, nativeQuery = true)
     List<Object[]> aggregateDailyStatsRows(@Param("livestockIds") List<Long> livestockIds,
                                            @Param("since") Instant since);
+
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT t FROM TemperatureLogJpaEntity t WHERE t.livestockId IN :livestockIds
+            ORDER BY t.livestockId ASC, t.recordedAt ASC
+            """)
+    org.springframework.data.domain.Page<TemperatureLogJpaEntity> findPageByLivestockIdIn(
+            @org.springframework.data.repository.query.Param("livestockIds") List<Long> livestockIds,
+            org.springframework.data.domain.Pageable pageable);
 }

@@ -20,4 +20,12 @@ public interface RumenMotilityLogJpaRepository extends JpaRepository<RumenMotili
             Long deviceId, Instant from, Instant to, Pageable pageable);
 
     Optional<RumenMotilityLogJpaEntity> findFirstByDeviceIdAndRawCounterIsNotNullOrderByRecordedAtDesc(Long deviceId);
+
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT t FROM RumenMotilityLogJpaEntity t WHERE t.livestockId IN :livestockIds
+            ORDER BY t.livestockId ASC, t.recordedAt ASC
+            """)
+    org.springframework.data.domain.Page<RumenMotilityLogJpaEntity> findPageByLivestockIdIn(
+            @org.springframework.data.repository.query.Param("livestockIds") List<Long> livestockIds,
+            org.springframework.data.domain.Pageable pageable);
 }

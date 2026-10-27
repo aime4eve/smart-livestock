@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIX-324 订阅到期/降档双端提示 — 高保真原型</title>
+<style>
+:root {
+  --accent: #8BA95A;
+  --border: #D7D2C6;
+  --danger: #C2564B;
+  --danger-soft: #F7E5E2;
+  --info: #4A7F9D;
+  --info-soft: #E2EDF4;
+  --primary: #2F6B3B;
+  --primary-dark: #244F2D;
+  --primary-soft: #E3F0E4;
+  --warning: #D28A2D;
+  --warning-soft: #F7EDDD;
+  --success: #4C9A5F;
+  --surface: #F8F6F0;
+  --surface-alt: #FFFFFF;
+  --text-primary: #263126;
+  --text-secondary: #617061;
+  --xs: 4px; --sm: 8px; --md: 12px; --lg: 16px; --xl: 24px; --xxl: 32px;
+  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px;
+  --shadow-card: 0 1px 3px rgba(38,49,38,.06), 0 1px 2px rgba(38,49,38,.04);
+  --shadow-elev: 0 4px 16px rgba(38,49,38,.12);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--surface); color: var(--text-primary); padding: var(--xl); }
+.page-title h1 { font-size: 22px; font-weight: 700; }
+.page-title p { font-size: 13px; color: var(--text-secondary); margin-top: var(--xs); }
+.section-label { font-size: 14px; font-weight: 700; color: var(--primary); margin: var(--xxl) 0 var(--md); display: flex; align-items: center; gap: var(--sm); }
+.section-label .tag { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--primary-soft); color: var(--primary-dark); }
+.flow-grid { display: flex; gap: var(--xl); flex-wrap: wrap; align-items: flex-start; }
+
+/* ── 手机帧（订阅端） ── */
+.phone { width: 340px; background: var(--surface-alt); border: 1px solid var(--border); border-radius: 28px; box-shadow: var(--shadow-elev); overflow: hidden; flex-shrink: 0; }
+.phone .statusbar { height: 34px; display: flex; justify-content: space-between; align-items: center; padding: 0 var(--lg); font-size: 12px; font-weight: 600; background: var(--surface-alt); }
+.phone .appbar { padding: var(--md) var(--lg); background: var(--primary); color: #fff; }
+.phone .appbar h2 { font-size: 16px; font-weight: 700; }
+.phone .appbar p { font-size: 11px; opacity: .8; margin-top: 2px; }
+.phone .body { padding: var(--lg); display: flex; flex-direction: column; gap: var(--md); background: var(--surface); min-height: 520px; }
+
+/* 三态横幅 */
+.banner { border-radius: var(--radius-md); padding: var(--md); font-size: 12px; line-height: 1.55; border: 1px solid; }
+.banner .b-head { display: flex; align-items: center; gap: var(--sm); font-weight: 700; font-size: 13px; margin-bottom: var(--xs); }
+.banner .b-head .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.banner.info { background: var(--info-soft); border-color: var(--info); }
+.banner.info .dot { background: var(--info); }
+.banner.warn { background: var(--warning-soft); border-color: var(--warning); }
+.banner.warn .dot { background: var(--warning); }
+.banner.danger { background: var(--danger-soft); border-color: var(--danger); }
+.banner.danger .dot { background: var(--danger); }
+.banner .cta { margin-top: var(--sm); display: inline-block; font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: var(--radius-sm); background: var(--primary); color: #fff; text-decoration: none; }
+.banner .cta.ghost { background: transparent; color: var(--primary); border: 1px solid var(--primary); margin-left: var(--sm); }
+
+/* 订阅状态卡 */
+.sub-card { background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--lg); box-shadow: var(--shadow-card); }
+.sub-card .row { display: flex; justify-content: space-between; align-items: center; padding: var(--sm) 0; font-size: 13px; border-bottom: 1px dashed var(--border); }
+.sub-card .row:last-child { border-bottom: none; }
+.sub-card .row .k { color: var(--text-secondary); }
+.sub-card .row .v { font-weight: 600; }
+.pill { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+.pill.ok { background: var(--primary-soft); color: var(--primary-dark); }
+.pill.warn { background: var(--warning-soft); color: var(--warning); }
+.pill.bad { background: var(--danger-soft); color: var(--danger); }
+.pill.info { background: var(--info-soft); color: var(--info); }
+
+/* 导出权卡（NIX-325 衔接） */
+.export-card { background: var(--surface-alt); border: 1px dashed var(--info); border-radius: var(--radius-md); padding: var(--lg); font-size: 12px; line-height: 1.6; }
+.export-card h4 { font-size: 13px; color: var(--info); margin-bottom: var(--xs); display: flex; align-items: center; gap: var(--sm); }
+.progress { height: 6px; border-radius: 999px; background: var(--info-soft); margin: var(--sm) 0; overflow: hidden; }
+.progress i { display: block; height: 100%; background: var(--info); border-radius: 999px; }
+
+/* ── 管理端表格 ── */
+.admin-panel { background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-elev); overflow: hidden; flex: 1; min-width: 720px; }
+.admin-head { padding: var(--lg) var(--xl); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.admin-head h3 { font-size: 15px; }
+.admin-head .filters { display: flex; gap: var(--sm); }
+.chip { font-size: 12px; padding: 5px 14px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-secondary); cursor: pointer; background: var(--surface-alt); }
+.chip.active { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 600; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { text-align: left; padding: var(--md) var(--lg); background: var(--surface); color: var(--text-secondary); font-weight: 600; font-size: 12px; border-bottom: 1px solid var(--border); }
+tbody td { padding: var(--md) var(--lg); border-bottom: 1px solid var(--border); }
+tbody tr:hover { background: var(--primary-soft); }
+.count-note { font-size: 12px; color: var(--text-secondary); margin-top: var(--sm); }
+.legend { display: flex; gap: var(--lg); font-size: 12px; color: var(--text-secondary); margin-top: var(--md); }
+.legend span b { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
+.screen-note { font-size: 12px; color: var(--text-secondary); max-width: 340px; margin-top: var(--sm); line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  <h1>NIX-324 订阅到期/降档双端提示 — 高保真原型</h1>
+  <p>2026-10-27 · 订阅端三态分级提示 + 到期导出权入口（衔接 NIX-325）+ platform_admin 全租户预警 · 设计令牌对齐 design-tokens.md</p>
+</div>
+
+<div class="section-label">一、订阅端（租户 App · 我的/订阅页横幅 + 状态卡）<span class="tag">Flutter 移动端</span></div>
+<div class="flow-grid">
+
+  <!-- 态 1：临期 14 天 -->
+  <div class="phone">
+    <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁ 100%</span></div>
+    <div class="appbar"><h2>订阅管理</h2><p>South Hill Ranch · 租户 #1</p></div>
+    <div class="body">
+      <div class="banner info">
+        <div class="b-head"><span class="dot"></span>订阅将于 14 天后到期</div>
+        您的 Premium 订阅将于 <b>2026-11-10</b> 到期。到期后数据窗口将回落至 7 天，建议提前续费以保留完整 180 天健康数据回溯。
+        <br><a class="cta" href="#">立即续费</a><a class="cta ghost" href="#">稍后提醒</a>
+      </div>
+      <div class="sub-card">
+        <div class="row"><span class="k">当前套餐</span><span class="v">Premium · $2.65/头/月 <span class="pill ok">生效中</span></span></div>
+        <div class="row"><span class="k">计费周期</span><span class="v">月付</span></div>
+        <div class="row"><span class="k">到期时间</span><span class="v">2026-11-10（剩 14 天）</span></div>
+        <div class="row"><span class="k">数据窗口</span><span class="v">180 天</span></div>
+      </div>
+      <p class="screen-note">态① 临期 14 天：info 蓝横幅，说明到期后果（窗口回落），双按钮「续费/稍后提醒」。7 天态同结构换 warning 橙 + 文案紧迫度提升；3 天态换 danger 红 + 取消「稍后提醒」。</p>
+    </div>
+  </div>
+
+  <!-- 态 2：已到期（降档生效） -->
+  <div class="phone">
+    <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁ 100%</span></div>
+    <div class="appbar"><h2>订阅管理</h2><p>South Hill Ranch · 租户 #1</p></div>
+    <div class="body">
+      <div class="banner danger">
+        <div class="b-head"><span class="dot"></span>订阅已到期 · 已切换基础档</div>
+        平台不会停止您的数据访问（降档不拒绝）：数据查询窗口已回落为 <b>7 天</b>，遥测导出预算降为 1000 次/天。续费后立即恢复 Premium 全部权益。
+        <br><a class="cta" href="#">续费恢复 Premium</a><a class="cta ghost" href="#">导出我的数据</a>
+      </div>
+      <div class="sub-card">
+        <div class="row"><span class="k">当前套餐</span><span class="v">Basic（降档生效）<span class="pill bad">已到期</span></span></div>
+        <div class="row"><span class="k">到期时间</span><span class="v">2026-10-17（10 天前）</span></div>
+        <div class="row"><span class="k">数据窗口</span><span class="v">7 天</span></div>
+        <div class="row"><span class="k">遥测导出</span><span class="v">1000 次/天</span></div>
+      </div>
+      <div class="export-card">
+        <h4>⬇ 到期数据导出权（GDPR 口径）</h4>
+        您可以在到期后 <b>30 天内</b>一次性导出牧场的全部历史数据（机器可读格式）。窗口将于 <b>2026-11-16</b> 关闭。
+        <div class="progress"><i style="width:33%"></i></div>
+        剩余 20 天 · <a href="#" style="color:var(--info);font-weight:600">发起全量导出</a>
+      </div>
+      <p class="screen-note">态② 已到期：danger 红横幅明示「降档不拒绝」政策与具体影响数字，主 CTA 续费、副 CTA 直接跳导出权卡。导出权卡显示窗口倒计时进度，衔接 NIX-325 的 request/download API。</p>
+    </div>
+  </div>
+
+  <!-- 态 3：续费失败（RENEWAL_FAILED 补缴） -->
+  <div class="phone">
+    <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁ 100%</span></div>
+    <div class="appbar"><h2>订阅管理</h2><p>South Hill Ranch · 租户 #1</p></div>
+    <div class="body">
+      <div class="banner warn">
+        <div class="b-head"><span class="dot"></span>续费扣款失败 · 请补缴恢复</div>
+        上次自动扣款未成功（10-25）。完成补缴后立即恢复 Premium，无需等待；账户当前按基础档运行。
+        <br><a class="cta" href="#">前往补缴</a>
+      </div>
+      <div class="sub-card">
+        <div class="row"><span class="k">当前套餐</span><span class="v">Basic（临时）<span class="pill warn">待补缴</span></span></div>
+        <div class="row"><span class="k">失败原因</span><span class="v">扣款卡过期</span></div>
+        <div class="row"><span class="k">补缴后</span><span class="v">立即恢复 Premium + 180 天窗口</span></div>
+      </div>
+      <p class="screen-note">态③ RENEWAL_FAILED：warn 橙横幅 + 补缴直达（衔接 changeTier 补缴→ACTIVE 链路，0237fc9a）。RENEWAL_FAILED 有复活通道，**不出现**到期导出权卡（与 EXPIRED 的关键区别）。</p>
+    </div>
+  </div>
+</div>
+
+<div class="section-label">二、管理端（platform_admin · 全租户订阅健康度）<span class="tag">Web Admin</span></div>
+<div class="flow-grid">
+  <div class="admin-panel">
+    <div class="admin-head">
+      <h3>租户订阅健康度</h3>
+      <div class="filters">
+        <span class="chip active">全部 6</span>
+        <span class="chip">临期 2</span>
+        <span class="chip">已到期 1</span>
+        <span class="chip">待补缴 1</span>
+        <span class="chip">导出窗口中 1</span>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>租户</th><th>套餐 / 状态</th><th>到期时间</th><th>健康度</th><th>运营动作</th></tr></thead>
+      <tbody>
+        <tr><td><b>South Hill Ranch</b><br><span style="color:var(--text-secondary);font-size:11px">租户 #1</span></td><td>Premium <span class="pill ok">生效中</span></td><td>2027-06-30</td><td><span class="pill ok">健康</span></td><td>—</td></tr>
+        <tr><td><b>east-africa</b><br><span style="color:var(--text-secondary);font-size:11px">租户 #7</span></td><td>Premium <span class="pill warn">临期 13 天</span></td><td>2026-11-09</td><td><span class="pill warn">临期</span></td><td><a href="#" style="color:var(--info)">发送续费提醒</a></td></tr>
+        <tr><td><b>Nix-lievstocks</b><br><span style="color:var(--text-secondary);font-size:11px">租户 #2</span></td><td>Standard <span class="pill warn">临期 5 天</span></td><td>2026-11-01</td><td><span class="pill warn">临期</span></td><td><a href="#" style="color:var(--info)">发送续费提醒</a></td></tr>
+        <tr><td><b>超管排障验证-20261019</b><br><span style="color:var(--text-secondary);font-size:11px">租户 #1 分场</span></td><td>— <span class="pill bad">已到期（降档）</span></td><td>2026-10-17</td><td><span class="pill bad">到期</span></td><td><a href="#" style="color:var(--info)">跟进续费</a> · <a href="#" style="color:var(--text-secondary)">导出窗口剩 20 天</a></td></tr>
+        <tr><td><b>Demo Ranch</b><br><span style="color:var(--text-secondary);font-size:11px">租户 #3</span></td><td>Premium <span class="pill info">待补缴</span></td><td>2026-10-25</td><td><span class="pill info">可复活</span></td><td><a href="#" style="color:var(--info)">协助补缴</a></td></tr>
+      </tbody>
+    </table>
+    <div style="padding: var(--md) var(--xl);">
+      <div class="legend">
+        <span><b style="background:var(--success)"></b>健康（>14 天）</span>
+        <span><b style="background:var(--warning)"></b>临期（14/7/3 分级）</span>
+        <span><b style="background:var(--danger)"></b>已到期降档</span>
+        <span><b style="background:var(--info)"></b>RENEWAL_FAILED 可复活</span>
+      </div>
+      <p class="count-note">默认按紧迫度排序（临期天数升序 → 到期 → 待补缴）；导出窗口中的租户显示 NIX-325 窗口剩余天数，关闭后标记移除。</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

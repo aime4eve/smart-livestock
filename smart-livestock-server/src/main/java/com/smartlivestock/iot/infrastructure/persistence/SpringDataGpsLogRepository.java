@@ -1,6 +1,8 @@
 package com.smartlivestock.iot.infrastructure.persistence;
 
 import com.smartlivestock.iot.infrastructure.persistence.entity.GpsLogJpaEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -89,4 +91,7 @@ public interface SpringDataGpsLogRepository extends JpaRepository<GpsLogJpaEntit
           @Param("deviceId") Long deviceId,
           @Param("startTime") Instant startTime,
           @Param("endTime") Instant endTime);
+
+    /** Paged read for full-farm data export (NIX-325); keeps memory bounded. */
+    Page<GpsLogJpaEntity> findByDeviceId(Long deviceId, Pageable pageable);
 }

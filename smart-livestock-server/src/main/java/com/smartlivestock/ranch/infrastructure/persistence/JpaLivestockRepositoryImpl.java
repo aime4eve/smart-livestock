@@ -46,6 +46,13 @@ public class JpaLivestockRepositoryImpl implements LivestockRepository {
     }
 
     @Override
+    public List<Livestock> findActiveByFarmId(Long farmId) {
+        return springDataRepo.findByFarmIdAndDeletedAtIsNull(farmId).stream()
+                .map(LivestockMapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public List<Livestock> findAllByIdIn(Collection<Long> ids) {
         if (ids == null || ids.isEmpty()) {
             return List.of();

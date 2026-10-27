@@ -10,6 +10,8 @@ import java.util.List;
 public interface TemperatureLogRepository {
     List<TemperatureLog> findByLivestockIdAndTimeRange(Long livestockId, Instant from, Instant to);
     TelemetryPage<TemperatureLog> findPageByLivestock(Long livestockId, Instant from, Instant to, int page, int pageSize);
+    /** Paged batch read across livestock for full-farm export (NIX-325). */
+    TelemetryPage<TemperatureLog> findPageByLivestockIn(java.util.List<Long> livestockIds, org.springframework.data.domain.Pageable pageable);
     TelemetryPage<TemperatureLog> findPageByDevice(Long deviceId, Instant from, Instant to, int page, int pageSize);
     List<TemperatureLog> findLatestByLivestockIds(List<Long> livestockIds, int limitPerLivestock);
     List<TemperatureLog> findByLivestockIdOrderByRecordedAtDesc(Long livestockId, int limit);

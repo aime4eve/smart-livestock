@@ -12,4 +12,12 @@ public interface ActivityLogJpaRepository extends JpaRepository<ActivityLogJpaEn
     List<ActivityLogJpaEntity> findByLivestockIdAndRecordedAtBetweenOrderByRecordedAtAsc(Long livestockId, Instant from, Instant to);
     Page<ActivityLogJpaEntity> findByLivestockIdAndRecordedAtBetweenOrderByRecordedAtAsc(Long livestockId, Instant from, Instant to, Pageable pageable);
     List<ActivityLogJpaEntity> findByLivestockIdOrderByRecordedAtDesc(Long livestockId);
+
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT t FROM ActivityLogJpaEntity t WHERE t.livestockId IN :livestockIds
+            ORDER BY t.livestockId ASC, t.recordedAt ASC
+            """)
+    org.springframework.data.domain.Page<ActivityLogJpaEntity> findPageByLivestockIdIn(
+            @org.springframework.data.repository.query.Param("livestockIds") List<Long> livestockIds,
+            org.springframework.data.domain.Pageable pageable);
 }
