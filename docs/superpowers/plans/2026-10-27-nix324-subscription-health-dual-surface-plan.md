@@ -13,8 +13,9 @@
 ## Task 1：共享判定器 `SubscriptionHealthEvaluator`（后端）
 - commerce 域新组件：输入 `Subscription` + `Instant now` + NIX-325 窗口配置，输出 spec §2 判定矩阵结果 record（healthStatus/level/trialActive/effectiveTier/daysToExpiry/degraded/exportWindow）。
 - exportWindow 查询 `DataExportJobRepository.findByTenantIdOrderByIdDesc` 取最新 job。
-- 单测：判定矩阵 #1–#6 全分支 + TRIAL 过期未翻转回归（裸 status 陷阱）+ 同日到期边界。
+- 单测：判定矩阵 #1–#7 全分支 + TRIAL 过期未翻转回归（裸 status 陷阱）+ 同日到期边界（**≥2 租户才置 sameDayGroup**，v1.1 新增）。
 - 验证：单测全绿；判定口径与 TenantSubscriptionResolver/SubscriptionExportPolicy 三处一致（评审点）。
+- 评审修订（spec v1.1）：矩阵纳入 SUSPENDED 态；CANCELLED 复活 CTA 落 `reactivate`/`changeTier`（**不渲染 changeTier 于 SUSPENDED**——该态仅 reactivate，避免 409）。
 
 ## Task 2：租户端接口扩展（后端）
 - `GET /subscription` 响应加 `health` 块（Task 1 判定器）；契约文档 app-api.md 同步 + changelog。
