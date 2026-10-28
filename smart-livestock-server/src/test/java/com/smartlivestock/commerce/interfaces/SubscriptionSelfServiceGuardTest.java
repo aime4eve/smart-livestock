@@ -3,10 +3,14 @@ package com.smartlivestock.commerce.interfaces;
 import com.smartlivestock.commerce.application.dto.SubscriptionResponse;
 import com.smartlivestock.commerce.application.query.SubscriptionQueryService;
 import com.smartlivestock.commerce.application.service.SubscriptionApplicationService;
+import com.smartlivestock.commerce.application.service.SubscriptionHealthEvaluator;
 import com.smartlivestock.commerce.domain.model.SubscriptionTier;
+import com.smartlivestock.commerce.domain.repository.SubscriptionRepository;
 import com.smartlivestock.commerce.infrastructure.persistence.SpringDataSubscriptionRepository;
 import com.smartlivestock.commerce.interfaces.admin.AdminSubscriptionController;
 import com.smartlivestock.commerce.interfaces.app.SubscriptionController;
+import com.smartlivestock.identity.application.SubscriptionExportPolicy;
+import com.smartlivestock.identity.domain.repository.DataExportJobRepository;
 import com.smartlivestock.licensing.application.LicenseModeGuard;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
@@ -52,6 +56,14 @@ class SubscriptionSelfServiceGuardTest {
     private SubscriptionQueryService subscriptionQueryService;
     @Mock
     private SpringDataSubscriptionRepository springDataSubscriptionRepository;
+    @Mock
+    private SubscriptionHealthEvaluator subscriptionHealthEvaluator;
+    @Mock
+    private SubscriptionRepository subscriptionRepository;
+    @Mock
+    private SubscriptionExportPolicy subscriptionExportPolicy;
+    @Mock
+    private DataExportJobRepository dataExportJobRepository;
 
     @BeforeEach
     void setUp() {
@@ -73,7 +85,9 @@ class SubscriptionSelfServiceGuardTest {
         void onPremCheckoutIsRejectedWithLicenseRequired() {
             SubscriptionController controller = new SubscriptionController(
                     subscriptionApplicationService, subscriptionQueryService,
-                    new LicenseModeGuard("ONPREM"));
+                    new LicenseModeGuard("ONPREM"),
+                    subscriptionHealthEvaluator, subscriptionRepository,
+                    subscriptionExportPolicy, dataExportJobRepository);
 
             assertThatThrownBy(() -> controller.checkout(Map.of("tier", "PREMIUM")))
                     .isInstanceOf(ApiException.class)
@@ -88,7 +102,9 @@ class SubscriptionSelfServiceGuardTest {
         void onPremTierChangeIsRejectedWithLicenseRequired() {
             SubscriptionController controller = new SubscriptionController(
                     subscriptionApplicationService, subscriptionQueryService,
-                    new LicenseModeGuard("ONPREM"));
+                    new LicenseModeGuard("ONPREM"),
+                    subscriptionHealthEvaluator, subscriptionRepository,
+                    subscriptionExportPolicy, dataExportJobRepository);
 
             assertThatThrownBy(() -> controller.upgradeTier(Map.of("tier", "STANDARD")))
                     .isInstanceOf(ApiException.class)
@@ -102,7 +118,9 @@ class SubscriptionSelfServiceGuardTest {
         void onPremCancelIsRejectedWithLicenseRequired() {
             SubscriptionController controller = new SubscriptionController(
                     subscriptionApplicationService, subscriptionQueryService,
-                    new LicenseModeGuard("ONPREM"));
+                    new LicenseModeGuard("ONPREM"),
+                    subscriptionHealthEvaluator, subscriptionRepository,
+                    subscriptionExportPolicy, dataExportJobRepository);
 
             assertThatThrownBy(controller::cancel)
                     .isInstanceOf(ApiException.class)
@@ -116,7 +134,9 @@ class SubscriptionSelfServiceGuardTest {
         void hostedCheckoutKeepsWorking() {
             SubscriptionController controller = new SubscriptionController(
                     subscriptionApplicationService, subscriptionQueryService,
-                    new LicenseModeGuard("HOSTED"));
+                    new LicenseModeGuard("HOSTED"),
+                    subscriptionHealthEvaluator, subscriptionRepository,
+                    subscriptionExportPolicy, dataExportJobRepository);
             when(subscriptionQueryService.findByTenantId(TENANT_ID))
                     .thenReturn(Optional.of(subscription("PREMIUM", "ACTIVE")));
 
@@ -180,7 +200,9 @@ class SubscriptionSelfServiceGuardTest {
     void onPremReadEndpointsStayUsable() {
         SubscriptionController controller = new SubscriptionController(
                 subscriptionApplicationService, subscriptionQueryService,
-                new LicenseModeGuard("ONPREM"));
+                new LicenseModeGuard("ONPREM"),
+                subscriptionHealthEvaluator, subscriptionRepository,
+                subscriptionExportPolicy, dataExportJobRepository);
         when(subscriptionQueryService.findByTenantId(TENANT_ID))
                 .thenReturn(Optional.of(subscription("BASIC", "FREE")));
 

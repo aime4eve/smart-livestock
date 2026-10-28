@@ -318,8 +318,8 @@ public class SignalQueryService {
         AiSignal ai = new AiSignal(aiStatus, aiScoreValue, aiScoreType, aiScoreAt);
 
         GpsCoordinate position = location == null ? null : new GpsCoordinate(
-                location.getLatitude(),
-                location.getLongitude()
+                BigDecimal.valueOf(location.getLatitude()),
+                BigDecimal.valueOf(location.getLongitude())
         );
         boolean insideAnyFence = position != null && fences.stream()
                 .filter(Fence::isActive)
@@ -381,8 +381,8 @@ public class SignalQueryService {
                             .toList();
                     int count = (int) snapshots.stream()
                             .filter(snapshot -> fence.contains(new GpsCoordinate(
-                                    snapshot.getLatitude(),
-                                    snapshot.getLongitude()
+                                    BigDecimal.valueOf(snapshot.getLatitude()),
+                                    BigDecimal.valueOf(snapshot.getLongitude())
                             )))
                             .count();
                     return new MapFenceSignal(
@@ -411,8 +411,8 @@ public class SignalQueryService {
         return new PositionSignal(
                 snapshot.getLivestockId(),
                 snapshot.getPositionRevision(),
-                snapshot.getLatitude(),
-                snapshot.getLongitude(),
+                BigDecimal.valueOf(snapshot.getLatitude()),
+                BigDecimal.valueOf(snapshot.getLongitude()),
                 snapshot.getRecordedAt(),
                 age,
                 locationFreshness(age),

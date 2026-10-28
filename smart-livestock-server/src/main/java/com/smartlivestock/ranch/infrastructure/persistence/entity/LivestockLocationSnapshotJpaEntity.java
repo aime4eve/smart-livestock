@@ -21,14 +21,16 @@ public class LivestockLocationSnapshotJpaEntity {
     @Column(name = "device_id", nullable = false)
     private Long deviceId;
 
+    // Columns are DOUBLE PRECISION in the migration (V20260927090000);
+    // BigDecimal would map to numeric(38,2) and fail schema validation.
     @Column(name = "latitude", nullable = false)
-    private BigDecimal latitude;
+    private Double latitude;
 
     @Column(name = "longitude", nullable = false)
-    private BigDecimal longitude;
+    private Double longitude;
 
     @Column(name = "accuracy")
-    private BigDecimal accuracy;
+    private Double accuracy;
 
     @Column(name = "recorded_at", nullable = false)
     private Instant recordedAt;
@@ -48,12 +50,12 @@ public class LivestockLocationSnapshotJpaEntity {
     public void setFarmId(Long farmId) { this.farmId = farmId; }
     public Long getDeviceId() { return deviceId; }
     public void setDeviceId(Long deviceId) { this.deviceId = deviceId; }
-    public BigDecimal getLatitude() { return latitude; }
-    public void setLatitude(BigDecimal latitude) { this.latitude = latitude; }
-    public BigDecimal getLongitude() { return longitude; }
-    public void setLongitude(BigDecimal longitude) { this.longitude = longitude; }
-    public BigDecimal getAccuracy() { return accuracy; }
-    public void setAccuracy(BigDecimal accuracy) { this.accuracy = accuracy; }
+    public Double getLatitude() { return latitude; }
+    public void setLatitude(Double latitude) { this.latitude = latitude; }
+    public Double getLongitude() { return longitude; }
+    public void setLongitude(Double longitude) { this.longitude = longitude; }
+    public Double getAccuracy() { return accuracy; }
+    public void setAccuracy(Double accuracy) { this.accuracy = accuracy; }
     public Instant getRecordedAt() { return recordedAt; }
     public void setRecordedAt(Instant recordedAt) { this.recordedAt = recordedAt; }
     public String getSource() { return source; }

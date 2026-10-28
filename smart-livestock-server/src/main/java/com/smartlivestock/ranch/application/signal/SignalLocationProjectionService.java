@@ -57,9 +57,9 @@ public class SignalLocationProjectionService {
         entity.setLivestockId(livestockId);
         entity.setFarmId(farmId);
         entity.setDeviceId(deviceId);
-        entity.setLatitude(latitude);
-        entity.setLongitude(longitude);
-        entity.setAccuracy(accuracy);
+        entity.setLatitude(latitude.doubleValue());
+        entity.setLongitude(longitude.doubleValue());
+        entity.setAccuracy(accuracy != null ? accuracy.doubleValue() : null);
         entity.setRecordedAt(recordedAt);
         entity.setSource(source);
         entity.setPositionRevision(positionRevision);
