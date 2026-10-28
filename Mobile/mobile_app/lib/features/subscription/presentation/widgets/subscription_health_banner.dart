@@ -24,7 +24,7 @@ class SubscriptionHealthBanner extends StatelessWidget {
     if (health.isHealthy) return const SizedBox.shrink();
 
     final l10n = AppLocalizations.of(context)!;
-    final severity = _severityFor(health.healthStatus);
+    final severity = _severityFor(health);
     final (title, body) = _copyFor(l10n, health);
 
     return Container(
@@ -101,36 +101,37 @@ class SubscriptionHealthBanner extends StatelessWidget {
     );
   }
 
-  static _Severity _severityFor(String healthStatus) {
-    switch (healthStatus) {
+  // Spec §2 matrix colours: renewal_failed/suspended = warn orange;
+  // trial and expiring_soon escalate through level (14 info → 7 warn →
+  // 3 danger); cancelled/expired = danger red.
+  static _Severity _severityFor(SubscriptionHealth h) {
+    switch (h.healthStatus) {
       case 'TRIAL':
+        // Matrix #1: info blue, ≤14/7/3 days reuse the level colours.
+        return h.level != null ? severityForLevel(h.level!) : _info;
       case 'RENEWAL_FAILED':
       case 'SUSPENDED':
-        return const _Severity(
-            accent: Color(0xFF4A7F9D), background: Color(0xFFE2EDF4));
+        return _warn;
       case 'EXPIRING_SOON':
-        // Escalating colour by level: 14 info → 7 warn → 3 danger.
-        return const _Severity(
-            accent: Color(0xFFD28A2D), background: Color(0xFFF7EDDD));
+        return severityForLevel(h.level ?? 14);
       case 'CANCELLED':
       case 'EXPIRED':
       default:
-        return const _Severity(
-            accent: Color(0xFFC2564B), background: Color(0xFFF7E5E2));
+        return _danger;
     }
   }
 
+  static const _info = _Severity(
+      accent: Color(0xFF4A7F9D), background: Color(0xFFE2EDF4));
+  static const _warn = _Severity(
+      accent: Color(0xFFD28A2D), background: Color(0xFFF7EDDD));
+  static const _danger = _Severity(
+      accent: Color(0xFFC2564B), background: Color(0xFFF7E5E2));
+
   static _Severity severityForLevel(int level) {
-    if (level <= 3) {
-      return const _Severity(
-          accent: Color(0xFFC2564B), background: Color(0xFFF7E5E2));
-    }
-    if (level <= 7) {
-      return const _Severity(
-          accent: Color(0xFFD28A2D), background: Color(0xFFF7EDDD));
-    }
-    return const _Severity(
-        accent: Color(0xFF4A7F9D), background: Color(0xFFE2EDF4));
+    if (level <= 3) return _danger;
+    if (level <= 7) return _warn;
+    return _info;
   }
 
   (String, String) _copyFor(dynamic l10n, SubscriptionHealth h) {

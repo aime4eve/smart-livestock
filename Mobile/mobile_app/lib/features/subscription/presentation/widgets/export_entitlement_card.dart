@@ -123,19 +123,20 @@ class _ExportEntitlementCardState extends State<ExportEntitlementCard> {
     final total = w.windowEndsAt.difference(w.terminatedAt).inDays;
     final progress = total <= 0 ? 0.0 : (w.daysLeft / total).clamp(0.0, 1.0);
 
-    return Container(
+    return CustomPaint(
       key: const Key('export-entitlement-card'),
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceAlt,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFF4A7F9D),
-          width: 1,
+      // Prototype/spec §5: dashed --info border (Flutter has no dashed
+      // border primitive — a small painter walks the rounded rect).
+      painter: _DashedRoundedBorderPainter(
+          color: const Color(0xFF4A7F9D), radius: 12),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceAlt,
+          borderRadius: BorderRadius.circular(12),
         ),
-      ),
-      child: Column(
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -177,6 +178,7 @@ class _ExportEntitlementCardState extends State<ExportEntitlementCard> {
           const SizedBox(height: 12),
           _actionRow(l10n),
         ],
+      ),
       ),
     );
   }
@@ -238,4 +240,34 @@ class _ExportEntitlementCardState extends State<ExportEntitlementCard> {
         );
     }
   }
+}
+
+/// Dashed rounded-rect border painter (prototype: dashed --info border).
+class _DashedRoundedBorderPainter extends CustomPainter {
+  final Color color;
+  final double radius;
+  _DashedRoundedBorderPainter({required this.color, required this.radius});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    final path = Path()
+      ..addRRect(RRect.fromRectAndRadius(
+          Offset.zero & size, Radius.circular(radius)));
+    for (final metric in path.computeMetrics()) {
+      const dash = 5.0, gap = 4.0;
+      var dist = 0.0;
+      while (dist < metric.length) {
+        canvas.drawPath(metric.extractPath(dist, dist + dash), paint);
+        dist += dash + gap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedRoundedBorderPainter old) =>
+      old.color != color || old.radius != radius;
 }

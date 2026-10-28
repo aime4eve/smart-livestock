@@ -14042,6 +14042,54 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'试点中'**
   String get subscriptionHealthFilterTrial;
+
+  /// No description provided for @subscriptionHealthFilterSuspended.
+  ///
+  /// In zh, this message translates to:
+  /// **'已暂停'**
+  String get subscriptionHealthFilterSuspended;
+
+  /// No description provided for @subscriptionHealthFilterHealthy.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康'**
+  String get subscriptionHealthFilterHealthy;
+
+  /// No description provided for @subscriptionHealthSearchHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索租户名'**
+  String get subscriptionHealthSearchHint;
+
+  /// No description provided for @subscriptionHealthLegendHealthy.
+  ///
+  /// In zh, this message translates to:
+  /// **'健康（>14 天）'**
+  String get subscriptionHealthLegendHealthy;
+
+  /// No description provided for @subscriptionHealthLegendExpiring.
+  ///
+  /// In zh, this message translates to:
+  /// **'临期（14/7/3 分级）'**
+  String get subscriptionHealthLegendExpiring;
+
+  /// No description provided for @subscriptionHealthLegendExpired.
+  ///
+  /// In zh, this message translates to:
+  /// **'已到期降档'**
+  String get subscriptionHealthLegendExpired;
+
+  /// No description provided for @subscriptionHealthLegendRevivable.
+  ///
+  /// In zh, this message translates to:
+  /// **'待补缴可复活 / 试点'**
+  String get subscriptionHealthLegendRevivable;
+
+  /// No description provided for @subscriptionHealthSortNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'共 {total} 个租户 · 按紧迫度排序（临期天数升序 → 到期 → 待补缴）'**
+  String subscriptionHealthSortNote(int total);
 }
 
 class _AppLocalizationsDelegate

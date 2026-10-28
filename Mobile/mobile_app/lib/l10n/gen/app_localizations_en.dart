@@ -7828,4 +7828,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get subscriptionHealthFilterTrial => 'Trial';
+
+  @override
+  String get subscriptionHealthFilterSuspended => 'Suspended';
+
+  @override
+  String get subscriptionHealthFilterHealthy => 'Healthy';
+
+  @override
+  String get subscriptionHealthSearchHint => 'Search tenant name';
+
+  @override
+  String get subscriptionHealthLegendHealthy => 'Healthy (>14d)';
+
+  @override
+  String get subscriptionHealthLegendExpiring => 'Expiring (14/7/3)';
+
+  @override
+  String get subscriptionHealthLegendExpired => 'Expired · degraded';
+
+  @override
+  String get subscriptionHealthLegendRevivable => 'Revivable / trial';
+
+  @override
+  String subscriptionHealthSortNote(int total) {
+    return '$total tenants · sorted by urgency (days-to-expiry asc → expired → repayment)';
+  }
 }

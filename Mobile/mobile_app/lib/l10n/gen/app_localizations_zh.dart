@@ -7635,4 +7635,30 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get subscriptionHealthFilterTrial => '试点中';
+
+  @override
+  String get subscriptionHealthFilterSuspended => '已暂停';
+
+  @override
+  String get subscriptionHealthFilterHealthy => '健康';
+
+  @override
+  String get subscriptionHealthSearchHint => '搜索租户名';
+
+  @override
+  String get subscriptionHealthLegendHealthy => '健康（>14 天）';
+
+  @override
+  String get subscriptionHealthLegendExpiring => '临期（14/7/3 分级）';
+
+  @override
+  String get subscriptionHealthLegendExpired => '已到期降档';
+
+  @override
+  String get subscriptionHealthLegendRevivable => '待补缴可复活 / 试点';
+
+  @override
+  String subscriptionHealthSortNote(int total) {
+    return '共 $total 个租户 · 按紧迫度排序（临期天数升序 → 到期 → 待补缴）';
+  }
 }

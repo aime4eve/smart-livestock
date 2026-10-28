@@ -6305,5 +6305,20 @@
   "subscriptionHealthFilterExpired": "已到期",
   "subscriptionHealthFilterRepayment": "待补缴",
   "subscriptionHealthFilterCancelled": "已取消",
-  "subscriptionHealthFilterTrial": "试点中"
+  "subscriptionHealthFilterTrial": "试点中",
+  "subscriptionHealthFilterSuspended": "已暂停",
+  "subscriptionHealthFilterHealthy": "健康",
+  "subscriptionHealthSearchHint": "搜索租户名",
+  "subscriptionHealthLegendHealthy": "健康（>14 天）",
+  "subscriptionHealthLegendExpiring": "临期（14/7/3 分级）",
+  "subscriptionHealthLegendExpired": "已到期降档",
+  "subscriptionHealthLegendRevivable": "待补缴可复活 / 试点",
+  "subscriptionHealthSortNote": "共 {total} 个租户 · 按紧迫度排序（临期天数升序 → 到期 → 待补缴）",
+  "@subscriptionHealthSortNote": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  }
 }

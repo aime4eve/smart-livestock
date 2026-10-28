@@ -6309,5 +6309,20 @@
   "subscriptionHealthFilterExpired": "Expired",
   "subscriptionHealthFilterRepayment": "Repayment",
   "subscriptionHealthFilterCancelled": "Cancelled",
-  "subscriptionHealthFilterTrial": "Trial"
+  "subscriptionHealthFilterTrial": "Trial",
+  "subscriptionHealthFilterSuspended": "Suspended",
+  "subscriptionHealthFilterHealthy": "Healthy",
+  "subscriptionHealthSearchHint": "Search tenant name",
+  "subscriptionHealthLegendHealthy": "Healthy (>14d)",
+  "subscriptionHealthLegendExpiring": "Expiring (14/7/3)",
+  "subscriptionHealthLegendExpired": "Expired · degraded",
+  "subscriptionHealthLegendRevivable": "Revivable / trial",
+  "subscriptionHealthSortNote": "{total} tenants · sorted by urgency (days-to-expiry asc → expired → repayment)",
+  "@subscriptionHealthSortNote": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  }
 }

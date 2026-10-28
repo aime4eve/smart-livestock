@@ -15,11 +15,24 @@ class SubscriptionHealthPage extends StatefulWidget {
 }
 
 class _SubscriptionHealthPageState extends State<SubscriptionHealthPage> {
-  static const _filters = ['all', 'EXPIRING_SOON', 'EXPIRED', 'RENEWAL_FAILED', 'CANCELLED', 'TRIAL'];
+  // Spec §4.2 enum: all eight values (prototype showed six — suspended and
+  // healthy were added by the spec review v1.1).
+  static const _filters = [
+    'all',
+    'EXPIRING_SOON',
+    'EXPIRED',
+    'RENEWAL_FAILED',
+    'CANCELLED',
+    'SUSPENDED',
+    'TRIAL',
+    'HEALTHY',
+  ];
 
   List<Map<String, dynamic>> _items = [];
   int _total = 0;
   String _filter = 'all';
+  String _keyword = '';
+  final TextEditingController _searchCtrl = TextEditingController();
   String? _error;
   bool _loading = true;
 
@@ -29,11 +42,19 @@ class _SubscriptionHealthPageState extends State<SubscriptionHealthPage> {
     _load();
   }
 
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      final data = await ApiClient.instance
-          .get('/admin/subscription-overview?health=$_filter&pageSize=100');
+      // Backend params: health / keyword / size (not pageSize).
+      final data = await ApiClient.instance.get(
+          '/admin/subscription-overview?health=$_filter&size=100'
+          '${_keyword.trim().isEmpty ? '' : '&keyword=${Uri.encodeQueryComponent(_keyword.trim())}'}');
       if (!mounted) return;
       setState(() {
         _items = (data['items'] as List? ?? [])
@@ -61,6 +82,39 @@ class _SubscriptionHealthPageState extends State<SubscriptionHealthPage> {
       ),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md, AppSpacing.md, AppSpacing.md, 0),
+            child: SizedBox(
+              height: 38,
+              child: TextField(
+                key: const Key('health-keyword'),
+                controller: _searchCtrl,
+                onSubmitted: (v) {
+                  _keyword = v;
+                  _load();
+                },
+                decoration: InputDecoration(
+                  isDense: true,
+                  hintText: l10n.subscriptionHealthSearchHint,
+                  prefixIcon: const Icon(Icons.search, size: 18),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                  suffixIcon: _keyword.isEmpty
+                      ? null
+                      : IconButton(
+                          icon: const Icon(Icons.close, size: 16),
+                          onPressed: () {
+                            _searchCtrl.clear();
+                            _keyword = '';
+                            _load();
+                          },
+                        ),
+                ),
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(AppSpacing.md),
             child: SizedBox(
@@ -103,22 +157,61 @@ class _SubscriptionHealthPageState extends State<SubscriptionHealthPage> {
             Expanded(
               child: ListView.builder(
                 itemCount: _items.length,
-                itemBuilder: (context, i) => _row(_items[i]),
+                itemBuilder: (context, i) => _row(l10n, _items[i]),
               ),
             ),
+          // Legend footer (prototype: four-colour legend + urgency note).
           Padding(
-            padding: const EdgeInsets.all(AppSpacing.sm),
-            child: Text('$_total',
-                key: const Key('health-total'),
-                style: const TextStyle(
-                    fontSize: 12, color: AppColors.textSecondary)),
+            padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.md),
+            child: Column(
+              children: [
+                Wrap(
+                  spacing: AppSpacing.lg,
+                  runSpacing: AppSpacing.xs,
+                  children: [
+                    _legendDot(l10n.subscriptionHealthLegendHealthy,
+                        const Color(0xFF4C9A5F)),
+                    _legendDot(l10n.subscriptionHealthLegendExpiring,
+                        const Color(0xFFD28A2D)),
+                    _legendDot(l10n.subscriptionHealthLegendExpired,
+                        const Color(0xFFC2564B)),
+                    _legendDot(l10n.subscriptionHealthLegendRevivable,
+                        const Color(0xFF4A7F9D)),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  l10n.subscriptionHealthSortNote(_total),
+                  key: const Key('health-total'),
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _row(Map<String, dynamic> r) {
+  Widget _legendDot(String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        const SizedBox(width: 5),
+        Text(label,
+            style: const TextStyle(
+                fontSize: 12, color: AppColors.textSecondary)),
+      ],
+    );
+  }
+
+  Widget _row(dynamic l10n, Map<String, dynamic> r) {
     final status = r['healthStatus'] as String? ?? '';
     final sameDay = r['sameDayGroup'] as bool? ?? false;
     final ew = r['exportWindow'];
@@ -155,7 +248,7 @@ class _SubscriptionHealthPageState extends State<SubscriptionHealthPage> {
           ),
           Expanded(
             flex: 2,
-            child: _pill(status),
+            child: _pill(l10n, status),
           ),
           Expanded(
             flex: 2,
@@ -183,21 +276,33 @@ class _SubscriptionHealthPageState extends State<SubscriptionHealthPage> {
     );
   }
 
-  Widget _pill(String status) {
+  Widget _pill(dynamic l10n, String status) {
     final (bg, fg) = switch (status) {
       'EXPIRING_SOON' => (const Color(0xFFF7EDDD), const Color(0xFFD28A2D)),
       'EXPIRED' || 'CANCELLED' => (const Color(0xFFF7E5E2), const Color(0xFFC2564B)),
       'RENEWAL_FAILED' || 'TRIAL' => (const Color(0xFFE2EDF4), const Color(0xFF4A7F9D)),
       _ => (AppColors.primarySoft, AppColors.primaryDark),
     };
+    // Localised label (AGENTS §4.1): never render the raw enum to users.
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
           color: bg, borderRadius: BorderRadius.circular(999)),
-      child: Text(status,
+      child: Text(_statusLabel(l10n, status),
           style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: fg)),
     );
   }
+
+  String _statusLabel(dynamic l10n, String status) => switch (status) {
+        'EXPIRING_SOON' => l10n.subscriptionHealthFilterExpiring,
+        'EXPIRED' => l10n.subscriptionHealthFilterExpired,
+        'RENEWAL_FAILED' => l10n.subscriptionHealthFilterRepayment,
+        'CANCELLED' => l10n.subscriptionHealthFilterCancelled,
+        'SUSPENDED' => l10n.subscriptionHealthFilterSuspended,
+        'TRIAL' => l10n.subscriptionHealthFilterTrial,
+        'HEALTHY' => l10n.subscriptionHealthFilterHealthy,
+        _ => status,
+      };
 
   String _filterLabel(dynamic l10n, String f) => switch (f) {
         'all' => l10n.subscriptionHealthFilterAll,
@@ -205,7 +310,9 @@ class _SubscriptionHealthPageState extends State<SubscriptionHealthPage> {
         'EXPIRED' => l10n.subscriptionHealthFilterExpired,
         'RENEWAL_FAILED' => l10n.subscriptionHealthFilterRepayment,
         'CANCELLED' => l10n.subscriptionHealthFilterCancelled,
+        'SUSPENDED' => l10n.subscriptionHealthFilterSuspended,
         'TRIAL' => l10n.subscriptionHealthFilterTrial,
+        'HEALTHY' => l10n.subscriptionHealthFilterHealthy,
         _ => f,
       };
 }

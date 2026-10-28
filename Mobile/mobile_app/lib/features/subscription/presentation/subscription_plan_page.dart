@@ -22,6 +22,18 @@ class SubscriptionPlanPage extends ConsumerWidget {
     SubscriptionTier.enterprise,
   ];
 
+  /// NIX-324 fidelity fix D1: the banner CTA preselects the checkout tier by
+  /// state — renewal/repayment restores the paid tier kept on the
+  /// subscription row (EXPIRED rows keep e.g. PREMIUM; effectiveTier is the
+  /// degraded view), trial conversion recommends PREMIUM (trial rows are
+  /// BASIC, prototype state 0).
+  static SubscriptionTier _renewalTargetTier(
+      SubscriptionTier rowTier, SubscriptionHealth health) {
+    return health.healthStatus == 'TRIAL'
+        ? SubscriptionTier.premium
+        : rowTier;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
@@ -51,7 +63,12 @@ class SubscriptionPlanPage extends ConsumerWidget {
                   onRenew: () => context.push(
                     AppRoute.checkout.path,
                     extra: {
-                      'tier': SubscriptionTier.basic,
+                      // Restore semantics: renewal/repayment re-checks-out the
+                      // paid tier the subscription row keeps; trial conversion
+                      // lands on the recommended paid tier (trial rows are
+                      // BASIC, prototype state 0 "转正式订阅").
+                      'tier': _renewalTargetTier(
+                          currentStatus.tier, currentStatus.health!),
                       'livestockCount': currentStatus.livestockCount,
                     },
                   ),
