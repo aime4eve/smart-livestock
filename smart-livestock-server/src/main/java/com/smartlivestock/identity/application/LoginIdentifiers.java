@@ -84,6 +84,19 @@ public final class LoginIdentifiers {
         return java.util.List.copyOf(out);
     }
 
+    /**
+     * Duplicate check comparing a normalized candidate against stored data.
+     * Stored forms mix E.164 (post 2026-10-19) and legacy bare numbers, so
+     * equality must go through {@link #phoneCandidates} — a plain
+     * {@code normPhone.equals(stored)} misses same-number legacy rows and
+     * lets duplicate accounts through (NIX-330).
+     */
+    public static boolean phoneMatchesStored(String normPhone, String storedPhone) {
+        return normPhone != null && storedPhone != null
+                && !storedPhone.isBlank()
+                && phoneCandidates(normPhone).contains(storedPhone);
+    }
+
     /** Classifies raw input for login routing. */
     public static Kind classify(String raw) {
         if (raw == null || raw.isBlank()) return Kind.INVALID;

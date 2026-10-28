@@ -68,7 +68,8 @@ public class OwnerWorkerController {
             if (normEmail != null && normEmail.equalsIgnoreCase(existing.getEmail())) {
                 throw new ApiException(ErrorCode.DUPLICATE_RESOURCE, "user.emailDuplicate");
             }
-            if (normPhone != null && normPhone.equals(existing.getPhone())) {
+            if (com.smartlivestock.identity.application.LoginIdentifiers
+                    .phoneMatchesStored(normPhone, existing.getPhone())) {
                 throw new ApiException(ErrorCode.DUPLICATE_RESOURCE, "user.phoneDuplicate");
             }
         }

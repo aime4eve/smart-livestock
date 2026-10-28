@@ -61,12 +61,15 @@ public class MeController {
         boolean identifierTouched = false;
         if (body.containsKey("phone")) {
             String norm = com.smartlivestock.identity.application.LoginIdentifiers.normalizePhone(body.get("phone"));
-            if (norm != null && !norm.equals(user.getPhone())) identifierTouched = true;
+            boolean unchanged = com.smartlivestock.identity.application.LoginIdentifiers
+                    .phoneMatchesStored(norm, user.getPhone());
+            if (norm != null && !unchanged) identifierTouched = true;
             if (norm != null && !com.smartlivestock.identity.application.LoginIdentifiers.isValidPhone(norm)) {
                 throw new ApiException(ErrorCode.VALIDATION_ERROR, "user.invalidPhone");
             }
-            if (norm != null && !norm.equals(user.getPhone())) {
-                requireUnique(other -> norm.equals(other.getPhone()), "user.phoneDuplicate");
+            if (norm != null && !unchanged) {
+                requireUnique(other -> com.smartlivestock.identity.application.LoginIdentifiers
+                        .phoneMatchesStored(norm, other.getPhone()), "user.phoneDuplicate");
                 user.setPhone(norm);
             } else if (norm == null) {
                 user.setPhone(null);
