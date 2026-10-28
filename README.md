@@ -1,5 +1,8 @@
 # 智慧畜牧（Smart Livestock）
 
+[![Backend CI](https://github.com/aime4eve/smart-livestock/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/aime4eve/smart-livestock/actions/workflows/backend-ci.yml)
+[![Flutter CI](https://github.com/aime4eve/smart-livestock/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/aime4eve/smart-livestock/actions/workflows/flutter-ci.yml)
+
 面向牧场主的牲畜管理平台：通过 IoT 设备（GPS 追踪器、瘤胃胶囊、加速度计等）实现定位、健康预警与行为分析。当前主线由 **Flutter 移动端** 与 **Spring Boot 后端**组成，PC 端仅保留历史归档。
 
 **仓库：** [github.com/aime4eve/smart-livestock](https://github.com/aime4eve/smart-livestock) · 默认分支 `master` · 应用标识 `hkt-livestock-agentic`

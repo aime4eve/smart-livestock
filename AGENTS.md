@@ -97,6 +97,21 @@
 
 ---
 
+## 5b. CI 守护协议（2026-10-28 起，双流水线必须常绿）
+
+> 背景：Backend CI 自 10-06、Flutter CI 自 09-28 连红近月无人感知。根因=CI 是事后验证不是门禁（直推 master，部署走本地 deploy.sh），且本地无 Docker 时 Testcontainers/schema-validate 类失败全被遮住。修复复盘见知识库 `10-Projects/02-smart-livestock/2026-10-28-GitHub-CI双流水线复绿.md`。
+
+1. **push 前预检**：改动后端或前端代码后，跑 `./scripts/precheck-ci.sh`（≈6 分钟，本地逐字复刻两条流水线：后端全量单测 + flutter analyze + 全量测试，`CI=true` 使 golden/字体类测试与 CI 同步 skip）。纯 docs/marketing 改动可跳过。
+2. **push 后盯绿才算收口**：推送后用 `gh run list` 确认两条流水线绿（触发条件按 paths 过滤，只改后端只会跑 Backend CI）。红了**立即修**，不允许带着红 CI 结束会话或开始新任务。
+3. **防 validate/约束类失败的静态对账**（写代码时就要做，CI 才能查）：
+   - 实体字段类型必须与 Flyway 列类型一致：JSONB 列必带 `@Column(columnDefinition = "jsonb")`（带 converter 也一样）；`DOUBLE PRECISION` 列用 `Double` 不用 `BigDecimal`；UUID 列用 `java.util.UUID`。
+   - `@DataJpaTest` 只注册 Spring Data 接口——测试注入手写 `@Repository` 实现类必须 `@Import`。
+   - 集成测试 fixture 的插入值（枚举/状态列）必须对照迁移里的 CHECK 约束。
+   - Hibernate validate 报错即停：修一处 mismatch 前，先全量静态对账该实体所有字段与迁移 DDL。
+4. **golden 测试跨平台不可比**：一律 `skip: Platform.environment['CI']=='true'`（先例 `truth_reference_tab_visual_capture_test`），本地生成比对，禁止把 golden 比对留给 CI。
+
+---
+
 ## 6. 故障层定位（先定位层，再查症状）
 
 **先判断工作单元在哪一层损坏，只修那一层。最容易被编辑的层（代码）总替外层背锅。**
