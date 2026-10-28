@@ -86,7 +86,9 @@ public abstract class AbstractJourneyTest {
 
     @SuppressWarnings("unchecked")
     protected String login(String phone, String password) {
-        Map<String, String> body = Map.of("phone", phone, "password", password);
+        // Login identifier unification (2026-10-19): the field is "identifier"
+        // (account/email/phone in E.164); the old "phone" key yields 401.
+        Map<String, String> body = Map.of("identifier", phone, "password", password);
         ResponseEntity<Map> resp = restTemplate.postForEntity("/api/v1/auth/login", body, Map.class);
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         Map<String, Object> data = (Map<String, Object>) resp.getBody().get("data");
@@ -95,7 +97,7 @@ public abstract class AbstractJourneyTest {
 
     @SuppressWarnings("unchecked")
     protected ResponseEntity<Map> loginRaw(String phone, String password) {
-        Map<String, String> body = Map.of("phone", phone, "password", password);
+        Map<String, String> body = Map.of("identifier", phone, "password", password);
         return restTemplate.postForEntity("/api/v1/auth/login", body, Map.class);
     }
 

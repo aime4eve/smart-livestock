@@ -78,10 +78,10 @@ ssh "$HOST" "cd $REMOTE_ROOT/smart-livestock-server && \
 STATUS=$?
 
 echo ""
-if [[ $STATUS -eq 0 ]]; then
+if [[ ${STATUS} -eq 0 ]]; then
   echo "🟢 远程测试全绿。"
 else
-  echo "🔴 远程测试失败（exit $STATUS）。定位："
+  echo "🔴 远程测试失败（exit ${STATUS}）。定位："
   echo "   ssh $HOST 'grep -l \"<failure\" $REMOTE_ROOT/smart-livestock-server/build/test-results/test/*.xml'"
 fi
-exit $STATUS
+exit ${STATUS}
