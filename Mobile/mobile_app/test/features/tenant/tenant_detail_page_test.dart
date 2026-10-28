@@ -57,6 +57,12 @@ class _FakeAdminRepository implements AdminRepository {
   }
 
   @override
+  Future<TenantSubscription?> loadTenantSubscription(String tenantId) async {
+    if (loadError != null) throw loadError!;
+    return null;
+  }
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
 
@@ -169,6 +175,8 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.byKey(const Key('tenant-create-user')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('tenant-create-user')));
       await tester.pumpAndSettle();
 
@@ -180,7 +188,7 @@ void main() {
       expect(find.byKey(const Key('create-user-confirm')), findsOneWidget);
     });
 
-    testWidgets('创建用户表单校验手机号', (tester) async {
+    testWidgets('创建用户表单校验必填与标识符至少一项', (tester) async {
       final repo = _FakeAdminRepository(
         tenantDetail: _testTenant(),
         users: _testUsers(),
@@ -194,22 +202,34 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.byKey(const Key('tenant-create-user')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('tenant-create-user')));
       await tester.pumpAndSettle();
 
-      // Submit empty form
+      // Submit empty form: required-field validators fire first
+      await tester.ensureVisible(find.byKey(const Key('create-user-confirm')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('create-user-confirm')));
       await tester.pump();
 
-      expect(find.text('手机号不能为空'), findsOneWidget);
+      expect(find.text('用户名不能为空'), findsOneWidget);
 
-      // Enter invalid phone
+      // Fill required fields but leave all three identifiers empty:
+      // submit fails inside the dialog (no close-on-fail, 2026-10-19).
       await tester.enterText(
-          find.byKey(const Key('create-user-phone')), '123');
+          find.byKey(const Key('create-user-name')), '新用户');
+      await tester.enterText(
+          find.byKey(const Key('create-user-password')), 'Passw0rd!');
+      await tester.enterText(
+          find.byKey(const Key('create-user-password-confirm')), 'Passw0rd!');
       await tester.tap(find.byKey(const Key('create-user-confirm')));
       await tester.pump();
 
-      expect(find.text('请输入正确的11位手机号'), findsOneWidget);
+      expect(find.textContaining('用户账号/手机号/邮箱至少填写一项'),
+          findsOneWidget);
+      // Dialog stays open after failure.
+      expect(find.byKey(const Key('create-user-dialog')), findsOneWidget);
     });
 
     testWidgets('用户启停按钮显示正确状态', (tester) async {

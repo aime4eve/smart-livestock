@@ -49,9 +49,6 @@ class _ExportEntitlementCardState extends State<ExportEntitlementCard> {
     super.dispose();
   }
 
-  bool get _isTerminal =>
-      _jobStatus == 'COMPLETED' || _jobStatus == 'FAILED' || _jobStatus == 'EXPIRED_CLEANED';
-
   void _maybeResumePolling() {
     if (_jobStatus == 'PENDING') {
       _startPolling();

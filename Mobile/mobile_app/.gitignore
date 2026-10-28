@@ -48,3 +48,6 @@ app.*.map.json
 tooling/backup_*/
 tooling/preview_*.png
 tooling/app-icon-watermarked-original.png
+
+# golden test failure debug artifacts (isolated/masked/master/test diffs)
+test/**/failures/

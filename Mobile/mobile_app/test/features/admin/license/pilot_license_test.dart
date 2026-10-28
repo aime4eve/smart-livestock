@@ -2,12 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
+import 'package:hkt_livestock_agentic/features/admin/domain/admin_repository.dart'
+    as admin;
+import 'package:hkt_livestock_agentic/features/admin/presentation/admin_controller.dart';
 import 'package:hkt_livestock_agentic/features/admin/license/domain/deployment_license_models.dart';
 import 'package:hkt_livestock_agentic/features/admin/license/presentation/deployment_license_controller.dart';
 import 'package:hkt_livestock_agentic/features/admin/presentation/subscriptions_page.dart';
 import 'package:hkt_livestock_agentic/features/subscription_service_management/domain/subscription_service_repository.dart';
 import 'package:hkt_livestock_agentic/features/subscription_service_management/presentation/subscription_service_controller.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
+
+/// Tenant-subscription panel loader: without this stub the page's initState
+/// HTTP call spins forever and pumpAndSettle times out in widget tests.
+class _FakeAdminRepository implements admin.AdminRepository {
+  @override
+  Future<List<admin.TenantSubscription>> loadSubscriptions() async => const [];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
+}
 
 class _FakeSubRepo implements SubscriptionServiceRepository {
   _FakeSubRepo();
@@ -85,6 +98,7 @@ Future<void> _pumpSubscriptions(
       overrides: [
         subscriptionServiceRepositoryProvider.overrideWithValue(repo),
         licenseModeProvider.overrideWith((ref) async => mode),
+        adminRepositoryProvider.overrideWithValue(_FakeAdminRepository()),
       ],
       child: const MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
