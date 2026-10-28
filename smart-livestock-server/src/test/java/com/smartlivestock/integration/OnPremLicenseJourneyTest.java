@@ -58,7 +58,7 @@ class OnPremLicenseJourneyTest extends AbstractJourneyTest {
 
     /** Admin-provisioned accounts start with must_change_password (NIX-191). */
     private static final String INITIAL_PASSWORD = "Test@" + "123";
-    private static final String TENANT_PASSWORD = "Renew" + "Pass" + "123";
+    private static final String TENANT_PASSWORD = "Renew@" + "Pass123";
 
     private static Path machineIdFile;
 

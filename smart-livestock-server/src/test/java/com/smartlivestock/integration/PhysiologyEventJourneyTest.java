@@ -131,9 +131,11 @@ public class PhysiologyEventJourneyTest extends AbstractJourneyTest {
             ps.setString(10, cancelReason);
             return ps;
         }, keyHolder);
-        Number key = keyHolder.getKey();
-        assertThat(key).isNotNull();
-        Long id = key.longValue();
+        // PG's RETURN_GENERATED_KEYS hands back the whole row, so the
+        // keyHolder holds many entries — getKey() would throw. Take by name.
+        Object idValue = keyHolder.getKeys() == null ? null : keyHolder.getKeys().get("id");
+        assertThat(idValue).isNotNull();
+        Long id = ((Number) idValue).longValue();
         createdDispositionIds.add(id);
         return id;
     }
@@ -174,10 +176,12 @@ public class PhysiologyEventJourneyTest extends AbstractJourneyTest {
         assertThat(created.get("occurredAt")).isEqualTo("2026-09-09T16:00:00Z");
         createdEventIds.add(Long.valueOf(eventId));
 
-        // READ — visible in the list for any authenticated farm member
+        // READ — visible in the list for any authenticated farm member.
+        // JSON ids deserialise as Integer when small — compare numerically.
         var workerList = getApi(workerToken, base());
         var workerItems = getItems(workerList);
-        assertThat(workerItems).anySatisfy(item -> assertThat(item.get("id")).isEqualTo(Long.valueOf(eventId)));
+        assertThat(workerItems).anySatisfy(item ->
+                assertThat(((Number) item.get("id")).longValue()).isEqualTo(Long.parseLong(eventId)));
 
         // UPDATE — "2026-09-12" → 2026-09-11T16:00:00Z
         var updated = putApi(ownerToken, base() + "/" + eventId,
@@ -268,7 +272,7 @@ public class PhysiologyEventJourneyTest extends AbstractJourneyTest {
 
     @Test
     void manualIllnessWithoutRecoveryStaysOpen() {
-        Instant onset = Instant.now().minusSeconds(2 * 24 * 3600);
+        Instant onset = Instant.now().minusSeconds(2 * 24 * 3600).truncatedTo(ChronoUnit.SECONDS);
         insertManualEvent(firstLivestockId, PhysiologyEventType.ILLNESS, onset);
 
         List<PhysiologyWindow> windows = physiologyQueryPort.activeWindows(
@@ -284,8 +288,8 @@ public class PhysiologyEventJourneyTest extends AbstractJourneyTest {
 
     @Test
     void manualIllnessWithRecoveryClosesAndFiltersByRange() {
-        Instant onset = Instant.now().minusSeconds(10 * 24 * 3600);
-        Instant recovered = Instant.now().minusSeconds(8 * 24 * 3600);
+        Instant onset = Instant.now().minusSeconds(10 * 24 * 3600).truncatedTo(ChronoUnit.SECONDS);
+        Instant recovered = Instant.now().minusSeconds(8 * 24 * 3600).truncatedTo(ChronoUnit.SECONDS);
         insertManualEvent(firstLivestockId, PhysiologyEventType.ILLNESS, onset);
         insertManualEvent(firstLivestockId, PhysiologyEventType.RECOVERY, recovered);
 
@@ -428,7 +432,9 @@ public class PhysiologyEventJourneyTest extends AbstractJourneyTest {
                 .isEqualTo(lactating.get().since());
 
         // A newer manual DRY_OFF flips the stage to DRY — port and endpoint agree.
-        Instant dryOffAt = Instant.now().minusSeconds(24 * 3600);
+        // Second-truncation per the file header note: TIMESTAMP columns keep
+        // microseconds, so a nanosecond Instant would break equality.
+        Instant dryOffAt = Instant.now().minusSeconds(24 * 3600).truncatedTo(ChronoUnit.SECONDS);
         insertManualEvent(livestockId, PhysiologyEventType.DRY_OFF, dryOffAt);
         var dry = physiologyQueryPort.currentStage(livestockId);
         assertThat(dry).isPresent();

@@ -152,17 +152,17 @@ class TenantOnboardingJourneyTest extends AbstractJourneyTest {
         void resetPassword_thenLoginWithNew() {
             var createResp = postRaw(platformAdminToken,
                     "/api/v1/admin/users",
-                    Map.of("phone", "13800006666", "name", "密码测试用户", "role", "OWNER", "tenantId", "1", "password", "Old@123"));
+                    Map.of("phone", "13800006666", "name", "密码测试用户", "role", "OWNER", "tenantId", "1", "password", "OldPass@123"));
             assertCreated(createResp);
             @SuppressWarnings("unchecked")
             String userId = extractId((Map<String, Object>) createResp.getBody().get("data"));
 
             var resetResp = postRaw(platformAdminToken,
                     "/api/v1/admin/users/" + userId + "/reset-password",
-                    Map.of("newPassword", "New@456"));
+                    Map.of("newPassword", "NewPass@456"));
             assertOk(resetResp);
 
-            String newToken = login("13800006666", "New@456");
+            String newToken = login("13800006666", "NewPass@456");
             assertThat(newToken).isNotNull();
         }
     }

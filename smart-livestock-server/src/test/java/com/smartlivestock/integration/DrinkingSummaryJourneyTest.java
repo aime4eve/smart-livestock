@@ -162,6 +162,18 @@ public class DrinkingSummaryJourneyTest extends AbstractJourneyTest {
         return (List<Map<String, Object>>) response.getBody().get("data");
     }
 
+    /**
+     * The events list endpoint wraps rows in a named object since NIX-259:
+     * {@code data: {events: [...], feverWindows: [...]}}.
+     */
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> getEventRows(ResponseEntity<Map> response) {
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
+        return (List<Map<String, Object>>) data.get("events");
+    }
+
     // ── 1. Three endpoints, three layers ────────────────────────
 
     @Test
@@ -250,20 +262,21 @@ public class DrinkingSummaryJourneyTest extends AbstractJourneyTest {
 
         // Closed range [from 00:00, to+1 00:00): both day edges included,
         // the next day's midnight excluded.
-        List<Map<String, Object>> rows = getDataList(getRaw(ownerToken,
+        List<Map<String, Object>> rows = getEventRows(getRaw(ownerToken,
                 base() + "/drinking-events?from=" + fixtureDay + "&to=" + fixtureDay));
         assertThat(rows).hasSize(2);
-        // Newest first.
+        // Newest first. JSON ids deserialise as Integer when small —
+        // compare numerically, not by boxed type.
         assertThat(rows.get(0).get("eventStartAt")).isEqualTo(wall(fixtureDay, "23:55").toString());
         assertThat(rows.get(1).get("eventStartAt")).isEqualTo(wall(fixtureDay, "00:00").toString());
-        assertThat(rows.get(0).get("id")).isEqualTo(lastMinute);
-        assertThat(rows.get(1).get("id")).isEqualTo(firstMinute);
+        assertThat(((Number) rows.get(0).get("id")).longValue()).isEqualTo(lastMinute);
+        assertThat(((Number) rows.get(1).get("id")).longValue()).isEqualTo(firstMinute);
 
         // The next day's row is served by its own window.
-        List<Map<String, Object>> nextRows = getDataList(getRaw(ownerToken,
+        List<Map<String, Object>> nextRows = getEventRows(getRaw(ownerToken,
                 base() + "/drinking-events?from=" + fixtureDay.plusDays(1) + "&to=" + fixtureDay.plusDays(1)));
         assertThat(nextRows).hasSize(1);
-        assertThat(nextRows.get(0).get("id")).isEqualTo(nextDayStart);
+        assertThat(((Number) nextRows.get(0).get("id")).longValue()).isEqualTo(nextDayStart);
 
         // Bad range / future day rejected.
         assertError(getRaw(ownerToken, base() + "/drinking-events?from=2026-02-30&to=2026-03-01"),
@@ -282,7 +295,7 @@ public class DrinkingSummaryJourneyTest extends AbstractJourneyTest {
         insertEvent(fixtureDay, "10:00", "10:10", DrinkingEventSources.ALGORITHM_CANDIDATE,
                 DrinkingEventLabel.UNLABELED, DrinkingAlgorithmVersion.V1, new BigDecimal("0.850"));
 
-        List<Map<String, Object>> rows = getDataList(getRaw(ownerToken,
+        List<Map<String, Object>> rows = getEventRows(getRaw(ownerToken,
                 base() + "/drinking-events?from=" + fixtureDay + "&to=" + fixtureDay));
         assertThat(rows).hasSize(2);
         Map<String, Object> low = rows.stream()

@@ -47,7 +47,9 @@ class PilotLicenseJourneyTest extends AbstractJourneyTest {
         assertThat(sub.get("status")).isEqualTo("TRIAL");
         assertThat(sub.get("tier")).isEqualTo("BASIC");
         assertThat(sub.get("effectiveTier")).isEqualTo("PREMIUM");
-        assertThat((String) sub.get("billingCycle")).isNotBlank();
+        // Admin list response carries no billingCycle field; trialEndsAt is
+        // the persisted-trial proof at this endpoint.
+        assertThat(sub.get("trialEndsAt")).isNotNull();
     }
 
     @Test

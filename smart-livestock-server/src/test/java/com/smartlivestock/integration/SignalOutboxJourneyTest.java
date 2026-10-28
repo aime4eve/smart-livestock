@@ -58,7 +58,10 @@ class SignalOutboxJourneyTest extends AbstractJourneyTest {
         assertThat(events.get(0).getEventType())
                 .isEqualTo(SignalEventType.ALERT_CHANGED.name());
         assertThat(events.get(0).getStatus()).isEqualTo("PENDING");
-        assertThat(events.get(0).getPayload())
+        // payload lives in a jsonb column: PostgreSQL returns its canonical
+        // text form on read ("key": value with spaces), not the compact
+        // form we wrote. Compare whitespace-insensitively.
+        assertThat(events.get(0).getPayload().replace(" ", ""))
                 .contains("\"farmId\":1")
                 .contains("\"entityType\":\"ALERT\"")
                 .contains("\"entityId\":" + alert.id());
@@ -87,9 +90,17 @@ class SignalOutboxJourneyTest extends AbstractJourneyTest {
 
         assertThat(findByEntity(alert.id())).hasSize(1);
 
-        int dispatched = dispatcher.dispatchDueBatch();
-        assertThat(dispatched).isGreaterThanOrEqualTo(1);
-        assertThat(findByEntity(alert.id())).hasSize(1);
+        // Earlier journey classes sharing the container leave hundreds of
+        // PENDING rows behind; one batch caps at 100 oldest-first, so drain
+        // batches until this alert's row turns DISPATCHED.
+        int dispatched;
+        int passes = 0;
+        do {
+            dispatched = dispatcher.dispatchDueBatch();
+            passes++;
+        } while (dispatched > 0
+                && !"DISPATCHED".equals(findByEntity(alert.id()).get(0).getStatus())
+                && passes < 500);
         assertThat(findByEntity(alert.id()).get(0).getStatus()).isEqualTo("DISPATCHED");
     }
 

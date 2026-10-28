@@ -25,7 +25,9 @@ class DashboardMeJourneyTest extends AbstractJourneyTest {
             assertThat(data).containsKey("id");
             assertThat(data).containsKey("phone");
             assertThat(data).containsKey("role");
-            assertThat(data.get("phone")).isEqualTo("13800138000");
+            // Phone identifiers are stored and returned in E.164 form since
+            // the global-login unification (2026-10-19).
+            assertThat(data.get("phone")).isEqualTo("+8613800138000");
             assertThat(data).containsKey("tenantId");
         }
 

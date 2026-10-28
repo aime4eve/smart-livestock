@@ -39,5 +39,8 @@ jobs:
       - name: Compile
         run: ./gradlew compileJava
 
-      - name: Run unit tests
-        run: ./gradlew test -PexcludeIntegrationTests=true
+      # Full suite including the Testcontainers journey package (NIX-330
+      # paid off its debt and brought it back under the gate 2026-10-28).
+      # Local Docker-less machines keep excluding it via precheck-ci.sh.
+      - name: Run tests
+        run: ./gradlew test

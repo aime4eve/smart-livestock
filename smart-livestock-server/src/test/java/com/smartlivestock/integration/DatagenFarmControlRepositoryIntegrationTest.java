@@ -42,10 +42,10 @@ class DatagenFarmControlRepositoryIntegrationTest {
 
         entityManager.createNativeQuery("""
                 INSERT INTO synthesis_scenarios (
-                    name, status, type, pattern, penetration_rate,
+                    name, status, type, penetration_rate,
                     window_start, window_end, interval_seconds
                 ) VALUES (
-                    'datagen-repoint-integration-test', 'STOPPED', 'NORMAL', 'NORMAL',
+                    'datagen-repoint-integration-test', 'STOPPED', 'NORMAL',
                     1.00, NOW(), NOW() + INTERVAL '1 day', 30
                 )
                 """)
