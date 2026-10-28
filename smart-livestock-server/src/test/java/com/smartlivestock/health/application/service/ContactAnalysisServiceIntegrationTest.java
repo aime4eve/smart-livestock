@@ -100,7 +100,7 @@ class ContactAnalysisServiceIntegrationTest {
 
         entityManager.createNativeQuery("""
                 INSERT INTO livestock (farm_id, livestock_code, breed, gender)
-                VALUES (?, ?, '测试牛', 'FEMALE')
+                VALUES (?, ?, 'OTHER', 'FEMALE')
                 """).setParameter(1, FARM_ID).setParameter(2, livestockCode).executeUpdate();
         entityManager.createNativeQuery("""
                 INSERT INTO devices (tenant_id, device_code, device_type, status)
