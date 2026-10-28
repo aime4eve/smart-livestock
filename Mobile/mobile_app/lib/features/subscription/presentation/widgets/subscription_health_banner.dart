@@ -51,7 +51,7 @@ class SubscriptionHealthBanner extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 13, fontWeight: FontWeight.w700),
                 ),
               ),
@@ -84,7 +84,7 @@ class SubscriptionHealthBanner extends StatelessWidget {
                     onPressed: onExport,
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.primary,
-                      side: BorderSide(color: AppColors.primary),
+                      side: const BorderSide(color: AppColors.primary),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8)),
                     ),
@@ -108,12 +108,12 @@ class SubscriptionHealthBanner extends StatelessWidget {
     switch (h.healthStatus) {
       case 'TRIAL':
         // Matrix #1: info blue, ≤14/7/3 days reuse the level colours.
-        return h.level != null ? severityForLevel(h.level!) : _info;
+        return h.level != null ? _severityForLevel(h.level!) : _info;
       case 'RENEWAL_FAILED':
       case 'SUSPENDED':
         return _warn;
       case 'EXPIRING_SOON':
-        return severityForLevel(h.level ?? 14);
+        return _severityForLevel(h.level ?? 14);
       case 'CANCELLED':
       case 'EXPIRED':
       default:
@@ -128,7 +128,7 @@ class SubscriptionHealthBanner extends StatelessWidget {
   static const _danger = _Severity(
       accent: Color(0xFFC2564B), background: Color(0xFFF7E5E2));
 
-  static _Severity severityForLevel(int level) {
+  static _Severity _severityForLevel(int level) {
     if (level <= 3) return _danger;
     if (level <= 7) return _warn;
     return _info;
