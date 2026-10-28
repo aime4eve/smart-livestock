@@ -6,8 +6,12 @@ import com.smartlivestock.health.domain.port.RanchQueryPort;
 import com.smartlivestock.health.domain.port.dto.LivestockInfo;
 import com.smartlivestock.health.domain.repository.ContactTraceRepository;
 import com.smartlivestock.health.infrastructure.acl.GpsTrajectoryPortImpl;
+import com.smartlivestock.health.infrastructure.persistence.repository.ContactTraceRepositoryImpl;
 import com.smartlivestock.iot.domain.repository.GpsLogRepository;
 import com.smartlivestock.iot.domain.repository.InstallationRepository;
+import com.smartlivestock.iot.infrastructure.persistence.JpaGpsLogRepositoryImpl;
+import com.smartlivestock.iot.infrastructure.persistence.JpaInstallationRepositoryImpl;
+import org.springframework.context.annotation.Import;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +48,12 @@ import static org.mockito.Mockito.when;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
 @Testcontainers(disabledWithoutDocker = true)
+// @DataJpaTest only registers Spring Data repository interfaces; the three
+// domain repositories are hand-written @Repository classes and must be
+// imported explicitly.
+@Import({ContactTraceRepositoryImpl.class,
+        JpaInstallationRepositoryImpl.class,
+        JpaGpsLogRepositoryImpl.class})
 class ContactAnalysisServiceIntegrationTest {
 
     private static final long FARM_ID = 1L;
