@@ -50,7 +50,10 @@ public class DataExportJobJpaEntity {
     @Column(name = "file_size_bytes")
     private Long fileSizeBytes;
 
-    @Column(name = "row_counts")
+    // Migration column is JSONB; without columnDefinition the converter's
+    // String database type validates as varchar(255) and breaks schema
+    // validation in the test profile (same pattern as AuditLogJpaEntity).
+    @Column(name = "row_counts", columnDefinition = "jsonb")
     @Convert(converter = DataExportRowCountsConverter.class)
     private Map<String, Object> rowCounts;
 
