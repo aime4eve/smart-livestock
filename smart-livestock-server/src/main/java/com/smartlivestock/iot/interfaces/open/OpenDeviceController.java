@@ -1,8 +1,14 @@
 package com.smartlivestock.iot.interfaces.open;
 
+import com.smartlivestock.identity.domain.model.ApiKey;
 import com.smartlivestock.iot.application.DeviceApplicationService;
 import com.smartlivestock.iot.application.dto.DeviceDto;
+import com.smartlivestock.iot.domain.model.Device;
+import com.smartlivestock.iot.domain.repository.DeviceRepository;
+import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
+import com.smartlivestock.shared.common.ErrorCode;
+import com.smartlivestock.shared.security.ApiKeyAuthFilter;
 import com.smartlivestock.shared.security.ApiKeyAuthService;
 import com.smartlivestock.shared.tenant.TenantContext;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,6 +30,7 @@ public class OpenDeviceController {
 
     private final DeviceApplicationService deviceApplicationService;
     private final ApiKeyAuthService apiKeyAuthService;
+    private final DeviceRepository deviceRepository;
 
     /**
      * GET /api/v1/open/farms/{farmId}/devices
@@ -76,10 +83,28 @@ public class OpenDeviceController {
             HttpServletRequest request) {
         String apiKey = apiKeyAuthService.requireApiKey(request);
         apiKeyAuthService.validateFarmAccess(apiKey, farmId);
+        requireDeviceInTenant(deviceId, request);
 
         DeviceDto device = deviceApplicationService.getDevice(deviceId);
         return ResponseEntity.ok()
                 .body(ApiResponse.ok(device));
+    }
+
+    /**
+     * Devices carry no farm id, only a tenant; the requesting key's tenant
+     * must own it (same rule as the NIX-323 telemetry endpoint, NIX-333).
+     */
+    private void requireDeviceInTenant(Long deviceId, HttpServletRequest request) {
+        Device device = deviceRepository.findById(deviceId)
+                .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "设备不存在: " + deviceId));
+        Object attr = request.getAttribute(ApiKeyAuthFilter.ATTR_API_KEY);
+        if (!(attr instanceof ApiKey key)) {
+            throw new ApiException(ErrorCode.AUTH_API_KEY_INVALID, "API Key 上下文缺失");
+        }
+        if (device.getTenantId() == null || !device.getTenantId().equals(key.getTenantId())) {
+            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "无权访问该设备");
+        }
     }
 
 }

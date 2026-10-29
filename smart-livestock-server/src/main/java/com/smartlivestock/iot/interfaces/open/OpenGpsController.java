@@ -3,6 +3,7 @@ package com.smartlivestock.iot.interfaces.open;
 import com.smartlivestock.iot.application.GpsLogApplicationService;
 import com.smartlivestock.iot.application.InstallationApplicationService;
 import com.smartlivestock.iot.application.dto.GpsLogDto;
+import com.smartlivestock.ranch.interfaces.open.support.OpenOwnershipGuard;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.security.ApiKeyAuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +15,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -28,6 +30,7 @@ public class OpenGpsController {
     private final GpsLogApplicationService gpsLogApplicationService;
     private final InstallationApplicationService installationApplicationService;
     private final ApiKeyAuthService apiKeyAuthService;
+    private final OpenOwnershipGuard ownershipGuard;
 
     /**
      * GET /api/v1/open/farms/{farmId}/gps-logs/latest
@@ -40,7 +43,12 @@ public class OpenGpsController {
         String apiKey = apiKeyAuthService.requireApiKey(request);
         apiKeyAuthService.validateFarmAccess(apiKey, farmId);
 
+        // Active installations are global; keep only those bound to this farm's
+        // livestock, otherwise every tenant's positions would leak (NIX-333).
+        Set<Long> farmLivestockIds = ownershipGuard.livestockIdsOf(farmId);
         List<GpsLogDto> latestLogs = installationApplicationService.findAllActive().stream()
+                .filter(inst -> inst.livestockId() != null
+                        && farmLivestockIds.contains(inst.livestockId()))
                 .map(inst -> gpsLogApplicationService.getByDevice(inst.deviceId()).stream()
                         // getByDevice returns newest-first; take the first row.
                         .findFirst()
@@ -70,6 +78,7 @@ public class OpenGpsController {
             HttpServletRequest request) {
         String apiKey = apiKeyAuthService.requireApiKey(request);
         apiKeyAuthService.validateFarmAccess(apiKey, farmId);
+        ownershipGuard.requireLivestockInFarm(livestockId, farmId);
 
         int effectivePageSize = Math.min(pageSize, 100);
 

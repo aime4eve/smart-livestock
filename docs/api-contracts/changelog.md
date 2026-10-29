@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-10-29 — Open API 归属校验六处清零（NIX-333）
+
+**来源**: NIX-323 changelog 记录的既有欠账 + 2026-10-29 用户裁决"六处同类一次清零"。
+
+**变更**（`open-api.md` 六端点补 Error 段）:
+- `GET /open/farms/{farmId}/livestock/{id}`、`.../livestock/{id}/gps-logs`、`.../fences/{id}`、`.../alerts/{id}`：资源必须属于 path farm，跨牧场 id 与未知 id 一律 **404 `RESOURCE_NOT_FOUND`**（不泄露存在性，与 NIX-323 遥测端点同语义）。**行为变更：此前跨牧场 id 返回 200。**
+- `GET /open/farms/{farmId}/gps-logs/latest`：**行为变更（安全修复）**——此前 `findAllActive()` 返回**全部租户**活跃安装位置（跨租户泄漏），现按 path farm 的牲畜集合过滤，仅返回本牧场位置。
+- `GET /open/farms/{farmId}/devices/{id}`：校验 `device.tenantId == Key.tenantId`，他租户设备 **403 `AUTH_FORBIDDEN`**（设备只挂租户不挂牧场，与遥测端点同口径）；此前任意 id 可读。
+- 牧场门（farm ∉ 租户 → 403）与列端点语义不变。
+
+**关联缺陷（另立单 NIX-337 待修）**: API Key id 被 `PasswordChangeRequiredInterceptor` 误当用户 id，撞号 Key 全端点 403 PASSWORD_CHANGE_REQUIRED（首个 Open API 端到端测试实证）。
+
+---
+
 ## 2026-10-26 — Open API 遥测端点 + 订阅语义（NIX-323）
 
 **来源**: NIX-323（定位 A 裁决：平台增值；到期行为裁决：降档不拒绝）。
@@ -12,7 +26,7 @@
 - `open-api.md`：端点总数 11 → 13，新增 §6 遥测历史与导出（`GET /open/farms/{farmId}/livestock/{id}/telemetry`、`GET /open/farms/{farmId}/devices/{id}/telemetry`）。每类遥测独立分页（pageSize ≤ 100）；档位差异=时间窗（retention_days 7/30/180/365）+ 24h 调用预算（1000/10000/100000/不限）。
 - 订阅语义落地：`ApiKeyAuthFilter` 认证后附加订阅快照（status+降档后 tier，60s 缓存）；到期/无订阅租户回落 basic 档仍可访问（不 403）。
 - 数据真实性修复：`/health/stats` 三条 7 天趋势由 `Math.random()` 占位改为真实聚合（app-api.md 已订正）。
-- 既有欠账记录（不在本单范围）：`GET /open/livestock/{id}` 与 `GET /open/livestock/{id}/gps-logs` 未校验牲畜归属 path farm（租户内跨 farm 可达），新遥测端点已做归属校验。
+- 既有欠账记录（~~不在本单范围~~ → 2026-10-29 NIX-333 已清偿，见顶部条目）：`GET /open/livestock/{id}` 与 `GET /open/livestock/{id}/gps-logs` 未校验牲畜归属 path farm（租户内跨 farm 可达），新遥测端点已做归属校验。
 
 ---
 

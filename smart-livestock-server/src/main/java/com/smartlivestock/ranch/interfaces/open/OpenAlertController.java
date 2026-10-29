@@ -3,6 +3,7 @@ package com.smartlivestock.ranch.interfaces.open;
 import com.smartlivestock.ranch.application.AlertApplicationService;
 import com.smartlivestock.ranch.application.dto.AlertDto;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
+import com.smartlivestock.ranch.interfaces.open.support.OpenOwnershipGuard;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.security.ApiKeyAuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,6 +25,7 @@ public class OpenAlertController {
 
     private final AlertApplicationService alertApplicationService;
     private final ApiKeyAuthService apiKeyAuthService;
+    private final OpenOwnershipGuard ownershipGuard;
 
     /**
      * GET /api/v1/open/farms/{farmId}/alerts
@@ -71,6 +73,7 @@ public class OpenAlertController {
             HttpServletRequest request) {
         String apiKey = apiKeyAuthService.requireApiKey(request);
         apiKeyAuthService.validateFarmAccess(apiKey, farmId);
+        ownershipGuard.requireAlertInFarm(alertId, farmId);
 
         AlertDto alert = alertApplicationService.getAlert(alertId);
         return ResponseEntity.ok()

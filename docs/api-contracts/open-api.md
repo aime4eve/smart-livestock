@@ -48,6 +48,9 @@ Response 200:
 { "code": "OK", "message": "success", "requestId": "req-O02", "data": { "id": "101", "livestockCode": "LIV-1-001", "breed": "ANGUS", ... } }
 ```
 
+Error 403: 牧场不属于该 Key 的租户（`AUTH_FORBIDDEN`）。
+Error 404: 牲畜不存在或不属于该牧场（`RESOURCE_NOT_FOUND`，NIX-333）——跨牧场 id 与未知 id 同响应，不泄露存在性。
+
 ---
 
 ## 2. 围栏（只读）— 2 端点
@@ -72,6 +75,9 @@ Response 200:
 ### GET /open/farms/{farmId}/fences/{fenceId}
 
 围栏详情（含坐标点）。
+
+Error 403: 牧场不属于该 Key 的租户（`AUTH_FORBIDDEN`）。
+Error 404: 围栏不存在或不属于该牧场（`RESOURCE_NOT_FOUND`，NIX-333）。
 
 ```
 Response 200:
@@ -108,6 +114,9 @@ Response 200:
 { "code": "OK", "message": "success", "requestId": "req-O06", "data": { "id": "501", "type": "fence_breach", "status": "pending", ... } }
 ```
 
+Error 403: 牧场不属于该 Key 的租户（`AUTH_FORBIDDEN`）。
+Error 404: 告警不存在或不属于该牧场（`RESOURCE_NOT_FOUND`，NIX-333）。
+
 ---
 
 ## 4. 设备与定位（只读）— 4 端点
@@ -138,9 +147,12 @@ Response 200:
 { "code": "OK", "message": "success", "requestId": "req-O08", "data": { "id": "201", "deviceCode": "DEV-2026-00001", "deviceType": "device_tracker", "status": "active", "runtimeStatus": "online", ... } }
 ```
 
+Error 403: 设备不属于该 Key 的租户（`AUTH_FORBIDDEN`，NIX-333；设备只挂租户不挂牧场，同遥测端点口径）。
+Error 404: 设备不存在（`RESOURCE_NOT_FOUND`）。
+
 ### GET /open/farms/{farmId}/gps-logs/latest
 
-全场最新 GPS 坐标（批量）。
+全场最新 GPS 坐标（批量）。仅返回**该牧场**牲畜的活跃安装位置（NIX-333 收窄：此前返回全部租户的活跃安装，属跨租户泄漏）。
 
 ```
 Response 200:
@@ -153,6 +165,8 @@ Response 200:
   }
 }
 ```
+
+Error 403: 牧场不属于该 Key 的租户（`AUTH_FORBIDDEN`）。
 
 ### GET /open/farms/{farmId}/livestock/{livestockId}/gps-logs
 
@@ -170,6 +184,9 @@ Response 200:
   }
 }
 ```
+
+Error 403: 牧场不属于该 Key 的租户（`AUTH_FORBIDDEN`）。
+Error 404: 牲畜不存在或不属于该牧场（`RESOURCE_NOT_FOUND`，NIX-333）；牲畜存在但无活跃安装时返回 200 空 items。
 
 ---
 

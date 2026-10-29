@@ -2,6 +2,7 @@ package com.smartlivestock.ranch.interfaces.open;
 
 import com.smartlivestock.ranch.application.FenceApplicationService;
 import com.smartlivestock.ranch.application.dto.FenceDto;
+import com.smartlivestock.ranch.interfaces.open.support.OpenOwnershipGuard;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.security.ApiKeyAuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +24,7 @@ public class OpenFenceController {
 
     private final FenceApplicationService fenceApplicationService;
     private final ApiKeyAuthService apiKeyAuthService;
+    private final OpenOwnershipGuard ownershipGuard;
 
     /**
      * GET /api/v1/open/farms/{farmId}/fences
@@ -64,6 +66,7 @@ public class OpenFenceController {
             HttpServletRequest request) {
         String apiKey = apiKeyAuthService.requireApiKey(request);
         apiKeyAuthService.validateFarmAccess(apiKey, farmId);
+        ownershipGuard.requireFenceInFarm(fenceId, farmId);
 
         FenceDto fence = fenceApplicationService.getFence(fenceId);
         return ResponseEntity.ok()

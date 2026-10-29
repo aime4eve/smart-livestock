@@ -2,6 +2,7 @@ package com.smartlivestock.ranch.interfaces.open;
 
 import com.smartlivestock.ranch.application.LivestockApplicationService;
 import com.smartlivestock.ranch.application.dto.LivestockDto;
+import com.smartlivestock.ranch.interfaces.open.support.OpenOwnershipGuard;
 import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.security.ApiKeyAuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +24,7 @@ public class OpenLivestockController {
 
     private final LivestockApplicationService livestockApplicationService;
     private final ApiKeyAuthService apiKeyAuthService;
+    private final OpenOwnershipGuard ownershipGuard;
 
     /**
      * GET /api/v1/open/farms/{farmId}/livestock
@@ -64,6 +66,7 @@ public class OpenLivestockController {
             HttpServletRequest request) {
         String apiKey = apiKeyAuthService.requireApiKey(request);
         apiKeyAuthService.validateFarmAccess(apiKey, farmId);
+        ownershipGuard.requireLivestockInFarm(livestockId, farmId);
 
         LivestockDto livestock = livestockApplicationService.getLivestock(livestockId);
         return ResponseEntity.ok()
