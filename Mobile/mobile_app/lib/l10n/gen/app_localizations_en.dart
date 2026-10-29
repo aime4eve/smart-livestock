@@ -7854,4 +7854,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String subscriptionHealthSortNote(int total) {
     return '$total tenants · sorted by urgency (days-to-expiry asc → expired → repayment)';
   }
+
+  @override
+  String get subscriptionHealthSnooze => 'Remind me later';
+
+  @override
+  String get subscriptionHealthActionsHeader => 'Actions';
+
+  @override
+  String get subscriptionHealthActionConvertGuide => 'Guide conversion';
+
+  @override
+  String get subscriptionHealthActionSendReminder => 'Send renewal reminder';
+
+  @override
+  String get subscriptionHealthActionReminderDisabled =>
+      'Outreach channel not connected';
+
+  @override
+  String get subscriptionHealthActionFollowRenewal => 'Follow up renewal';
+
+  @override
+  String get subscriptionHealthActionAssistRepay => 'Assist repayment';
+
+  @override
+  String get subscriptionHealthActionRestore => 'Restore service';
+
+  @override
+  String get subscriptionHealthConfirmRepayTitle => 'Confirm repayment?';
+
+  @override
+  String get subscriptionHealthConfirmRepayBody =>
+      'Marks the repayment as received: the subscription reactivates and its period extends by one billing cycle.';
+
+  @override
+  String get subscriptionHealthConfirmRestoreTitle => 'Restore service?';
+
+  @override
+  String get subscriptionHealthConfirmRestoreBody =>
+      'The tenant\'s subscription will be reactivated.';
+
+  @override
+  String get subscriptionHealthActionDone => 'Done';
+
+  @override
+  String get subscriptionHealthActionFailed => 'Action failed';
 }

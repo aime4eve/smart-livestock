@@ -325,4 +325,75 @@ class SubscriptionApplicationServiceTest {
             assertThat(sub.isActiveOrTrial()).isTrue(); // degrade-don't-reject still applies
         }
     }
+
+    // ── recoverRenewalFailure (NIX-334 admin assist-repayment) ──────
+
+    @Nested
+    class RecoverRenewalFailure {
+
+        private Subscription renewalFailedWithExpiry(String cycle, Instant expiresAt) {
+            Subscription sub = createTrialSubscription();
+            sub.activate(SubscriptionTier.PREMIUM, cycle, expiresAt);
+            sub.markRenewalFailed();
+            sub.clearDomainEvents();
+            return sub;
+        }
+
+        @Test
+        void lapsedPeriod_restartsOneCycleFromNow() {
+            Instant now = Instant.now();
+            Subscription sub = renewalFailedWithExpiry("monthly", now.minusSeconds(10 * 86400));
+            when(subscriptionRepository.findByTenantId(1L)).thenReturn(Optional.of(sub));
+            when(subscriptionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            Instant before = Instant.now();
+            Subscription result = createService().recoverRenewalFailure(1L);
+            Instant after = Instant.now();
+
+            assertThat(result.getStatus()).isEqualTo(SubscriptionStatus.ACTIVE);
+            assertThat(result.getTier()).isEqualTo(SubscriptionTier.PREMIUM);
+            assertThat(result.getExpiresAt()).isBetween(
+                before.plusSeconds(30 * 86400), after.plusSeconds(30 * 86400));
+            verify(domainEventPublisher).publishDomainEvents(result);
+        }
+
+        @Test
+        void periodStillRunning_extendsFromPreviousExpiry() {
+            Instant previousExpiry = Instant.now().plusSeconds(5 * 86400);
+            Subscription sub = renewalFailedWithExpiry("monthly", previousExpiry);
+            when(subscriptionRepository.findByTenantId(1L)).thenReturn(Optional.of(sub));
+            when(subscriptionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            Subscription result = createService().recoverRenewalFailure(1L);
+
+            assertThat(result.getExpiresAt()).isEqualTo(previousExpiry.plusSeconds(30 * 86400));
+        }
+
+        @Test
+        void yearlyCycle_extendsOneYear() {
+            Instant now = Instant.now();
+            Subscription sub = renewalFailedWithExpiry("yearly", now.minusSeconds(86400));
+            when(subscriptionRepository.findByTenantId(1L)).thenReturn(Optional.of(sub));
+            when(subscriptionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            Instant before = Instant.now();
+            Subscription result = createService().recoverRenewalFailure(1L);
+            Instant after = Instant.now();
+
+            assertThat(result.getExpiresAt()).isBetween(
+                before.plusSeconds(365L * 86400), after.plusSeconds(365L * 86400));
+        }
+
+        @Test
+        void notRenewalFailed_throwsStateConflict() {
+            Subscription sub = createActiveSubscription();
+            when(subscriptionRepository.findByTenantId(1L)).thenReturn(Optional.of(sub));
+
+            assertThatThrownBy(() -> createService().recoverRenewalFailure(1L))
+                .isInstanceOf(DomainException.class)
+                .satisfies(ex -> assertThat(((DomainException) ex).getCode())
+                    .isEqualTo(ErrorCode.STATE_CONFLICT));
+            verify(subscriptionRepository, never()).save(any());
+        }
+    }
 }

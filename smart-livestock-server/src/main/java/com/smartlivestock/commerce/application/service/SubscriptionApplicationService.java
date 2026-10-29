@@ -106,6 +106,26 @@ public class SubscriptionApplicationService {
     }
 
     /**
+     * Admin-assisted repayment (NIX-334): RENEWAL_FAILED → ACTIVE with the
+     * period extended one billing cycle from max(now, previous expiry), the
+     * same arithmetic a successful renewal would apply.
+     */
+    public Subscription recoverRenewalFailure(Long tenantId) {
+        Subscription sub = loadSubscription(tenantId);
+        String cycle = sub.getBillingCycle();
+        if (cycle == null || cycle.isBlank()) {
+            cycle = "monthly";
+        }
+        Instant now = Instant.now();
+        Instant base = sub.getExpiresAt() != null && sub.getExpiresAt().isAfter(now)
+            ? sub.getExpiresAt() : now;
+        sub.recoverFromRenewalFailure(base.plusSeconds(cycleSeconds(cycle)));
+        Subscription saved = subscriptionRepository.save(sub);
+        domainEventPublisher.publishDomainEvents(saved);
+        return saved;
+    }
+
+    /**
      * Cancel an active or trial subscription.
      */
     public Subscription cancel(Long tenantId) {

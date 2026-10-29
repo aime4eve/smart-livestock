@@ -186,6 +186,16 @@ public class Subscription extends AggregateRoot {
     }
 
     /**
+     * Recover with a fresh period (NIX-334 admin "assist repayment"): an
+     * offline payment was received, so the period restarts — without this the
+     * wall-clock evaluator would judge the recovered row expired at once.
+     */
+    public void recoverFromRenewalFailure(Instant newExpiresAt) {
+        recoverFromRenewalFailure();
+        this.expiresAt = newExpiresAt;
+    }
+
+    /**
      * Downgrade to FREE after renewal failure.
      */
     public void downgradeAfterRenewalFailure() {

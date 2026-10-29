@@ -430,6 +430,21 @@ class SubscriptionTest {
         }
 
         @Test
+        void recoverFromRenewalFailureWithNewExpiry_restartsPeriod() {
+            Subscription sub = createActiveSubscription();
+            sub.markRenewalFailed();
+            sub.clearDomainEvents();
+            Instant newExpiry = Instant.now().plusSeconds(60L * 86400);
+
+            sub.recoverFromRenewalFailure(newExpiry);
+
+            assertThat(sub.getStatus()).isEqualTo(SubscriptionStatus.ACTIVE);
+            assertThat(sub.getExpiresAt()).isEqualTo(newExpiry);
+            assertThat(sub.getDomainEvents()).hasSize(1);
+            assertThat(sub.getDomainEvents().get(0)).isInstanceOf(SubscriptionReactivatedEvent.class);
+        }
+
+        @Test
         void downgradeAfterRenewalFailure_transitionsToFree() {
             Subscription sub = createActiveSubscription();
             sub.markRenewalFailed();

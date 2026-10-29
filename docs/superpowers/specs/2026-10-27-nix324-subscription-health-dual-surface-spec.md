@@ -1,6 +1,6 @@
 # NIX-324 订阅到期/降档双端提示 — 设计 Spec
 
-> 版本：v1.1（2026-10-27）—— 用户评审后修订（评审发现见 §8 修订记录）
+> 版本：v1.3（2026-10-29）—— 原型元素补齐裁决（§4.3 改写 + §7 发送续费提醒落定，见 §8 v1.3）
 > 原型：`docs/prototypes/2026-10-27-subscription-expiry-dual-surface-prototype.html`（**用户已确认**）
 > 关联：NIX-323（订阅快照/Open API 档位）、NIX-325（到期导出权）、0237fc9a（RENEWAL_FAILED 补缴链路）
 > 裁决依据：2026-10-26 到期行为三条（订阅端降档不拒绝+告警；管理端预警；不将就）+ 2026-10-27 试点授权链核对
@@ -68,7 +68,19 @@
 
 platform_admin 专用。分页 + `?health=`（trial|renewal_failed|suspended|cancelled|expired|expiring_soon|healthy|all，默认 all）+ `?keyword=`。**排序**：expiring_soon 按剩余天数升序；**同日到期分组**（平台统一截止日批量到期场景）组内按租户名排序，行内显示 `sameDayGroup: true`（**边界规则：仅当该"同日到期"日期出现在 ≥2 个租户时才置 true，单日无歧义不标记，避免 2027-10-01 之外的普通到期被误读成分组**）。行字段：tenantId/name、tier/healthStatus/pill 级别、到期时间、daysToExpiry、exportWindow 摘要。
 
-### 4.3 管理端不新增写操作；导出任务详情复用 `/admin/data-export-jobs`（NIX-325 已交付）。
+### 4.3 管理端运营动作列（v1.3 改写，2026-10-29 用户裁决：接真实写操作）
+
+健康度页新增"运营动作"列，按健康态分流（原始 v1.1"不新增写操作"条款由用户裁决废止）：
+
+| 健康态 | 动作文案（原型） | 行为 |
+|---|---|---|
+| RENEWAL_FAILED | 协助补缴 | 页内写：确认框 → `PUT /admin/subscriptions/{subscriptionId}/status {targetStatus:ACTIVE}`；后端 ACTIVE 分支按当前状态分流——RENEWAL_FAILED 走 `recoverFromRenewalFailure()` + 到期日从 max(now, 原到期) 顺延一个计费周期（领域原方法不延期，补缴后会被墙钟判定立刻打成 EXPIRED）；SUSPENDED/CANCELLED 走既有 `reactivate()`。overview 行数据为此新增 `subscriptionId` |
+| SUSPENDED / CANCELLED | 恢复服务 | 同上端点，既有语义 |
+| TRIAL / EXPIRED | 转正式引导 / 跟进续费 | 深链 `/ops/admin/{tenantId}` 租户详情（转正与续费均为租户自助 checkout，管理端无代操作） |
+| EXPIRING_SOON | 发送续费提醒 | 置灰占位 + 提示（§7 落定：外呼渠道为非目标且无站内信后台） |
+| HEALTHY | — | — |
+
+所有写操作二次确认 + 结果 toast（失败透传服务端本地化文案）；成功后列表重载。审计沿用领域事件 `SubscriptionReactivatedEvent`（既有 PlatformEventConsumer 路径），不新增事件类型。
 
 ### 4.4 导出 API 认证双通道（v1.1 评审新增，⚠ 原方案在此卡死）
 
@@ -107,7 +119,7 @@ platform_admin 专用。分页 + `?health=`（trial|renewal_failed|suspended|can
 
 - ⚠ 首页是否也要横幅（本 spec 默认仅订阅页）？
 - ⚠ 临期分级阈值 14/7/3 是否需要可配置（当前硬编码常量）？
-- ⚠ 管理端"发送续费提醒"按钮：Phase 1 置灰占位（外呼非目标），还是先做站内信？默认置灰。
+- ⚠ 管理端"发送续费提醒"按钮：~~Phase 1 置灰占位（外呼非目标），还是先做站内信？默认置灰。~~ **v1.3 落定：置灰占位保留**（外呼渠道未接入为非目标，站内信后台不存在；后续若建通知渠道另立项）。
 
 ## 8. 修订记录
 
@@ -123,6 +135,13 @@ platform_admin 专用。分页 + `?health=`（trial|renewal_failed|suspended|can
 | 5 | 温和 | daysToExpiry 时区口径未定义 | 判定 UTC 墙钟、显示层按租户时区链本地化（§4.4） |
 | 6 | 温和 | 六态造态冒烟依赖改库，无恢复清单——参考今日 renewal_failed 并行冲突教训 | plan Task 6 附造态 SQL+恢复步骤脚本 |
 | 7 | 温和 | "三处判定口径一致"仅靠人审 | plan Task 1 升级为机械核对：同组状态样例喂 HealthEvaluator/Resolver/Policy 三组件断言一致 |
+
+**v1.3（2026-10-29 原型元素补齐裁决，NIX-334）**：
+| # | 内容 |
+|---|---|
+| 1 | §4.3 整节改写："管理端不新增写操作"由用户裁决废止，运营动作列接真实写操作（协助补缴/恢复服务 → PUT /admin/subscriptions/{id}/status；TRIAL/EXPIRED 深链租户详情）|
+| 2 | §7"发送续费提醒"开放问题落定：置灰占位保留 |
+| 3 | 租户端横幅补"稍后提醒"（原型有、spec 漏定义）：仅 EXPIRING_SOON level 14/7 显示（3 天态取消，原型 screen-note），点击后隐藏横幅直到进入下一级阈值或到期日变化（续费），持久化 shared_preferences 按租户隔离；不引入时长参数 |
 
 ## 附录 A：令牌映射表（Task 0，原型 → Flutter）
 

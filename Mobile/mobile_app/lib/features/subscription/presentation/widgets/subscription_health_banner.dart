@@ -13,11 +13,19 @@ class SubscriptionHealthBanner extends StatelessWidget {
     required this.health,
     required this.onRenew,
     this.onExport,
+    this.onSnooze,
   });
 
   final SubscriptionHealth health;
   final VoidCallback onRenew;
   final VoidCallback? onExport;
+
+  /// NIX-334: present only while the prototype offers "稍后提醒" —
+  /// EXPIRING_SOON at the 14/7-day levels (the 3-day state removes it).
+  final VoidCallback? onSnooze;
+
+  static bool showsSnooze(SubscriptionHealth health) =>
+      health.healthStatus == 'EXPIRING_SOON' && (health.level ?? 14) > 3;
 
   @override
   Widget build(BuildContext context) {
@@ -89,6 +97,23 @@ class SubscriptionHealthBanner extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8)),
                     ),
                     child: Text(l10n.subscriptionHealthCtaExport,
+                        style: const TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.w700)),
+                  ),
+                ],
+                if (onSnooze != null &&
+                    showsSnooze(health)) ...[
+                  const SizedBox(width: 8),
+                  OutlinedButton(
+                    key: const Key('subscription-health-banner-snooze'),
+                    onPressed: onSnooze,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      side: const BorderSide(color: AppColors.primary),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: Text(l10n.subscriptionHealthSnooze,
                         style: const TextStyle(
                             fontSize: 12, fontWeight: FontWeight.w700)),
                   ),

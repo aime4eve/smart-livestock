@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
@@ -7,6 +9,10 @@ import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 /// NIX-324 admin — all-tenant subscription health overview. Urgency-sorted
 /// rows from GET /admin/subscription-overview (wall-clock verdicts, same-day
 /// group flag when ≥2 tenants share an expiry date, NIX-325 export window).
+/// NIX-334 adds the operations column: real writes (assist repayment /
+/// restore service via PUT /admin/subscriptions/{id}/status) plus deep links
+/// to the tenant detail hub; "send renewal reminder" stays a disabled
+/// placeholder (spec §1 non-goal: outreach channels).
 class SubscriptionHealthPage extends StatefulWidget {
   const SubscriptionHealthPage({super.key});
 
@@ -35,6 +41,7 @@ class _SubscriptionHealthPageState extends State<SubscriptionHealthPage> {
   final TextEditingController _searchCtrl = TextEditingController();
   String? _error;
   bool _loading = true;
+  Object? _actionBusyTenantId;
 
   @override
   void initState() {
@@ -271,9 +278,124 @@ class _SubscriptionHealthPageState extends State<SubscriptionHealthPage> {
               ],
             ),
           ),
+          Expanded(
+            flex: 2,
+            child: _actionsCell(l10n, r),
+          ),
         ],
       ),
     );
+  }
+
+  // ── NIX-334 operations column ────────────────────────────────────
+
+  Widget _actionsCell(dynamic l10n, Map<String, dynamic> r) {
+    if (_actionBusyTenantId == r['tenantId']) {
+      return const SizedBox(
+          width: 14,
+          height: 14,
+          child: CircularProgressIndicator(strokeWidth: 2));
+    }
+    switch (r['healthStatus'] as String? ?? '') {
+      case 'RENEWAL_FAILED':
+      case 'SUSPENDED':
+      case 'CANCELLED':
+        final isRepay = r['healthStatus'] == 'RENEWAL_FAILED';
+        return _linkAction(
+          label: isRepay
+              ? l10n.subscriptionHealthActionAssistRepay
+              : l10n.subscriptionHealthActionRestore,
+          keyName: isRepay ? 'repay' : 'restore',
+          onTap: () => _runStatusAction(l10n, r),
+        );
+      case 'TRIAL':
+        return _linkAction(
+          label: l10n.subscriptionHealthActionConvertGuide,
+          keyName: 'convert',
+          onTap: () => context.go('/ops/admin/${r['tenantId']}'),
+        );
+      case 'EXPIRED':
+        return _linkAction(
+          label: l10n.subscriptionHealthActionFollowRenewal,
+          keyName: 'renew',
+          onTap: () => context.go('/ops/admin/${r['tenantId']}'),
+        );
+      case 'EXPIRING_SOON':
+        // Spec §7 default: outreach channels are a non-goal, so the
+        // prototype's "发送续费提醒" stays a disabled placeholder.
+        return Tooltip(
+          message: l10n.subscriptionHealthActionReminderDisabled,
+          child: Text(l10n.subscriptionHealthActionSendReminder,
+              key: const Key('health-action-disabled'),
+              style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary.withValues(alpha: 0.55))),
+        );
+      default:
+        return const Text('—',
+            style: TextStyle(fontSize: 12, color: AppColors.textSecondary));
+    }
+  }
+
+  Widget _linkAction(
+      {required String label,
+      required String keyName,
+      required VoidCallback onTap}) {
+    return InkWell(
+      key: Key('health-action-$keyName'),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Text(label,
+            style: const TextStyle(fontSize: 12, color: Color(0xFF4A7F9D))),
+      ),
+    );
+  }
+
+  Future<void> _runStatusAction(dynamic l10n, Map<String, dynamic> r) async {
+    final subscriptionId = r['subscriptionId'];
+    if (subscriptionId == null) return;
+    final isRepay = r['healthStatus'] == 'RENEWAL_FAILED';
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(isRepay
+            ? l10n.subscriptionHealthConfirmRepayTitle
+            : l10n.subscriptionHealthConfirmRestoreTitle),
+        content: Text(isRepay
+            ? l10n.subscriptionHealthConfirmRepayBody
+            : l10n.subscriptionHealthConfirmRestoreBody),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(l10n.commonCancel)),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(l10n.commonConfirm)),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _actionBusyTenantId = r['tenantId']);
+    String toast;
+    try {
+      await ApiClient.instance.put(
+          '/admin/subscriptions/$subscriptionId/status',
+          body: {'targetStatus': 'ACTIVE'});
+      toast = l10n.subscriptionHealthActionDone;
+      await _load();
+    } on ApiException catch (e) {
+      // The backend's localized guidance (e.g. state-conflict) beats a
+      // blanket failure label.
+      toast = e.message;
+    } catch (_) {
+      toast = l10n.subscriptionHealthActionFailed;
+    }
+    if (!mounted) return;
+    setState(() => _actionBusyTenantId = null);
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(toast)));
   }
 
   Widget _pill(dynamic l10n, String status) {

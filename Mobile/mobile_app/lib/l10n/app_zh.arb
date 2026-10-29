@@ -6320,5 +6320,19 @@
         "type": "int"
       }
     }
-  }
+  },
+  "subscriptionHealthSnooze": "稍后提醒",
+  "subscriptionHealthActionsHeader": "运营动作",
+  "subscriptionHealthActionConvertGuide": "转正式引导",
+  "subscriptionHealthActionSendReminder": "发送续费提醒",
+  "subscriptionHealthActionReminderDisabled": "外呼渠道未接入",
+  "subscriptionHealthActionFollowRenewal": "跟进续费",
+  "subscriptionHealthActionAssistRepay": "协助补缴",
+  "subscriptionHealthActionRestore": "恢复服务",
+  "subscriptionHealthConfirmRepayTitle": "确认协助补缴？",
+  "subscriptionHealthConfirmRepayBody": "标记已收到补缴：订阅恢复生效，到期日从当前/原到期起顺延一个计费周期。",
+  "subscriptionHealthConfirmRestoreTitle": "确认恢复服务？",
+  "subscriptionHealthConfirmRestoreBody": "该租户订阅将恢复为生效状态。",
+  "subscriptionHealthActionDone": "操作成功",
+  "subscriptionHealthActionFailed": "操作失败"
 }

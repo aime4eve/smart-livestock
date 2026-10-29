@@ -73,6 +73,7 @@ public class AdminSubscriptionOverviewController {
 
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("tenantId", tenantId);
+            row.put("subscriptionId", sub.getId());
             row.put("tenantName", name);
             row.put("tier", sub.getTier() != null ? sub.getTier().name() : null);
             row.put("status", sub.getStatus() != null ? sub.getStatus().name() : null);

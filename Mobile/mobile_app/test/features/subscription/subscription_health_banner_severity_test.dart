@@ -9,13 +9,14 @@ import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 /// 14 info → 7 warn → 3 danger, TRIAL escalating via level when ≤14 days,
 /// CANCELLED/EXPIRED danger red. Healthy renders nothing.
 void main() {
-  Widget harness(SubscriptionHealth health) => MaterialApp(
+  Widget harness(SubscriptionHealth health, {bool snooze = false}) => MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SubscriptionHealthBanner(
             health: health,
             onRenew: () {},
+            onSnooze: snooze ? () {} : null,
           ),
         ),
       );
@@ -24,7 +25,8 @@ void main() {
   const warn = Color(0xFFF7EDDD);
   const danger = Color(0xFFF7E5E2);
 
-  SubscriptionHealth h(String status, {int? level}) => SubscriptionHealth(
+  SubscriptionHealth h(String status, {int? level, bool snooze = false}) =>
+      SubscriptionHealth(
         healthStatus: status,
         level: level,
         trialActive: false,
@@ -74,5 +76,24 @@ void main() {
     await tester.pumpWidget(harness(h('EXPIRED')));
     expect(find.byKey(const Key('subscription-health-banner-cta')),
         findsOneWidget);
+  });
+
+  testWidgets('NIX-334 snooze shows at EXPIRING_SOON 14/7, hidden at 3 and '
+      'other states (prototype note)', (tester) async {
+    const snoozeKey = Key('subscription-health-banner-snooze');
+    await tester.pumpWidget(harness(h('EXPIRING_SOON', level: 14), snooze: true));
+    expect(find.byKey(snoozeKey), findsOneWidget);
+    await tester.pumpWidget(harness(h('EXPIRING_SOON', level: 7), snooze: true));
+    expect(find.byKey(snoozeKey), findsOneWidget);
+    // The 3-day state removes 稍后提醒 per the prototype screen-note.
+    await tester.pumpWidget(harness(h('EXPIRING_SOON', level: 3), snooze: true));
+    expect(find.byKey(snoozeKey), findsNothing);
+    await tester.pumpWidget(harness(h('RENEWAL_FAILED'), snooze: true));
+    expect(find.byKey(snoozeKey), findsNothing);
+    await tester.pumpWidget(harness(h('EXPIRED'), snooze: true));
+    expect(find.byKey(snoozeKey), findsNothing);
+    // No callback wired → no button even at 14 days.
+    await tester.pumpWidget(harness(h('EXPIRING_SOON', level: 14)));
+    expect(find.byKey(snoozeKey), findsNothing);
   });
 }

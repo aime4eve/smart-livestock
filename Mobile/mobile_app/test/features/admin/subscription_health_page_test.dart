@@ -17,17 +17,34 @@ import 'package:http/testing.dart';
 /// tenant search, D6 localised zh pill labels + health/keyword/size params.
 void main() {
   final capturedQueries = <String>[];
+  final capturedPuts = <({String path, Map<String, dynamic>? body})>[];
 
   setUp(() {
     capturedQueries.clear();
+    capturedPuts.clear();
     FlutterSecureStorage.setMockInitialValues({});
   });
 
   http.Client mockClient() => MockClient((req) async {
+        if (req.method == 'PUT') {
+          capturedPuts.add((
+            path: req.url.path,
+            body: jsonDecode(req.body) as Map<String, dynamic>?,
+          ));
+          return http.Response(
+            jsonEncode({
+              'code': 'OK',
+              'data': {'id': 33},
+            }),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        }
         capturedQueries.add(req.url.query);
         final items = [
           {
             'tenantId': 2,
+            'subscriptionId': 22,
             'tenantName': '南非-市场',
             'tier': 'PREMIUM',
             'healthStatus': 'EXPIRED',
@@ -37,6 +54,7 @@ void main() {
           },
           {
             'tenantId': 3,
+            'subscriptionId': 33,
             'tenantName': 'Demo Ranch',
             'tier': 'PREMIUM',
             'healthStatus': 'RENEWAL_FAILED',
@@ -45,11 +63,31 @@ void main() {
           },
           {
             'tenantId': 4,
+            'subscriptionId': 44,
             'tenantName': '肯尼亚试点',
             'tier': 'BASIC',
             'healthStatus': 'TRIAL',
             'daysToExpiry': 5,
             'sameDayGroup': true,
+          },
+          {
+            'tenantId': 5,
+            'subscriptionId': 55,
+            'tenantName': '暂停租户',
+            'tier': 'STANDARD',
+            'healthStatus': 'SUSPENDED',
+            'daysToExpiry': null,
+            'sameDayGroup': false,
+          },
+          {
+            'tenantId': 6,
+            'subscriptionId': 66,
+            'tenantName': '临期租户',
+            'tier': 'PREMIUM',
+            'healthStatus': 'EXPIRING_SOON',
+            'level': 7,
+            'daysToExpiry': 7,
+            'sameDayGroup': false,
           },
         ];
         return http.Response(
@@ -157,5 +195,56 @@ void main() {
             await tester.pumpAndSettle();
             expect(capturedQueries.last, contains('keyword=Demo'));
             expect(capturedQueries.last, contains('health=EXPIRING_SOON'));
+          }));
+
+  testWidgets('NIX-334: ops column renders per health status',
+      (tester) => withMock(() async {
+            await pumpPage(tester);
+            expect(find.byKey(const Key('health-action-repay')),
+                findsOneWidget); // RENEWAL_FAILED row
+            expect(find.byKey(const Key('health-action-restore')),
+                findsOneWidget); // SUSPENDED row
+            expect(find.byKey(const Key('health-action-convert')),
+                findsOneWidget); // TRIAL row
+            expect(find.byKey(const Key('health-action-renew')),
+                findsOneWidget); // EXPIRED row
+            expect(find.byKey(const Key('health-action-disabled')),
+                findsOneWidget); // EXPIRING_SOON row
+            expect(find.text('协助补缴'), findsOneWidget);
+            expect(find.text('恢复服务'), findsOneWidget);
+            expect(find.text('转正式引导'), findsOneWidget);
+            expect(find.text('跟进续费'), findsOneWidget);
+            expect(find.text('发送续费提醒'), findsOneWidget);
+          }));
+
+  testWidgets('NIX-334: assist repayment confirm dialog issues PUT ACTIVE '
+      'and reloads', (tester) => withMock(() async {
+            await pumpPage(tester);
+            final queriesBefore = capturedQueries.length;
+
+            await tester.tap(find.byKey(const Key('health-action-repay')));
+            await tester.pumpAndSettle();
+            expect(find.text('确认协助补缴？'), findsOneWidget);
+
+            await tester.tap(find.widgetWithText(TextButton, '确认'));
+            await tester.pumpAndSettle();
+
+            expect(capturedPuts, hasLength(1));
+            expect(capturedPuts.single.path,
+                '/api/v1/admin/subscriptions/33/status');
+            expect(capturedPuts.single.body, {'targetStatus': 'ACTIVE'});
+            expect(find.text('操作成功'), findsOneWidget);
+            expect(capturedQueries.length, greaterThan(queriesBefore),
+                reason: 'the list reloads after a successful write');
+          }));
+
+  testWidgets('NIX-334: cancelling the dialog issues no write',
+      (tester) => withMock(() async {
+            await pumpPage(tester);
+            await tester.tap(find.byKey(const Key('health-action-repay')));
+            await tester.pumpAndSettle();
+            await tester.tap(find.widgetWithText(TextButton, '取消'));
+            await tester.pumpAndSettle();
+            expect(capturedPuts, isEmpty);
           }));
 }

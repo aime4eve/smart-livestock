@@ -6,6 +6,7 @@ import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_controller.dart';
+import 'package:hkt_livestock_agentic/features/subscription/presentation/subscription_snooze_controller.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/export_entitlement_card.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/feature_comparison_table.dart';
 import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/subscription_health_banner.dart';
@@ -51,37 +52,56 @@ class SubscriptionPlanPage extends ConsumerWidget {
         foregroundColor: AppColors.surfaceAlt,
       ),
       body: asyncStatus.when(
-        data: (currentStatus) => SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // NIX-324: wall-clock health banner + export entitlement card.
-              if (currentStatus.health != null) ...[
-                SubscriptionHealthBanner(
-                  health: currentStatus.health!,
-                  onRenew: () => context.push(
-                    AppRoute.checkout.path,
-                    extra: {
-                      // Restore semantics: renewal/repayment re-checks-out the
-                      // paid tier the subscription row keeps; trial conversion
-                      // lands on the recommended paid tier (trial rows are
-                      // BASIC, prototype state 0 "转正式订阅").
-                      'tier': _renewalTargetTier(
-                          currentStatus.tier, currentStatus.health!),
-                      'livestockCount': currentStatus.livestockCount,
-                    },
+        data: (currentStatus) {
+          // NIX-334: a "remind me later" taken at the same level and period
+          // end hides the banner; it lapses on its own at the next threshold
+          // (14→7→3) or after a renewal moves the period end.
+          final health = currentStatus.health;
+          final snoozed = health != null &&
+              (ref.watch(subscriptionSnoozeProvider(currentStatus.tenantId))
+                          .value)
+                      ?.suppresses(health, currentStatus.currentPeriodEnd) ==
+                  true;
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // NIX-324: wall-clock health banner + export entitlement card.
+                if (health != null && !snoozed) ...[
+                  SubscriptionHealthBanner(
+                    health: health,
+                    onRenew: () => context.push(
+                      AppRoute.checkout.path,
+                      extra: {
+                        // Restore semantics: renewal/repayment re-checks-out the
+                        // paid tier the subscription row keeps; trial conversion
+                        // lands on the recommended paid tier (trial rows are
+                        // BASIC, prototype state 0 "转正式订阅").
+                        'tier': _renewalTargetTier(currentStatus.tier, health),
+                        'livestockCount': currentStatus.livestockCount,
+                      },
+                    ),
+                    onSnooze: SubscriptionHealthBanner.showsSnooze(health)
+                        ? () => ref
+                            .read(subscriptionSnoozeProvider(
+                                    currentStatus.tenantId)
+                                .notifier)
+                            .snooze(
+                              level: health.level ?? 14,
+                              periodEnd: currentStatus.currentPeriodEnd,
+                            )
+                        : null,
                   ),
-                ),
-                if (currentStatus.health!.hasExportWindow) ...[
-                  const SizedBox(height: 12),
-                  ExportEntitlementCard(
-                    key: const Key('export-entitlement-mount'),
-                    exportWindow: currentStatus.health!.exportWindow!,
-                  ),
+                  if (health.hasExportWindow) ...[
+                    const SizedBox(height: 12),
+                    ExportEntitlementCard(
+                      key: const Key('export-entitlement-mount'),
+                      exportWindow: health.exportWindow!,
+                    ),
+                  ],
+                  const SizedBox(height: 16),
                 ],
-                const SizedBox(height: 16),
-              ],
               Text(
                 l10n.subSelectPlanHint,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -118,9 +138,10 @@ class SubscriptionPlanPage extends ConsumerWidget {
               const SizedBox(height: AppSpacing.xl),
               const FeatureComparisonTable(),
               const SizedBox(height: AppSpacing.xxl),
-            ],
-          ),
-        ),
+              ],
+            ),
+          );
+        },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
       ),

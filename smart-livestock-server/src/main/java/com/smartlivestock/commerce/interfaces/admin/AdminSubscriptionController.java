@@ -5,6 +5,7 @@ import com.smartlivestock.commerce.application.assembler.SubscriptionAssembler;
 import com.smartlivestock.commerce.application.query.SubscriptionQueryService;
 import com.smartlivestock.commerce.application.service.SubscriptionApplicationService;
 import com.smartlivestock.commerce.domain.model.Subscription;
+import com.smartlivestock.commerce.domain.model.SubscriptionStatus;
 import com.smartlivestock.commerce.infrastructure.persistence.SpringDataSubscriptionRepository;
 import com.smartlivestock.commerce.infrastructure.persistence.mapper.SubscriptionMapper;
 import com.smartlivestock.licensing.application.LicenseModeGuard;
@@ -123,7 +124,16 @@ public class AdminSubscriptionController {
 
         switch (targetStatus.toUpperCase()) {
             case "SUSPENDED" -> subscriptionApplicationService.suspend(tenantId);
-            case "ACTIVE" -> subscriptionApplicationService.reactivate(tenantId);
+            // NIX-334: RENEWAL_FAILED cannot reactivate() (SUSPENDED/CANCELLED
+            // only); an admin-confirmed offline repayment recovers it with a
+            // fresh billing period instead.
+            case "ACTIVE" -> {
+                if (subscription.getStatus() == SubscriptionStatus.RENEWAL_FAILED) {
+                    subscriptionApplicationService.recoverRenewalFailure(tenantId);
+                } else {
+                    subscriptionApplicationService.reactivate(tenantId);
+                }
+            }
             case "CANCELLED" -> subscriptionApplicationService.cancel(tenantId);
             default -> throw new ApiException(ErrorCode.VALIDATION_ERROR,
                     "不支持的目标状态: " + targetStatus);

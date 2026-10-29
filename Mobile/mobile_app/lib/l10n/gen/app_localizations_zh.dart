@@ -7661,4 +7661,47 @@ class AppLocalizationsZh extends AppLocalizations {
   String subscriptionHealthSortNote(int total) {
     return '共 $total 个租户 · 按紧迫度排序（临期天数升序 → 到期 → 待补缴）';
   }
+
+  @override
+  String get subscriptionHealthSnooze => '稍后提醒';
+
+  @override
+  String get subscriptionHealthActionsHeader => '运营动作';
+
+  @override
+  String get subscriptionHealthActionConvertGuide => '转正式引导';
+
+  @override
+  String get subscriptionHealthActionSendReminder => '发送续费提醒';
+
+  @override
+  String get subscriptionHealthActionReminderDisabled => '外呼渠道未接入';
+
+  @override
+  String get subscriptionHealthActionFollowRenewal => '跟进续费';
+
+  @override
+  String get subscriptionHealthActionAssistRepay => '协助补缴';
+
+  @override
+  String get subscriptionHealthActionRestore => '恢复服务';
+
+  @override
+  String get subscriptionHealthConfirmRepayTitle => '确认协助补缴？';
+
+  @override
+  String get subscriptionHealthConfirmRepayBody =>
+      '标记已收到补缴：订阅恢复生效，到期日从当前/原到期起顺延一个计费周期。';
+
+  @override
+  String get subscriptionHealthConfirmRestoreTitle => '确认恢复服务？';
+
+  @override
+  String get subscriptionHealthConfirmRestoreBody => '该租户订阅将恢复为生效状态。';
+
+  @override
+  String get subscriptionHealthActionDone => '操作成功';
+
+  @override
+  String get subscriptionHealthActionFailed => '操作失败';
 }

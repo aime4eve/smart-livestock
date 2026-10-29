@@ -6324,5 +6324,19 @@
         "type": "int"
       }
     }
-  }
+  },
+  "subscriptionHealthSnooze": "Remind me later",
+  "subscriptionHealthActionsHeader": "Actions",
+  "subscriptionHealthActionConvertGuide": "Guide conversion",
+  "subscriptionHealthActionSendReminder": "Send renewal reminder",
+  "subscriptionHealthActionReminderDisabled": "Outreach channel not connected",
+  "subscriptionHealthActionFollowRenewal": "Follow up renewal",
+  "subscriptionHealthActionAssistRepay": "Assist repayment",
+  "subscriptionHealthActionRestore": "Restore service",
+  "subscriptionHealthConfirmRepayTitle": "Confirm repayment?",
+  "subscriptionHealthConfirmRepayBody": "Marks the repayment as received: the subscription reactivates and its period extends by one billing cycle.",
+  "subscriptionHealthConfirmRestoreTitle": "Restore service?",
+  "subscriptionHealthConfirmRestoreBody": "The tenant's subscription will be reactivated.",
+  "subscriptionHealthActionDone": "Done",
+  "subscriptionHealthActionFailed": "Action failed"
 }

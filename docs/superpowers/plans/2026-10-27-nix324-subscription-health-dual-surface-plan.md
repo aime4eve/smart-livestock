@@ -51,3 +51,13 @@
 - 前端造态依赖改库（dev 容器 psql），造态/恢复成对脚本随 Task 6 提供（Task 4/5 走查用）。
 - v1.2 评审三阻断已转为本计划硬任务（Task 2 双通道+卷、Task 4 白名单）；完成前不得宣布 plan 就绪。
 - 开放问题三项（spec §7）默认按 spec 缺省值执行，用户可随时改判。
+
+---
+
+## 增量：v1.3 原型元素补齐（NIX-334，2026-10-29 用户裁决后执行）
+
+spec v1.3 两项裁决的落地增量（不走新 plan，随 NIX-334 单交付）：
+
+- **租户端稍后提醒**：横幅 EXPIRING_SOON level 14/7 加 ghost 按钮；`subscription_snooze_controller.dart`（shared_preferences 键 `subscription_health_snooze_{tenantId}` = `{level}|{periodEndUtc}`）；同 level 同 periodEnd 隐藏横幅，级降/周期变自动重现。widget 测试：按钮门控 6 例 + record 语义 4 例。
+- **管理端运营动作列**（spec §4.3 v1.3 矩阵）：后端 overview 行加 `subscriptionId`；`AdminSubscriptionController` ACTIVE 分支按状态分流（RENEWAL_FAILED → `recoverRenewalFailure(tenantId)` = 领域 recover + 顺延一个计费周期，单测 4 例含 STATE_CONFLICT）；前端动作列（写操作确认框 + toast 透传 + 重载；TRIAL/EXPIRED 深链租户详情；发送续费提醒置灰）。widget 测试：渲染矩阵 + PUT 断言 + 取消无写，3 例。
+- 验证：`precheck-ci.sh` + 远程 Journey 全量 + dev 造态实点协助补缴（`nix324-seed-state-smoke.sh renewal_failed` → DB 核对 status=active 且 expires_at 顺延 → `restore`）。

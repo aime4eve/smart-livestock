@@ -14090,6 +14090,90 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'共 {total} 个租户 · 按紧迫度排序（临期天数升序 → 到期 → 待补缴）'**
   String subscriptionHealthSortNote(int total);
+
+  /// No description provided for @subscriptionHealthSnooze.
+  ///
+  /// In zh, this message translates to:
+  /// **'稍后提醒'**
+  String get subscriptionHealthSnooze;
+
+  /// No description provided for @subscriptionHealthActionsHeader.
+  ///
+  /// In zh, this message translates to:
+  /// **'运营动作'**
+  String get subscriptionHealthActionsHeader;
+
+  /// No description provided for @subscriptionHealthActionConvertGuide.
+  ///
+  /// In zh, this message translates to:
+  /// **'转正式引导'**
+  String get subscriptionHealthActionConvertGuide;
+
+  /// No description provided for @subscriptionHealthActionSendReminder.
+  ///
+  /// In zh, this message translates to:
+  /// **'发送续费提醒'**
+  String get subscriptionHealthActionSendReminder;
+
+  /// No description provided for @subscriptionHealthActionReminderDisabled.
+  ///
+  /// In zh, this message translates to:
+  /// **'外呼渠道未接入'**
+  String get subscriptionHealthActionReminderDisabled;
+
+  /// No description provided for @subscriptionHealthActionFollowRenewal.
+  ///
+  /// In zh, this message translates to:
+  /// **'跟进续费'**
+  String get subscriptionHealthActionFollowRenewal;
+
+  /// No description provided for @subscriptionHealthActionAssistRepay.
+  ///
+  /// In zh, this message translates to:
+  /// **'协助补缴'**
+  String get subscriptionHealthActionAssistRepay;
+
+  /// No description provided for @subscriptionHealthActionRestore.
+  ///
+  /// In zh, this message translates to:
+  /// **'恢复服务'**
+  String get subscriptionHealthActionRestore;
+
+  /// No description provided for @subscriptionHealthConfirmRepayTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认协助补缴？'**
+  String get subscriptionHealthConfirmRepayTitle;
+
+  /// No description provided for @subscriptionHealthConfirmRepayBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记已收到补缴：订阅恢复生效，到期日从当前/原到期起顺延一个计费周期。'**
+  String get subscriptionHealthConfirmRepayBody;
+
+  /// No description provided for @subscriptionHealthConfirmRestoreTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认恢复服务？'**
+  String get subscriptionHealthConfirmRestoreTitle;
+
+  /// No description provided for @subscriptionHealthConfirmRestoreBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'该租户订阅将恢复为生效状态。'**
+  String get subscriptionHealthConfirmRestoreBody;
+
+  /// No description provided for @subscriptionHealthActionDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'操作成功'**
+  String get subscriptionHealthActionDone;
+
+  /// No description provided for @subscriptionHealthActionFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'操作失败'**
+  String get subscriptionHealthActionFailed;
 }
 
 class _AppLocalizationsDelegate
