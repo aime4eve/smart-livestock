@@ -15,8 +15,6 @@ import com.smartlivestock.iot.domain.repository.DeviceTelemetryLogRepository;
 import com.smartlivestock.iot.domain.repository.TbDeviceBindingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.rocketmq.spring.annotation.ConsumeMode;
-import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -43,18 +41,19 @@ import java.util.concurrent.atomic.AtomicLong;
  * frames are logged + counted and swallowed (they are permanent gaps, not
  * poison messages); transient ingest failures propagate so RocketMQ retries.
  */
+/**
+ * Message handler only — the {@code DefaultMQPushConsumer} wiring and its
+ * retrying start live in {@link DeviceHubConsumerConfig}. The annotation-driven
+ * listener was replaced (2026-11-01, 206-outage fallout): the starter's bean
+ * post-processor starts the container synchronously during bean
+ * initialization, so an unreachable DeviceHub broker failed the whole Spring
+ * context and put the app in a restart loop. Bean creation here performs no
+ * network I/O.
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "smartlivestock.devicehub.enabled", havingValue = "true")
-@RocketMQMessageListener(
-        nameServer = "${smartlivestock.devicehub.mq-name-server}",
-        topic = "${smartlivestock.devicehub.mq-topic}",
-        consumerGroup = "${smartlivestock.devicehub.mq-consumer-group}",
-        selectorExpression = "LIVESTOCK",
-        consumeThreadMax = 20,
-        consumeMode = ConsumeMode.CONCURRENTLY
-)
 public class DeviceHubChannelConsumer implements RocketMQListener<String> {
 
     private static final int CONTRACT_VERSION = 1;
