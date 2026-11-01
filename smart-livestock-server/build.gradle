@@ -63,6 +63,11 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+    // Actuator + Prometheus metrics — scraped by the sp-monitoring stack on
+    // 172.22.1.123 (dev 19081 / test 18081). NIX-126 multi-project integration.
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
     // OpenFeign — agentic-middle-platform integration
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 

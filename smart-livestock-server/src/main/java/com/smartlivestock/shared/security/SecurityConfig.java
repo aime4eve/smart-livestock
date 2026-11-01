@@ -53,6 +53,12 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/health"
                         ).permitAll()
+                        // Prometheus scraping (sp-monitoring stack, NIX-126).
+                        // Intranet-only: nginx does not forward /actuator
+                        // (static try_files fallback returns 404).
+                        .requestMatchers(
+                                "/actuator/**"
+                        ).permitAll()
                         // Public deployment descriptor for the login screen
                         // (license-mode badge renders before authentication).
                         .requestMatchers(

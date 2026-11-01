@@ -204,3 +204,20 @@ smartlivestock:
   # Blank = legacy rolling windows (pilot now+365d, self-service now+14d).
   trial:
     ends-at: ${SMARTLIVESTOCK_TRIAL_ENDS_AT:2027-09-30T21:00:00Z}
+
+# Metrics/actuator exposure for the sp-monitoring stack (NIX-126, 2026-11-01).
+# Scraped by Prometheus on 172.22.1.123 via the app's published port
+# (dev 19081 / test 18081). nginx does not forward /actuator (its location /
+# fallback is static try_files), so these endpoints stay intranet-only;
+# SecurityConfig permits /actuator/** for the scraper.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+  metrics:
+    tags:
+      application: smart-livestock
