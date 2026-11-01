@@ -45,21 +45,38 @@ public class TenantSubscriptionResolver {
         this.terminationAnchorResolver = terminationAnchorResolver;
     }
 
+    /** Production entry — wall clock, 60s cache read as before. */
     public SubscriptionSnapshot resolve(Long tenantId) {
         if (tenantId == null) {
             return new SubscriptionSnapshot("NONE", DEGRADED_TIER, false, Instant.now());
         }
         CacheEntry entry = cache.get(tenantId);
-        long now = System.currentTimeMillis();
-        if (entry != null && now - entry.cachedAtMs() < TTL_MS) {
+        long cacheMs = System.currentTimeMillis();
+        if (entry != null && cacheMs - entry.cachedAtMs() < TTL_MS) {
             return entry.snapshot();
         }
-        SubscriptionSnapshot snapshot = doResolve(tenantId);
-        cache.put(tenantId, new CacheEntry(snapshot, now));
+        SubscriptionSnapshot snapshot = doResolve(tenantId, Instant.now());
+        cache.put(tenantId, new CacheEntry(snapshot, cacheMs));
         return snapshot;
     }
 
-    private SubscriptionSnapshot doResolve(Long tenantId) {
+    /**
+     * Clock-injectable variant so cross-component checks (NIX-324
+     * SubscriptionSemanticsCrossCheckTest) can align the resolver with the
+     * evaluator and export policy on one shared Instant. Bypasses the 60s
+     * cache read: with a fixed clock a cached wall-clock snapshot would be
+     * meaningless. Still refreshes the cache for subsequent production reads.
+     */
+    public SubscriptionSnapshot resolve(Long tenantId, Instant now) {
+        if (tenantId == null) {
+            return new SubscriptionSnapshot("NONE", DEGRADED_TIER, false, now);
+        }
+        SubscriptionSnapshot snapshot = doResolve(tenantId, now);
+        cache.put(tenantId, new CacheEntry(snapshot, System.currentTimeMillis()));
+        return snapshot;
+    }
+
+    private SubscriptionSnapshot doResolve(Long tenantId, Instant now) {
         return subscriptionRepository.findByTenantId(tenantId)
                 .map(sub -> {
                     String status = sub.getStatus() != null ? sub.getStatus().name() : "UNKNOWN";
@@ -72,7 +89,7 @@ public class TenantSubscriptionResolver {
                     // Revivable states (RENEWAL_FAILED/SUSPENDED) keep the
                     // paid tier as a repayment grace.
                     boolean terminated = terminationAnchorResolver
-                            .resolve(sub, Instant.now()).isPresent();
+                            .resolve(sub, now).isPresent();
                     boolean keepsTier = !terminated
                             && (sub.isActiveOrTrial()
                                 || sub.getStatus() == com.smartlivestock.commerce.domain.model.SubscriptionStatus.RENEWAL_FAILED
@@ -80,9 +97,9 @@ public class TenantSubscriptionResolver {
                     String tier = keepsTier
                             ? sub.effectiveTier().name().toLowerCase()
                             : DEGRADED_TIER;
-                    return new SubscriptionSnapshot(status, tier, trialActive, Instant.now());
+                    return new SubscriptionSnapshot(status, tier, trialActive, now);
                 })
-                .orElseGet(() -> new SubscriptionSnapshot("NONE", DEGRADED_TIER, false, Instant.now()));
+                .orElseGet(() -> new SubscriptionSnapshot("NONE", DEGRADED_TIER, false, now));
     }
 
     public void evictTenant(Long tenantId) {

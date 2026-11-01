@@ -144,7 +144,12 @@ class SubscriptionSemanticsCrossCheckTest {
                 resolver.evictTenant(TENANT_ID);
 
                 var verdict = evaluator.evaluate(sample.subscription(), NOW);
-                var resolverSnapshot = resolver.resolve(TENANT_ID);
+                // Same clock as the evaluator: the resolver must judge
+                // termination on the samples' reference time, not the wall
+                // clock (the 2026-11-01 flare-up: the expiring-soon sample
+                // expires 2026-11-01T00:00Z, so the real clock crossed it
+                // mid-suite and resolver degraded while evaluator did not).
+                var resolverSnapshot = resolver.resolve(TENANT_ID, NOW);
                 var policyDecision = policy.assess(TENANT_ID, NOW);
 
                 // Degraded (terminated) ⇔ resolver hands out the basic tier.
