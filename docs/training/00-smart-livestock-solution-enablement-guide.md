@@ -341,7 +341,7 @@ platform_admin creates tenant and initial users
 
 ### 竞品研究快照
 
-> 以下内容提炼自 `docs/product/smart-livestock-prd-v2.3.md` 和 `Mobile/docs/product/2026-04-10-研发项目立项书.md`，属于历史市场研究。用于客户材料前必须重新核对竞品官网、公开文档、定价和本地案例，并标注资料日期。
+> 以下内容提炼自 `docs/product/smart-livestock-prd-v2.4.md` 和 `Mobile/docs/product/2026-04-10-研发项目立项书.md`，属于历史市场研究。用于客户材料前必须重新核对竞品官网、公开文档、定价和本地案例，并标注资料日期。
 
 | 竞品 | 国家/地区 | 研究中的定位 | 对方可能强项 | 我方差异化切入点 |
 |---|---|---|---|---|
@@ -447,7 +447,7 @@ platform_admin creates tenant and initial users
 
 - `docs/reference/project-overview.md`
 - `docs/product/customer-journey.md`
-- `docs/product/smart-livestock-prd-v2.3.md`
+- `docs/product/smart-livestock-prd-v2.4.md`
 - `docs/superpowers/specs/2026-05-18-commerce-context-design.md`
 - `Mobile/docs/product/2026-04-10-研发项目立项书.md`
 - `Mobile/docs/requirements/2026-03-27-虚拟围栏应用需求分析.md`

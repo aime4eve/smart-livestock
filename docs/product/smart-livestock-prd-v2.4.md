@@ -1,11 +1,11 @@
-# SmartLivestock 智慧畜牧产品规划
+# SmartLivestock 智慧畜牧产品规划（国际品牌 BoviScout）
 
-> **版本**：v2.2
-> **日期**：2026-07-05
+> **版本**：v2.4
+> **日期**：2026-11-01
 > **状态**：基线
-> **替代**：v2.1（2026-07-02）
-> **范围**：全平台系统（Flutter Mobile App + PC 管理端 + Spring Boot 后端服务 + AI Platform 微服务 + IoT 设备层 + 无人机巡检 + 商业模式）
-> **编制**：基于 v2.1 增量更新 — 地图瓦片架构升级（逐瓦片智能路由替代全局三级降级）、离线瓦片管理完善（流式下载 + 完整管理 UI）、产品定位明确（国际市场优先） — 对齐 2026-06-18 后新增 spec（datagen 限界上下文、AI 健康路线图 Phase A 交付、牲畜/设备管理、dev/test 环境分离、i18n 设计、跨上下文解耦）+ 同步 API 契约 As-Built 端点数据
+> **替代**：v2.3.1（2026-09-15）
+> **范围**：全平台系统（Flutter Mobile App + PC 管理端 + Spring Boot 后端服务 + AI Platform 微服务 + IoT 设备层 + 商业模式；无人机巡检为 P2 规划）
+> **编制**：基于 v2.3.1 对账增量更新（2026-11-01）— 全文档按 master 实现逐章对账刷新（对账明细：`docs/reports/2026-11-01-prd-v2.4-sync-audit.md`）：告警模型（V26 重设计）、订阅生命周期（统一试点截止日 / RENEWAL_FAILED 补缴 / 到期降档）、角色权限（多标识登录 + 超管上下文切换 NIX-306）、设备接入通道（多源 TelemetrySource + GPS outbox + ThingsBoard 直连，MQTT 标注规划）对齐实现；新增模块 M 网关定位与数据质量（NIX-219/220）、模块 N 饮水行为检测与生理事件（NIX-256）；端点计数 329（83 控制器）、Flyway 117 个迁移；无人机巡检（P2）、蓝牙防盗、App 推送 / SMS / 邮件等未实现项就地标注
 
 ---
 
@@ -13,6 +13,7 @@
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
+| v2.4 | 2026-11-01 | 功能口径对账刷新（明细：docs/reports/2026-11-01-prd-v2.4-sync-audit.md）：①告警模型对齐 V26 重设计（ACTIVE→DISMISSED/AUTO_RESOLVED + 用户级已读 + 14 类枚举）；②订阅生命周期补统一试点截止日（2027-10-01 EAT）/ RENEWAL_FAILED 补缴 / 到期降档（NIX-323/324/325）；③角色权限对齐多标识登录 + 超管上下文切换（NIX-306）+ 强制改密锁（NIX-191）；④设备接入通道重写（多源 TelemetrySource + GPS outbox + ThingsBoard 直连，MQTT 标注规划）；⑤新增模块 M 网关定位与数据质量（NIX-219/220）、模块 N 饮水行为检测与生理事件（NIX-256，L1 F=0.928）；⑥端点计数 329（83 控制器）与 117 个迁移刷新；⑦路线图补 M9–M18；⑧无人机（P2）/ 蓝牙防盗 / App 推送 / SMS / 邮件等未实现项就地标注 |
 | v2.3.1 | 2026-09-15 | 设备能力口径更正：智能耳标（ET-100）不支持 GPS 定位，其能力为身份标识 + 体表测温（0.1℃ 精度）+ 步数统计；定位能力仅属 GPS 追踪器（项圈）。同步更正术语表，并同步上市材料与架构图 |
 | v2.3 | 2026-07-08 | 设备健康管理设计（device_telemetry_logs + 健康评分）、blade 集成用户旅程、datagen 对齐 blade 数据格式、Phase 3 实施设计 spec |
 | v2.2 | 2026-07-08 | 新增 §4.13 第三方平台集成（hkt-blade-device），Phase 3 PoC 验证结果，设备管理模块 blade 对接描述 |
@@ -32,7 +33,7 @@
 
 ### 1.1 产品定位
 
-面向牧场主的牲畜智能管理平台，通过 **IoT 设备（GPS 追踪器 + 瘤胃胶囊 + 耳标）+ AI 数智孪生 + 无人机巡检**，实现牲畜**定位管控**、**健康预警**、**行为分析**和**空地协同巡检**，帮助牧场主从经验养殖转向数据驱动的精准养殖，以低部署成本切入中型及大型牧场市场（50–5,000 头）。
+面向牧场主的牲畜智能管理平台（App 国际品牌 **BoviScout**，2026-10-21 定名；主品牌 SmartLivestock），通过 **IoT 设备（GPS 追踪器 + 瘤胃胶囊 + 耳标）+ AI 数智孪生**，实现牲畜**定位管控**、**健康预警**、**行为分析**（空地协同巡检为 P2 规划，未启动），帮助牧场主从经验养殖转向数据驱动的精准养殖，以低部署成本切入中型及大型牧场市场（50–5,000 头）。
 
 **核心价值主张**：
 
@@ -40,7 +41,7 @@
 - **数智孪生差异化**：4 大 AI 场景（发热/消化/发情/疫病）覆盖牲畜全生命周期，竞品尚无此能力
 - **AI 异常检测已交付**：Phase A 无监督异常检测（Python 微服务，STL+CUSUM+Mahalanobis/iForest 联合检测），67 tests passed
 - **空地协同**：第三方工业无人机 SDK 集成 + 移动 LoRaWAN 网关补盲，自动巡航 + 告警联动追踪 + 声音驱赶
-- **防盗能力**：瘤胃胶囊与追踪器蓝牙关联，链接断开超 5 分钟主动上报丢失告警
+- **防盗能力（部分规划中）**：已实现设备防拆（DEVICE_TAMPER）与离群（OUTLIER）告警；胶囊–追踪器蓝牙关联断链告警依赖固件 0xB0/0xB1 上行（NIX-154/160 未启动）
 - **灵活定价**：设备一次性购买（$65/台，客户所有）+ 订阅按头/月计费（BASIC 免费 ≤50 头，首年免费试点）
 
 ### 1.2 目标市场
@@ -62,8 +63,10 @@
 | **当前（MVP / Phase 1–2）** | 数智孪生 4 场景 | 发热/消化/发情/疫病 AI 分析引擎，竞品无此能力 |
 | **当前（MVP / Phase 1–2）** | AI 无监督异常检测 | Phase A 已交付：STL 节律剥离 + CUSUM 突变检测 + 按个体样本量路由算法，三维联合（体温+蠕动+活动） |
 | **当前（MVP / Phase 1–2）** | 实时地图监控 | flutter_map + SmartTileProvider 逐瓦片智能路由 + 离线瓦片管理 + WGS-84 全球统一坐标系 |
-| **当前（MVP / Phase 1–2）** | 设备防盗 | 瘤胃胶囊–追踪器蓝牙关联告警 |
-| **近期（Phase 2d）** | 合成数据引擎 + AI 评估闭环 | datagen 限界上下文：Scenario 驱动合成 + ground-truth 标签 + 评估框架 |
+| **当前（MVP / Phase 1–2）** | 设备防盗 | 防拆（DEVICE_TAMPER）/ 离群（OUTLIER）告警；胶囊–追踪器蓝牙关联为规划（NIX-154） |
+| **当前（MVP / Phase 1–2）** | 饮水行为检测与生理事件 | 瘤胃温度谷检测饮水事件（NIX-256，L1 F=0.928）+ 人工生理事件流 + 标注闭环 |
+| **当前（MVP / Phase 1–2）** | 网关定位与数据质量 | 网关位置标记、通讯距离、覆盖诊断、数据治理看板、GPS 质量检验（NIX-219/220） |
+| **近期（Phase 2d）** | 合成数据引擎 + AI 评估闭环 | datagen 限界上下文：Scenario 驱动合成 + ground-truth 标签 + 评估框架（Phase C 行为数据集推进中） |
 | **远期（Phase 3）** | 空地协同巡检 | 无人机 SDK 集成 + 移动 LoRaWAN 网关补盲 + 告警联动追踪 |
 | **远期（Phase 3）** | AI 预测增强 | LSTM 轨迹预测、产犊预测、综合诊断 LLM Agent |
 
@@ -117,7 +120,7 @@
 | AI 异常检测 | ✗ | ✗ | ✗ | ✗ | **无监督 + 三维联合** |
 | 数智孪生 | ✗ | ✗ | ✗ | ✗ | **4 场景** |
 | 设备防盗 | ✗ | ✗ | ✗ | ✗ | **蓝牙关联** |
-| 无人机巡检 | ✗ | ✗ | ✗ | ✗ | **SDK + 移动网关** |
+| 无人机巡检 | ✗ | ✗ | ✗ | ✗ | **SDK + 移动网关（P2 规划，未启动）** |
 
 ### 1.6 部署模式
 
@@ -156,11 +159,11 @@
 | US-09 | 牲畜档案 | 牧场主/兽医 | 耳标、品种、体重、设备绑定、健康档案 | P0 |
 | US-10 | 租户开通 | 平台管理员 | 创建租户、分配用户、License 配额 | P0 |
 | US-11 | 订阅计费 | B 端管理员 | 订阅层级、合同、分润对账、功能门控 | P1 |
-| US-12 | 无人机巡检 | 牧场主/牧工 | 自动巡航、视频回传、告警联动追踪 | P2 |
+| US-12 | 无人机巡检 | 牧场主/牧工 | 自动巡航、视频回传、告警联动追踪 | P2（未启动） |
 | US-13 | API 数据接入 | API 开发者 | Open API 查询牲畜/围栏/告警/设备 | P1 |
 | US-14 | 历史轨迹回放 | 牧场主 | 24h/7d/30d 轨迹回放、热力图 | P1 |
 | US-15 | 多牧场切换 | 牧场主 | 一个账号管理多个牧场，切换刷新 | P0 |
-| US-16 | 丢失设备搜寻 | 牧工 | 无人机移动网关主动搜索丢失动物信号 | P2 |
+| US-16 | 丢失设备搜寻 | 牧工 | 无人机移动网关主动搜索丢失动物信号 | P2（未启动） |
 | US-17 | AI 异常检测查看 | 牧场主/兽医 | 双轨展示：规则告警 + AI 异常指数并排 | P1 |
 | US-18 | 牧场统计看板 | 牧场主/牧工 | 牧场概览、健康统计、牲畜/设备统计、API 用量趋势 | P0 |
 | US-19 | 个人设置与语言切换 | 所有角色 | 个人信息、告警通知偏好、中英文在线切换 | P1 |
@@ -169,6 +172,13 @@
 | US-22 | B 端概览与牧场管理 | B 端管理员 | B 端控制台概览、旗下牧场管理、牧工详情 | P1 |
 | US-23 | 离线数据访问 | 牧场主/牧工 | 离线围栏/牲畜/瓦片数据，网络恢复后自动同步 | P1 |
 | US-24 | 合成数据场景管理 | 平台管理员 | 创建/启动/停止合成场景、查看 GroundTruth 标签、评估报告 | P1 |
+| US-25 | 网关位置与覆盖诊断 | 牧场主 | 网关位置标记、通讯距离、链路质量分档、覆盖诊断建议（NIX-219） | P1（已实现） |
+| US-26 | 饮水事件查看与标注 | 牧场主/兽医 | 饮水事件时间线、人工标注、标注数据集导出（NIX-256） | P1（已实现） |
+| US-27 | 生理事件记录 | 牧场主/兽医 | 人工生理事件流（登记/时间线） | P1（已实现） |
+| US-28 | 订阅到期治理与数据导出 | 双端 | 到期横幅与稍后提醒、导出权卡、过期租户 GDPR 自助导出（NIX-323/324/325） | P1（已实现） |
+| US-29 | 超管上下文切换 | 超管 | SUPER_ADMIN 选择角色进入系统（act 重签 + 审计，NIX-306） | P1（已实现） |
+| US-30 | GPS 质量检验 | 平台管理员 | RTK 点位比对、批量检验、动态报告 | P1（已实现） |
+| US-31 | 设备跨租户移交 | 平台管理员 | EUI 归属核查 + 跨租户移交（含审计） | P1（已实现） |
 
 ### 2.3 角色旅程链
 
@@ -191,6 +201,8 @@ owner → 管理牲畜、围栏、告警、牧工、订阅
 | **owner** | 移动端 App | 底部导航栏（4–5 Tab） | 管理牧场全部业务 + 后台 + 订阅 |
 | **worker** | 移动端 App | 底部导航栏（4 Tab） | 查看告警、围栏，仅确认告警 |
 | **api_consumer** | 开发者门户 | — | 仅 API 访问，无 App 端 |
+
+> **超管上下文（NIX-306，2026-10）**：SUPER_ADMIN root 账号登录后进入 `/select-context` 选择以 platform_admin / b2b_admin / owner / worker 身份进入系统（switch-context 重签 act 标记 token + `AUTH_CONTEXT_SWITCHED` 审计；context token 不可再次切换，防提权）。
 
 #### 2.3.1 平台入驻旅程（platform_admin）
 
@@ -257,11 +269,13 @@ owner 登录（重定向到 /twin 数智孪生首页）
   │    → 轨迹热力图、放牧密度热力图                        │
   │                                                     │
   │  【告警】                                            │
-  │    → 告警列表（按类型/级别/状态筛选）                  │
+  │    → 告警列表（按类型/级别/状态筛选，工作台分桶）      │
   │    → 告警详情（越界个体、时间、位置、围栏信息）         │
-  │    → 告警处理：确认 → 处理 → 归档                      │
-  │    → 告警类型：越界/低电量/信号丢失/温度异常/蠕动异常/   │
-  │      发情高分/群体异常/追踪器丢失                        │
+  │    → 告警处理：关闭（dismiss）/ 标记已读               │
+  │    → 告警状态：ACTIVE → DISMISSED / AUTO_RESOLVED     │
+  │    → 告警类型 14 类：围栏越界/接近/分区接近/体温异常/    │
+  │      消化异常/发情/疫病/AI 异常/防拆/低电量/离线/        │
+  │      链路质量/离群/归牧提醒                              │
   │                                                     │
   │  【围栏】                                            │
   │    → 围栏列表（按类型/状态筛选）                       │
@@ -271,7 +285,8 @@ owner 登录（重定向到 /twin 数智孪生首页）
   │    → 时间策略：全天生效或特定时段生效                   │
   │    → 冲突检测（围栏重叠识别）                           │
   │                                                     │
-  │  【后台管理】（第 5 Tab）                              │
+  │  【后台管理】（已移除：owner 访问 /admin 重定向 /ranch；│
+  │    订阅走 /subscription，以下能力经 App 页面触达）      │
   │    → 牲畜管理：列表/档案/群组/创建/编辑/删除            │
   │    → 设备管理：追踪器/胶囊/耳标列表、状态监控、绑定     │
   │    → 安装管理：设备安装/卸载/历史记录                   │
@@ -293,8 +308,8 @@ owner 登录（重定向到 /twin 数智孪生首页）
 
 **关键规则**：
 - 牧场主可访问全部 App 页面 + 后台管理 + 牧工管理 + 订阅管理
-- 告警状态推进：pending → acknowledged（owner/worker）→ handled（owner only）→ archived（owner only）
-- 非法状态跳转返回 409 CONFLICT
+- 告警状态：ACTIVE → DISMISSED（owner/worker/b2b_admin 可关闭）/ AUTO_RESOLVED；已读按用户记录（`alert_read_status`）
+- 旧 acknowledge/handle/archive 端点 @Deprecated 保留兼容（旧四态模型已废弃）
 - 设备安装约束：每头牲畜每种设备类型最多一个活跃安装；安装前设备必须 ACTIVE
 - 牲畜删除：有活跃安装时禁止删除（409 STATE_CONFLICT）
 - 牲畜耳标号、设备编号全局唯一
@@ -307,7 +322,7 @@ worker 登录（重定向到 /twin 数智孪生首页）
   │                                                     │
   │  【孪生】  → 查看地图、牲畜位置、健康概览（只读）     │
   │  【地图】  → 查看实时位置、轨迹（只读）               │
-  │  【告警】  → 查看告警列表、确认告警（不可处理/归档）   │
+  │  【告警】  → 查看告警列表、关闭告警（dismiss）与已读   │
   │  【围栏】  → 仅查看围栏（不可创建/编辑/删除）         │
   │  【我的】  → 个人资料、语言切换、牧场切换、退出登录    │
   │                                                     │
@@ -323,7 +338,7 @@ api_consumer 通过开发者门户操作
   → 申请 API Key（提交 scope、频率需求）
   → 等待 platform_admin 审批
   → 审批通过后获取 API Key（仅首次发放时可见明文）
-  → 调用 Open API：牲畜/围栏/告警/设备只读查询
+  → 调用 Open API：牲畜/围栏/告警/设备/GPS/遥测查询（含遥测导出，NIX-323）与设备自注册（写）
   → 设备自注册：通过专用 Key（scope: device:register）批量注册设备
   → 查看 API 用量统计、调用日志
   → Key 过期/吊销后重新申请
@@ -339,19 +354,21 @@ api_consumer 通过开发者门户操作
 
 | 条件 | 行为 |
 |------|------|
+| 强制改密 | `mustChangePassword=true` 时锁 `/me/password-change`，白名单外全 403（NIX-191） |
 | 未登录 | 所有页面 → `/login` |
+| 超管 root | 登录后 → `/select-context` 选择角色上下文（NIX-306；impersonated 会话有兜底路由） |
 | platform_admin | 仅允许 `/ops/admin/*` 和 `/admin/*`，其余重定向到 `/ops/admin` |
-| b2b_admin | 仅允许 `/b2b/admin/*`，其余重定向到 `/b2b/admin` |
-| owner | 允许所有 App 页面 + `/admin` + `/mine/workers` |
-| worker | 允许 App 页面，拒绝 `/admin`、`/mine/workers`（重定向到 `/twin`） |
+| b2b_admin | `/b2b/admin/*` + 例外放行 `/admin/tiles`、`/admin/datagen`，其余重定向到 `/b2b/admin` |
+| owner | 允许所有 App 页面 + `/mine/workers`；**`/admin` 前缀重定向 `/ranch`**（2026-09-20 核实，订阅走 `/subscription`） |
+| worker | 允许 App 页面，拒绝 `/admin`、`/mine/workers`（重定向到 `/ranch`） |
 
 #### 2.3.7 核心操作权限速览
 
 | 操作 | owner | worker | platform_admin | b2b_admin |
 |------|:-----:|:------:|:--------------:|:---------:|
 | 创建/编辑/删除围栏 | ✅ | ✗ | ✗ | ✗ |
-| 确认告警 | ✅ | ✅ | ✗ | ✗ |
-| 处理/归档告警 | ✅ | ✗ | ✗ | ✗ |
+| 关闭告警（dismiss） | ✅ | ✅ | ✗ | ✅ |
+| 标记已读（read/batch-read） | ✅ | ✅ | ✅ | ✅ |
 | 管理租户（含启停） | ✗ | ✗ | ✅ | ✗ |
 | 创建牧场并分配 owner | ✗ | ✗ | ✅ | ✅ |
 | 管理牲畜/设备/安装 | ✅ | ✗ | ✗ | ✗ |
@@ -368,14 +385,7 @@ api_consumer 通过开发者门户操作
 
 #### 2.3.8 种子数据登录凭据
 
-| 角色 | 手机号 | 密码 | 说明 |
-|------|--------|------|------|
-| platform_admin | 13800000000 | 123 | 平台级管理，无租户归属 |
-| b2b_admin | 13900139000 | 123 | Demo 租户 B 端管理员 |
-| owner | 13800138000 | 123 | Demo 租户 owner，关联主牧场 |
-| worker | 13800138001 | 123 | Demo 租户牧工，关联主牧场 |
-
-> 密码通过 BCrypt 哈希存储。Seed 迁移严格遵循三步验证（生成时验证 → 写入 Flyway 迁移 → 部署后 `curl` 登录验证）。
+> 种子凭据属部署细节，事实源为 **`docs/reference/deployment.md`**（含各环境账号、密码与超管上下文说明），本文不再罗列明文凭据。密码策略：新建用户密码须 8 位四类，首登强制改密（NIX-191）。Seed 迁移严格遵循三步验证（生成时 bcrypt.compare 验证 → 写入 Flyway 迁移 → 部署后 `curl` 登录验证，`scripts/verify-seed-hash.sh`）。
 
 ---
 
@@ -497,14 +507,26 @@ SmartLivestock 的收入由**三条独立产品线**构成，对应 `Tenant.bill
 
 > 按头计费天然随规模扩展，付费档不再设头数硬上限（原 200/1000 头升档强制已随 NIX-245 移除）；规模分档让大牧场单头成本递减，等价于旧模型的"升档激励"。
 
-### 3.4 试用期
+### 3.4 试用期与免费试点（双轨）
+
+**① 自助试用（注册即得）**：
 
 | 项目 | 配置 |
 |------|------|
 | 时长 | **14 天** |
 | 试用 Tier | **PREMIUM**（全功能体验） |
-| 到期后 | 自动降为 FREE 状态（tier=BASIC），保留数据，可随时付费激活 |
+| 到期后 | `CommerceScheduler.expireTrials`（每小时）自动降为 FREE 状态（tier=BASIC），保留数据，可随时付费激活 |
 | 试用期间 | 所有 PREMIUM 功能可用，无头数限制 |
+
+**② 平台发放免费试点（NIX-323/324 体系，2026-10）**：
+
+| 项目 | 配置 |
+|------|------|
+| 发放方 | platform_admin 经试点授权链发放（可重授，重授时重置 tier=BASIC） |
+| 截止日 | **统一平台默认** `smartlivestock.trial.ends-at`（默认 `2027-09-30T21:00:00Z` = 2027-10-01 00:00 肯尼亚 EAT）；可按租户传当地日期，服务端按该租户时区自动换算 |
+| 到期判定 | 统一锚点 = **订阅快照**（trialActive/effectiveTier），禁裸 status 判定：ACTIVE 但 expires_at 已过未翻转 → 一律按降档处理；RENEWAL_FAILED / SUSPENDED 保留付费档（NIX-323） |
+| 到期后 | 双端横幅提示（可"稍后提醒"）+ 导出权卡倒计时；**降档不拒绝**：遥测/Open 端点按降档窗口 clamp 继续服务，不 403 拒绝（NIX-323） |
+| 数据导出 | 终止后 30 天内保留 GDPR 自助导出权，导出文件 30 天下载窗（NIX-325） |
 
 ### 3.5 计费周期与折扣
 
@@ -568,11 +590,13 @@ SmartLivestock 的收入由**三条独立产品线**构成，对应 `Tenant.bill
 
 **状态转换规则**：
 - TRIAL → ACTIVE：付费激活任意套餐
-- TRIAL → FREE：14 天到期自动降级（`TrialExpiryJob`，每小时检查）
+- TRIAL → FREE：14 天到期自动降级（`CommerceScheduler.expireTrials`，每小时检查）
 - TRIAL → CANCELLED：用户主动取消
 - ACTIVE → RENEWAL_FAILED：到期扣款失败 → 7 天宽限
 - RENEWAL_FAILED → ACTIVE：宽限期内续费成功
-- RENEWAL_FAILED → EXPIRED：宽限期满未续费（`RenewalFailedExpiryJob`，每天 2:00 检查）
+- RENEWAL_FAILED → EXPIRED：宽限期满未续费（`CommerceScheduler.downgradeAfterRenewalFailure`，每天 2:00 检查）
+- RENEWAL_FAILED 补缴：recover 放行 + **顺延一个计费周期**，否则墙钟判断仍会打回 EXPIRED（NIX-334）
+- ACTIVE → EXPIRED：到期未翻转的补偿判定每小时跑（`markExpiredSubscriptions`）；有效档位统一由**订阅快照**判定（trialActive/effectiveTier），RENEWAL_FAILED/SUSPENDED 保留付费档（NIX-323）
 - ACTIVE → SUSPENDED：管理员暂停 → 可恢复
 - FREE → ACTIVE：随时升级付费
 - 全部状态 → CANCELLED：主动取消（记录 `cancelledAt`）
@@ -584,7 +608,7 @@ SmartLivestock 的收入由**三条独立产品线**构成，对应 `Tenant.bill
 ```
 1. 用户注册 → Tenant(type=rancher, billingModel=direct)
 2. 自动创建 Subscription(status=TRIAL, tier=PREMIUM, trialEndsAt=now+14d)
-3. 14 天后 TrialExpiryJob → expireTrial() → FREE(tier=BASIC)
+3. 14 天后 CommerceScheduler.expireTrials → expireTrial() → FREE(tier=BASIC)
 4. 用户选 STANDARD → POST /subscription/checkout（Mock 支付）
 5. 支付成功 → activate(STANDARD, "monthly", expiresAt) → ACTIVE
 6. 升降级 → PUT /subscription/tier → changeTier(PREMIUM)
@@ -899,16 +923,18 @@ graph TB
 | **数据库** | PostgreSQL | 16 | 业务 + 时序分区表 |
 | **缓存** | Redis | 7 | 会话、热点查询、限流计数 |
 | **消息队列** | RocketMQ Spring Boot Starter | 2.3.0 | 事件总线，优雅降级 |
-| **数据库迁移** | Flyway | — | V1–V40 版本化管理 |
+| **数据库迁移** | Flyway | — | 117 个迁移版本化管理（V1–V41 + 77 个 V2026xxxx 日期序，2026-11-01 核实） |
 | **认证** | JJWT | 0.12.5 | JWT 双 Token（Access 1h + Refresh 7d） |
 | **安全** | Spring Security | — | RBAC + 多租户隔离 |
 | **Lombok** | Lombok | — | 样板代码消除 |
 | **测试** | JUnit 5 + Testcontainers | 1.20.6 | 集成测试用真实 PostgreSQL 容器 |
-| **实时通信** | MQTT (EMQX) | 5.x | 告警推送、位置更新、设备遥测 |
+| **实时通信** | SSE（Spring SseEmitter） | — | 牲畜信号流（SignalController，10 类 SignalEventType）；MQTT (EMQX) 为规划未实现 |
 | **地图服务** | flutter_map + tileserver-gl + MBTiles | — | 逐瓦片智能路由 + 离线瓦片管理 |
-| **前端 Mobile** | Flutter + Riverpod + go_router | — | iOS / Android / Web，30 模块 42 路由 |
+| **前端 Mobile** | Flutter + Riverpod + go_router | — | iOS / Android / Web，61 条路由（2026-11-01 核实） |
 | **前端 PC** | VUE3 | — | 维护中（独立模块） |
 | **AI 平台** | Python + FastAPI + scikit-learn | — | ai-platform 微服务，Phase A 已交付（67 tests） |
+| **配置中心** | Nacos（自建 NacosRemoteConfigLoader） | — | blade 地址等环境配置启动期 HTTP 拉取（仅 dev/test；86/223 私有化不启用） |
+| **可观测性** | Spring Boot Actuator + Micrometer Prometheus | — | `/actuator/prometheus` 独立管理端口（dev 19081 / test 18081），接入 sp-monitoring 监控栈 |
 | **AI 模型** | scikit-learn / TensorFlow / GLM-DeepSeek | — | L1/L2/L3 三层 |
 | **无人机** | 大疆 DJI Mobile SDK + Semtech SX1302 | — | 空地协同巡检（P2） |
 
@@ -928,7 +954,21 @@ graph TB
 - 多租户：JWT 解析 `tenantId` → `ThreadLocal`（`TenantContext`）→ 数据库层 `tenant_id` 强制隔离
 - Open API：API Key 不设 `TenantContext`，数据隔离由 API Key 关联租户 + 应用层过滤实现
 
-### 4.8 MQTT 主题设计
+### 4.8 设备接入通道（现状 + 规划）
+
+> **现状（2026-11）**：设备遥测不经 MQTT——后端无任何 MQTT 客户端代码（全仓 0 命中）。真实数据经**多源接入**统一进入 `TelemetryIngestionService`，来源 `TelemetrySource` 枚举 5 值：
+>
+> | 来源 | 通道 | 说明 |
+> |------|------|------|
+> | `AGENTIC_PLATFORM` | blade 中台轮询（Feign report-record/page） | 2026-10 起 dev→blade SIT、test→客户试用 |
+> | `THINGSBOARD` | ThingsBoard REST 直连（NIX-179） | 设备开通向导 + 对账/导入工具（NIX-180）+ profile 白名单（NIX-214） |
+> | `DATAGEN` | datagen 合成经 ACL 写入 | 仅研发用，带标记入库（AGENTS.md §2 红线） |
+> | `HTTP` | HTTP push 端点 | 第三方直推 |
+> | `MANUAL_IMPORT` | 遥测文件手动导入（NIX-79） | 历史数据回填 |
+>
+> **GPS 写入走 outbox**：ingest 主事务只写 `gps_ingestion_tasks`，`GpsIngestionTaskScheduler` 异步写 `gps_logs`；幂等键 `(device_id, recorded_at)`（NIX-145）。
+>
+> 下表 MQTT 主题设计为**规划口径（未实现）**，保留作为设备直连接入的演进方向：
 
 | 主题 | 方向 | Payload | 说明 |
 |------|------|---------|------|
@@ -940,16 +980,25 @@ graph TB
 | `livestock/gateway/{gwId}/status` | 网关→平台 | `{online, connectedCount, ts}` | 网关心跳 |
 | `livestock/device/{eui}/command` | 平台→设备 | `{cmd: "locate"/"ota"/"reboot"}` | 下行指令 |
 
-### 4.9 实时推送事件
+### 4.9 实时推送（SSE 信号流）
 
-| 订阅端 | 事件名 | Payload | 触发条件 |
-|--------|--------|---------|---------|
-| Mobile App | `alert.new` | `{id, type, level, animalId, message, ts}` | 新告警（越界/健康/行为） |
-| Mobile App | `position.update` | `{animalId, lat, lng, ts}` | 牲畜位置更新 |
-| Mobile App | `health.update` | `{animalId, scene, score, ts}` | 健康评分更新 |
-| Mobile App | `device.offline` | `{deviceId, lastSeen}` | 设备离线 |
-| Mobile App | `device.low_battery` | `{deviceId, battery}` | 低电量告警 |
-| 后台管理 | `subscription.suspended` | `{tenantId, reason}` | 订阅欠费暂停 |
+**机制**：`SignalController`（`/api/v1/farms/{farmId}/signals`）——`POST /stream-ticket` 领取一次性票据 → `GET /stream`（`text/event-stream`）建立 SSE 长连接；`GET /livestock`、`GET /map` 提供初始快照。
+
+**事件类型**（`SignalEventType` 10 值，2026-11-01 核对）：
+
+| 事件 | 触发条件 |
+|------|---------|
+| LIVESTOCK_POSITION_CHANGED | 牲畜位置更新 |
+| RUMEN_METRIC_CHANGED | 瘤胃温度/蠕动指标更新 |
+| ALERT_CHANGED | 告警创建/状态变化 |
+| FENCE_SIGNAL_CHANGED / FENCE_GEOMETRY_CHANGED | 围栏状态/几何变化 |
+| HEALTH_SIGNAL_CHANGED | 健康指标更新 |
+| AI_ASSESSMENT_COMPLETED | AI 评估完成 |
+| DEVICE_SIGNAL_CHANGED | 设备状态更新 |
+| INSTALLATION_CHANGED | 安装/卸载 |
+| LIVESTOCK_CHANGED | 牲畜档案变化 |
+
+> 站内通知（订阅到期、合同签署、告警触发等）走 `notifications` 表按用户拉取；系统级推送（APNs/FCM）、SMS、邮件均未实现。
 
 ### 4.10 架构演进路径
 
@@ -991,12 +1040,16 @@ graph LR
     EXT --> NGINX_DEV
 ```
 
-**环境角色**：
+**环境角色**（2026-11 起共 4 环境）：
 
-| 环境 | 用途 | 入口端口 |
-|------|------|---------|
+| 环境 | 用途 | 入口 |
+|------|------|------|
 | **test** | 集成验证 + 演示 | 18080 |
 | **dev** | 日常开发 | 19080 |
+| **86 HOSTED** | 托管环境（发布包继承升级） | 见发布手册 |
+| **223 ONPREM** | 私有化环境（发布包继承升级） | 见发布手册 |
+
+> 全量发布链：`build_web.sh` → deploy dev → deploy test → 123 打包（`build-release-package.sh`）→ 86/223 两跳升级（免 sudo，`MIN_MEM_GB/MIN_DISK_GB` 资源预检，旧版本目录留作回滚点）。实操细节见 `docs/deployment/release-deployment-playbook.md`。
 
 **关键特性**：
 - 数据完全隔离（各自独立 PostgreSQL 实例 + volume）
@@ -1288,16 +1341,17 @@ GPS 设备 / API 响应
 ```
 
 - smart-livestock 只作为 blade Feign 端点的**消费方**，不要求 blade 新增任何代码
-- 采用 **方案 B（Feign + url 直连）**，不引入 Nacos，不改变 smart-livestock 的独立架构
+- 采用 **方案 B（Feign + url 直连）**；2026-10-16 起 blade 地址改由**自建 Nacos 配置**下发（`NacosRemoteConfigLoader`：EnvironmentPostProcessor + HTTP v1 API 8848，零新依赖；优先级 OS env > Nacos > application.yml，Nacos 不可达自动回落；仅 dev/test 启用，86/223 私有化走 HKT-DeviceHub），不改变 smart-livestock 的独立架构
 
-#### 4.13.2 服务拓扑（实测地址）
+#### 4.13.2 服务拓扑（地址经 Nacos 下发）
 
-| 服务 | 开发机地址 | 用途 |
-|------|-----------|------|
-| hkt-blade-auth | `172.22.4.17:8108` | OAuth2 换票（`/oauth2/token`） |
-| hkt-blade-device | `172.22.4.17:8100` | 设备 + 遥测 + 历史数据 |
-| hkt-blade-system | `172.22.4.17:8106` | 用户管理（feign 端点无需 token） |
-| Nacos 注册中心 | `172.22.3.16:8848` | namespace `c47123d9-...` |
+> blade 四项地址的事实源 = 自建 Nacos `smartlivestock` 命名空间（`smartlivestock-blade-dev.yaml` / `-test.yaml`），启动期由 `NacosRemoteConfigLoader` 拉取注入，改 Nacos + 重启进程即生效。dev→blade SIT、test→客户试用环境。
+
+| 服务 | 用途 |
+|------|------|
+| hkt-blade-auth | OAuth2 换票（`/oauth2/token`） |
+| hkt-blade-device | 设备 + 遥测 + 历史数据 |
+| hkt-blade-system | 用户管理（feign 端点无需 token） |
 
 #### 4.13.3 认证链路
 
@@ -1354,6 +1408,15 @@ blade 不可改代码，无法实现 Webhook 推送。改为 **smart-livestock �
 
 > 完整设计文档：`docs/superpowers/specs/2026-07-07-phase-c-blade-device-integration.md`
 > PoC 工程：`business-platform/hkt-blade-device-docking/`（单元测试 6/6 + 真实联通性 13/13）
+
+#### 4.13A ThingsBoard 直连通道（NIX-179/180/214，2026-09 落地）
+
+与 blade 轮询并行的第二真实数据通道：
+
+- **遥测直连**：`TbTelemetryChannel` REST 拉取 TB 遥测（`TelemetrySource.THINGSBOARD`），绑定关系存 `tb_device_bindings`（V20260828110000）
+- **开通对账**：`TbDeviceProvisioningController` 四能力——reconcile（对账）/ importDevices（批量导入）/ preflight（入网预检）/ provision（开通）
+- **profile 白名单**：`DeviceProfileRuleAdminController`（NIX-214）管控可入网 TB 设备 profile
+- **前端开通向导**：设备页 TbDeviceWizardSheet 弹层走完开通旅程
 
 ### 4.14 设备健康管理（Phase 3 实施设计）
 
@@ -1486,6 +1549,8 @@ erDiagram
 ```
 
 > **字段取值**：`tenants.type` = rancher / reseller / enterprise / developer；`tenants.billing_model` = direct / revenue_share / licensed / api_usage。`users.phone` + `api_keys.key_hash` 均唯一约束。`users.role` = platform_admin / b2b_admin / owner / worker / api_consumer。多牧场机制：一个 user 可通过 `user_farm_assignments` 关联多个 farm，前端 `activeFarmId` 切换时刷新 farm-scoped 数据。
+>
+> **v2.4 增补**：登录标识泛化（PR #132）——支持 account / email / phone(E.164) 任一 + 密码，大小写不敏感；`users` 另有 `must_change_password` 强制改密锁（NIX-191）。`tenants` / `farms` 带 `timezone` 列（NULL = 继承下一级，TenantZoneResolver 三级链：牧场→租户→平台默认，V20261012110000）。设备 `dev_eui` 全球唯一索引（2026-10-12，跨租户预检 + 移交）。
 
 #### Ranch 上下文 — 牲畜 · 围栏 · 告警
 
@@ -1532,14 +1597,14 @@ erDiagram
         bigint fence_id FK
         string type
         string level
-        string stage
+        string status
         string message "i18n key"
         jsonb detail
         timestamptz created_at
     }
 ```
 
-> **字段取值**：`livestock.species` = cattle / sheep；`livestock.gender` = male / female；`livestock.livestock_code` 全局唯一。`fences.fence_type` = enter / leave / stay_in；`fences.geometry` 为 GeoJSON Polygon 或 Circle；`fences.version` 乐观锁。`alerts.type` = fence / battery / fever / motility / estrus / herd / theft；`alerts.level` = warning / critical；`alerts.stage` 状态机：pending → acknowledged（owner / worker）→ handled（owner only）→ archived（owner only），非法跳转返回 409。
+> **字段取值**：`livestock.species` = cattle / sheep；`livestock.gender` = male / female；`livestock.livestock_code` 全局唯一。`fences.fence_type` = enter / leave / stay_in；`fences.geometry` 为 GeoJSON Polygon 或 Circle；`fences.version` 乐观锁。`alerts.type`（14 值）= FENCE_BREACH / FENCE_APPROACH / ZONE_APPROACH / TEMPERATURE_ABNORMAL / DIGESTIVE_ABNORMAL / ESTRUS / EPIDEMIC / AI_ANOMALY / DEVICE_TAMPER / DEVICE_LOW_BATTERY / DEVICE_OFFLINE / LINK_QUALITY / OUTLIER / RETURN_HOME；`alerts.level` = warning / critical；**`alerts.status` 状态机（V26 重设计）**：ACTIVE → DISMISSED / AUTO_RESOLVED（仅 ACTIVE 可关闭，非法 409）；已读按用户存 `alert_read_status` 表；旧 stage 四态模型已废弃。
 
 #### IoT 上下文 — 设备 · License · 安装 · GPS
 
@@ -1584,14 +1649,14 @@ erDiagram
     }
 ```
 
-> **字段取值**：`devices.type` = EAR_TAG / TRACKER / CAPSULE；`devices.status` = online / offline / low_battery；`devices.eui` 和 `devices.device_code` 均全局唯一。安装约束：每头牲畜每种设备类型最多一个活跃安装；安装前设备必须 ACTIVE。GPS 日志（`gps_logs`）按月 RANGE 分区。
+> **字段取值**：`devices.type` = EAR_TAG / TRACKER / CAPSULE；`devices.status` = INVENTORY / ACTIVE / DECOMMISSIONED（OFFLINE 已移除——在线/离线为运行时 `runtimeStatus` 计算值，不落库）；`devices.eui` 和 `devices.device_code` 均全局唯一。设备扩展字段（blade_device_id / rssi / snr / anti_disassembly_status 等，V20260709120000）见 §4.14。新增表：`tb_device_bindings`（TB 直连绑定）、`gateway_registry`（网关注册，V20260918100000）、`gps_ingestion_tasks`（GPS 写入 outbox，成功即删）。安装约束：每头牲畜每种设备类型最多一个活跃安装；安装前设备必须 ACTIVE。GPS 日志（`gps_logs`，含 `source` 来源列）按月 RANGE 分区。
 
 #### Health 上下文 — 时序数据 · 健康评分
 
 ```mermaid
 erDiagram
     livestock ||--o{ temperature_logs : monitored
-    livestock ||--o{ motility_logs : monitored
+    livestock ||--o{ rumen_motility_logs : monitored
     livestock ||--o{ activity_logs : tracked
     livestock ||--o{ estrus_scores : scored
     livestock ||--o{ anomaly_scores : analyzed
@@ -1604,7 +1669,7 @@ erDiagram
         decimal delta "生成列：偏离基线值"
         timestamptz recorded_at "分区键"
     }
-    motility_logs {
+    rumen_motility_logs {
         bigint id PK
         bigint livestock_id FK
         decimal frequency "蠕动频率 次/分钟"
@@ -1643,7 +1708,9 @@ erDiagram
     }
 ```
 
-> **字段取值**：`anomaly_scores.dimension` = temperature / motility / activity；`anomaly_scores.level` = NORMAL / WARNING / CRITICAL；`anomaly_scores.source` = RULES / AI；`health_snapshots.health_status` = healthy / warning / critical。时序表（temperature_logs / motility_logs / activity_logs）按月 RANGE 分区，PRIMARY KEY 含分区键。`temperature_logs.delta` 为生成列（当前温度 − 个体基线）。anomaly_scores 存储规则引擎 + AI 双轨检测结果。
+> **字段取值**：`anomaly_scores.dimension` = temperature / motility / activity；`anomaly_scores.level` = NORMAL / WARNING / CRITICAL；`anomaly_scores.source` = RULES / AI；`health_snapshots.health_status` = healthy / warning / critical。时序表（temperature_logs / rumen_motility_logs / activity_logs）按月 RANGE 分区，PRIMARY KEY 含分区键。`temperature_logs.delta` 为生成列（当前温度 − 个体基线）。anomaly_scores 存储规则引擎 + AI 双轨检测结果。
+>
+> **v2.4 增补**：新增表 `drinking_events`（饮水事件，V20261005100000，含人工标注 label/confidence）、`physiology_events`（人工生理事件流，V20261004120000）；`anomaly_scores` 为月分区表（V40 引入）。
 
 #### Commerce 上下文 — 订阅 · 合同 · 分润 · 门控
 
@@ -1788,8 +1855,8 @@ erDiagram
 |------|------|------|------|
 | id | BIGINT PK | ✓ | 主键 |
 | eui | VARCHAR(16) UK | ✓ | 设备 EUI |
-| type | ENUM | ✓ | 类型：tracker/capsule/ear_tag |
-| status | ENUM | ✓ | 状态：online/offline/low_battery |
+| type | ENUM | ✓ | 类型：EAR_TAG / TRACKER / CAPSULE |
+| status | ENUM | ✓ | 状态：INVENTORY / ACTIVE / DECOMMISSIONED（在线态为运行时 runtimeStatus，不落库） |
 | battery | INT | | 电池电量百分比 |
 | firmware | VARCHAR(20) | | 固件版本 |
 | tenant_id | FK(Tenant) | ✓ | 多租户隔离 |
@@ -1813,13 +1880,13 @@ erDiagram
 |------|------|------|------|
 | id | BIGINT PK | ✓ | 主键 |
 | farm_id | FK(Farm) | ✓ | 所属牧场 |
-| type | ENUM | ✓ | 类型：fence/battery/fever/motility/estrus/herd/theft |
+| type | ENUM | ✓ | 类型：AlertType 14 值（见 §5.2 Ranch 字段取值） |
 | level | ENUM | ✓ | 级别：warning/critical |
 | livestock_id | FK(Livestock) | | 关联牲畜 |
 | fence_id | FK(Fence) | | 关联围栏 |
 | message | VARCHAR(500) | ✓ | 告警消息（i18n key） |
 | detail | JSONB | | 告警详情 |
-| stage | ENUM | ✓ | 状态：pending/acknowledged/handled/archived |
+| status | ENUM | ✓ | 状态：ACTIVE / DISMISSED / AUTO_RESOLVED（V26 重设计） |
 | created_at | TIMESTAMPTZ | ✓ | 创建时间 |
 
 ### 5.4 时序数据分区策略
@@ -1828,13 +1895,15 @@ erDiagram
 
 | 表 | 分区键 | 数据来源 | 索引策略 |
 |----|--------|---------|---------|
-| `gps_logs` | `recorded_at` | GPS 追踪器周期上报 | `(livestock_id, recorded_at DESC)` |
+| `gps_logs` | `recorded_at` | GPS 追踪器周期上报（outbox 异步写入） | `(livestock_id, recorded_at DESC)` |
 | `temperature_logs` | `recorded_at` | 瘤胃温度（30min） | `(livestock_id, recorded_at DESC)` |
-| `motility_logs` | `recorded_at` | 瘤胃蠕动（30min） | `(livestock_id, recorded_at DESC)` |
+| `rumen_motility_logs` | `recorded_at` | 瘤胃蠕动（30min） | `(livestock_id, recorded_at DESC)` |
 | `activity_logs` | `recorded_at` | 活动量（步数/行为） | `(livestock_id, recorded_at DESC)` |
+| `device_telemetry_logs` | `recorded_at` | 设备运维指标（blade/TB 上报快照） | 按 recorded_at 分区（V20260709120000） |
+| `anomaly_scores` | 月分区 | 规则 + AI 双轨异常分 | V40 引入 |
 
 **分区设计要点**：
-- 每张表预建月度分区 + `default` 兜底分区
+- 分区由 `PartitionMaintenanceService` 自动创建/维护（**禁止手工预建分区**，如需手工操作须先说明与该服务的兼容性）
 - 主键包含分区键：`PRIMARY KEY (id, recorded_at)`
 - 历史数据冷热分离：超保留期的分区可归档/删除
 
@@ -1879,9 +1948,11 @@ erDiagram
 | V22–V23 | Analytics/Portal | analytics_portal 表 + 种子 |
 | V24–V28 | Seed/i18n 修复 | tile regions + 坐标修复 + i18n + motility |
 | V29–V37 | i18n/Health/Tile | 告警文案翻译 + 健康详情图表种子 + estrus 数据 + tile 任务进度 |
-| V38–V40 | **Datagen** | synthesis_scenarios + ground_truth_labels（V38–V39），ScenarioType 枚举统一（V40） |
+| V38–V41 | **Datagen/AI** | synthesis_scenarios + ground_truth_labels（V38–V39），ScenarioType 枚举统一（V40–V41）；V40 另含 AI 异常集成（anomaly_scores 月分区） |
+| V26 | Ranch | 告警模型重设计：alert_read_status + 3 态状态机 |
+| V2026xxxx（77 个，日期序） | 全上下文 | 要点批次：V20260709120000 设备扩展（blade/健康评分）、V20260828110000 tb_device_bindings + TB 通道加固、V20260905100000 告警工作台（LINK_QUALITY/OUTLIER/RETURN_HOME）、V20260918100000 gateway_registry + 数据治理、V20261004120000 physiology_events、V20261005100000 drinking_events、V20261012110000 tenants/farms timezone、订阅生命周期与导出系列（NIX-323/324/325）、dev_eui 全球唯一索引等 |
 
-> 种子登录凭据：platform_admin `13800000000` / b2b_admin `13900139000` / owner `13800138000`，密码均为 `123`。Seed hash 严格遵循三步验证（生成时验证 → 写入迁移 → 部署后 `curl` 验证）。
+> 种子登录凭据不再在本文罗列，事实源 = `docs/reference/deployment.md`。Seed hash 严格遵循三步验证（生成时 bcrypt.compare 验证 → 写入迁移 → 部署后 `curl` 验证，`scripts/verify-seed-hash.sh`）。
 
 ---
 
@@ -1897,7 +1968,7 @@ erDiagram
 |--------|---------|-----------|
 | **P0（MVP）** | 认证、牧场/牲畜、虚拟围栏、告警、GPS 定位、数智孪生（发热/消化/发情/疫病）、租户管理、设备管理、安装管理、看板/地图、牲畜/设备 CRUD | Identity, Ranch, IoT, Health, Shared |
 | **P1（Phase 2）** | 订阅计费、合同管理、分润对账、功能门控、API 开放平台、开发者门户、多牧场切换、牧工管理、B 端后台、AI 异常检测展示、合成数据引擎 | Commerce, Analytics, Datagen |
-| **P2（Phase 3）** | 无人机巡检、移动 LoRaWAN 网关、AI 预测增强、LLM Agent、真实遥测接入 | IoT 扩展, AI Platform |
+| **P2（Phase 3，未启动项）** | 无人机巡检、移动 LoRaWAN 网关、AI 预测增强、LLM Agent（真实遥测接入已由 blade/TB 通道提前落地） | IoT 扩展, AI Platform |
 
 ### 6.2 模块总览
 
@@ -1921,8 +1992,18 @@ erDiagram
 | **API 开放平台** | Open API 数据查询、API Key 自管理、频率限制 | P1 | API 开发者 |
 | **多牧场切换** | 多牧场数据隔离切换 | P0 | 牧场主 |
 | **离线数据访问** | 离线围栏/牲畜/瓦片数据缓存，网络恢复后自动增量同步 | P1 | 牧场主、牧工 |
-| **无人机巡检监控** | 自动巡航、视频回传、告警联动追踪、移动网关补盲 | P2 | 牧场主、牧工 |
+| **无人机巡检监控** | 自动巡航、视频回传、告警联动追踪、移动网关补盲 | P2（未启动） | 牧场主、牧工 |
 | **我的设置** | 用户信息、告警通知、多语言在线切换 | P1 | 所有角色 |
+| **饮水事件检测与标注** | 瘤胃温度谷检测饮水事件、人工标注、标注数据集导出与重算 | P1 | 牧场主、兽医 |
+| **生理事件流** | 人工生理事件登记与时间线（配种/分娩闭环为 P2/P3 未做） | P1 | 牧场主、兽医 |
+| **网关定位与数据质量** | 网关位置标记、通讯距离、覆盖诊断、数据治理看板、GPS 质量检验（RTK/批量） | P1 | 牧场主、平台管理员 |
+| **设备跨租户移交** | EUI 归属核查 + 平台侧移交（含审计、租户详情卡） | P1 | 平台管理员 |
+| **TB 设备开通与对账** | TB 直连遥测、开通向导、对账/批量导入、profile 白名单 | P1 | 牧场主、平台管理员 |
+| **轨迹采集与导入** | App 走动采集、GPX 围栏导入、RTK XLSX 遥测导入（NIX-213） | P1 | 牧场主 |
+| **订阅到期治理与 GDPR 导出** | 双端到期提示/稍后提醒、导出权卡、过期租户自助导出、订阅健康总览 | P1 | 双端 |
+| **超管上下文切换** | SUPER_ADMIN 选角色进入（act 重签 + 审计） | P1 | 超管 |
+| **部署 License 管理** | 私有化部署 license 发放/校验（NIX-184） | P1 | 平台管理员 |
+| **告警工作台** | 分桶/分类治理、已读模型（NIX-52） | P1 | 所有角色 |
 
 ### 6.3 模块 A：GPS 定位与电子围栏
 
@@ -1956,7 +2037,7 @@ erDiagram
 | 越界告警 | 牲畜离开围栏范围触发（点在多边形内判断，射线法） |
 | 告警推送 | App 推送（必选）+ SMS（可选） |
 | 告警详情 | 越界个体、时间、位置、围栏信息 |
-| 告警处理 | pending → acknowledged → handled → archived（非法跳转返回 409） |
+| 告警处理 | ACTIVE → DISMISSED（关闭）/ AUTO_RESOLVED（自动消解）；已读按用户记录；旧 ack/handle/archive 端点 @Deprecated |
 | 离群检测 | 偏离牛群中心超 2km 且超 2 小时 |
 | 盗窃预警 | 非放牧时间（22:00–06:00）异常移动 |
 
@@ -2033,34 +2114,47 @@ erDiagram
 
 #### 6.5.1 告警类型
 
-| 类型 | 触发条件 | 告警级别 |
-|------|----------|----------|
-| 越界告警 | 牲畜离开电子围栏 | critical / warning |
-| 电池低电 | 设备电量低于阈值（20% 预警 / 15% 严重） | warning |
-| 信号丢失 | 设备离线超过阈值（3 个心跳周期） | warning |
-| 温度异常 | 瘤胃温度偏离基线 > 0.5°C | critical / warning |
-| 蠕动异常 | 蠕动频率显著下降或停止 | critical |
-| 发情高分 | 发情评分超过阈值 | warning |
-| 群体异常 | 群体体温/活动量系统性偏移 | warning |
-| 追踪器丢失 | 蓝牙链接断开超时（>5 分钟） | critical |
-| 无人机巡检异常 | 巡检发现异常牲畜/区域 | warning / critical |
-| 设备信号搜寻 | 无人机移动网关搜索到丢失设备信号 | warning |
+> 以 `AlertType` 枚举（14 值）为事实源（2026-11-01 逐一核对）：
 
-#### 6.5.2 告警状态机
+| 枚举值 | 触发条件 | 级别 | 状态 |
+|--------|----------|------|------|
+| FENCE_BREACH | 牲畜离开电子围栏 | critical / warning | ✅ |
+| FENCE_APPROACH | 接近围栏缓冲区 | warning | ✅ |
+| ZONE_APPROACH | 接近围栏分区 | warning | ✅ |
+| TEMPERATURE_ABNORMAL | 瘤胃温度偏离基线 > 0.5°C | critical / warning | ✅ |
+| DIGESTIVE_ABNORMAL | 蠕动频率显著下降或停止 | critical | ✅ |
+| ESTRUS | 发情评分超过阈值 | warning | ✅ |
+| EPIDEMIC | 疫病工作台群体预警 | warning | ✅ |
+| AI_ANOMALY | AI 异常指数 ≥ 阈值（0.7） | warning | ✅ |
+| DEVICE_TAMPER | 防拆卸触发 | critical | ✅ |
+| DEVICE_LOW_BATTERY | 设备电量低于阈值（20% 预警 / 15% 严重） | warning | ✅ |
+| DEVICE_OFFLINE | 设备离线超过阈值 | warning | ✅ |
+| LINK_QUALITY | 链路质量分档预警（NIX-219 F3） | warning | ✅ |
+| OUTLIER | 离群检测（偏离牛群中心超 2km 且超 2 小时） | warning | ✅ |
+| RETURN_HOME | 归牧点名提醒 | warning | ✅ |
+
+> **规划未实现**（无对应枚举）：追踪器蓝牙断链丢失告警（依赖固件 0xB0/0xB1，NIX-154）、无人机巡检异常 / 设备信号搜寻（P2 未启动）。
+
+#### 6.5.2 告警状态机（V26 重设计）
 
 ```
-pending（待处理） → acknowledged（已确认） → handled（已处理） → archived（已归档）
+ACTIVE（活跃） ──┬──→ DISMISSED（人工关闭）
+                 └──→ AUTO_RESOLVED（条件消解自动关闭）
 ```
 
-状态只能顺序推进，非法跳转返回 409 CONFLICT。
+- 仅 ACTIVE 可关闭，非法跳转返回 409 CONFLICT
+- 已读状态按用户隔离存储（`alert_read_status`），`POST /alerts/{id}/read`、`/batch-read` 任意登录用户可调
+- 旧 `acknowledge` / `handle` / `archive` / `batch-handle` 端点 `@Deprecated` 保留兼容
 
 #### 6.5.3 告警通知
 
-| 渠道 | 说明 | 优先级 |
-|------|------|--------|
-| App 推送 | 必选，所有告警 | P0 |
-| SMS 短信 | 可选，紧急告警 | P1 |
-| 邮件 | 可选，告警汇总 | P2 |
+| 渠道 | 说明 | 状态 |
+|------|------|------|
+| App 内实时信号 | SSE 信号流 + 告警列表角标/总览条 | ✅ 已实现 |
+| 站内通知 | `notifications` 表按用户拉取、标记已读 | ✅ 已实现 |
+| 系统推送（APNs/FCM） | 离线推送 | ⏳ 未实现（规划） |
+| SMS 短信 | 紧急告警 | ⏳ 未实现（规划） |
+| 邮件 | 告警汇总 | ⏳ 未实现（规划） |
 
 ### 6.6 模块 D：租户管理后台（Identity）
 
@@ -2073,6 +2167,12 @@ pending（待处理） → acknowledged（已确认） → handled（已处理�
 | 设备 License 管理 | 按设备类型配置配额（追踪器/胶囊/耳标） | P0 |
 | License 用量监控 | 查看已用/总量/剩余 | P0 |
 | 配额审计 | 追踪每次变更的操作者、时间、变更值 | P1 |
+| 设备跨租户移交 | EUI 归属核查 + transfer（含审计、租户详情卡片） | P1 |
+| 租户/牧场时区配置 | timezone 列 + 三级继承链（牧场→租户→平台默认） | P1 |
+| 免费试点授权 | 统一截止日（2027-10-01 EAT）/ 按租户 localDate 发放与重授 | P1 |
+| 数据导出监管 | data-export 任务列表/下载（NIX-325 配套） | P1 |
+| 订阅健康总览 | 全租户订阅健康分档 + 运营动作列 + 到期分组（NIX-324） | P1 |
+| 部署 License 管理 | 私有化部署 license 发放/校验（NIX-184） | P1 |
 
 ### 6.7 模块 E：牲畜管理（Ranch）
 
@@ -2130,17 +2230,22 @@ pending（待处理） → acknowledged（已确认） → handled（已处理�
 
 | 功能 | 说明 |
 |------|------|
-| 订阅层级 | Discovery/Standard/Plus/Enterprise（对应 basic/standard/premium/enterprise） |
+| 订阅层级 | BASIC（免费 ≤50 头）/ STANDARD / PREMIUM / ENTERPRISE（USD 按头/月，见 §3.2） |
 | FeatureGate 引擎 | gate_type + QuotaInterceptor 代码级强制配额拦截 |
 | 功能门控 | 23 个 feature flag，按 tier 控制功能可见性 |
 | 锁定提示 | 锁定功能显示升级提示覆盖层 |
-| 订阅状态联动 | trial/active/suspended/cancelled 状态机 |
+| 订阅状态联动 | 7 态状态机（TRIAL/ACTIVE/FREE/SUSPENDED/RENEWAL_FAILED/CANCELLED/EXPIRED，见 §3.7） |
+| 到期治理双端 | 到期横幅（可稍后提醒）+ 导出权卡倒计时 + 管理端运营动作列（NIX-324/334） |
+| 降档不拒绝 | 到期后遥测/Open 端点按降档窗口 clamp 继续服务，不 403（NIX-323） |
 
 ### 6.12 模块 J：API 开放平台（Analytics）
 
 | 功能 | 说明 | 优先级 |
 |------|------|--------|
-| Open API 数据查询 | 牲畜/围栏/告警/设备只读查询 | P1 |
+| Open API 数据查询 | 牲畜/围栏/告警/设备/GPS/遥测查询（8 控制器 17 端点；含遥测历史导出——窗口 clamp + 24h 调用预算，NIX-323） | P1 |
+| Open 数据导出 | 过期租户 GDPR 自助导出（NIX-325） | P1 |
+| Open 设备自注册 | 设备批量注册（写端点，专用 scope） | P1 |
+| 归属校验 | Open 资源必须属于 path farm，六处清零（NIX-333） | P1 |
 | API Key 自管理 | 生命周期（创建/吊销/过期） | P1 |
 | 频率限制 | requests_per_minute + daily_quota | P1 |
 | 开发者门户 | API 文档、Key 审批 | P1 |
@@ -2159,6 +2264,8 @@ pending（待处理） → acknowledged（已确认） → handled（已处理�
 | **GroundTruth 标签** | 合成数据生成时同步写入标签（`LabelSource.SYNTHETIC`），含牲畜 ID、异常类型、时间窗、严重度 |
 | **评估框架** | 对比 AI 预测（`anomaly_scores`）vs GroundTruth 标签，计算精确率/召回率/F1 |
 | **数据管道闭环** | 合成数据经 ACL（TelemetryIngestionPort）写入 IoT → 标准遥测管道 → ai-platform 检测 → Java 写 anomaly_scores → 前端展示 |
+| **Phase C 行为数据集** | 行为数据集/训练/评估 Admin API（DataGenBehaviorController），C0–C5 已 dev 验证、C6–C10 真实数据推进中 |
+| **饮水标注工具链** | 饮水标注数据集导出（DrinkingLabelExportService）+ 事件重算（DrinkingRecalcAdminController） |
 
 **Admin API**：
 ```
@@ -2178,7 +2285,7 @@ GET    /api/v1/admin/datagen/evaluation         — 查评估指标
 [datagen] ──AnomalyScoreQueryPort───→ [Health]   （读 AI 预测，评估用）
 ```
 
-### 6.14 模块 L：无人机巡检（P2）
+### 6.14 模块 L：无人机巡检（P2 规划，未启动）
 
 | 功能 | 说明 |
 |------|------|
@@ -2189,6 +2296,33 @@ GET    /api/v1/admin/datagen/evaluation         — 查评估指标
 | 移动 LoRaWAN 网关 | Semtech SX1302 轻量化网关补盲 + 主动搜寻丢失动物信号 |
 | 孪生融合 | 巡检数据融合到数智孪生平台 |
 
+### 6.15 模块 M：网关定位与数据质量（NIX-219/220，已交付）
+
+> 功能状态总账（权威）：`docs/superpowers/specs/2026-09-18-gateway-position-distance-requirements.md` §4.6。
+
+| 功能 | 说明 |
+|------|------|
+| F1 网关位置自助标记 | App"我的"网关位置标记（GatewayRegistryController） |
+| F2 通讯距离计算与展示 | 设备↔各网关通信距离（GatewayDistanceController） |
+| F3 链路质量分档与预警 | LINK_QUALITY 告警接入告警中心 |
+| F4 离群预警 | OUTLIER 告警（在栏检测阈值运行时可配，PresenceAdminController） |
+| F5 归牧点名提醒 | RETURN_HOME 告警 |
+| F6 游走半径健康画像 | 设备漫游半径历史（LivestockRoamController） |
+| F8 覆盖诊断 | 牧场级信号覆盖诊断与网关位置调整建议（CoverageDiagnosticController） |
+| F10 admin 网关对账 | 平台网关总览（GatewayAdminController） |
+| F11 数据治理 | 治理质量指标只读看板（GovernanceAdminController，NIX-220） |
+| GPS 质量检验 | RTK 点位比对、批量检验模板、动态报告（GpsQualityAdminController，51 端点；检验时区豁免链 = 操作者本机时区） |
+
+### 6.16 模块 N：饮水行为检测与生理事件（NIX-256，已交付）
+
+| 功能 | 说明 |
+|------|------|
+| 饮水事件检测 | 瘤胃温度谷检测内核：FallST 斜率 ∧ μ−kσ+1.0°C 深度 + 35–43°C 门卫 + 15min 滚动合并 + 发热排除（k=0.5，T2 标定） |
+| 实测指标 | L1（Aubé 科研数据，生产口径）**F=0.928@5min**；L2-pre（合成演练）F=0.9084；L2-real（真实数据评估）顺延 |
+| 标注闭环 | 事件人工标注（label/confidence）→ 标注数据集导出 → 参数校准，系统候选 + 牧场主手动双通道 |
+| 生理事件流 | 人工生理事件登记/时间线（PhysiologyEventController，P1）；配种→预产期→分娩预警闭环为 P2/P3（NIX-286） |
+| 饮水异常告警 | DRINKING_ABNORMAL（日均饮水下降）二期未做（NIX-285，触发条件 L3 达标） |
+
 ---
 
 ## 七、接口契约
@@ -2196,12 +2330,12 @@ GET    /api/v1/admin/datagen/evaluation         — 查评估指标
 ### 7.1 通用规范
 
 **API 风格**：RESTful，三端隔离
-- **App API**：`/api/v1/`（**117 端点**，JWT 认证）
-- **Admin API**：`/api/v1/admin/`（**59 端点**，JWT + 平台管理员角色）
-- **Open API**：`/api/v1/open/`（**11 端点**，API Key 认证 + 频率限制）
-- **Portal API**：`/api/v1/portal/`（开发者门户）
+- **App API**：`/api/v1/`（**158 端点**，JWT 认证）
+- **Admin API**：`/api/v1/admin/`（**147 端点**，JWT + 平台管理员角色）
+- **Open API**：`/api/v1/open/`（**17 端点**，API Key 认证 + 频率限制，含设备自注册写端点与导出）
+- **Portal API**：`/api/v1/portal/`（开发者门户，7 端点）
 
-> ⚠️ **v2.1 校准**：以上端点数为 As-Built 实际实现（含 Phase 1 + 2a + 2b + 2c + Datagen Admin），与 `docs/api-contracts/` 对齐。v2.0 中的 "~64 / ~30 / ~17" 已过时。
+> ⚠️ **v2.4 校准（2026-11-01）**：端点数 = 方法级映射注解机械计数（83 个 REST 控制器，合计 329），与 `docs/api-contracts/` 对齐；v2.1 的 "117 / 59 / 11" 已过时。
 
 **Farm Scope**：所有 farm-scoped 接口路径含 `{farmId}`，由 `FarmScopeInterceptor` 解析 `activeFarmId`。
 
@@ -2251,7 +2385,7 @@ Response:
 
 | 模块 | 基路径 | 所在 API | 说明 |
 |------|--------|---------|------|
-| 认证 | `/api/v1/auth` | App | 登录/刷新/登出（3 端点） |
+| 认证 | `/api/v1/auth` | App | 登录（account/email/phone E.164）/entry-contexts/switch-context/刷新/登出（5 端点） |
 | 当前用户 | `/api/v1/me` | App | 用户信息与权限 |
 | 租户管理 | `/api/v1/tenants` | App | 租户 CRUD |
 | 牧场 | `/api/v1/farms` | App | 牧场列表/创建 |
@@ -2259,17 +2393,18 @@ Response:
 | B2B 管理 | `/api/v1/b2b` | App | B 端控制台 |
 | 订阅 | `/api/v1/subscription` | App | 订阅查询 |
 | Admin | `/api/v1/admin/*` | Admin | 租户/用户/牧场/合同/订阅/API Key/数据合成管理 |
-| Open | `/api/v1/open/*` | Open | 牲畜/围栏/告警/设备只读查询 |
+| Open | `/api/v1/open/*` | Open | 牲畜/围栏/告警/设备/GPS/遥测/数据导出 + 设备自注册（写） |
 | Portal | `/api/v1/portal/*` | Portal | 开发者门户 |
 
-| 前缀 | 端点数 |
-|------|--------|
-| App (`/api/v1/`) | **117** |
-| Admin (`/api/v1/admin/`) | **59** |
-| Open (`/api/v1/open/`) | **11** |
-| **合计** | **187** |
+| 前缀 | 端点数 | 控制器 |
+|------|--------|--------|
+| App (`/api/v1/`) | **158** | 45 |
+| Admin (`/api/v1/admin/`) | **147** | 29 |
+| Open (`/api/v1/open/`) | **17** | 8 |
+| Portal (`/api/v1/portal/`) | **7** | 1 |
+| **合计** | **329** | **83** |
 
-> 实际 Controller 51 个。完整契约见 `docs/api-contracts/`（app-api.md / admin-api.md / open-api.md / api-overview.md）。
+> 完整契约见 `docs/api-contracts/`（app-api.md / admin-api.md / open-api.md / api-overview.md + changelog）。
 
 ### 7.3 核心接口示例
 
@@ -2304,14 +2439,14 @@ Error 409 DEVICE_NOT_ACTIVE: 设备未激活
 Error 409 DUPLICATE_RESOURCE: 该牲畜已有同类型设备活跃安装
 ```
 
-**告警状态推进**：
+**告警处理（V26 模型）**：
 ```
-POST /api/v1/farms/{farmId}/alerts/{id}/ack       确认告警
-POST /api/v1/farms/{farmId}/alerts/{id}/handle    处理告警
-POST /api/v1/farms/{farmId}/alerts/{id}/archive   归档告警
+POST /api/v1/farms/{farmId}/alerts/{id}/read          标记已读（任意登录用户）
+POST /api/v1/farms/{farmId}/alerts/{id}/dismiss       关闭告警（OWNER/B2B_ADMIN/WORKER）
+POST /api/v1/farms/{farmId}/alerts/batch-read         批量已读
 ```
 
-非法状态跳转返回 409 STATE_CONFLICT。
+仅 ACTIVE 可关闭，非法跳转返回 409 STATE_CONFLICT；旧 ack/handle/archive 端点 @Deprecated 保留兼容。
 
 **AI 异常检测（ai-platform）**：
 ```
@@ -2349,10 +2484,11 @@ Response 200:
 | API 响应（P95 聚合） | <1s | <500ms |
 | 告警端到端时延（P95） | <60s | <30s |
 | AI 异常检测时延（P95） | <5s | <2s |
-| MQTT Broker 处理时延（P95） | <1s | <500ms |
 | App 启动时间 | <3s | <2s |
 | 地图加载时间 | <2s | <1s |
 | 支持同时在线牲畜 | 500 头 | 50,000 头 |
+
+> MQTT（EMQX）未启用：实时链路为 SSE 信号流（§4.9）；MQTT 相关时延目标随规划保留。
 
 ### 8.2 可靠性
 
@@ -2364,15 +2500,17 @@ Response 200:
 | 告警送达率 | >99% |
 | 数据持久化 | 告警/牲畜记录保留按 Tier（7/30/90 天/自定义） |
 | 断网续传 | 设备本地缓存 ≥24h，网络恢复后补传 |
+| 到期数据窗口 | 租户终止后 30 天内保留 GDPR 自助导出权，导出文件 30 天下载窗（NIX-325） |
 
 ### 8.3 安全性
 
 | 层面 | 要求 |
 |------|------|
-| 传输加密 | HTTPS + WSS + MQTT over TLS 1.3 |
+| 传输加密 | HTTPS + WSS（SSE）；MQTT over TLS 为规划未实现 |
 | 用户认证 | JWT 双 Token（Access 1h + Refresh 7d），JJWT 0.12.5 |
 | 设备认证 | LoRaWAN OTAA + 设备 EUI 唯一标识 |
-| 权限控制 | RBAC 五角色：platform_admin / b2b_admin / owner / worker / api_consumer |
+| 权限控制 | RBAC 五角色：platform_admin / b2b_admin / owner / worker / api_consumer；超管上下文切换（SUPER_ADMIN 专用，act 重签 + `AUTH_CONTEXT_SWITCHED` 审计，NIX-306） |
+| 登录与密码 | 多标识登录（account/email/phone E.164 任一 + 密码，PR #132）；密码策略 8 位四类；首登强制改密锁（NIX-191） |
 | 多租户隔离 | `tenant_id` 强制注入 + `TenantContext`（ThreadLocal） |
 | 数据脱敏 | 手机号、敏感字段脱敏存储 |
 | API 限流 | 网关层限流（API Key requests_per_minute + daily_quota） |
@@ -2473,9 +2611,8 @@ Response 200:
 | `dashboard:view` | — | ✓ | ✓ | ✓ | — |
 | `map:view` | — | — | ✓ | ✓ | — |
 | `alert:view` | — | — | ✓ | ✓ | — |
-| `alert:ack` | — | — | ✓ | ✓ | — |
-| `alert:handle` | — | — | ✓ | — | — |
-| `alert:archive` | — | — | ✓ | — | — |
+| `alert:dismiss` | — | ✓ | ✓ | ✓ | — |
+| `alert:read` | ✓ | ✓ | ✓ | ✓ | — |
 | `fence:manage` | — | — | ✓ | — | — |
 | `twin:view` | — | — | ✓ | ✓（只读） | — |
 | `livestock:manage` | — | — | ✓ | — | — |
@@ -2484,6 +2621,8 @@ Response 200:
 | `subscription:manage` | ✓ | ✓ | — | — | — |
 | `openapi:read` | — | — | — | — | ✓ |
 | `apikey:manage` | — | — | — | — | ✓ |
+
+> **v2.4 对齐**：告警处理模型已重设计（V26）——关闭（dismiss）= OWNER/B2B_ADMIN/WORKER（`AlertController` @PreAuthorize），已读（read/batch-read）= 任意登录用户；旧 ack/handle/archive 权限码废弃。Admin API 实际三档：requirePlatformAdmin（租户/用户/牧场/审计/合同/订阅等）/ PLATFORM_ADMIN|B2B_ADMIN（瓦片/设备 profile/网关/数据治理/在栏阈值/datagen）/ 仅 PLATFORM_ADMIN（GPS 质量/遥测导入）。
 
 ### 9.2 导航可见性
 
@@ -2494,16 +2633,18 @@ Response 200:
 | 告警 | ✓ | ✓ | ✗ | ✗ |
 | 围栏 | ✓ | ✓ | ✗ | ✗ |
 | 我的 | ✓ | ✓ | ✓ | ✓ |
-| 后台管理 | ✓（owner 级） | ✗ | ✓（租户后台） | ✓（NavigationRail） |
+| 后台管理 | ✗（owner /admin 重定向 /ranch，订阅走 /subscription） | ✗ | ✓（租户后台） | ✓（NavigationRail） |
 
 ### 9.3 鉴权流程
 
-1. 用户登录获取 access_token + refresh_token（JJWT）
-2. App 调用 `/api/v1/me` 获取 role + permissions + farms
-3. 前端根据权限动态生成菜单和按钮
-4. 后端每个 API 做强权限校验 + 租户隔离
-5. Token 过期后自动 refresh，失败回登录页
-6. Open API 使用 API Key（SHA-256 hash 校验），独立于 JWT
+1. 用户以 account / email / phone(E.164) 任一标识 + 密码登录（大小写不敏感），获取 access_token + refresh_token（JJWT）
+2. `mustChangePassword=true` 时锁 `/me/password-change`（白名单外全 403）
+3. SUPER_ADMIN root 登录先入 `/select-context` 选角色上下文（switch-context 重签 act token + 审计；context token 不可再切换）
+4. App 调用 `/api/v1/me` 获取 role + permissions + farms
+5. 前端根据权限动态生成菜单和按钮
+6. 后端每个 API 做强权限校验 + 租户隔离
+7. Token 过期后自动 refresh，失败回登录页
+8. Open API 使用 API Key（SHA-256 hash 校验），独立于 JWT
 
 ---
 
@@ -2548,6 +2689,14 @@ IoT 遥测数据 ──┬──→ 规则引擎（阈值判断）────�
   4. **三维联合检测**：体温 + 蠕动 + 活动量在第 4 步融合，综合评分。单维度偏高可能只是噪声，三维同步偏离才是真异常
 - **基线**：14 天个体基线 + 群体兜底（新牲畜冷启动时用同品种/同牧场群体基线替代）
 - **降级**：ai-platform 不可用时 → Java 端 `HealthAnomalyService` 跳过 AI 调用，规则引擎照常运行，不影响核心健康检测
+
+### 10.2A 交付进展（2026-09 ～ 2026-11）
+
+- **L1 自动链路恢复**（NIX-243）：`HealthAnomalyScheduler` 定时调度 ai-platform 检测 → `anomaly_scores` 落库 → 前端历史曲线；ai_reader 只读账号隔离
+- **饮水行为检测**（NIX-256）：见模块 N（§6.16）；检测内核 + 标注闭环 + 标注导出/重算管理端
+- **生理事件流 P1**（NIX-256 Task 1a）：人工事件登记与时间线
+- **Phase C 行为数据集**：datagen 行为数据集/训练/评估（DataGenBehaviorController），C0–C5 已 dev 验证；C6–C10 与真实数据验证推进中
+- **红线**：datagen 仿真数据仅用于管道研发与模型预训练，不得作为真实效果验收口径；真实采集遥测可用后须切换 real-only 评估（AGENTS.md §2）
 
 ### 10.3 API 端点
 
@@ -2723,8 +2872,8 @@ Phase C ◄───────────────────────
 | **MVP Phase 2a** — Commerce | 订阅计费 + 合同管理 + 分润对账 + Tier 配额引擎 + FeatureGate | Commerce | ✅ 已完成 |
 | **MVP Phase 2b** — Health | 温度/蠕动/发情/疫病分析引擎 + 时序数据 | Health | ✅ 已完成 |
 | **MVP Phase 2c** — Analytics + Portal | API Key 生命周期 + 开发者门户 + 频率限制 + 统计聚合 + 趋势分析 | Analytics | ✅ 已完成 |
-| **MVP Phase 2d** — AI + Datagen + 管理完善 | AI 无监督异常检测（Phase A）+ 数据合成引擎（datagen）+ 牲畜/设备/安装管理完善 + 跨上下文解耦 + dev/test 环境分离 + i18n 设计 | AI Platform + Datagen + Ranch + IoT | 🔄 进行中 |
-| **Phase 3** — IoT 真实接入 + 无人机 | 设备 license 入网 + **blade 平台对接（PoC 已验证）** + 真实传感器数据采集 + AI Phase B/C + 无人机巡检 + 移动网关 | IoT 扩展 + AI Platform | 📐 PoC 已验证 |
+| **MVP Phase 2d** — AI + Datagen + 管理完善 | AI 无监督异常检测（Phase A）+ 数据合成引擎（datagen）+ 牲畜/设备/安装管理完善 + 跨上下文解耦 + dev/test 环境分离 + i18n 设计 | AI Platform + Datagen + Ranch + IoT | ✅ 已完成 |
+| **Phase 3** — IoT 真实接入 | 设备 license 入网 + **blade 平台对接（已落地：dev→SIT / test→客户试用，2026-10）** + ThingsBoard 直连（NIX-179/180/214）+ 真实传感器数据采集 + 设备健康管理 + AI Phase B/C（饮水检测等） | IoT 扩展 + AI Platform | 🔧 持续迭代（无人机巡检 / 移动网关未启动） |
 
 ### 11.2 里程碑
 
@@ -2736,16 +2885,26 @@ Phase C ◄───────────────────────
 | M4 | Phase 2c Analytics + Portal（API 开放平台 + 开发者门户） | Phase 2c | ✅ |
 | M5 | **AI Phase A**（无监督异常检测 Python 微服务，67 tests） | Phase 2d | ✅ |
 | M5.5 | **智能瓦片路由**（逐瓦片路由 + 离线瓦片管理 + 流式下载） | Phase 2d | ✅ |
-| M6 | **Datagen v1 + 牲畜/设备管理**（合成引擎 + 完整 CRUD + dev/test 环境） | Phase 2d | 🔄 |
-| M7 | **AI Phase B**（端到端集成：datagen → AI → Java → Flutter → 评估报告） | Phase 2d | ⏳ |
-| M8 | Phase 3 IoT 真实接入（blade 对接迁移 + 轮询采集 + 无人机巡检试点） | Phase 3 | 📐 PoC 已验证 |
+| M6 | **Datagen v1 + 牲畜/设备管理**（合成引擎 + 完整 CRUD + dev/test 环境） | Phase 2d | ✅ |
+| M7 | **AI Phase B**（端到端集成：datagen → AI → Java → Flutter → 评估报告） | Phase 2d | 🔧 部分（L1 自动链路 ✅、饮水标注闭环 ✅、Phase C 行为数据集推进中） |
+| M8 | Phase 3 IoT 真实接入（blade 对接迁移 + 轮询采集 + 无人机巡检试点） | Phase 3 | 🔧 部分（blade/TB 通道 ✅，无人机未启动） |
+| M9 | 告警工作台与告警模型重设计（NIX-52，V26） | Phase 2d | ✅ |
+| M10 | 网关定位与数据治理（NIX-219/220，F1–F11） | Phase 3 | ✅ |
+| M11 | USD 按头/月定价改造（NIX-245） | 商业 | ✅ |
+| M12 | 饮水行为检测与生理事件 P1（NIX-256，L1 F=0.928） | Phase 3 | ✅ |
+| M13 | 市场测试版发布与部署 License（NIX-184，b755–b757） | 发布 | ✅ |
+| M14 | 订阅到期治理三件套：降档/双端提示/GDPR 导出（NIX-323/324/325） | 商业 | ✅ |
+| M15 | 全球登录标识 + 时区三级链 + 租户开通 SOP（PR #132 等） | 平台 | ✅ |
+| M16 | 超管上下文切换（NIX-306，b763） | 平台 | ✅ |
+| M17 | App 国际品牌 BoviScout + TestFlight b764（2026-10-21） | 发布 | ✅ |
+| M18 | blade 环境切换 + Nacos 配置下发（2026-10-16/19） | Phase 3 | ✅ |
 
 ### 11.3 Phase 3 准出标准
 
 | 条件 | 标准 | 状态 |
 |------|------|------|
-| blade 平台对接 | OAuth2 换票 + Feign Client + 设备注册 + 遥测采集 | ✅ PoC 已验证 |
-| 真实设备接入 | LoRaWAN 网关 + CATTLE_TRACKER 真实数据上报 | ✅ blade 中已有 120 台设备 |
+| blade 平台对接 | OAuth2 换票 + Feign Client + 设备注册 + 遥测采集 | ✅ 已落地（dev→SIT / test→客户试用，地址 Nacos 下发） |
+| 真实设备接入 | LoRaWAN 网关 + CATTLE_TRACKER 真实数据上报 | ✅ blade 轮询 + ThingsBoard 直连双通道 |
 | 端到端延迟 | GPS → 地图 <60s（P95） | ⏳ 取决于轮询间隔 |
 | 无人机巡检 | 自动巡航 + 视频回传 + 告警联动追踪可用 | ⏳ |
 | 移动网关补盲 | 丢失设备信号主动搜寻成功率 ≥80% | ⏳ |
@@ -2772,7 +2931,7 @@ Phase C ◄───────────────────────
 
 | 维度 | 要求 |
 |------|------|
-| **GDPR 合规** | 本地化数据存储、隐私保护设计、PII 脱敏 |
+| **GDPR 合规** | 本地化数据存储、隐私保护设计、PII 脱敏；**数据可携带性已实现**——过期租户自助导出（机器可读 zip、导出审计三事件、30+30 天窗口，NIX-325） |
 | **动物福利** | 北欧国家动物福利要求极高，健康监测天然契合 |
 | **碳中和** | 欧盟绿色协议下的碳排放管理需求 |
 | **精准农业补贴** | 欧盟 CAP 对精准农业技术的补贴支持 |
@@ -2788,7 +2947,7 @@ Phase C ◄───────────────────────
 | **发明专利** | 瘤胃胶囊与追踪器蓝牙关联防盗机制、多传感器融合发情检测方法、无人机搭载移动 LoRaWAN 网关的丢失动物主动搜寻方法 |
 | **实用新型** | 动物追踪器项圈/耳标结构设计、瘤胃胶囊外壳设计 |
 | **软件著作权** | 智慧畜牧 App、后端管理系统、AI 模型服务、无人机巡检调度系统 |
-| **商标** | Smart Livestock 品牌商标（中英文） |
+| **商标** | Smart Livestock 品牌商标（中英文）+ 国际品牌 **BoviScout**（2026-10-21 定名，App Store Connect App ID 6823242130）；boviscout.com/.io 未注册（防抢注待办） |
 
 ---
 
@@ -2840,6 +2999,12 @@ Phase C ◄───────────────────────
 | 告警联动追踪 | 围栏越界告警自动触发无人机起飞追踪越界牲畜 |
 | 声音驱赶 | 无人机搭载扩音器，远程驱赶越界/迷失牲畜回栏 |
 | Semtech SX1302 | 轻量化 LoRaWAN 网关芯片，用于无人机搭载移动网关 |
+| BoviScout | App 国际品牌名（2026-10-21 定名；bovi=牛 + scout=侦查员），主品牌 SmartLivestock |
+| SSE | Server-Sent Events，服务端单向推送（信号流 SignalController 采用） |
+| TelemetrySource | 遥测来源枚举：AGENTIC_PLATFORM / THINGSBOARD / DATAGEN / HTTP / MANUAL_IMPORT |
+| GPS outbox | GPS 写入外置任务表（gps_ingestion_tasks）异步落库的管道模式，幂等键 (device_id, recorded_at) |
+| TenantZoneResolver | 时区三级链解析器：牧场→租户→平台默认（存储恒 UTC，仅展示/边界使用） |
+| 订阅快照 | 判定有效档位的锚点（trialActive/effectiveTier），禁裸 status 判定（NIX-323） |
 
 ---
 
@@ -2866,13 +3031,20 @@ Phase C ◄───────────────────────
 | 牲畜/设备管理前端设计 | `docs/superpowers/specs/2026-07-01-livestock-device-frontend-design.md` | Flutter 前端实现 |
 | Dev/Test 环境分离设计 | `docs/superpowers/specs/2026-07-01-dev-test-env-isolation-design.md` | 双 Docker Compose stack 隔离 |
 | API 契约总览 | `docs/api-contracts/api-overview.md` | 三端隔离、通用约定、Farm Scope |
-| App API | `docs/api-contracts/app-api.md` | `/api/v1/` 117 端点 |
-| Admin API | `docs/api-contracts/admin-api.md` | `/api/v1/admin/` 59 端点 |
-| Open API | `docs/api-contracts/open-api.md` | `/api/v1/open/` 11 端点 |
-| 客户旅程 | `docs/customer-journey.md` | 角色旅程链 |
-| 系统架构文档 | `docs/system-architecture.md` | 架构全景 |
+| App API | `docs/api-contracts/app-api.md` | `/api/v1/`（158 端点，2026-11-01 计数） |
+| Admin API | `docs/api-contracts/admin-api.md` | `/api/v1/admin/`（147 端点） |
+| Open API | `docs/api-contracts/open-api.md` | `/api/v1/open/`（17 端点） |
+| 客户旅程 | `docs/product/customer-journey.md` | 角色旅程链 |
+| 用户旅程指南（代码基线） | `docs/product/user-journey-guide.md` | 2026-09-20 按代码刷新的角色旅程基线 |
+| 系统架构文档 | `docs/product/system-architecture.md` | 架构全景（⚠ 内容滞后于实现，待另单刷新） |
 | **Phase C blade 对接设计** | `docs/superpowers/specs/2026-07-07-phase-c-blade-device-integration.md` | **第三方平台集成设计（OAuth2 + Feign + 设备注册 + 遥测采集），PoC 已验证** |
 | **Phase 3 实施设计** | `docs/superpowers/specs/2026-07-08-phase3-blade-integration-device-health-spec.md` | **设备健康管理 + blade 集成用户旅程 + datagen 适配 + 数据采集分流** |
+| 网关定位需求文档 | `docs/superpowers/specs/2026-09-18-gateway-position-distance-requirements.md` | NIX-219/220 需求与功能状态总账 §4.6 |
+| 超管上下文设计 | `docs/superpowers/specs/2026-10-19-super-admin-context-entry-design.md` | NIX-306 设计与 UI spec |
+| 订阅到期双端 spec | `docs/superpowers/specs/2026-10-27-nix324-subscription-health-dual-surface-spec.md` | NIX-323/324/325 订阅到期治理与导出 |
+| 租户开通指南 | `docs/deployment/tenant-onboarding-guide.md` | v3.1 开通 SOP + 统一试点截止日 |
+| 发布部署手册 | `docs/deployment/release-deployment-playbook.md` | 4 环境全量部署链 |
+| PRD 对账明细 | `docs/reports/2026-11-01-prd-v2.4-sync-audit.md` | v2.4 同步更新对账（本版依据） |
 
 ---
 
@@ -2892,10 +3064,14 @@ Phase C ◄───────────────────────
 | 商业 | 试点客户数 | Phase 3: ≥1 |
 | AI（P3） | 体温异常预测准确率 | ≥85% |
 | AI（P3） | 行为识别准确率 | ≥90% |
+| 饮水事件检测 | L1 F1（Aubé 科研数据，生产口径 @5min） | 实测 **0.928**（门禁 ≥0.90；NIX-256） |
+| 饮水事件检测 | L2-pre F1（合成演练） | 0.9084（不作生产效果口径；L2-real 顺延） |
 
 ---
 
 ## 附录 D：待确认事项
+
+> **v2.4 注记**：原"试用期口径"类事项已裁决落地——免费试点统一截止日 2027-10-01（EAT），见 §3.4。以下外部依赖事项状态未核实，维持原样。
 
 | # | 事项 | 负责方 | 影响 | 截止 |
 |---|------|--------|------|------|
@@ -2908,6 +3084,6 @@ Phase C ◄───────────────────────
 
 ---
 
-*SmartLivestock 智慧畜牧产品规划 v2.3*
-*2026-07-08*
+*SmartLivestock 智慧畜牧产品规划（国际品牌 BoviScout）v2.4*
+*2026-11-01*
 *© 2026 HKT Technology*
