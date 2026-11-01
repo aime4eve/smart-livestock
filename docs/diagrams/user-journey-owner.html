@@ -5050,11 +5050,11 @@
         <rect x="1220" y="502" width="10" height="214" rx="3" class="c-database" stroke-width="1"/>
 
         <!-- Messages -->
-        <g data-edge-from="owner" data-edge-to="app" data-edge-label="输入手机号 + 密码登录" data-edge-key="0">
+        <g data-edge-from="owner" data-edge-to="app" data-edge-label="输入账号 / 邮箱 / 手机号登录（多标识）" data-edge-key="0">
           <path data-composition-edge-from="owner" data-composition-edge-to="app" data-composition-points="164,170;506,170" d="M 164 170 L 506 170" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="274.4" y="150" width="121.2" height="16" rx="3" class="c-mask"/>
-          <text x="335" y="160" class="t-backend" font-size="9" text-anchor="middle">输入手机号 + 密码登录</text>
+          <rect x="230.2" y="150" width="209.6" height="16" rx="3" class="c-mask"/>
+          <text x="335" y="160" class="t-backend" font-size="9" text-anchor="middle">输入账号 / 邮箱 / 手机号登录（多标识）</text>
         </g>
         </g>
 
@@ -5146,11 +5146,11 @@
         </g>
         </g>
 
-        <g data-edge-from="app" data-edge-to="api" data-edge-label="POST /alerts/{id}/dismiss（仅 owner）" data-edge-key="12">
+        <g data-edge-from="app" data-edge-to="api" data-edge-label="POST /alerts/{id}/dismiss（owner/b2b/worker）" data-edge-key="12">
           <path data-composition-edge-from="app" data-composition-edge-to="api" data-composition-points="520,670;862,670" d="M 520 670 L 862 670" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
         <g data-detail="context">
-          <rect x="588.8" y="650" width="204.4" height="16" rx="3" class="c-mask"/>
-          <text x="691" y="660" class="t-security" font-size="9" text-anchor="middle">POST /alerts/{id}/dismiss（仅 owner）</text>
+          <rect x="568" y="650" width="246" height="16" rx="3" class="c-mask"/>
+          <text x="691" y="660" class="t-security" font-size="9" text-anchor="middle">POST /alerts/{id}/dismiss（owner/b2b/worker）</text>
         </g>
         </g>
 
@@ -5448,7 +5448,7 @@
         <ul>
           <li>&bull; 状态机 ACTIVE → DISMISSED / AUTO_RESOLVED，非法转换返回 409</li>
           <li>&bull; 已读状态按用户存 alert_read_status，与告警状态解耦</li>
-          <li>&bull; dismiss 仅 OWNER/B2B_ADMIN；批量处理复用 deprecated batch-handle</li>
+          <li>&bull; 单条/批量关闭 OWNER/B2B_ADMIN/WORKER；批量走 /alerts/batch-dismiss（NIX-351）</li>
         </ul>
       </div>
 
@@ -5458,9 +5458,9 @@
           <h3>owner 专属能力</h3>
         </div>
         <ul>
-          <li>&bull; 围栏增删改、设备开通向导（TB 自动配置）、单设备解绑</li>
-          <li>&bull; 订阅升级 /subscription/plans → checkout，按 tier 功能门控</li>
-          <li>&bull; 牧工管理 /mine/workers 与 API 授权 /mine/api-auth</li>
+          <li>&bull; 围栏增删改（含 GPX 导入）、设备开通向导、单设备解绑</li>
+          <li>&bull; 订阅升级 + 到期横幅（可稍后提醒）与导出权卡倒计时（NIX-324/325）</li>
+          <li>&bull; 饮水事件标注 / 生理事件流（NIX-256）与牧工管理</li>
         </ul>
       </div>
     </div>

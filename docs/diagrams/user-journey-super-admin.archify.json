@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "智慧畜牧 · 超管上下文切换（super_admin）用户旅程时序图",
+    "locale": "zh-CN",
+    "output": "docs/diagrams/user-journey-super-admin.html",
+    "viewBox": [
+      1360,
+      800
+    ],
+    "quality_profile": "showcase",
+    "column_fit": "spread"
+  },
+  "participants": [
+    {
+      "id": "root",
+      "type": "external",
+      "label": "超管 root（SUPER_ADMIN）"
+    },
+    {
+      "id": "picker",
+      "type": "frontend",
+      "label": "/select-context 身份选择"
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "Auth API"
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "PostgreSQL · 审计"
+    }
+  ],
+  "segments": [
+    {
+      "from": 156,
+      "to": 400,
+      "label": "登录与身份选择"
+    },
+    {
+      "from": 415,
+      "to": 675,
+      "label": "上下文重签（act token）"
+    }
+  ],
+  "messages": [
+    {
+      "from": "root",
+      "to": "picker",
+      "y": 170,
+      "label": "输入超管账号登录（凭据见 deployment.md）"
+    },
+    {
+      "from": "picker",
+      "to": "api",
+      "y": 208,
+      "label": "POST /api/v1/auth/login",
+      "variant": "emphasis"
+    },
+    {
+      "from": "api",
+      "to": "db",
+      "y": 246,
+      "label": "查 root 用户 · BCrypt · recordLogin"
+    },
+    {
+      "from": "db",
+      "to": "api",
+      "y": 284,
+      "label": "User 聚合（role=SUPER_ADMIN）",
+      "variant": "return"
+    },
+    {
+      "from": "api",
+      "to": "picker",
+      "y": 322,
+      "label": "JWT（role=SUPER_ADMIN）· 路由 /select-context",
+      "variant": "return"
+    },
+    {
+      "from": "root",
+      "to": "picker",
+      "y": 360,
+      "label": "选择进入身份（platform_admin / b2b_admin / owner / worker）"
+    },
+    {
+      "from": "picker",
+      "to": "api",
+      "y": 431,
+      "label": "GET /auth/entry-contexts"
+    },
+    {
+      "from": "api",
+      "to": "picker",
+      "y": 469,
+      "label": "可进入身份清单",
+      "variant": "return"
+    },
+    {
+      "from": "picker",
+      "to": "api",
+      "y": 507,
+      "label": "POST /auth/switch-context",
+      "variant": "emphasis"
+    },
+    {
+      "from": "api",
+      "to": "db",
+      "y": 545,
+      "label": "重签 act token · 审计 AUTH_CONTEXT_SWITCHED"
+    },
+    {
+      "from": "db",
+      "to": "api",
+      "y": 583,
+      "label": "审计落库",
+      "variant": "return"
+    },
+    {
+      "from": "api",
+      "to": "picker",
+      "y": 621,
+      "label": "新 JWT（所选角色 + act 指向 root）",
+      "variant": "return"
+    },
+    {
+      "from": "picker",
+      "to": "root",
+      "y": 659,
+      "label": "以所选身份落地对应首页",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "picker",
+      "from": 164,
+      "to": 406,
+      "type": "frontend"
+    },
+    {
+      "participant": "api",
+      "from": 202,
+      "to": 368,
+      "type": "backend"
+    },
+    {
+      "participant": "db",
+      "from": 240,
+      "to": 292,
+      "type": "database"
+    },
+    {
+      "participant": "picker",
+      "from": 423,
+      "to": 667,
+      "type": "frontend"
+    },
+    {
+      "participant": "api",
+      "from": 423,
+      "to": 667,
+      "type": "backend"
+    },
+    {
+      "participant": "db",
+      "from": 539,
+      "to": 591,
+      "type": "database"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "委托语义（NIX-306）",
+      "items": [
+        "act 为 RFC 8693 风格委托声明，sub 仍指向真实 root（JwtTokenProvider）",
+        "context token 不可再次切换，阻断提权链",
+        "授权随 token authorities 判定，与真实用户同构"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "审计与边界",
+      "items": [
+        "每次切换记 AUTH_CONTEXT_SWITCHED 审计（AuthApplicationService）",
+        "entry-contexts / switch-context 仅 SUPER_ADMIN（@PreAuthorize，:43/:55）",
+        "root 种子首登强制改密（V20261019100000，NIX-191 锁同样生效）"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "落地行为",
+      "items": [
+        "选 owner/worker → /ranch（impersonated 会话兜底路由）",
+        "选 platform_admin/b2b_admin → 对应后台首页",
+        "退出后重新登录即回 /select-context"
+      ]
+    }
+  ]
+}

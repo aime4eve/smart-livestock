@@ -2,7 +2,7 @@
   "schema_version": 1,
   "diagram_type": "sequence",
   "meta": {
-    "title": "智慧畜牧 · 平台管理员（platform_admin）用户旅程时序图",
+    "title": "智慧畜牧 · 平台管理员旅程时序图",
     "locale": "zh-CN",
     "output": "docs/diagrams/user-journey-platform-admin.html",
     "viewBox": [
@@ -56,7 +56,7 @@
       "from": "admin",
       "to": "console",
       "y": 170,
-      "label": "登录 13800000000（无租户归属）"
+      "label": "登录（凭据见 deployment.md）"
     },
     {
       "from": "console",
@@ -121,7 +121,7 @@
       "from": "admin",
       "to": "console",
       "y": 594,
-      "label": "合同 / 对账 / 订阅服务管理"
+      "label": "合同 / 对账 / 订阅健康总览"
     },
     {
       "from": "console",
@@ -203,7 +203,7 @@
       "items": [
         "新建用户密码 Default@123 且 mustChangePassword=true",
         "平台重置密码重新武装强制改密（B2B 端重置不武装，见旅程文档 7.8）",
-        "强制改密期间后端白名单外接口一律 403"
+        "强制改密期间白名单外接口一律 403（NIX-191）"
       ]
     },
     {
@@ -212,7 +212,7 @@
       "items": [
         "/admin/gps-quality 与 /admin/telemetry-import 仅平台管理员",
         "/admin/datagen、/admin/tiles、/admin/device-profile-rules 对 B2B_ADMIN 同样开放",
-        "/admin/analytics 后端无权限注解（见旅程文档 7.6）"
+        "/admin/analytics 与 /admin/data-export-jobs 已补 PLATFORM_ADMIN 注解（NIX-350）"
       ]
     }
   ]

@@ -48,7 +48,7 @@
     {
       "from": 440,
       "to": 672,
-      "label": "告警确认与权限边界"
+      "label": "告警确认与关闭"
     },
     {
       "from": 685,
@@ -126,15 +126,15 @@
       "from": "app",
       "to": "api",
       "y": 618,
-      "label": "POST /alerts/batch-handle（deprecated）",
-      "variant": "dashed"
+      "label": "POST /alerts/batch-dismiss（NIX-351）",
+      "variant": "emphasis"
     },
     {
       "from": "api",
       "to": "app",
       "y": 656,
-      "label": "403 AUTH_FORBIDDEN（仅 OWNER/B2B_ADMIN）",
-      "variant": "security"
+      "label": "200 {dismissed, skipped}（跳过非 ACTIVE）",
+      "variant": "return"
     },
     {
       "from": "worker",
@@ -202,8 +202,8 @@
       "title": "告警确认边界",
       "items": [
         "单条标记已读任意登录用户放行——worker 确认可用",
-        "批量 dismiss 走 deprecated batch-handle，worker 收 403",
-        "建议前端按角色隐藏批量处理按钮（见旅程文档 7.4）"
+        "单条/批量关闭均含 worker（5b715cb4 前后端同批放宽）",
+        "批量走 /alerts/batch-dismiss（NIX-351），重复关闭返回 409"
       ]
     },
     {

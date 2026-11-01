@@ -11,6 +11,7 @@
 | `telemetry-data-flow.visual-check.*.png` | 视觉检查截图（1440×900 / 2048×1320 × light/dark） |
 | `telemetry-data-flow.archify.json` | 主图表的 archify 源定义（声明式节点/连线，重新生成的输入） |
 | `user-journey-owner.html` | **时序图**：牧场主（owner）用户旅程（登录改密门 → 牧场运营 → 告警处理） |
+| `user-journey-super-admin.html` | **时序图**：超管上下文切换（super_admin）旅程（登录 → /select-context → act token 重签 → 落地，NIX-306） |
 | `user-journey-platform-admin.html` | **时序图**：平台管理员（platform_admin）用户旅程（租户与账号 → 凭证治理 → 商业化与授权审批） |
 | `user-journey-b2b-admin.html` | **时序图**：B 端管理员（b2b_admin）用户旅程（概览 → 牧场分配 → 牧工管理 → 合同对账） |
 | `user-journey-worker.html` | **时序图**：牧工（worker）用户旅程（登录 → 只读浏览 → 告警确认与权限边界 → 我的） |
@@ -20,11 +21,9 @@
 
 两个 HTML 文件均通过标签配平校验，可直接用浏览器打开。
 
-## 用户旅程时序图（按角色，2026-09-20）
+## 用户旅程时序图（按角色，2026-11-01）
 
-> ⚠️ **待刷新（2026-11-01）**：五张时序图基于 user-journey-guide 2026-09-20 基线生成；其事实源文档已刷新至 **2026-11-01 基线**（新增超管 /select-context、多标识登录、worker dismiss 放宽、订阅到期治理等），五张图待随新基线从 archify.json 重生成（另立任务）。图内"5 种角色"口径现为 6 种（SUPER_ADMIN）。
-
-五张时序图与 `docs/product/user-journey-guide.md` 配套，按系统角色各一张（超管上下文切换为后增旅程，暂无独立图），消息标注真实端点与权限边界（如 worker 批量 dismiss 403、平台重置密码重新武装强制改密、api_consumer 的 scope/限流链）。
+六张时序图与 `docs/product/user-journey-guide.md`（2026-11-01 基线）配套，按系统 6 种角色各一张（超管上下文切换 NIX-306 为独立一张），消息标注真实端点与权限边界（如 worker 单条/批量关闭均可用、批量走 /alerts/batch-dismiss（NIX-351）、平台重置密码重新武装强制改密、api_consumer 的 scope/限流链）。
 
 - **修改图表**：编辑对应 `user-journey-*.archify.json` 后用 archify 重新生成，不要手改 HTML（生成产物）。
 - **内容事实源**：`docs/product/user-journey-guide.md`；权限/路由以代码为准。

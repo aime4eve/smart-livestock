@@ -6,8 +6,8 @@
   "visualReview": "pending",
   "artifact": {
     "path": "/Volumes/DEV/00-products-dev/01-solutions/02-smart-livestock/docs/diagrams/user-journey-worker.html",
-    "sha256": "09c0de5265d8e02dfab942516482f04a603f3bf2e82cbe45ceef7813b5510995",
-    "bytes": 705505
+    "sha256": "d4f5b00bd8830e07faa75d3a681ec3200570a20cbbf9658796c99a4bf1216cc5",
+    "bytes": 705170
   },
   "state": {
     "detail": "read",

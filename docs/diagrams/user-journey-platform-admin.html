@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="generator" content="archify 2.16.0-dev.0">
-  <title>智慧畜牧 · 平台管理员（platform_admin）用户旅程时序图</title>
+  <title>智慧畜牧 · 平台管理员旅程时序图</title>
   <script>
     // Resolve the theme before first paint so light-preference users don't
     // see a dark flash. The toolbar script below re-applies with UI state.
@@ -4948,7 +4948,7 @@
            data-preset-badge-blueprint="蓝图 / 修订 01"
            data-preset-badge-editorial="编辑风格 / 现场笔记">
         <div class="pulse-dot"></div>
-        <h1>智慧畜牧 · 平台管理员（platform_admin）用户旅程时序图</h1>
+        <h1>智慧畜牧 · 平台管理员旅程时序图</h1>
       </div>
     </div>
 
@@ -4998,7 +4998,7 @@
     <div class="diagram-container" data-detail-level="read"
          data-preset-badge-editorial-plate="ARCHIFY / 图版 04">
       <svg viewBox="0 0 1400 800" role="img" lang="zh-CN" aria-labelledby="archify-diagram-title archify-diagram-description" data-preset="classic" data-quality-profile="showcase">
-        <title id="archify-diagram-title">智慧畜牧 · 平台管理员（platform_admin）用户旅程时序图</title>
+        <title id="archify-diagram-title">智慧畜牧 · 平台管理员旅程时序图</title>
         <desc id="archify-diagram-description">由 Archify 生成的时序图。</desc>
         <!-- Definitions -->
         <defs>
@@ -5052,11 +5052,11 @@
         <rect x="890.6666666666666" y="626" width="10" height="90" rx="3" class="c-backend" stroke-width="1"/>
 
         <!-- Messages -->
-        <g data-edge-from="admin" data-edge-to="console" data-edge-label="登录 13800000000（无租户归属）" data-edge-key="0">
+        <g data-edge-from="admin" data-edge-to="console" data-edge-label="登录（凭据见 deployment.md）" data-edge-key="0">
           <path data-composition-edge-from="admin" data-composition-edge-to="console" data-composition-points="164,170;519.3333333333333,170" d="M 164 170 L 519.3333333333333 170" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="257.66666666666663" y="150" width="168" height="16" rx="3" class="c-mask"/>
-          <text x="341.66666666666663" y="160" class="t-backend" font-size="9" text-anchor="middle">登录 13800000000（无租户归属）</text>
+          <rect x="262.8666666666666" y="150" width="157.6" height="16" rx="3" class="c-mask"/>
+          <text x="341.66666666666663" y="160" class="t-backend" font-size="9" text-anchor="middle">登录（凭据见 deployment.md）</text>
         </g>
         </g>
 
@@ -5132,11 +5132,11 @@
         </g>
         </g>
 
-        <g data-edge-from="admin" data-edge-to="console" data-edge-label="合同 / 对账 / 订阅服务管理" data-edge-key="10">
+        <g data-edge-from="admin" data-edge-to="console" data-edge-label="合同 / 对账 / 订阅健康总览" data-edge-key="10">
           <path data-composition-edge-from="admin" data-composition-edge-to="console" data-composition-points="164,594;519.3333333333333,594" d="M 164 594 L 519.3333333333333 594" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
           <rect x="268.0666666666666" y="574" width="147.20000000000002" height="16" rx="3" class="c-mask"/>
-          <text x="341.66666666666663" y="584" class="t-backend" font-size="9" text-anchor="middle">合同 / 对账 / 订阅服务管理</text>
+          <text x="341.66666666666663" y="584" class="t-backend" font-size="9" text-anchor="middle">合同 / 对账 / 订阅健康总览</text>
         </g>
         </g>
 
@@ -5450,7 +5450,7 @@
         <ul>
           <li>&bull; 新建用户密码 Default@123 且 mustChangePassword=true</li>
           <li>&bull; 平台重置密码重新武装强制改密（B2B 端重置不武装，见旅程文档 7.8）</li>
-          <li>&bull; 强制改密期间后端白名单外接口一律 403</li>
+          <li>&bull; 强制改密期间白名单外接口一律 403（NIX-191）</li>
         </ul>
       </div>
 
@@ -5462,7 +5462,7 @@
         <ul>
           <li>&bull; /admin/gps-quality 与 /admin/telemetry-import 仅平台管理员</li>
           <li>&bull; /admin/datagen、/admin/tiles、/admin/device-profile-rules 对 B2B_ADMIN 同样开放</li>
-          <li>&bull; /admin/analytics 后端无权限注解（见旅程文档 7.6）</li>
+          <li>&bull; /admin/analytics 与 /admin/data-export-jobs 已补 PLATFORM_ADMIN 注解（NIX-350）</li>
         </ul>
       </div>
     </div>

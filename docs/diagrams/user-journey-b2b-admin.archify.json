@@ -61,7 +61,7 @@
       "from": "b2b",
       "to": "console",
       "y": 170,
-      "label": "登录 13900139000（归属租户）"
+      "label": "登录（凭据见 deployment.md；到期横幅可稍后提醒）"
     },
     {
       "from": "console",
@@ -234,7 +234,7 @@
       "items": [
         "合同页只读（canViewContract）",
         "对账与分润明细 canViewRevenue，可下钻 /b2b/admin/revenue/:id",
-        "概览 KPI 覆盖牧场 / 牲畜 / 牧工三维度"
+        "到期横幅（可稍后提醒）；概览 KPI 覆盖牧场/牲畜/牧工"
       ]
     }
   ]

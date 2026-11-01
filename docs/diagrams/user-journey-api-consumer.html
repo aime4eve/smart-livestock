@@ -5444,7 +5444,7 @@
         <ul>
           <li>&bull; ApiKeyAuthFilter 校验签名与租户，失败 401 AUTH_API_KEY_INVALID</li>
           <li>&bull; ScopeInterceptor 限定 livestock/fence/alert/device/gps/health:read 与 device:register</li>
-          <li>&bull; 限流与配额由拦截器链的 rate-limit / quota 环节执行</li>
+          <li>&bull; 遥测历史/导出按 retention_days clamp + 24h 调用预算（NIX-323）</li>
         </ul>
       </div>
 
@@ -5454,7 +5454,7 @@
           <h3>牧场作用域豁免</h3>
         </div>
         <ul>
-          <li>&bull; Open API 路径跳过牧场归属校验（farmId 仍在 URL 路径中）</li>
+          <li>&bull; Open 资源须归属 path farm（NIX-333 归属校验六处清零）</li>
           <li>&bull; TenantContext 取自 ApiKey 的租户归属</li>
           <li>&bull; 调用统计经 Analytics 上下文聚合成用量报表</li>
         </ul>

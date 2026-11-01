@@ -5134,19 +5134,19 @@
         </g>
         </g>
 
-        <g data-edge-from="app" data-edge-to="api" data-edge-label="POST /alerts/batch-handle（deprecated）" data-edge-key="10">
-          <path data-composition-edge-from="app" data-composition-edge-to="api" data-composition-points="520,618;862,618" d="M 520 618 L 862 618" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
+        <g data-edge-from="app" data-edge-to="api" data-edge-label="POST /alerts/batch-dismiss（NIX-351）" data-edge-key="10">
+          <path data-composition-edge-from="app" data-composition-edge-to="api" data-composition-points="520,618;862,618" d="M 520 618 L 862 618" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <g data-detail="context">
-          <rect x="583.6" y="598" width="214.8" height="16" rx="3" class="c-mask"/>
-          <text x="691" y="608" class="t-messagebus" font-size="9" text-anchor="middle">POST /alerts/batch-handle（deprecated）</text>
+          <rect x="588.8" y="598" width="204.4" height="16" rx="3" class="c-mask"/>
+          <text x="691" y="608" class="t-backend" font-size="9" text-anchor="middle">POST /alerts/batch-dismiss（NIX-351）</text>
         </g>
         </g>
 
-        <g data-edge-from="api" data-edge-to="app" data-edge-label="403 AUTH_FORBIDDEN（仅 OWNER/B2B_ADMIN）" data-edge-key="11">
-          <path data-composition-edge-from="api" data-composition-edge-to="app" data-composition-points="862,656;520,656" d="M 862 656 L 520 656" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <g data-edge-from="api" data-edge-to="app" data-edge-label="200 {dismissed, skipped}（跳过非 ACTIVE）" data-edge-key="11">
+          <path data-composition-edge-from="api" data-composition-edge-to="app" data-composition-points="862,656;520,656" d="M 862 656 L 520 656" class="a-default" stroke-width="1.4" stroke-dasharray="3,5" marker-end="url(#arrowhead)"/>
         <g data-detail="context">
-          <rect x="581" y="636" width="220" height="16" rx="3" class="c-mask"/>
-          <text x="691" y="646" class="t-security" font-size="9" text-anchor="middle">403 AUTH_FORBIDDEN（仅 OWNER/B2B_ADMIN）</text>
+          <rect x="578.4" y="636" width="225.20000000000002" height="16" rx="3" class="c-mask"/>
+          <text x="691" y="646" class="t-muted" font-size="9" text-anchor="middle">200 {dismissed, skipped}（跳过非 ACTIVE）</text>
         </g>
         </g>
 
@@ -5168,8 +5168,8 @@
           <text x="62" y="286" class="t-dim" font-size="9" font-weight="600">只读浏览</text>
         </g>
         <g data-graph-role="segment-label" data-segment-id="2">
-          <rect x="56" y="418" width="107.60000000000001" height="18" rx="3" class="c-mask"/>
-          <text x="62" y="431" class="t-dim" font-size="9" font-weight="600">告警确认与权限边界</text>
+          <rect x="56" y="418" width="86.8" height="18" rx="3" class="c-mask"/>
+          <text x="62" y="431" class="t-dim" font-size="9" font-weight="600">告警确认与关闭</text>
         </g>
         <g data-graph-role="segment-label" data-segment-id="3">
           <rect x="56" y="663" width="86.8" height="18" rx="3" class="c-mask"/>
@@ -5237,13 +5237,9 @@
             <path d="M 210 743 L 244 743" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
             <text x="253" y="746" class="t-muted" font-size="10" font-weight="500">安全</text>
           </g>
-          <g data-legend-semantic-kind="dashed" data-legend-x="295" data-legend-baseline="746" data-legend-width="83">
-            <path d="M 295 743 L 329 743" class="a-dashed" stroke-width="1.4" marker-end="url(#arrowhead-dashed)"/>
-            <text x="338" y="746" class="t-muted" font-size="10" font-weight="500">异步追踪</text>
-          </g>
-          <g data-legend-semantic-kind="default" data-legend-x="400" data-legend-baseline="746" data-legend-width="83">
-            <path d="M 400 743 L 434 743" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-            <text x="443" y="746" class="t-muted" font-size="10" font-weight="500">默认消息</text>
+          <g data-legend-semantic-kind="default" data-legend-x="295" data-legend-baseline="746" data-legend-width="83">
+            <path d="M 295 743 L 329 743" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+            <text x="338" y="746" class="t-muted" font-size="10" font-weight="500">默认消息</text>
           </g>
         </g>
       </svg>
@@ -5451,8 +5447,8 @@
         </div>
         <ul>
           <li>&bull; 单条标记已读任意登录用户放行——worker 确认可用</li>
-          <li>&bull; 批量 dismiss 走 deprecated batch-handle，worker 收 403</li>
-          <li>&bull; 建议前端按角色隐藏批量处理按钮（见旅程文档 7.4）</li>
+          <li>&bull; 单条/批量关闭均含 worker（5b715cb4 前后端同批放宽）</li>
+          <li>&bull; 批量走 /alerts/batch-dismiss（NIX-351），重复关闭返回 409</li>
         </ul>
       </div>
 
