@@ -2,7 +2,7 @@
 
 > 本文档基于智慧畜牧系统（Smart Livestock）**实际代码实现**编写，描述各角色的登录、认证、权限与端到端旅程。
 > 所有权限/流程声明均标注源文件路径，便于追溯。
-> **基线**：2026-09-20，基于当前工作区代码（分支 `nix/219-gateway-position-distance`）。上一版 2026-06-11（`master`）；与旧版差异主要来自：NIX-52 告警中心重设计（通知中心模型）、NIX-191 强制改密、NIX-214 设备配置规则、NIX-219/220 网关注册与覆盖诊断、GPS 质量与遥测导入、datagen 控制台、部署授权（NIX-184）等。
+> **基线**：2026-11-01，基于 `master` 核实。上一版 2026-09-20（分支 `nix/219-gateway-position-distance`）；本次差异主要来自：多标识登录（PR #132）与密码策略 8 位四类（2026-10-15 裁决）、超管上下文切换（NIX-306，`SUPER_ADMIN` 第 6 角色）、订阅到期治理（NIX-323/324/325/334）、设备跨租户移交、时区三级链、告警 dismiss 放宽到 WORKER、AppRoute 47→57、[7.7](#77-会话恢复不读-mustchangepassword) 会话恢复缺口已修复。
 > 代码现状与旧文档 `docs/customer-journey.md` 之间的差异，集中列入末尾「[已知不一致点](#7-已知不一致点)」一节。
 
 ---
@@ -22,13 +22,13 @@
 
 ## 1. 角色总览
 
-系统在后端定义 5 种角色枚举，前端有对应的 `UserRole` 枚举一一映射。
+系统在后端定义 6 种角色枚举，前端有对应的 `UserRole` 枚举一一映射。
 
 **后端角色枚举**：`smart-livestock-server/src/main/java/com/smartlivestock/identity/domain/model/Role.java`
 
 ```java
 public enum Role {
-    OWNER, WORKER, PLATFORM_ADMIN, B2B_ADMIN, API_CONSUMER
+    OWNER, WORKER, PLATFORM_ADMIN, B2B_ADMIN, API_CONSUMER, SUPER_ADMIN
 }
 ```
 
@@ -36,15 +36,16 @@ public enum Role {
 
 | 后端 Role | 前端 UserRole | wireName | 操作端 | Shell 类型 | tenantId 归属 |
 |-----------|---------------|----------|--------|-----------|--------------|
+| `SUPER_ADMIN` | `superAdmin` | `super_admin` | `/select-context` 选择身份进入（NIX-306） | 随所选角色 | `null`（平台根账号） |
 | `PLATFORM_ADMIN` | `platformAdmin` | `platform_admin` | 平台后台 `/ops/admin` | 无 Shell，纯 Scaffold | `null`（平台级，无租户归属） |
 | `B2B_ADMIN` | `b2bAdmin` | `b2b_admin` | B 端控制台 `/b2b/admin` | 左侧 NavigationRail | 归属所属租户 |
-| `OWNER` | `owner` | `owner` | 移动端 App | 底部导航栏（4-5 Tab） | 归属所属租户 |
+| `OWNER` | `owner` | `owner` | 移动端 App | 底部导航栏 | 归属所属租户 |
 | `WORKER` | `worker` | `worker` | 移动端 App | 底部导航栏（4 Tab） | 归属所属租户 |
-| `API_CONSUMER` | `apiConsumer` | `api_consumer` | 开发者门户（Open API） | 无 App 端 UI | 归属所属租户 |
+| `API_CONSUMER` | `apiConsumer` | `api_consumer` | Open API | 无 App 端 UI | 归属所属租户 |
 
-> `PLATFORM_ADMIN` 的 `tenantId` 为 `null`，是平台级身份，不归属任何租户。其余 4 种角色均归属某一租户。
+> `PLATFORM_ADMIN` 与 `SUPER_ADMIN` 的 `tenantId` 为 `null`，是平台级身份，不归属任何租户。其余 4 种角色均归属某一租户。
 > `UserRole.fromString` 遇到未知角色会 `debugPrint` 并回退为 `worker`（`user_role.dart` 的 `_unknown`）。
-> 前端角色辅助 getter（`user_role.dart:37-42`）：`canAccessAdminTab`（仅 owner，见 [7.3](#73-管理租户) —— 已成死权限）、`isPlatformAdmin`、`isB2bAdmin`、`isApiConsumer`、`isOwner`、`isWorker`。
+> 前端角色辅助 getter（`user_role.dart`）：`canAccessAdminTab`（仅 owner，见 [7.3](#73-管理租户角色与-owner-后台入口) —— 已成死权限）、`isPlatformAdmin`、`isB2bAdmin`、`isApiConsumer`、`isOwner`、`isWorker`、`isSuperAdmin`（`:50`）。
 
 ---
 
@@ -56,9 +57,11 @@ public enum Role {
 
 | 方法 | 路径 | 认证 | 说明 |
 |------|------|------|------|
-| POST | `/api/v1/auth/login` | 公开（permitAll） | 手机号 + 密码登录，返回 JWT |
+| POST | `/api/v1/auth/login` | 公开（permitAll） | 登录标识 + 密码，返回 JWT（多标识：account / email / 手机号 E.164 任一，大小写不敏感，PR #132） |
 | POST | `/api/v1/auth/refresh` | 公开（permitAll） | body 携带当前 accessToken，重新签发（30 分钟宽限期） |
 | POST | `/api/v1/auth/logout` | 公开（permitAll） | 无状态登出，客户端丢弃 token |
+| GET | `/api/v1/auth/entry-contexts` | SUPER_ADMIN | 列出可进入的角色上下文（NIX-306） |
+| POST | `/api/v1/auth/switch-context` | SUPER_ADMIN | 重签带 `act` claim 的上下文 token（审计 `AUTH_CONTEXT_SWITCHED`；context token 不可再切换） |
 
 > 匿名可达的其他端点（`SecurityConfig.java:44-71`）：`/health`、`GET /api/v1/deployment-info`（登录页公开部署描述符，`DeploymentInfoController` 2026-09-04）、`GET /api/v1/admin/deployment-license/enrollment` 与 `POST /api/v1/admin/deployment-license`（NIX-184 首证书窗口，`DeploymentLicenseAdminController`）。
 > 改密不在 AuthController：`PUT /api/v1/me/password` 在 `MeController`（见 2.8）。
@@ -68,11 +71,12 @@ public enum Role {
 **后端服务**：`smart-livestock-server/src/main/java/com/smartlivestock/identity/application/AuthApplicationService.java:25-38`
 
 ```
-POST /api/v1/auth/login { phone, password }
+POST /api/v1/auth/login { identifier, password }
   → AuthApplicationService.login(LoginCommand)
-      1. userRepository.findByPhone(phone) → 找不到则 AUTH_INVALID_TOKEN「手机号或密码错误」
+      1. 解析登录标识：email → phone（E.164，兼容存量裸号）→ account，大小写不敏感
+         （findByLoginIdentifier，PR #132；找不到则 AUTH_INVALID_TOKEN「标识或密码错误」）
       2. user.isActive() == false → AUTH_FORBIDDEN「用户已停用」（deactivate 为终态，不可重新激活）
-      3. passwordHasher.matches(password, user.passwordHash) → 不匹配则「手机号或密码错误」
+      3. passwordHasher.matches(password, user.passwordHash) → 不匹配则「标识或密码错误」
       4. user.recordLogin()  // 更新 lastLoginAt
       5. jwtTokenProvider.generateToken(userId, tenantId, role.name())
   → 返回 { token, user: UserDto }   // UserDto 携带 boolean mustChangePassword
@@ -89,8 +93,11 @@ POST /api/v1/auth/login { phone, password }
 | `subject` | userId（字符串） | `generateToken(userId, ...)` |
 | `tid` | tenantId（Long） | 登录用户的 `user.tenantId` |
 | `role` | 角色名（如 `OWNER`、`PLATFORM_ADMIN`） | `user.role.name()` |
+| `act`（条件性） | RFC 8693 委托声明（真实超管身份） | 仅超管 switch-context 签发（`JwtTokenProvider.java:45-54`，NIX-306） |
 | `iat` | 签发时间 | `new Date()` |
 | `exp` | 过期时间 | `now + jwt.access-expiration` |
+
+> 带 `act` 的上下文 token 与普通用户 token 结构一致（下游鉴权无差别）；切换动作记审计事件 `AUTH_CONTEXT_SWITCHED`（`AuthApplicationService`）。**单 Token 模型**：仅 access token + 过期后 30 分钟刷新宽限（`REFRESH_GRACE_MS`），无独立 refresh token。
 
 - 签名算法：HMAC（`Keys.hmacShaKeyFor(secret)`），密钥来自配置 `jwt.secret`。
 - **JWT 中不含 farmId**。牧场作用域（activeFarmId）由前端 `SessionController` 管理，通过请求 URL 路径传递给后端（见 6.2）。
@@ -120,6 +127,8 @@ POST /api/v1/auth/login { phone, password }
 **拦截器链**（`shared/WebMvcConfig.java:42-85`，顺序）：
 `passwordChangeRequired` → `license` → `open-scope/rate-limit`（仅 `/api/v1/open/**`）→ `apiCallLog` → `farmScope` → `quota`。
 
+> **超管上下文切换**（NIX-306，2026-10）：root 登录 → `GET /auth/entry-contexts` 列出可进入身份 → `POST /auth/switch-context` 重签 act token；前端 `/select-context`（ContextPickerPage，root 专用路由）；impersonated 会话由路由守卫兜底回所选角色首页（`app_router.dart` selectContext 分支）。
+
 ### 2.5 Token 刷新
 
 **后端** `JwtTokenProvider.refreshToken(token)`（`JwtTokenProvider.java:82-101`，`REFRESH_GRACE_MS = 30 * 60 * 1000`）：
@@ -146,7 +155,7 @@ POST /api/v1/auth/login { phone, password }
 **会话状态**：`Mobile/mobile_app/lib/app/session/app_session.dart:30-57`
 
 ```
-SessionController.login(phone, password)
+SessionController.login(identifier, password)   // 多标识：account / email / 手机号 E.164
   → ApiClient.instance.login(...)  // 调用后端 /auth/login
   → 解析 role → UserRole.fromString
   → state = AppSession.authenticated(role, accessToken, userId, ..., tenantId, username,
@@ -168,7 +177,8 @@ logout()
 ```
 
 - `AppSession.isLoggedIn` 判定依据：`role != null`。
-- **初始恢复**（`main.dart:64-101` `_restoreSession`）：读持久化 JWT → 过期/无效即清空回登录页；恢复 `activeFarmId` 回 `ApiClient`；**恢复路径未读取 mustChangePassword**（重启后强制改密锁默认失效，见 [7.7](#77-会话恢复不读-mustchangepassword)）。
+- **初始恢复**（`main.dart` `_restoreSession`）：读持久化 JWT → 过期/无效即清空回登录页；恢复 `activeFarmId` 回 `ApiClient`；恢复 `mustChangePassword`（`main.dart:99`——登录响应标志已随 userInfo 持久化，2026-10 修复，原 [7.7](#77-会话恢复不读-mustchangepassword) 缺口已闭合）。
+- **超管入口**：root 登录后进入 `/select-context`（`ContextPickerPage`），确认身份后以新 token 更新会话角色。
 
 ### 2.8 强制改密（NIX-191，2026-09 新增）
 
@@ -183,19 +193,20 @@ logout()
 **前端闭环**：
 1. 登录响应 `mustChangePassword == true` → `AppSession.mustChangePassword`（`session_controller.dart:33`）。
 2. 路由 redirect 把所有位置锁定到 `/me/password-change`（`app_router.dart:94-97`）。
-3. `ForcedPasswordChangePage`（顶层路由，位于所有 Shell 之外，`app_router.dart:144-148`）：`PUT /me/password`，body `{oldPassword, newPassword}`；新密码校验 **≥10 位且含字母+数字**（后端 `MeController.java:111-114` 同规则）。
+3. `ForcedPasswordChangePage`（顶层路由，位于所有 Shell 之外，`app_router.dart:144-148`）：`PUT /me/password`，body `{oldPassword, newPassword}`；新密码校验走平台统一密码策略 **≥8 位且含大写/小写/数字/特殊字符四类**（`shared/common/PasswordPolicy.java`，2026-10-15 裁决——原「≥10 位字母+数字」已废弃，所有设密入口共用 `violationKey`）。
 4. 成功后写新 hash、清除 `must_change_password`（`User.completePasswordChange()`），前端 `markPasswordChanged()` 并按角色跳转：`platformAdmin → /ops/admin`，否则 `/ranch`。
 
 ### 2.9 种子登录凭据
 
-| 角色 | 手机号 | 密码 | 说明 |
-|------|--------|------|------|
-| platform_admin | `13800000000` | `123` | 平台级管理，无租户归属（V20260907 admin bootstrap） |
-| b2b_admin | `13900139000` | `123` | B 端管理员，关联 Demo 租户 |
-| owner | `13800138000` | `123` | Demo 租户 owner，关联主牧场 |
-| worker | `13800138001` | `123` | Demo 租户牧工，主牧场 |
+| 角色 | 登录标识 | 说明 |
+|------|---------|------|
+| SUPER_ADMIN（超管 root） | 见 `docs/reference/deployment.md` | 平台根账号（V20261019100000 种子 / V20261020100000 改名 Admin@hkt.com），首登强制改密，经 `/select-context` 进入 |
+| platform_admin | 见 `docs/reference/deployment.md` | 平台级管理，无租户归属（V20260907120000 admin bootstrap） |
+| b2b_admin | 见 `docs/reference/deployment.md` | B 端管理员，关联 Demo 租户 |
+| owner | 见 `docs/reference/deployment.md` | Demo 租户 owner，关联主牧场 |
+| worker | 见 `docs/reference/deployment.md` | Demo 租户牧工，主牧场 |
 
-> 密码哈希经 BCrypt 生成并写入 Flyway seed 迁移。修改种子密码须遵循「生成时验证 → 写入迁移 → 部署后 curl 验证」三步流程（可用 `scripts/verify-seed-hash.sh`）。**对外交付环境须轮换公开凭据。**
+> 历史占位密码「123」在密码策略（≥8 位四类，`PasswordPolicy.java`，2026-10-15 裁决）生效后已失效，本文不再罗列明文。密码哈希经 BCrypt 生成并写入 Flyway seed 迁移。修改种子密码须遵循「生成时验证 → 写入迁移 → 部署后 curl 验证」三步流程（可用 `scripts/verify-seed-hash.sh`）。**对外交付环境须轮换公开凭据。**
 
 ---
 
@@ -209,11 +220,12 @@ logout()
 |------|------|------|
 | 1 | 未登录（`!session.isLoggedIn`） | 任何非 `/login` 页面 → `/login` |
 | 2 | `mustChangePassword == true` | 所有位置锁定 → `/me/password-change` |
-| 3 | `platformAdmin` | 仅放行 `/ops/admin` 与 `/admin/` 前缀，其余 → `/ops/admin` |
-| 4 | `b2bAdmin` | 放行 `/b2b/admin` 前缀 + `/admin/datagen` + `/admin/tiles`，其余 → `/b2b/admin` |
-| 5 | owner/worker 访问 `/login` 或 `/ops/admin` | → `/ranch` |
-| 6 | **任何非上述放行的角色**访问 `/admin` 或 `/admin/*`（含 owner） | → `/ranch` |
-| 7 | 访问 `/mine/workers` 且 `role != owner` | → `/ranch` |
+| 3 | `superAdmin`（root，未切换） | → `/select-context`（NIX-306；impersonated 会话按所选角色走对应分支） |
+| 4 | `platformAdmin` | 仅放行 `/ops/admin` 与 `/admin/` 前缀，其余 → `/ops/admin` |
+| 5 | `b2bAdmin` | 放行 `/b2b/admin` 前缀 + `/admin/datagen` + `/admin/tiles`，其余 → `/b2b/admin` |
+| 6 | owner/worker 访问 `/login` 或 `/ops/admin` | → `/ranch` |
+| 7 | **任何非上述放行的角色**访问 `/admin` 或 `/admin/*`（含 owner） | → `/ranch` |
+| 8 | 访问 `/mine/workers` 且 `role != owner` | → `/ranch` |
 
 > ⚠️ 与旧文档差异：旧版写「已登录访问 `/admin`（owner 除外）→ `/ranch`」；**当前代码 owner 同样被重定向**（`app_router.dart:123-127` 注释明确「/admin/** 管理页仅平台管理员可入」）。owner 的后台管理 Tab 已不可达（见 [7.3](#73-管理租户)）。
 
@@ -223,6 +235,7 @@ logout()
 
 | 角色 | 登录后首页 | Shell |
 |------|-----------|-------|
+| super_admin（root） | `/select-context`（选择身份后按所选角色落地） | 随所选角色 |
 | platform_admin | `/ops/admin`（平台后台租户列表） | 无 Shell，纯 Scaffold |
 | b2b_admin | `/b2b/admin`（B 端概览） | 左侧 NavigationRail |
 | owner | `/ranch`（牧场页） | 底部导航栏 |
@@ -232,7 +245,7 @@ logout()
 
 ### 3.3 路由定义
 
-**路由表**：`Mobile/mobile_app/lib/app/app_route.dart`（AppRoute 枚举，47 项，路径唯一来源）
+**路由表**：`Mobile/mobile_app/lib/app/app_route.dart`（AppRoute 枚举，**57 项**，路径唯一来源；2026-11-01 核实，较 09-20 基线 +10，新增 `/select-context`、`/admin/subscription-overview` 订阅健康度等）
 
 - **owner / worker 共用（App 端，MainShell 底部导航栏）**：
   `/ranch`、`/twin`（含 `/twin/fever`、`/twin/fever/:livestockId`、`/twin/digestive[/:id]`、`/twin/estrus[/:id]`、`/twin/epidemic`、`/twin/epidemic/contacts`）、`/alerts`、`/mine`、`/fence`、`/fence/form`、`/fence/conflict`、`/devices`、`/stats`、`/livestock`、`/livestock/:id`、`/mine/gateways`、`/mine/gateways/:gatewayId`、`/mine/coverage-diagnostics`、`/mine/api-auth`、`/mine/help`、`/subscription`、`/subscription/plans`、`/subscription/checkout`。
@@ -240,7 +253,8 @@ logout()
 - **owner 不可达**：`/admin`（枚举仍存在但**无 GoRoute 注册**，redirect 直接重定向 `/ranch`）。
 - **platform_admin**：`/ops/admin`（+ `create` / `:id` / `:id/edit` 子路由），以及 `/admin/contracts`、`/admin/revenue`、`/admin/subscriptions`、`/admin/deployment-license`、`/admin/api-auth`、`/admin/audit-logs`、`/admin/feature-gates`、`/admin/analytics`、`/admin/tiles`、`/admin/device-profile-rules`、`/admin/gps-quality`、`/admin/telemetry-import`、`/admin/datagen`、`/admin/gateway-overview`。
 - **b2b_admin**：`/b2b/admin`、`/b2b/admin/farms`、`/b2b/admin/farms/create`、`/b2b/admin/farms/:farmId`（牧工详情）、`/b2b/admin/contract`、`/b2b/admin/revenue`、`/b2b/admin/revenue/:id`；例外放行 `/admin/tiles`（瓦片管理）与 `/admin/datagen`（仿真控制台，后端允许 B2B_ADMIN）。
-- **顶层（Shell 外）**：`/login`、`/me/password-change`（不在枚举内）、`/farm/create`（创建牧场向导）、`/offline/tiles`（离线地图管理）、`/dashboard`（遗留）。
+- **顶层（Shell 外）**：`/login`、`/select-context`（超管身份选择，NIX-306）、`/me/password-change`（不在枚举内）、`/farm/create`（创建牧场向导）、`/offline/tiles`（离线地图管理）、`/dashboard`（遗留）。
+- **无独立路由的功能页**：饮水事件时间线与标注、生理事件流、AI 异常视图嵌入牲畜详情/健康页（`features/drinking|physiology|ai_anomaly`，作为页面组件）。
 
 **弹层形态的功能（无独立路由）**：
 - **告警详情**：底部弹层 `showAlertDetailSheet`（`features/pages/alerts_page.dart:557-559` / `features/alerts/presentation/widgets/alert_detail_sheet.dart`）；`/alerts` 支持 query 参数 `category` / `fenceId` 过滤。
@@ -295,6 +309,7 @@ logout()
 | `GatewayRegistryController` | 网关查询/位置更新 | `hasAnyRole('OWNER','WORKER','B2B_ADMIN')` |
 | `GatewayDistanceController` / `LivestockRoamController` | 查询 | `hasAnyRole('OWNER','WORKER','B2B_ADMIN')` |
 | `CoverageDiagnosticController` | 覆盖诊断 | `hasAnyRole('OWNER','WORKER','B2B_ADMIN','PLATFORM_ADMIN')` |
+| `AlertController` | 告警 dismiss | `hasAnyRole('OWNER','B2B_ADMIN','WORKER')`（`:94`，2026-10 放宽；read/batch-read 任意登录用户） |
 
 > 读操作（GET）普遍无注解——仅需登录（`authenticated()`）。Ranch/IoT **写操作不含 worker**。
 
@@ -308,6 +323,7 @@ logout()
 | `AdminContractController`（/admin/contracts）、`AdminRevenueController`（/admin/revenue）、`AdminSubscriptionController`（/admin/subscriptions）、`AdminServiceController`（/admin/subscription-services）、`AdminFeatureGateController`（/admin/feature-gates） | Commerce Admin 系列 |
 | `PortalAdminController`（/admin/portal/keys） | Analytics Admin |
 | `DeploymentLicenseAdminController`（/admin/deployment-license） | 除 enrollment/import（匿名）外逐方法校验；`CloudPilotLicenseController`（/admin/tenants license 子路径）同 |
+| `DeviceAdminController`（/admin/devices） | `requirePlatformAdmin()`（`:38/:48`）——含设备跨租户移交 `POST /admin/devices/transfer`（2026-10-19） |
 
 **(C) 类级 `@PreAuthorize`**（双角色或单角色）
 
@@ -321,7 +337,7 @@ logout()
 | `TelemetryImportAdminController`（/admin/telemetry-import） | `hasRole('PLATFORM_ADMIN')` |
 | `DataGenAdminController`（/admin/datagen 方法级 ×6） | `hasRole('PLATFORM_ADMIN')` |
 
-> ⚠️ `AnalyticsAdminController`（/admin/analytics）**无任何权限注解/校验**，仅靠 URL `authenticated()` —— 任意登录角色可调（见 [7.6](#76-analyticsadmincontroller-无权限校验)）。
+> ⚠️ `AnalyticsAdminController`（/admin/analytics）**无任何权限注解/校验**，仅靠 URL `authenticated()` —— 任意登录角色可调（见 [7.6](#76-analyticsadmincontroller-无权限校验)）。同类：`DataExportAdminController`（/admin/data-export-jobs）亦无注解（见 [7.11](#711-dataexportadmincontroller-无权限校验)）。
 
 **(D) B2B API**：`B2bController`（`/api/v1/b2b`，2026-06-01 新增）内部 `requireB2bAdmin()`（检查 `ROLE_B2B_ADMIN`）+ `requireTenantId()`。端点：dashboard、contract、farms、farms/{id}/workers 增删查、available-workers、users 增改/状态/重置密码（创建固定 WORKER）。
 
@@ -345,8 +361,9 @@ if (!user.isOwner() && !user.getRole().name().equals("B2B_ADMIN")) {
 | 管理租户 | `owner \|\| platformAdmin` | 仅 `PLATFORM_ADMIN`（requirePlatformAdmin） |
 | Ranch/IoT 写操作 | `canEditFence` 仅 owner | `OWNER \|\| B2B_ADMIN` |
 | 告警标记已读 | `owner \|\| worker`（确认按钮） | **任意登录用户**（POST /alerts/{id}/read） |
-| 告警 dismiss | owner（前端 canHandleAlert） | `OWNER \|\| B2B_ADMIN` |
+| 告警 dismiss | owner（前端 canHandleAlert） | `OWNER \| B2B_ADMIN \| WORKER`（2026-10 放宽，`AlertController.java:94`） |
 | 批量 dismiss | owner | 复用 deprecated `/batch-handle`（`OWNER\|B2B_ADMIN`），worker 调用 403 |
+| 设备跨租户移交 / 数据导出监管 | — | 仅 `PLATFORM_ADMIN`（移交）/ 导出监管无注解（见 7.11） |
 | Tile 管理 | — | `PLATFORM_ADMIN \|\| B2B_ADMIN` |
 | 设备配置规则 | — | `PLATFORM_ADMIN \|\| B2B_ADMIN` |
 | GPS 质量 / 遥测导入 | — | 仅 `PLATFORM_ADMIN` |
@@ -359,13 +376,17 @@ if (!user.isOwner() && !user.getRole().name().equals("B2B_ADMIN")) {
 ### 5.1 platform_admin（平台管理员）
 
 ```
-登录（13800000000 / 123，tenantId=null）
+登录（root 经 /select-context 选择身份进入；platform_admin 凭据见 deployment.md，tenantId=null）
   → 重定向到 /ops/admin（租户列表，TenantListPage）
-  → 创建租户（TenantCreatePage）→ 进入租户详情（TenantDetailPage）
+  → 创建租户（TenantCreatePage）+ 免费试点授权（统一截止日 2027-09-30，可按租户指定当地日期）
+  → 进入租户详情（TenantDetailPage）
   → 在租户详情新增用户：b2b_admin / owner / worker（UserAdminController）
       · 默认密码 Default@123，mustChangePassword=true → 用户首登强制改密
-  → 管理租户启停、License 调整（CloudPilotLicense）
+  → 管理租户启停、License 调整（CloudPilotLicense）、租户/牧场时区配置
   → 重置用户密码 → 该密码视为「他人凭证」，重新武装强制改密
+  → /admin/subscription-overview 订阅健康总览：到期分组 + 运营动作列（NIX-324/334）
+  → /admin/devices 设备跨租户移交（EUI 归属核查 + 审计，2026-10-19）
+  → 数据导出任务监管（DataExportAdminController，NIX-325）
   → /admin/contracts 合同管理（AdminContractController）
   → /admin/revenue 对账看板与分润计算（AdminRevenueController）
   → /admin/subscriptions 订阅服务管理（AdminSubscriptionController）
@@ -387,7 +408,7 @@ if (!user.isOwner() && !user.getRole().name().equals("B2B_ADMIN")) {
 ### 5.2 b2b_admin（B 端管理员）
 
 ```
-登录（13900139000 / 123，归属 Demo 租户）
+登录（凭据见 deployment.md，归属 Demo 租户；到期横幅可「稍后提醒」）
   → 重定向到 /b2b/admin（概览看板，B2bDashboardPage）
   → /b2b/admin/farms 创建牧场 → 分配给 owner（FarmController: OWNER|B2B_ADMIN 可创建）
   → /b2b/admin/farms/:farmId 管理旗下牧工（B2bWorkerDetailPage）
@@ -403,7 +424,7 @@ if (!user.isOwner() && !user.getRole().name().equals("B2B_ADMIN")) {
 ### 5.3 owner（牧场主）
 
 ```
-登录（13800138000 / 123，归属 Demo 租户）
+登录（多标识：account / email / 手机号 E.164 任一；凭据见 deployment.md，归属 Demo 租户）
   → [若 mustChangePassword=true] 锁定 /me/password-change 强制改密 → 改密后回 /ranch
   → 重定向到 /ranch（牧场页，默认首页）
   → /twin 数智孪生：GPS 地图、牲畜概览、健康预警
@@ -412,12 +433,14 @@ if (!user.isOwner() && !user.getRole().name().equals("B2B_ADMIN")) {
   → /alerts 告警中心（NIX-52 通知中心）：
       · 标记已读（单条/批量）· dismiss 处理（ACTIVE→DISMISSED）
       · 详情弹层：标签/时间线/地图定位/查看轨迹
-  → /fence 围栏管理：创建 / 编辑（乐观锁冲突 409 可选强制覆盖） / 删除
+  → /fence 围栏管理：创建 / 编辑（乐观锁冲突 409 可选强制覆盖） / 删除 / GPX 导入（NIX-213）
   → /livestock/:id 牲畜详情：主数据、绑定设备（GPS+胶囊，单设备解绑）、
-      72h 体温 / 24h 蠕动 / 7 天发情评分（自动刷新）、位置信息
+      72h 体温 / 24h 蠕动 / 7 天发情评分（自动刷新）、位置信息、
+      饮水事件时间线与标注（NIX-256）、生理事件流
   → /devices 设备管理：设备列表、开通向导（TB 自动配置弹层）、安装到牲畜、解绑、轨迹
   → /mine/gateways(/:id) 网关注册与位置、/mine/coverage-diagnostics 覆盖诊断（NIX-219/220）
   → /stats 数据统计、/offline/tiles 离线地图管理
+  → 订阅到期横幅（可稍后提醒）+ 导出权卡倒计时（NIX-324/334/325）
   → /subscription/plans → /subscription/checkout 订阅升级（FeatureGate 按 tier 门控）
   → /mine/workers 牧工管理：添加 / 移除牧工
   → /mine/api-auth API 授权管理（canReviewApiAuthorizations）
@@ -434,8 +457,8 @@ if (!user.isOwner() && !user.getRole().name().equals("B2B_ADMIN")) {
   → 重定向到 /ranch（牧场页）
   → /twin 数智孪生：查看地图、牲畜位置（只读；网关/漫游查询允许 WORKER）
   → /alerts 告警中心：标记已读（单条/批量，后端任意登录用户可调）
+      · 单条 dismiss 后端已放宽到 WORKER（AlertController.java:94，2026-10）；前端按钮仍 owner-only
       · 批量 dismiss 走 deprecated /batch-handle → 后端 403（见 7.4）
-      · 不可 dismiss 处理（canHandleAlert=false，后端 OWNER|B2B_ADMIN）
   → /fence 围栏：只查看（canEditFence=false）
   → /mine 个人资料、牧场切换
   ✗ /mine/workers 被守卫拦截 → 重定向到 /ranch
@@ -470,9 +493,12 @@ b2b_admin（或 owner）
 
 owner
   → 管理牲畜、围栏、告警、牧工（日常运营）
+
+super_admin（root）
+  → GET /auth/entry-contexts → POST /auth/switch-context（act 重签 + AUTH_CONTEXT_SWITCHED 审计，NIX-306）
 ```
 
-> 约束（代码现状）：牧场可由 OWNER 或 B2B_ADMIN 创建；租户与用户的创建仅限 PLATFORM_ADMIN；新账号首登一律强制改密。
+> 约束（代码现状）：牧场可由 OWNER 或 B2B_ADMIN 创建；租户与用户的创建仅限 PLATFORM_ADMIN；新账号首登一律强制改密；超管上下文操作全程审计。
 
 ### 6.2 牧场作用域（activeFarmId）传递机制
 
@@ -524,15 +550,22 @@ ACTIVE ──规则自动恢复──→ AUTO_RESOLVED
 | `GET /alerts`、`GET /alerts/summary`、`GET /alerts/{alertId}` | 登录即可 | 读 |
 | `POST /alerts/{alertId}/read` | 任意登录用户 | 标记已读（按当前用户） |
 | `POST /alerts/batch-read` | 任意登录用户 | 批量标记已读 |
-| `POST /alerts/{alertId}/dismiss` | `OWNER\|B2B_ADMIN` | 处理（ACTIVE→DISMISSED） |
+| `POST /alerts/{alertId}/dismiss` | `OWNER\|B2B_ADMIN\|WORKER`（2026-10 放宽） | 处理（ACTIVE→DISMISSED） |
 | ~~`POST /alerts/{alertId}/acknowledge`~~ | @Deprecated | 转发 markRead |
 | ~~`POST /alerts/{alertId}/handle`~~ | @Deprecated，`OWNER\|B2B_ADMIN` | 转发 dismiss |
 | ~~`POST /alerts/{alertId}/archive`~~ | @Deprecated，`OWNER\|B2B_ADMIN` | 归档 |
 | ~~`POST /alerts/batch-handle`~~ | @Deprecated，`OWNER\|B2B_ADMIN` | 循环 dismiss，跳过不可处理项（前端批量 dismiss 仍复用，见 7.4/7.9） |
 
+> 告警类型以 `AlertType` 枚举 14 值为准：FENCE_BREACH / FENCE_APPROACH / ZONE_APPROACH / TEMPERATURE_ABNORMAL / DIGESTIVE_ABNORMAL / ESTRUS / EPIDEMIC / AI_ANOMALY / DEVICE_TAMPER / DEVICE_LOW_BATTERY / DEVICE_OFFLINE / LINK_QUALITY / OUTLIER / RETURN_HOME。
+
 ### 6.4 订阅与功能门控
 
-- **订阅层级**（`SubscriptionTier`）：basic / standard / premium / enterprise。
+- **订阅层级**（`SubscriptionTier`）：basic（免费 ≤50 头）/ standard / premium / enterprise，USD 按头/月分档计价（NIX-245）。
+- **状态机 7 态**（`SubscriptionStatus`）：TRIAL / ACTIVE / FREE / SUSPENDED / RENEWAL_FAILED / CANCELLED / EXPIRED；生命周期调度统一在 `CommerceScheduler`（expireTrials、markExpiredSubscriptions 每小时；downgradeAfterRenewalFailure 每日 2:00）。
+- **统一试点截止日**：`smartlivestock.trial.ends-at`（默认 `2027-09-30T21:00:00Z` = 2027-10-01 肯尼亚 EAT），可按租户传当地日期自动换算；有效档位判定用**订阅快照**（trialActive/effectiveTier，禁裸 status），RENEWAL_FAILED/SUSPENDED 保留付费档（NIX-323）。
+- **到期治理双端**（NIX-324/334）：订阅端到期横幅（可稍后提醒）+ 导出权卡倒计时；管理端订阅健康总览（到期分组 + 运营动作列）。
+- **降档不拒绝**：到期后 Open 遥测端点按 `retention_days` clamp 窗口 + 24h Redis 滑窗调用预算继续服务，不 403（NIX-323）。
+- **GDPR 数据导出**：终止后 30 天内自助导出（机器可读 zip、审计三事件），导出文件 30 天下载窗（NIX-325）。
 - 配额引擎在后端 Commerce 上下文实现；前端 `FeatureGate` 按 tier 控制功能可见性。
 - 低 tier 访问高 tier 功能时显示升级提示覆盖层；`ApiCache` 预加载时按 tier 过滤数据范围。
 - 拦截器链含 `license` 与 `quota` 环节（见 2.4）。
@@ -565,8 +598,9 @@ ACTIVE ──规则自动恢复──→ AUTO_RESOLVED
 ### 7.4 worker 告警权限（新模型下已部分收敛）
 
 - **前端**：worker 可确认告警（`canAcknowledgeAlert = owner || worker`）→ 实际调用 `POST /alerts/{id}/read`，后端**任意登录用户**放行 → **一致，可用**。
+- **单条 dismiss**：后端已放宽 `OWNER|B2B_ADMIN|WORKER`（`AlertController.java:94`，2026-10）；前端 `canHandleAlert` 仍仅 owner——后端能力已到 worker，按钮可见性未跟上。
 - **批量 dismiss**：前端复用 deprecated `POST /alerts/batch-handle`（`alerts_api_repository.dart:75-76` 注释），后端 `OWNER|B2B_ADMIN` → worker 批量处理会被 **403**。
-- **结论**：worker 单条确认可用；批量 dismiss 是残留缺口（前端应按角色隐藏该按钮）。
+- **结论**：worker 单条已读 + dismiss（后端）可用；批量 dismiss 是残留缺口（前端应按角色隐藏该按钮或后端补 batch-dismiss）。
 
 ### 7.5 Ranch 写操作角色范围
 
@@ -579,10 +613,10 @@ ACTIVE ──规则自动恢复──→ AUTO_RESOLVED
 - **代码**（`analytics/interfaces/admin/AnalyticsAdminController.java` 全文）：无 `@PreAuthorize`、无 `requirePlatformAdmin()`。
 - **结论**：`/admin/analytics`（含 `POST /aggregate`）仅要求登录，任意角色（owner/worker/b2b_admin）带 JWT 均可调用——前端路由挡住了，但 API 层裸奔。建议补类级 `@PreAuthorize`。
 
-### 7.7 会话恢复不读 mustChangePassword
+### 7.7 会话恢复不读 mustChangePassword（✅ 已修复，2026-10）
 
-- **代码**（`main.dart:91-100`）：`_restoreSession` 从持久化 JWT 恢复登录态时未恢复 `mustChangePassword`（默认 false）。
-- **结论**：首登未改密的账号在刷新/重启页面后，前端不再锁 `/me/password-change`（后端拦截器仍在，业务接口会 403，仅白名单接口可用）——用户会陷入「页面能看、操作全 403」的状态，直到重新登录。建议 JWT claims 或 `/me` 响应中带出该标志。
+- **修复后代码**（`main.dart:99`）：`_restoreSession` 恢复登录态时读取持久化的 `mustChangePassword`（登录响应标志已随 userInfo 持久化，`main.dart:127-130` 注释注明 NIX-191）。
+- **结论**：重启/刷新后强制改密锁仍生效，不再出现「页面能看、操作全 403」的状态。原缺口闭合，移出待办。
 
 ### 7.8 B2B 重置密码不重新武装强制改密
 
@@ -599,6 +633,11 @@ ACTIVE ──规则自动恢复──→ AUTO_RESOLVED
 - **代码**：`PUT /{fenceId}` 无角色注解（创建/删除均有 `OWNER|B2B_ADMIN`），仅靠内部乐观锁（STATE_CONFLICT→409）兜底；`PUT /{fenceId}/force` 强制覆盖才要求 PLATFORM_ADMIN。
 - **结论**：任意登录角色（含 worker）技术上可发起围栏更新（受乐观锁与前端入口限制）。与其他写端点的注解风格不一致，建议补齐。
 
+### 7.11 DataExportAdminController 无权限校验（2026-11-01 新发现）
+
+- **代码**（`identity/interfaces/admin/DataExportAdminController.java`）：类与方法均无 `@PreAuthorize` / `requirePlatformAdmin()`，路径 `/api/v1/admin/data-export-jobs`（NIX-325 任务监管）。
+- **结论**：与 [7.6](#76-analyticsadmincontroller-无权限校验) 同款——仅要求登录，任意角色带 JWT 均可查看全平台导出任务列表。建议补类级 `@PreAuthorize("hasRole('PLATFORM_ADMIN')")`。
+
 ---
 
 ## 8. 关键代码索引
@@ -612,6 +651,14 @@ ACTIVE ──规则自动恢复──→ AUTO_RESOLVED
 | 改密端点 | `smart-livestock-server/src/main/java/com/smartlivestock/identity/interfaces/MeController.java` |
 | 强制改密拦截器 | `smart-livestock-server/src/main/java/com/smartlivestock/shared/security/PasswordChangeRequiredInterceptor.java` |
 | JWT 生成/校验/刷新 | `smart-livestock-server/src/main/java/com/smartlivestock/shared/security/JwtTokenProvider.java` |
+| 密码策略（8 位四类） | `smart-livestock-server/src/main/java/com/smartlivestock/shared/common/PasswordPolicy.java` |
+| 超管上下文切换 | `identity/interfaces/AuthController.java`（entry-contexts/switch-context）、`identity/application/AuthApplicationService.java`（act 重签） |
+| 告警 dismiss 权限 | `ranch/interfaces/AlertController.java:94`（OWNER\|B2B_ADMIN\|WORKER） |
+| 订阅调度器/快照判定 | `commerce/application/job/CommerceScheduler.java`、`commerce/application/service/SubscriptionHealthEvaluator.java` |
+| 设备跨租户移交 | `iot/interfaces/admin/DeviceAdminController.java`（POST /transfer） |
+| 数据导出 | `identity/application/DataExportApplicationService.java`、`identity/interfaces/open/OpenDataExportController.java` |
+| SSE 信号流 | `ranch/interfaces/SignalController.java`（stream-ticket + stream） |
+| 时区三级链 | `identity/application/TenantZoneResolver.java` |
 | JWT / API Key 过滤器 | `smart-livestock-server/src/main/java/com/smartlivestock/shared/security/JwtAuthenticationFilter.java`、`ApiKeyAuthFilter.java` |
 | 安全配置 | `smart-livestock-server/src/main/java/com/smartlivestock/shared/security/SecurityConfig.java` |
 | 拦截器链注册 | `smart-livestock-server/src/main/java/com/smartlivestock/shared/WebMvcConfig.java` |
@@ -639,4 +686,4 @@ ACTIVE ──规则自动恢复──→ AUTO_RESOLVED
 
 ---
 
-*文档基线：2026-09-20 · 基于当前工作区代码（分支 `nix/219-gateway-position-distance`）核实。上一版 2026-06-11。*
+*文档基线：2026-11-01 · 基于 `master` 核实。上一版 2026-09-20（分支 `nix/219-gateway-position-distance`）。*

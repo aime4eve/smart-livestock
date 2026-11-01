@@ -192,7 +192,7 @@ owner → 管理牲畜、围栏、告警、牧工、订阅
 
 > 牧场不由 owner 自行创建，由 b2b_admin 或 platform_admin 创建并分配。
 
-系统定义 5 种角色，分属三个操作端：
+系统定义 6 种角色（含 SUPER_ADMIN 超管 root），分属三个操作端：
 
 | 角色 | 操作端 | Shell 类型 | 说明 |
 |------|--------|-----------|------|
@@ -1923,6 +1923,7 @@ erDiagram
 
 | 枚举值（`users.role`） | 中文名称 | 说明 | Shell 类型 |
 |------|------|------|------|
+| `super_admin` | 超管 root | 平台根账号，经 /select-context 选择身份进入（NIX-306） | 随所选角色 |
 | `platform_admin` | 平台管理员 | 平台级管理，无租户归属 | 无 Shell，纯 Scaffold |
 | `b2b_admin` | B 端管理员 | B 端客户管理员，关联 Demo 租户 | 左侧 NavigationRail |
 | `owner` | 牧场主 | 牧场经营者 | 底部导航栏（4–5 Tab） |
@@ -2509,7 +2510,7 @@ Response 200:
 | 传输加密 | HTTPS + WSS（SSE）；MQTT over TLS 为规划未实现 |
 | 用户认证 | JWT 双 Token（Access 1h + Refresh 7d），JJWT 0.12.5 |
 | 设备认证 | LoRaWAN OTAA + 设备 EUI 唯一标识 |
-| 权限控制 | RBAC 五角色：platform_admin / b2b_admin / owner / worker / api_consumer；超管上下文切换（SUPER_ADMIN 专用，act 重签 + `AUTH_CONTEXT_SWITCHED` 审计，NIX-306） |
+| 权限控制 | RBAC 六角色：super_admin / platform_admin / b2b_admin / owner / worker / api_consumer；超管上下文切换（SUPER_ADMIN root 专用，act 重签 + `AUTH_CONTEXT_SWITCHED` 审计，NIX-306） |
 | 登录与密码 | 多标识登录（account/email/phone E.164 任一 + 密码，PR #132）；密码策略 8 位四类；首登强制改密锁（NIX-191） |
 | 多租户隔离 | `tenant_id` 强制注入 + `TenantContext`（ThreadLocal） |
 | 数据脱敏 | 手机号、敏感字段脱敏存储 |
@@ -3034,9 +3035,9 @@ Phase C ◄───────────────────────
 | App API | `docs/api-contracts/app-api.md` | `/api/v1/`（158 端点，2026-11-01 计数） |
 | Admin API | `docs/api-contracts/admin-api.md` | `/api/v1/admin/`（147 端点） |
 | Open API | `docs/api-contracts/open-api.md` | `/api/v1/open/`（17 端点） |
-| 客户旅程 | `docs/product/customer-journey.md` | 角色旅程链 |
-| 用户旅程指南（代码基线） | `docs/product/user-journey-guide.md` | 2026-09-20 按代码刷新的角色旅程基线 |
-| 系统架构文档 | `docs/product/system-architecture.md` | 架构全景（⚠ 内容滞后于实现，待另单刷新） |
+| 客户旅程 | `docs/product/customer-journey.md` | 角色旅程链（2026-11-01 基线） |
+| 用户旅程指南（代码基线） | `docs/product/user-journey-guide.md` | 2026-11-01 按代码刷新的角色旅程基线 |
+| 系统架构文档 | `docs/product/system-architecture.md` | 架构全景（v2.0，2026-11-01 基线） |
 | **Phase C blade 对接设计** | `docs/superpowers/specs/2026-07-07-phase-c-blade-device-integration.md` | **第三方平台集成设计（OAuth2 + Feign + 设备注册 + 遥测采集），PoC 已验证** |
 | **Phase 3 实施设计** | `docs/superpowers/specs/2026-07-08-phase3-blade-integration-device-health-spec.md` | **设备健康管理 + blade 集成用户旅程 + datagen 适配 + 数据采集分流** |
 | 网关定位需求文档 | `docs/superpowers/specs/2026-09-18-gateway-position-distance-requirements.md` | NIX-219/220 需求与功能状态总账 §4.6 |

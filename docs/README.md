@@ -1,6 +1,6 @@
 # 智慧畜牧系统文档索引
 
-> 本文件是 `docs/` 目录的导航入口，更新日期：2026-09-11（v2 重整版）
+> 本文件是 `docs/` 目录的导航入口，更新日期：2026-11-01（product/ 四份事实源文档按 2026-11-01 代码基线对账刷新）
 
 ## 落位规则（新增文档先看这里）
 
@@ -15,10 +15,10 @@
 
 | 文档 | 说明 |
 |------|------|
-| `smart-livestock-prd-v2.4.md` | 产品需求文档 v2.4（功能口径事实源） |
-| `system-architecture.md` | 系统架构设计 |
-| `customer-journey.md` | 客户旅程（platform_admin → b2b_admin → owner） |
-| `user-journey-guide.md` | 用户旅程指南 |
+| `smart-livestock-prd-v2.4.md` | 产品需求文档 v2.4（功能口径事实源，2026-11-01 基线） |
+| `system-architecture.md` | 系统架构设计（v2.0，2026-11-01 代码基线） |
+| `customer-journey.md` | 客户旅程（platform_admin → b2b_admin → owner，2026-11-01 基线） |
+| `user-journey-guide.md` | 用户旅程与权限说明（2026-11-01 代码基线） |
 
 ### `marketing/` — 对外材料（可直接发客户）
 

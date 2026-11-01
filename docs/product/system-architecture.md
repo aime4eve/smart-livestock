@@ -1,7 +1,7 @@
 # 智慧畜牧系统架构说明（Smart Livestock System Architecture）
 
-> 版本：v1.0　生成日期：2026-06-15
-> 信息来源：`smart-livestock-server/`（Spring Boot 后端）、`Mobile/mobile_app/`（Flutter 前端）源码与 Flyway 迁移脚本核实
+> 版本：v2.0　基线日期：2026-11-01（上一版 v1.0 / 2026-06-15）
+> 信息来源：`smart-livestock-server/`（Spring Boot 后端）、`Mobile/mobile_app/`（Flutter 前端）源码与 Flyway 迁移脚本核实（v2.0 按 master 逐章对账刷新，对账明细见 `docs/reports/2026-11-01-product-docs-sync-audit.md`）
 > 维护原则：本文档与代码同步演进，数字与结构均来自实际代码核查，非概述性描述。
 
 ---
@@ -37,12 +37,19 @@
 graph TB
     subgraph 客户端
         APP["Flutter 移动端<br/>Android / iOS / Web"]
-        PORTAL["开发者门户<br/>Vue 3"]
+        PORTAL["开发者门户（App 内页面）"]
         OPEN["第三方系统<br/>Open API 调用方"]
+        MON["sp-monitoring<br/>Prometheus/Grafana"]
+    end
+
+    subgraph "外部数据源"
+        BLADE["hkt-blade-device 中台<br/>（地址经 Nacos 下发）"]
+        TB["ThingsBoard<br/>LoRa NS"]
+        MQTTB(("设备侧 MQTT/HTTP<br/>外部链路"))
     end
 
     subgraph "Spring Boot 后端 (DDD 洋葱架构)"
-        API["REST API 层<br/>JWT / API Key 双认证"]
+        API["REST API 层<br/>JWT / API Key 双认证 + SSE"]
         subgraph 限界上下文
             ID["Identity<br/>身份与租户"]
             RANCH["Ranch<br/>牧场与围栏"]
@@ -50,12 +57,15 @@ graph TB
             HEALTH["Health<br/>健康分析"]
             COM["Commerce<br/>商业计费"]
             ANA["Analytics<br/>统计与门户"]
+            DG["Datagen<br/>数据合成与评估"]
+            LIC["Licensing<br/>部署/试点授权"]
         end
+        NACOS["NacosRemoteConfigLoader<br/>环境配置下发"]
         MQ["RocketMQ<br/>事件总线"]
     end
 
     subgraph 数据与基础设施
-        PG[("PostgreSQL 16<br/>业务数据")]
+        PG[("PostgreSQL 16<br/>业务 + 时序分区")]
         REDIS[("Redis 7<br/>缓存/限流")]
         TILE["tileserver-gl<br/>离线瓦片"]
         MQBROKER(("RocketMQ Broker"))
@@ -64,14 +74,19 @@ graph TB
     APP --> API
     PORTAL --> API
     OPEN --> API
-    API --> ID & RANCH & IOT & HEALTH & COM & ANA
+    MON -.-> API
+    BLADE -->|"Feign 轮询"| IOT
+    TB -->|"REST 直连"| IOT
+    MQTTB -.->|HTTP push / 导入| IOT
+    NACOS -.-> ID
+    API --> ID & RANCH & IOT & HEALTH & COM & ANA & DG & LIC
     ID <--> MQ
     RANCH <--> MQ
     IOT <--> MQ
     HEALTH <--> MQ
     COM <--> MQ
     MQ <--> MQBROKER
-    ID & RANCH & IOT & HEALTH & COM & ANA --> PG
+    ID & RANCH & IOT & HEALTH & COM & ANA & DG & LIC --> PG
     API --> REDIS
     APP -.离线瓦片.-> TILE
 ```
@@ -85,19 +100,21 @@ graph TB
 | **数据库** | PostgreSQL | 16 | 含时序分区表 |
 | **缓存** | Spring Data Redis | 7 | 限流 + 缓存 |
 | **消息队列** | RocketMQ | 5.1.0（`rocketmq-spring-boot-starter:2.3.0`） | 跨上下文事件分发 |
-| **数据库迁移** | Flyway | — | 30 个版本脚本（V1–V30） |
-| **认证** | JJWT | 0.12.5 | JWT 双 Token |
+| **数据库迁移** | Flyway | — | **117 个**迁移脚本（V1–V41 + 77 个 V2026xxxx 日期序，2026-11-01 核实） |
+| **认证** | JJWT | 0.12.5 | 单 access token + 过期后 30min 刷新宽限（无独立 refresh token）+ 条件性 `act` 委托 claim（NIX-306） |
+| **配置中心** | Nacos（自建 NacosRemoteConfigLoader） | — | blade 地址等环境配置启动期 HTTP 拉取（仅 dev/test；86/223 不启用） |
+| **可观测性** | Spring Boot Actuator + Micrometer Prometheus | — | `/actuator/prometheus` 独立管理端口（dev 19081 / test 18081），接入 sp-monitoring |
 | **空间计算** | JTS Topology Suite | 1.19.0 | 围栏多边形/缓冲区计算 |
 | **安全** | Spring Security + BCrypt | — | 无状态 Session |
 | **移动端** | Flutter | SDK ≥3.3.0 | Riverpod + Go Router |
 | **开发者门户** | Vue 3 + Vite | — | API Consumer 使用 |
 | **PC 端** | Angular 19 | — | 归档，不随主流程迭代 |
 | **离线地图** | tileserver-gl | latest | MBTiles 瓦片服务 |
-| **部署** | Docker Compose | — | nginx :18080 → app :8080 |
+| **部署** | Docker Compose | — | 4 环境（dev :19080 / test :18080 / 86 HOSTED / 223 ONPREM） |
 
 ### 1.4 架构设计原则
 
-1. **领域驱动设计（DDD）**：按业务能力划分 7 个限界上下文，每个上下文采用洋葱（分层）架构。
+1. **领域驱动设计（DDD）**：按业务能力划分 9 个上下文（7 业务限界上下文 + Platform 支撑 + Shared 共享内核），每个上下文采用洋葱（分层）架构。
 2. **事件驱动解耦**：上下文之间通过 RocketMQ 发布/订阅领域事件，避免直接代码级耦合。
 3. **防腐层（ACL）隔离**：跨上下文查询通过 Port/Adapter 端口适配器，不直接引用对方领域模型。
 4. **多租户隔离**：基于 JWT 解析的 `tenantId`，通过 `ThreadLocal` 在请求生命周期内传递。
@@ -121,18 +138,20 @@ graph TB
 
 ### 2.2 利益相关者与角色体系
 
-系统内置 **5 种角色**，角色决定前端 Shell 形态与可访问功能：
+系统内置 **6 种角色**，角色决定前端 Shell 形态与可访问功能：
 
 | 角色 | 定位 | 权限范围 | 移动端 Shell |
 |------|------|---------|-------------|
+| `SUPER_ADMIN` | 超管 root（NIX-306） | 经 `/select-context` 选择身份进入，act token 委托 + `AUTH_CONTEXT_SWITCHED` 审计 | 随所选角色 |
 | `PLATFORM_ADMIN` | 平台管理员 | 租户/用户/合同/分润/订阅服务/API Key 全量管理 | 纯 Scaffold |
 | `B2B_ADMIN` | B 端经销商 | 概览 + 牧场管理 + 合同 + 对账 + 牧工管理 | NavigationRail |
-| `OWNER` | 牧场主 | 全部业务页面 + 后台 + 牧工 + 订阅管理 | 底部导航栏 |
-| `WORKER` | 牧工 | 看板/地图/告警/我的/围栏，仅确认告警 | 底部导航栏 |
+| `OWNER` | 牧场主 | 全部业务页面 + 牧工 + 订阅管理（后台管理入口已移除） | 底部导航栏 |
+| `WORKER` | 牧工 | 看板/地图/告警/我的/围栏，已读 + 关闭（dismiss）告警 | 底部导航栏 |
 | `API_CONSUMER` | 开发者 | 通过 API Key 访问 Open API | — |
 
-租户（Tenant）分为两个演进阶段与四种业务类型：
+租户（Tenant）的生命周期、演进阶段与业务类型：
 
+- **生命周期**（V20261012140000，2026-10-14 裁决）：`status` = `active | disabled`（可逆启停，登录/API 网关）+ `deleted_at` 软删除（可恢复）；业务数据永不物理删除
 - **阶段**：`SAMPLE`（试点）→ `BATCH`（批量）
 - **类型**：`rancher`（牧场主）、`reseller`（经销商）、`enterprise`（企业）、`developer`（开发者）
 
@@ -149,8 +168,9 @@ sequenceDiagram
     participant DB as PostgreSQL
     participant APP as 移动端
 
-    DEV->>IOT: 上报 GPS / 遥测数据
-    IOT->>DB: 写入 gps_logs
+    DEV->>IOT: 上报 GPS / 遥测数据（多源：blade 轮询 / TB 直连 / HTTP push / 手动导入）
+    IOT->>DB: ingest 主事务只写 gps_ingestion_tasks（outbox）
+    IOT->>DB: GpsIngestionTaskScheduler 异步写 gps_logs（幂等键 device_id+recorded_at）
     IOT->>MQ: 发布 gps-log-updated
     MQ->>RANCH: GpsLogEventConsumer 消费
     RANCH->>RANCH: FenceBreachDetector 检测越界
@@ -173,7 +193,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    CAP["胶囊设备"] -->|"遥测数据"| INGEST["TelemetryIngestionService"]
+    SRC["多源遥测<br/>blade 轮询 / TB 直连 / HTTP / datagen / 手动导入"] -->|"TelemetrySource 5 值"| INGEST["TelemetryIngestionService"]
     INGEST -->|"telemetry-received 事件"| MQ{{RocketMQ}}
     MQ --> CONSUMER["TelemetryEventConsumer"]
     CONSUMER --> TL["temperature_logs<br/>rumen_motility_logs<br/>activity_logs"]
@@ -224,7 +244,7 @@ flowchart TD
 | `licensed` | 买断授权 |
 | `api_usage` | 按 API 用量计费 |
 
-**4 级套餐**（`tier`）与功能门控矩阵（来自 `feature_gates` 种子数据，7 个 feature key）：
+**4 级套餐**（`tier`）与功能门控矩阵（初始 7 个 feature key 来自 `V11__seed_commerce_data`；后随 `V20260923120000` USD 定价门、`V20261005110000` 饮水同群对照门、`V20261026000000` 遥测导出门演进，下表为初版口径，逐格值以迁移种子为准）：
 
 | Feature Key | basic | standard | premium | enterprise |
 |-------------|:-----:|:--------:|:-------:|:----------:|
@@ -240,6 +260,8 @@ flowchart TD
 
 **分润对账**：`revenue_periods` 按 `合同 × 周期` 记录流水，状态流转：`pending → platform_confirmed → partner_confirmed → settled`。
 
+**订阅生命周期**（NIX-323/324/325，2026-10）：`SubscriptionStatus` 7 态（TRIAL/ACTIVE/FREE/SUSPENDED/RENEWAL_FAILED/CANCELLED/EXPIRED），`CommerceScheduler` 统一调度（expireTrials / markExpiredSubscriptions 每小时、downgradeAfterRenewalFailure 每日 2:00）；免费试点**统一截止日 2027-09-30**（可按租户时区换算）；到期降档不拒绝（Open 遥测窗口 clamp + 24h 调用预算）；终止后 30 天 GDPR 自助导出权 + 导出文件 30 天下载窗。
+
 ---
 
 ## 3. 功能架构
@@ -254,6 +276,8 @@ graph LR
     HEALTH[Health<br/>健康分析]
     COM[Commerce<br/>商业计费]
     ANA[Analytics<br/>统计与门户]
+    DG[Datagen<br/>数据合成与评估]
+    LIC[Licensing<br/>部署/试点授权]
     SHARED[Shared<br/>公共基础设施]
     PLATFORM[Platform<br/>通知与配额]
 
@@ -263,8 +287,10 @@ graph LR
     HEALTH --- RANCH
     COM --- ID
     ANA --- ID
+    DG --- IOT & HEALTH & RANCH
+    LIC --- ID
 
-    SHARED -.支撑.-> ID & RANCH & IOT & HEALTH & COM & ANA
+    SHARED -.支撑.-> ID & RANCH & IOT & HEALTH & COM & ANA & DG & LIC
     PLATFORM -.支撑.-> COM
 ```
 
@@ -272,53 +298,57 @@ graph LR
 
 | 上下文 | 职责 | Controller 数 | 核心能力 |
 |--------|------|:---:|---------|
-| **Identity** | 多租户隔离、用户、角色权限、认证授权、牧场归属、审计日志 | 9 | 登录/Token 刷新、租户管理、用户管理、API Key、审计日志 |
-| **Ranch** | 牲畜、围栏、告警、仪表盘、地图、离线瓦片 | 8 | 牲畜 CRUD、围栏管理（含缓冲区）、告警处理流、瓦片下载 |
-| **IoT** | 设备全生命周期、License、安装、GPS/遥测数据接入 | 7 | 设备注册/激活/退役、License 管理、GPS 日志、遥测接入、Open API |
-| **Health** | 体温/蠕动/发情/疫病/活动多维分析 | 5 | 发热检测、消化分析、发情评分、疫病分析、健康概览 |
-| **Commerce** | 订阅、合同、分润、Tier 配额、功能门控 | 7 | 订阅结算、合同签约、分润对账、配额校验、服务心跳 |
+| **Identity** | 多租户隔离、用户、角色权限（6 角色）、认证授权（多标识登录 + 超管上下文）、牧场归属、审计日志、GDPR 数据导出 | 14 | 登录（account/email/phone）/上下文切换/刷新、租户管理、用户管理、API Key、审计日志、数据导出（NIX-325） |
+| **Ranch** | 牲畜、围栏、告警（工作台）、仪表盘、地图、离线瓦片、SSE 信号流 | 16 | 牲畜 CRUD、围栏管理（含缓冲区/GPX 导入）、告警 dismiss 模型 + 工作台分桶、瓦片下载、SignalController |
+| **IoT** | 设备全生命周期、License、安装、多源遥测接入（blade/TB/HTTP/导入）、GPS outbox、网关、移交 | 21 | 设备注册/激活/退役、跨租户移交、TB 直连（NIX-179/180/214）、遥测接入、GPS outbox、网关定位/覆盖诊断、Open API |
+| **Health** | 体温/蠕动/发情/疫病/活动/饮水多维分析 + AI 异常 | 13 | 发热检测、消化分析、发情评分、疫病工作台、饮水事件检测与标注（NIX-256）、生理事件流、AI 异常分数（V40） |
+| **Commerce** | 订阅（7 态）、合同、分润、Tier 配额、功能门控 | 8 | 订阅结算、合同签约、分润对账、配额校验、CommerceScheduler 生命周期调度 |
 | **Analytics** | API 用量统计、调用日志、开发者门户 | 4 | 用量概览/趋势、调用日志查询、门户 API |
-| **Shared** | 认证、安全、多租户、限流、缓存、异常处理、事件发布 | 1 | JWT/API Key 认证、CORS、Rate Limit、统一响应包络 |
-| **Platform** | 通知中心、配额拦截 | — | 通知服务、设备激活监听、配额拦截器 |
+| **Datagen** | 合成数据、GroundTruth 标签、评估、Phase C 行为数据集 | 3 | Scenario 驱动合成、行为数据集/训练/评估、饮水标注导出 |
+| **Licensing** | 部署 license（NIX-184）、托管试点授权 | 3 | 部署授权发放/校验、免费试点发放（统一截止日） |
+| **Shared** | 认证、安全、多租户、限流、缓存、异常处理、事件发布、密码策略、Nacos 配置加载 | 2 | JWT/API Key 认证、CORS、Rate Limit、统一响应包络、PasswordPolicy、NacosRemoteConfigLoader |
+| **Platform** | 通知中心、配额拦截、分区维护 | — | 通知服务、事件聚合消费、配额拦截器、PartitionMaintenanceService |
+
+> 全仓合计 **84 个 @RestController 类（83 个业务控制器 + 1 全局异常处理）/ 329 端点**（App 158 / Admin 147 / Open 17 / Portal 7，2026-11-01 机械计数）。
 
 ### 3.3 前后端功能矩阵
 
-> 详细端点级对接状态见 [`system-feature-document.md`](./system-feature-document.md)。下表为模块级概览。
+> 模块级概览（原 `system-feature-document.md` 已删除；端点级对接状态以 `docs/api-contracts/` 为准）。
 
 | 上下文 | 后端状态 | 移动端对接 | 备注 |
 |--------|:---:|:---:|------|
-| Identity（登录/用户/租户/API Key） | ✅ | ✅ | Token 自动刷新前端未实现 |
-| Ranch（牲畜/围栏/告警/仪表盘/地图） | ✅ | ✅ | 围栏 force 更新、瓦片 Admin 前端缺失 |
-| IoT（设备/安装/GPS） | ✅ | ✅ | License 创建/撤销、安装操作前端未对接 |
-| Health（体温/发情/消化/疫病） | ✅ | ✅ | 全面对接 |
-| Commerce（订阅/合同/分润） | ✅ | ✅ | B2B 管理 + 订阅管理已对接 |
-| Analytics（用量/门户） | ✅ | 部分 | 分析事件上报前端未调用 |
+| Identity（登录/用户/租户/API Key） | ✅ | ✅ | Token 自动刷新已实现（`_withRefreshRetry`） |
+| Ranch（牲畜/围栏/告警/仪表盘/地图/SSE） | ✅ | ✅ | 围栏 force 更新、瓦片 Admin 前端缺失 |
+| IoT（设备/安装/GPS/TB 开通） | ✅ | ✅ | 设备安装/解绑与 TB 开通向导（TbDeviceWizardSheet）已对接 |
+| Health（体温/发情/消化/疫病/饮水/AI） | ✅ | ✅ | 饮水事件/生理事件流/AI 异常已并入详情与健康页 |
+| Commerce（订阅/合同/分润） | ✅ | ✅ | B2B 管理 + 订阅管理 + 到期横幅/导出权卡已对接 |
+| Analytics（用量/门户） | ✅ | 部分 | 分析事件上报前端调用情况未复核 |
 
 ### 3.4 移动端功能模块
 
-移动端采用 **Feature-First** 组织，`lib/features/` 下约 **40 个功能模块**：
+移动端采用 **Feature-First** 组织，`lib/features/` 下 **34 个功能模块**（2026-11-01 计数）：
 
 ```
 lib/
 ├── app/                      # 路由、Session、Shell（角色化导航）
-│   ├── app_route.dart        # AppRoute 枚举 — 36 路由单一来源
-│   ├── app_router.dart       # GoRouter + 认证重定向守卫
+│   ├── app_route.dart        # AppRoute 枚举 — 57 项单一来源（61 条 GoRoute）
+│   ├── app_router.dart       # GoRouter + 认证重定向守卫（含 /select-context）
 │   └── session/              # AppSession + SessionController
 ├── core/                     # 跨功能基础设施
 │   ├── api/                  # ApiClient 单例（JWT + farm-scoped CRUD）
-│   ├── models/               # 共享数据模型 + ViewState
+│   ├── models/               # 共享数据模型 + ViewState（含 6 角色 UserRole）
 │   ├── map/                  # flutter_map 封装
 │   ├── database/             # 本地离线缓存
 │   └── l10n/                 # 国际化
-├── features/                 # 按业务划分
+├── features/                 # 按业务划分（34 目录）
 │   ├── auth, ranch, fence, livestock, alerts
-│   ├── dashboard, mine, stats, devices
-│   ├── fever_warning, estrus, digestive, epidemic
-│   ├── subscription, contract_management, revenue
+│   ├── dashboard, mine, stats, devices, gateways
+│   ├── fever_warning, estrus, digestive, epidemic, drinking, physiology, ai_anomaly
+│   ├── subscription, subscription_service_management, contract_management, revenue
 │   ├── b2b_admin, admin, worker_management, tenant
 │   ├── farm_creation, farm_switcher
 │   ├── offline_tiles, offline_fences, offline_livestock
-│   └── api_authorization, twin_overview, highfi, ...
+│   └── api_authorization, twin_overview, highfi, pages, ...
 └── widgets/                  # 通用组件
 ```
 
@@ -362,6 +392,9 @@ erDiagram
         string phase "SAMPLE|BATCH"
         string type "rancher|reseller|enterprise|developer"
         string billing_model
+        string status "active|disabled（V20261012140000）"
+        timestamptz deleted_at "软删除"
+        string timezone "NULL=继承（V20261012110000）"
     }
     farms {
         bigint id PK
@@ -373,8 +406,12 @@ erDiagram
     }
     users {
         bigint id PK
+        string account "登录标识之一"
+        string email
+        string phone "E.164"
         string password_hash
-        string role "5种角色"
+        string role "6种角色"
+        boolean must_change_password
         bigint tenant_id FK
         boolean is_active
     }
@@ -393,6 +430,8 @@ erDiagram
         int daily_quota
     }
 ```
+
+> **v2.0 增补**：多标识登录（PR #132）——account / email / phone(E.164) 任一 + 密码，大小写不敏感；`must_change_password` 强制改密锁（NIX-191）；`SUPER_ADMIN` 第 6 角色（V20261019100000）；`tenants`/`farms` `timezone` 时区三级链（`TenantZoneResolver`：牧场→租户→平台默认，存储恒 UTC）。
 
 #### Ranch 上下文
 
@@ -444,9 +483,22 @@ erDiagram
         bigint id PK
         bigint tenant_id FK
         string device_code UK
-        string device_type "EAR_TAG|TRACKER|CAPSULE|ACCELEROMETER"
-        string status "INVENTORY|ACTIVE|OFFLINE|DECOMMISSIONED"
-        string dev_eui
+        string device_type "EAR_TAG|TRACKER|CAPSULE"
+        string status "INVENTORY|ACTIVE|DECOMMISSIONED"
+        string dev_eui "全球唯一索引"
+        string blade_device_id "blade 侧 ID"
+        int rssi
+    }
+    tb_device_bindings {
+        bigint id PK
+        bigint device_id FK
+        string tb_device_id
+        string status "PENDING|RESOLVED|INVALID"
+    }
+    gps_ingestion_tasks {
+        bigint id PK
+        bigint device_id
+        timestamp recorded_at "幂等键 device_id+recorded_at"
     }
     installations {
         bigint id PK
@@ -460,9 +512,12 @@ erDiagram
         bigint device_id FK
         decimal latitude
         decimal longitude
-        timestamp recorded_at
+        string source "TelemetrySource"
+        timestamp recorded_at "分区键"
     }
 ```
+
+> **v2.0 更正**：`status` 无 `OFFLINE`——在线/离线为运行时 `runtimeStatus` 计算值（`DeviceStatus.java`）；`ACCELEROMETER` 类型已移除（V25）；`dev_eui` 全球唯一索引（2026-10-12，跨租户预检 + `POST /admin/devices/transfer` 移交）；GPS 写入走 outbox；设备扩展字段（blade_device_id/rssi/snr/anti_disassembly_status 等）见 V20260709120000。
 
 #### Health 上下文（时序分区）
 
@@ -492,6 +547,8 @@ erDiagram
     }
 ```
 
+> **v2.0 增补**：`device_telemetry_logs`（设备运维指标月分区，V20260709120000）、`drinking_events`（饮水事件 + 人工标注 label/confidence，V20261005100000）、`physiology_events`（人工生理事件流，V20261004120000）、`anomaly_scores`（规则 + AI 双轨异常分月分区，V40）。
+
 #### Commerce 上下文
 
 ```mermaid
@@ -506,7 +563,7 @@ erDiagram
         bigint tenant_id UK
         string tier "basic|standard|premium|enterprise"
         string billing_model
-        string status "trial|active|suspended|..."
+        string status "TRIAL|ACTIVE|FREE|SUSPENDED|RENEWAL_FAILED|CANCELLED|EXPIRED"
         bigint version "乐观锁"
     }
     contracts {
@@ -528,16 +585,19 @@ erDiagram
 
 ### 4.3 时序数据分区策略
 
-三张核心时序表采用 PostgreSQL **声明式 RANGE 分区**（按月）：
+六张核心时序表采用 PostgreSQL **声明式 RANGE 分区**（按月）：
 
-| 表 | 分区键 | 采样间隔 | 数据源设备 | 索引策略 |
-|----|--------|---------|-----------|---------|
-| `temperature_logs` | `recorded_at` | ~30min | CAPSULE | `(livestock_id, recorded_at DESC)` + 部分索引 `WHERE delta > 1.0` |
-| `rumen_motility_logs` | `recorded_at` | ~30min | CAPSULE | `(livestock_id, recorded_at DESC)` |
-| `activity_logs` | `recorded_at` | ~1h | TRACKER + ACCELEROMETER | `(livestock_id, recorded_at DESC)` |
+| 表 | 分区键 | 数据源 | 索引策略 |
+|----|--------|---------|-----------|
+| `gps_logs` | `recorded_at` | GPS 上报（outbox 异步写入） | `(livestock_id, recorded_at DESC)` |
+| `temperature_logs` | `recorded_at` | CAPSULE（~30min） | `(livestock_id, recorded_at DESC)` + 部分索引 `WHERE delta > 1.0` |
+| `rumen_motility_logs` | `recorded_at` | CAPSULE（~30min） | `(livestock_id, recorded_at DESC)` |
+| `activity_logs` | `recorded_at` | TRACKER | `(livestock_id, recorded_at DESC)` |
+| `device_telemetry_logs` | `recorded_at` | blade/TB 设备运维快照 | 按 recorded_at 分区（V20260709120000） |
+| `anomaly_scores` | 月分区 | 规则 + AI 双轨异常分 | V40 |
 
 分区设计要点：
-- 每张表预建 `2026_03` ~ `2026_08` 月度分区 + `default` 兜底分区
+- 分区由 `PartitionMaintenanceService`（platform 上下文）**自动创建/维护，禁止手工预建分区**
 - 主键包含分区键：`PRIMARY KEY (id, recorded_at)`
 - `temperature_logs.delta` 为 `GENERATED ALWAYS AS (temperature - baseline_temp) STORED` 生成列，免维护
 
@@ -573,6 +633,9 @@ gps_logs → devices → installations (WHERE removed_at IS NULL) → livestock
 | **告警已读追踪** | `alert_read_status`（用户×告警） | V26 |
 | **枚举约束** | `CHECK` 约束 | 所有状态/类型字段 |
 | **部分索引** | 条件索引优化查询 | `WHERE deleted_at IS NULL`、`WHERE score >= 70` |
+| **GDPR 数据导出** | `data_export_jobs`（机器可读 zip；终止后 30 天导出权 + 文件 30 天下载窗） | NIX-325 |
+| **GPS 写入幂等** | outbox 幂等键 `(device_id, recorded_at)` | `gps_ingestion_tasks` |
+| **租户时区** | `tenants/farms.timezone` 三级链（`TenantZoneResolver`，存储恒 UTC） | V20261012110000 |
 
 ### 4.6 数据库表清单
 
@@ -587,8 +650,10 @@ gps_logs → devices → installations (WHERE removed_at IS NULL) → livestock
 | V20 | Health | temperature_logs, rumen_motility_logs, activity_logs, estrus_scores, health_snapshots, contact_traces |
 | V22 | Analytics | api_call_logs, api_usage_daily（+ api_keys 扩展 scopes/quota） |
 | V26 | Ranch | alert_read_status, fence_zones（+ fences 扩展 buffer, alerts 状态迁移） |
+| V38–V41 | Datagen/AI | synthesis_scenarios, ground_truth_labels（+ AI 异常集成 anomaly_scores V40） |
+| V2026xxxx（77 个，日期序） | 全上下文 | 要点：V20260709120000 设备扩展（blade/健康评分）、V20260828110000 tb_device_bindings、V20260905100000 告警工作台、V20260907120000 admin bootstrap、V20260918100000 gateway_registry/数据治理、V20261004120000 physiology_events、V20261005100000 drinking_events、V20261012110000 timezone、V20261012140000 tenant_lifecycle、V20261019100000 super_admin、订阅生命周期与导出系列（NIX-323/324/325） |
 
-> V4–V12、V15–V17、V19、V21、V23–V25、V27–V30 为种子数据与修复脚本。
+> V4–V12、V15–V17、V19、V21、V23–V25、V27–V37 为种子数据与修复脚本；合计 **117 个迁移**（V1–V41 + 77 个 V2026xxxx 日期序，2026-11-01 核实）。
 
 ---
 
@@ -609,7 +674,7 @@ graph LR
         COMPUB[Commerce 上下文]
     end
 
-    subgraph "RocketMQ Topics"
+    subgraph "RocketMQ Topics（17 个）"
         T1[gps-log-updated]
         T2[device-activated]
         T3[license-expired]
@@ -620,6 +685,8 @@ graph LR
         T8[subscription-created]
         T9[contract-signed]
         T10[service-degraded/revoked/quota-adjusted]
+        T11[device-telemetry-sync]
+        T12[subscription-tier-changed/suspended<br/>reactivated/expired]
     end
 
     subgraph 消费方
@@ -628,24 +695,29 @@ graph LR
         CONSUMER3["Platform: PlatformEventConsumer<br/>platform-notification-consumer"]
     end
 
-    IOTPUB --> T1 & T2 & T3 & T4
+    IOTPUB --> T1 & T2 & T3 & T4 & T11
     RANCHPUB --> T5 & T6
     IDPUB --> T7
-    COMPUB --> T8 & T9 & T10
+    COMPUB --> T8 & T9 & T10 & T12
 
     T1 --> CONSUMER1
     T4 --> CONSUMER2
-    T2 --> CONSUMER3
+    T2 & T5 & T6 & T7 & T8 & T9 & T10 & T11 & T12 --> CONSUMER3
 ```
 
 | Topic | 发布方 | 消费方 | 业务作用 |
 |-------|--------|--------|---------|
 | `gps-log-updated` | IoT | Ranch | 触发围栏越界检测 + 更新牲畜位置 |
 | `telemetry-received` | IoT | Health | 触发体温/蠕动/活动分析 |
-| `device-activated` | IoT | Platform | 发送设备激活通知 |
-| `fence-breach-detected` | Ranch | —（预留） | 围栏越界事件 |
-| `alert-status-changed` | Ranch | —（预留） | 告警状态流转 |
-| `subscription-created/...` | Commerce | —（预留） | 订阅生命周期事件 |
+| `device-telemetry-sync` | IoT | Platform | 设备遥测同步（blade/TB 通道） |
+| `device-activated` / `license-expired` | IoT | Platform | 设备激活通知 / License 到期 |
+| `fence-breach-detected` | Ranch | Platform | 围栏越界事件 |
+| `alert-status-changed` | Ranch | Platform | 告警状态流转 |
+| `tenant-phase-changed` | Identity | Platform | 租户阶段变化 |
+| `subscription-created/tier-changed/suspended/reactivated/expired` | Commerce | Platform | 订阅生命周期事件 |
+| `contract-signed` / `service-degraded/revoked/quota-adjusted` | Commerce | Platform | 合同签署 / 订阅服务变化 |
+
+> `Topics.java` 现注册 **17 个 topic**；跨域事件统一由 `PlatformEventConsumer` 聚合消费（写入 `notifications` 表 / 审计），不再只是"预留"。
 
 **事件基础设施**：
 - 所有领域事件继承 `DomainEvent`（含 `eventId` UUID + `occurredAt`）
@@ -696,24 +768,28 @@ ACL 实现清单（`infrastructure/acl/` 下）：
 
 | 外部系统 | 集成方式 | 用途 |
 |---------|---------|------|
+| **hkt-blade-device 中台** | OAuth2（grant_type=openapi）+ Feign 轮询 `report-record/page` | 真实设备数据主通道（`AGENTIC_PLATFORM`）；地址经自建 Nacos 下发（dev→SIT / test→客户试用） |
+| **ThingsBoard** | REST 直连（`TbTelemetryChannel`，NIX-179） | 第二真实通道（`THINGSBOARD`）；绑定 `tb_device_bindings`；开通四能力 + profile 白名单（NIX-214） |
+| **IoT 设备（HTTP push）** | `TelemetryController`（`HTTP` 来源） | 第三方直推遥测 |
+| **IoT 设备（手动导入）** | `TelemetryImportAdminController`（NIX-79，`MANUAL_IMPORT`） | 历史数据回填（GPX/RTK XLSX） |
 | **tileserver-gl** | HTTP（挂载 MBTiles 卷） | 离线地图瓦片服务，移动端按需下载 |
-| **开发者门户（Vue 3）** | REST API（API Key 认证） | API Consumer 查看用量、管理 Key |
-| **第三方业务系统** | Open API（`/api/v1/open/**`，API Key 认证） | 设备注册、GPS 查询、牲畜/围栏只读访问 |
-| **IoT 设备（真实）** | 遥测上报（TelemetryController） | GPS、体温、蠕动、活动数据接入 |
-| **IoT 设备（模拟）** | 内置 Simulator（可配置开关） | `GpsSimulator` + `TelemetrySimulator`，开发/演示用 |
+| **第三方业务系统** | Open API（`/api/v1/open/**`，API Key 认证，8 控制器 17 端点） | 查询/注册/导出（见下） |
+| **datagen / Simulator** | ACL 写入 / 内置开关 | 合成数据（研发用）与开发演示 |
 
-**Open API 能力**（API Key 认证，独立于 JWT）：
-- 设备列表 / 设备注册（`OpenDeviceController`、`OpenDeviceRegisterController`）
-- GPS 查询（`OpenGpsController`）
-- 牲畜 / 围栏 / 告警只读（`OpenLivestockController`、`OpenFenceController`、`OpenAlertController`）
+**Open API 能力**（API Key 认证，独立于 JWT，资源须归属 path farm——NIX-333）：
+- 牲畜 / 围栏 / 告警 / 设备 / GPS 只读（`OpenLivestock/Fence/Alert/Device/GpsController`）
+- 遥测历史与导出（`OpenTelemetryController`：窗口 clamp + 24h 调用预算，NIX-323）
+- 设备自注册（`OpenDeviceRegisterController`，`device:register` scope，写端点）
+- GDPR 数据导出（`OpenDataExportController`，NIX-325）
 
 ### 5.4 客户端集成
 
 **移动端 ↔ 后端**：
 - 协议：REST + JSON，统一响应包络 `{ code, message, requestId, data }`
-- 认证：JWT Bearer Token（Access + Refresh 双 Token）
+- 认证：JWT Bearer Token（单 access token + 过期后 30 分钟刷新宽限，无独立 refresh token）
 - 作用域：`ApiClient.setActiveFarmId()` 自动注入 `/farms/{farmId}` 前缀
 - 容错：401 自动触发 Token 刷新 + 重试（`_withRefreshRetry`）
+- 实时：SSE 信号流（`POST /signals/stream-ticket` → `GET /signals/stream`，`SignalEventType` 10 值）
 - 离线：本地 SQLite 缓存牲畜位置、围栏数据，支持离线查看
 
 ---
@@ -778,8 +854,9 @@ flowchart LR
 - 无状态 Session（`STATELESS`）
 - CSRF 关闭（纯 API 服务）
 - BCrypt 密码加密
-- CORS 白名单：`localhost:*`、`127.0.0.1:*`、`172.22.1.123:*`
-- 开放端点：`/auth/login`、`/auth/refresh`、`/auth/logout`、`/health`
+- CORS 白名单：`localhost:*`、`127.0.0.1:*`、`172.22.1.123:*`、`https://livestock.hkttech.cn`（`SecurityConfig:106`）
+- 开放端点：`/auth/login`、`/auth/refresh`、`/auth/logout`、`/health`、`GET /api/v1/deployment-info`、部署授权 enrollment/import（NIX-184）
+- 多标识登录与超管上下文：account / email / phone(E.164)（PR #132）；`/auth/entry-contexts`、`/auth/switch-context`（SUPER_ADMIN，act token，NIX-306）
 - 方法级权限：`@EnableMethodSecurity`
 
 ### 6.3 多租户与数据隔离
@@ -798,6 +875,8 @@ flowchart LR
 - **写操作**（`WRITE`）：必须通过 path `/farms/{farmId}/...` 指定，禁止 header 冲突
 - **读操作**（`READ`）：path 或 header `x-active-farm` 二选一，禁止同时提供
 - **无作用域**（`NONE`）：租户级操作
+
+**时区三级链**（`TenantZoneResolver`，2026-10）：`farms.timezone` → `tenants.timezone` → 平台默认（`SMARTLIVESTOCK_DEFAULT_TIMEZONE`，未配置时客户端偏移兜底）；存储恒 UTC，链仅作用于展示与业务边界（日分组 / 试点截止换算 / blade 调用 X-TimeZone 头）。
 
 ### 6.4 限流、配额与缓存
 
@@ -854,7 +933,7 @@ graph LR
 | `rocketmq-broker` | apache/rocketmq:5.1.0 | 10911:10911 | rocketmq-namesrv |
 | `tileserver` | maptiler/tileserver-gl | 8081:8080 | — |
 
-**生产部署**：`172.22.1.123:18080`（nginx 反代到 app :8080）。
+**部署拓扑（2026-11，共 4 环境）**：dev（:19080，blade SIT）/ test（:18080，blade 客户试用）/ 86 HOSTED / 223 ONPREM（发布包继承升级、免 sudo，旧版本目录留作回滚点）。全量发布链 = `build_web.sh` → deploy dev → deploy test → 123 打包 → 86/223 两跳升级（`docs/deployment/release-deployment-playbook.md`）。blade 地址经自建 Nacos 下发（`NacosRemoteConfigLoader`：OS env > Nacos > application.yml，Nacos 不可达自动回落；86/223 不启用）。可观测性：`/actuator/prometheus` 独立管理端口（dev 19081 / test 18081）接入 sp-monitoring 栈。
 
 **配置外置**（`application.yml` + 环境变量）：
 
@@ -864,8 +943,10 @@ graph LR
 | Redis | `REDIS_HOST/PORT/PASSWORD` | localhost:6379 |
 | RocketMQ | `ROCKETMQ_NAME_SERVER` | localhost:9876 |
 | JWT 密钥 | `JWT_SECRET` | default-secret-change-in-production |
-| Access Token 有效期 | `JWT_ACCESS_EXPIRATION` | 3600000（1h） |
-| Refresh Token 有效期 | `JWT_REFRESH_EXPIRATION` | 604800000（7d） |
+| Access Token 有效期 | `JWT_ACCESS_EXPIRATION` | 3600000（1h；单 Token 模型，无独立 refresh token） |
+| 刷新宽限期 | `REFRESH_GRACE_MS`（代码常量） | 1800000（30min） |
+| 统一试点截止日 | `SMARTLIVESTOCK_TRIAL_ENDS_AT` | 2027-09-30T21:00:00Z（= 2027-10-01 肯尼亚 EAT） |
+| 平台默认时区 | `SMARTLIVESTOCK_DEFAULT_TIMEZONE` | 未配置 = 客户端偏移兜底 |
 | GPS 模拟器 | `GPS_SIMULATOR_ENABLED/INTERVAL_MS` | false / 30000 |
 | 遥测模拟器 | `TELEMETRY_SIMULATOR_ENABLED/INTERVAL_MS` | true / 30000 |
 
@@ -874,11 +955,11 @@ graph LR
 ```mermaid
 graph TB
     subgraph "Flutter 移动端"
-        ROUTER["GoRouter<br/>36 路由 + 认证守卫"]
+        ROUTER["GoRouter<br/>61 条路由 + 认证守卫"]
         SESSION["SessionController<br/>Riverpod Notifier"]
         SCOPE["FarmSwitcherController<br/>active farm 管理"]
         APICLIENT["ApiClient 单例<br/>JWT + farm-scoped CRUD"]
-        FEATURES["40 个 Feature 模块<br/>data / domain / presentation"]
+        FEATURES["34 个 Feature 模块<br/>data / domain / presentation"]
         CORE["core/<br/>map / database / l10n / analytics"]
     end
 
@@ -892,7 +973,7 @@ graph TB
 ```
 
 **关键设计**：
-- **路由单一来源**：`AppRoute` 枚举定义全部 36 路由，`GoRouter` 配置认证重定向
+- **路由单一来源**：`AppRoute` 枚举定义全部 **57 项**（61 条 GoRoute，2026-11-01 核实），`GoRouter` 配置认证重定向（含 `/select-context` 超管分支）
 - **角色化 Shell**：根据用户角色渲染不同导航（底部导航 / NavigationRail / Scaffold）
 - **ApiClient 单例**：管理 baseUrl、JWT、activeFarmId，提供 `farmGet/farmPost/farmPut/farmDelete` 农场作用域方法
 - **自动刷新**：401 时自动调用 `/auth/refresh`，单飞防并发（`_refreshInProgress` + `_refreshFuture`）
@@ -907,7 +988,7 @@ graph TB
 
 | 领域 | 文件 |
 |------|------|
-| 安全配置 | `shared/config/SecurityConfig.java`（注：部分版本在 `shared/security/`） |
+| 安全配置 | `shared/security/SecurityConfig.java` |
 | 多租户上下文 | `shared/tenant/TenantContext.java` |
 | 牧场作用域 | `shared/scope/FarmScopeResolver.java` |
 | 事件 Topic 注册 | `shared/messaging/Topics.java` |
@@ -916,7 +997,11 @@ graph TB
 | 配额拦截器 | `platform/web/QuotaInterceptor.java` |
 | 发热分析算法 | `health/domain/service/FeverAnalysisService.java` |
 | 围栏检测算法 | `ranch/domain/service/FenceBreachDetector.java` |
-| 数据库迁移 | `src/main/resources/db/migration/V1–V30` |
+| 数据库迁移 | `src/main/resources/db/migration/`（117 个：V1–V41 + V2026xxxx 日期序） |
+| 信号流（SSE） | `ranch/interfaces/SignalController.java` |
+| 遥测来源枚举 | `iot/domain/model/TelemetrySource.java` |
+| 分区自动维护 | `platform/application/PartitionMaintenanceService.java` |
+| Nacos 配置加载 | `shared/config/NacosRemoteConfigLoader.java` |
 | 应用配置 | `src/main/resources/application.yml` |
 | 部署编排 | `smart-livestock-server/docker-compose.yml` |
 | 构建配置 | `smart-livestock-server/build.gradle` |
@@ -925,15 +1010,16 @@ graph TB
 
 | 文档 | 说明 |
 |------|------|
-| [`system-feature-document.md`](./system-feature-document.md) | 端点级功能清单与前后端对接矩阵 |
-| [`system-feature-list.md`](./system-feature-list.md) | 功能列表概览 |
-| [`backend-feature-list.md`](./backend-feature-list.md) | 后端功能清单 |
-| [`frontend-feature-list.md`](./frontend-feature-list.md) | 前端功能清单 |
-| [`customer-journey.md`](./customer-journey.md) | 客户旅程 |
-| [`seed-data-landscape.md`](./seed-data-landscape.md) | 种子数据全景 |
-| [`subscription-guide.md`](./subscription-guide.md) | 订阅功能指南 |
-| [`tileserver-deployment-guide.md`](./tileserver-deployment-guide.md) | 瓦片服务部署指南 |
-| [`LoRaWAN 牛羊追踪器上行 Payload 解析协议定义.md`](./LoRaWAN%20牛羊追踪器上行%20Payload%20解析协议定义.md) | LoRaWAN 协议 |
+| [`customer-journey.md`](./customer-journey.md) | 客户旅程（2026-11-01 基线） |
+| [`user-journey-guide.md`](./user-journey-guide.md) | 用户旅程与权限说明（2026-11-01 代码基线） |
+| [`smart-livestock-prd-v2.4.md`](./smart-livestock-prd-v2.4.md) | 产品需求文档 v2.4（功能口径事实源） |
+| [`../api-contracts/`](../api-contracts/) | API 契约（app / admin / open / overview） |
+| [`../reference/seed-data-landscape.md`](../reference/seed-data-landscape.md) | 种子数据全景 |
+| [`../guides/subscription-guide.md`](../guides/subscription-guide.md) | 订阅功能指南 |
+| [`../guides/tileserver-deployment-guide.md`](../guides/tileserver-deployment-guide.md) | 瓦片服务部署指南 |
+| [`../protocols/`](../protocols/) | LoRaWAN 上行 Payload 解析协议（牛羊追踪器/瘤胃胶囊） |
+
+> 原 `system-feature-document.md` / `system-feature-list.md` / `backend-feature-list.md` / `frontend-feature-list.md` 已删除，功能清单以 `docs/api-contracts/` 为准。
 
 ### 7.3 术语表
 
@@ -945,7 +1031,11 @@ graph TB
 | **缓冲区（Buffer Zone）** | 围栏边界的预警环带，默认 50m |
 | **数字孪生** | 牲畜在系统中的数字化档案（一畜一档） |
 | **Open API** | 面向第三方系统的 API Key 认证接口 |
+| **TelemetrySource** | 遥测来源枚举：AGENTIC_PLATFORM / THINGSBOARD / DATAGEN / HTTP / MANUAL_IMPORT |
+| **GPS outbox** | GPS 写入外置任务表异步落库的管道模式，幂等键 (device_id, recorded_at) |
+| **SSE 信号流** | SignalController 服务端单向推送（stream-ticket + SignalEventType 10 值） |
+| **超管上下文（act）** | SUPER_ADMIN 经 switch-context 重签的委托 token（RFC 8693 act claim，NIX-306） |
 
 ---
 
-*本文档基于 2026-06-15 代码状态生成，后续架构演进请同步更新。*
+*本文档 v2.0 基于 2026-11-01 `master` 代码状态核实（上一版 v1.0 / 2026-06-15）。后续架构演进请同步更新。*

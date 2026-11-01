@@ -22,7 +22,9 @@
 
 ## 用户旅程时序图（按角色，2026-09-20）
 
-五张时序图与 `docs/product/user-journey-guide.md`（2026-09-20 基线）配套，按系统 5 种角色各一张，消息标注真实端点与权限边界（如 worker 批量 dismiss 403、平台重置密码重新武装强制改密、api_consumer 的 scope/限流链）。
+> ⚠️ **待刷新（2026-11-01）**：五张时序图基于 user-journey-guide 2026-09-20 基线生成；其事实源文档已刷新至 **2026-11-01 基线**（新增超管 /select-context、多标识登录、worker dismiss 放宽、订阅到期治理等），五张图待随新基线从 archify.json 重生成（另立任务）。图内"5 种角色"口径现为 6 种（SUPER_ADMIN）。
+
+五张时序图与 `docs/product/user-journey-guide.md` 配套，按系统角色各一张（超管上下文切换为后增旅程，暂无独立图），消息标注真实端点与权限边界（如 worker 批量 dismiss 403、平台重置密码重新武装强制改密、api_consumer 的 scope/限流链）。
 
 - **修改图表**：编辑对应 `user-journey-*.archify.json` 后用 archify 重新生成，不要手改 HTML（生成产物）。
 - **内容事实源**：`docs/product/user-journey-guide.md`；权限/路由以代码为准。
@@ -31,7 +33,7 @@
 
 `telemetry-data-flow.html` 描述遥测数据从设备采集到结果应用的完整链路，按 5 个阶段组织：
 
-1. **数据采集** — 智能项圈/耳标（CAPSULE · TRACKER）经 MQTT 上报 ThingsBoard；设备也可直连 Agentic 中台（report-record 分页拉取，5min 轮询）
+1. **数据采集** — 智能项圈/耳标（CAPSULE · TRACKER）经 MQTT 上报 ThingsBoard（设备侧外部链路，后端不实现 MQTT）；设备也可直连 Agentic 中台（report-record 分页拉取，5min 轮询）
 2. **统一摄取** — `TelemetryIngestionService` 幂等去重汇入，TB 游标轮询防双源重复
 3. **存储 · 事件流** — 原始遥测落 `device_telemetry_logs`（按月分区）；GPS 走 outbox 异步落 `gps_logs`；`telemetry-received` / `gps-log-updated` 事件进 RocketMQ
 4. **数据分析** — 事件驱动的健康规则分析（发热/消化/发情/疫病 · 围栏）+ ai-platform 的 STL/CUSUM 融合评分（读 24h 特征窗口，主链路暂禁用）
