@@ -115,6 +115,36 @@ public class AlertController {
         return ResponseEntity.ok(ApiResponse.ok(Map.of("count", count)));
     }
 
+    /**
+     * Notification-center batch dismiss — the first-class replacement for the
+     * deprecated /batch-handle loop. Same role guard as the single dismiss
+     * (NIX-52 widened it to WORKER), skipping alerts that are not ACTIVE.
+     */
+    @PostMapping("/alerts/batch-dismiss")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN', 'WORKER')")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> batchDismissAlerts(
+            @PathVariable Long farmId,
+            @RequestBody Map<String, List<String>> body) {
+        Long userId = getCurrentUserId();
+        List<String> alertIdStrs = body.get("alertIds");
+        if (alertIdStrs == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "alertIds 不能为空");
+        }
+        int dismissedCount = 0;
+        int skippedCount = 0;
+        for (String alertIdStr : alertIdStrs) {
+            try {
+                alertApplicationService.dismiss(Long.valueOf(alertIdStr), userId);
+                dismissedCount++;
+            } catch (ApiException e) {
+                // Skip alerts that cannot be dismissed (e.g. not ACTIVE)
+                skippedCount++;
+            }
+        }
+        return ResponseEntity.ok(ApiResponse.ok(
+                Map.of("dismissed", dismissedCount, "skipped", skippedCount)));
+    }
+
     // ── Legacy compatibility endpoints ──
 
     @PostMapping("/alerts/{alertId}/acknowledge")

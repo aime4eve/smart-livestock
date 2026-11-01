@@ -79,7 +79,7 @@ POST /api/v1/auth/login { identifier, password }
       3. passwordHasher.matches(password, user.passwordHash) → 不匹配则「标识或密码错误」
       4. user.recordLogin()  // 更新 lastLoginAt
       5. jwtTokenProvider.generateToken(userId, tenantId, role.name())
-  → 返回 { token, user: UserDto }   // UserDto 携带 boolean mustChangePassword
+  → 返回 { accessToken, user: UserDto }   // UserDto 携带 boolean mustChangePassword
 ```
 
 > **login 本身不检查 mustChangePassword**；该标志由拦截器 `PasswordChangeRequiredInterceptor` 在每次请求时拦截（见 2.8）。
@@ -206,7 +206,7 @@ logout()
 | owner | 见 `docs/reference/deployment.md` | Demo 租户 owner，关联主牧场 |
 | worker | 见 `docs/reference/deployment.md` | Demo 租户牧工，主牧场 |
 
-> 历史占位密码「123」在密码策略（≥8 位四类，`PasswordPolicy.java`，2026-10-15 裁决）生效后已失效，本文不再罗列明文。密码哈希经 BCrypt 生成并写入 Flyway seed 迁移。修改种子密码须遵循「生成时验证 → 写入迁移 → 部署后 curl 验证」三步流程（可用 `scripts/verify-seed-hash.sh`）。**对外交付环境须轮换公开凭据。**
+> Demo 种子密码现状仍为占位密码（以 `docs/reference/deployment.md` 为准；登录请求字段为 `identifier`，响应令牌字段为 `accessToken`）。密码策略（≥8 位四类，`PasswordPolicy.java`）仅约束新设密/改密，不追溯存量。密码哈希经 BCrypt 生成并写入 Flyway seed 迁移。修改种子密码须遵循「生成时验证 → 写入迁移 → 部署后 curl 验证」三步流程（可用 `scripts/verify-seed-hash.sh`）。**对外交付环境须轮换公开凭据。**
 
 ---
 
@@ -278,7 +278,8 @@ logout()
 |-------------|:-----:|:------:|:--------------:|:---------:|
 | `canAddFence` / `canEditFence` / `canDeleteFence` | ✅ | ✗ | ✗ | ✗ |
 | `canAcknowledgeAlert` | ✅ | ✅ | ✗ | ✗ |
-| `canHandleAlert` / `canArchiveAlert` / `canBatchAlerts` | ✅ | ✗ | ✗ | ✗ |
+| `canHandleAlert` / `canBatchAlerts`（关闭/批量关闭） | ✅ | ✅ | ✗ | ✅ |
+| `canArchiveAlert` | ✅ | ✗ | ✗ | ✗ |
 | `canTwinBreedingAction`（数智孪生繁育操作） | ✅ | ✗ | ✗ | ✗ |
 | `canManageSubscription` | ✅ | ✗ | ✗ | ✗ |
 | `canCreateTenant` / `canEditTenant` / `canDeleteTenant` / `canToggleTenantStatus` / `canAdjustLicense`（均委托 `canManageTenants`） | ✅ | ✗ | ✅ | ✗ |
@@ -309,7 +310,7 @@ logout()
 | `GatewayRegistryController` | 网关查询/位置更新 | `hasAnyRole('OWNER','WORKER','B2B_ADMIN')` |
 | `GatewayDistanceController` / `LivestockRoamController` | 查询 | `hasAnyRole('OWNER','WORKER','B2B_ADMIN')` |
 | `CoverageDiagnosticController` | 覆盖诊断 | `hasAnyRole('OWNER','WORKER','B2B_ADMIN','PLATFORM_ADMIN')` |
-| `AlertController` | 告警 dismiss | `hasAnyRole('OWNER','B2B_ADMIN','WORKER')`（`:94`，2026-10 放宽；read/batch-read 任意登录用户） |
+| `AlertController` | 告警 dismiss（单条 + `/alerts/batch-dismiss`） | `hasAnyRole('OWNER','B2B_ADMIN','WORKER')`（`:94`，5b715cb4 放宽；read/batch-read 任意登录用户） |
 
 > 读操作（GET）普遍无注解——仅需登录（`authenticated()`）。Ranch/IoT **写操作不含 worker**。
 
@@ -361,8 +362,8 @@ if (!user.isOwner() && !user.getRole().name().equals("B2B_ADMIN")) {
 | 管理租户 | `owner \|\| platformAdmin` | 仅 `PLATFORM_ADMIN`（requirePlatformAdmin） |
 | Ranch/IoT 写操作 | `canEditFence` 仅 owner | `OWNER \|\| B2B_ADMIN` |
 | 告警标记已读 | `owner \|\| worker`（确认按钮） | **任意登录用户**（POST /alerts/{id}/read） |
-| 告警 dismiss | owner（前端 canHandleAlert） | `OWNER \| B2B_ADMIN \| WORKER`（2026-10 放宽，`AlertController.java:94`） |
-| 批量 dismiss | owner | 复用 deprecated `/batch-handle`（`OWNER\|B2B_ADMIN`），worker 调用 403 |
+| 告警 dismiss | owner \|\| worker（canHandleAlert，5b715cb4 前后端同批放宽） | `OWNER \| B2B_ADMIN \| WORKER`（`AlertController.java:94`） |
+| 批量 dismiss | owner \|\| worker（canBatchAlerts） | `POST /alerts/batch-dismiss`（NIX-351；旧复用 batch-handle 时 worker 403 已终结） |
 | 设备跨租户移交 / 数据导出监管 | — | 仅 `PLATFORM_ADMIN`（移交）/ 导出监管无注解（见 7.11） |
 | Tile 管理 | — | `PLATFORM_ADMIN \|\| B2B_ADMIN` |
 | 设备配置规则 | — | `PLATFORM_ADMIN \|\| B2B_ADMIN` |
@@ -456,9 +457,9 @@ if (!user.isOwner() && !user.getRole().name().equals("B2B_ADMIN")) {
 登录（账号由 owner/admin 创建；平台管理员创建的账号首登强制改密）
   → 重定向到 /ranch（牧场页）
   → /twin 数智孪生：查看地图、牲畜位置（只读；网关/漫游查询允许 WORKER）
-  → /alerts 告警中心：标记已读（单条/批量，后端任意登录用户可调）
-      · 单条 dismiss 后端已放宽到 WORKER（AlertController.java:94，2026-10）；前端按钮仍 owner-only
-      · 批量 dismiss 走 deprecated /batch-handle → 后端 403（见 7.4）
+  → /alerts 告警中心：标记已读（单条/批量）+ 单条/批量关闭
+      · canHandleAlert / canBatchAlerts 均含 worker（5b715cb4 前后端同批放宽）
+      · 批量关闭走 /alerts/batch-dismiss（NIX-351）
   → /fence 围栏：只查看（canEditFence=false）
   → /mine 个人资料、牧场切换
   ✗ /mine/workers 被守卫拦截 → 重定向到 /ranch
@@ -598,9 +599,9 @@ ACTIVE ──规则自动恢复──→ AUTO_RESOLVED
 ### 7.4 worker 告警权限（新模型下已部分收敛）
 
 - **前端**：worker 可确认告警（`canAcknowledgeAlert = owner || worker`）→ 实际调用 `POST /alerts/{id}/read`，后端**任意登录用户**放行 → **一致，可用**。
-- **单条 dismiss**：后端已放宽 `OWNER|B2B_ADMIN|WORKER`（`AlertController.java:94`，2026-10）；前端 `canHandleAlert` 仍仅 owner——后端能力已到 worker，按钮可见性未跟上。
-- **批量 dismiss**：前端复用 deprecated `POST /alerts/batch-handle`（`alerts_api_repository.dart:75-76` 注释），后端 `OWNER|B2B_ADMIN` → worker 批量处理会被 **403**。
-- **结论**：worker 单条已读 + dismiss（后端）可用；批量 dismiss 是残留缺口（前端应按角色隐藏该按钮或后端补 batch-dismiss）。
+- **单条 dismiss**：`5b715cb4`（NIX-52）前后端**同批**放宽（`AlertController.java:94` + `role_permission.dart` canHandleAlert/canBatchAlerts 均含 worker）——**一致，可用**。
+- **批量 dismiss（✅ 已修复，NIX-351）**：原缺口 = 后端无 batch-dismiss，前端被迫复用 deprecated `/batch-handle`（其 @PreAuthorize 未随 NIX-52 放宽，仍 `OWNER|B2B_ADMIN`）→ worker 批量 403。修复 = 后端新增 `POST /alerts/batch-dismiss`（三角色放行、跳过非 ACTIVE）+ 前端切换。
+- **结论**：worker 单条/批量关闭均可用；历史残留缺口闭合。
 
 ### 7.5 Ranch 写操作角色范围
 

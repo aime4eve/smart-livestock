@@ -49,8 +49,7 @@ void main() {
 
   group('租户权限', () {
     for (final role in allRoles) {
-      final canManage =
-          role == UserRole.owner || role == UserRole.platformAdmin;
+      final canManage = role == UserRole.platformAdmin;
       test('$role 管理租户 $canManage', () {
         expect(RolePermission.canManageTenants(role), canManage);
       });

@@ -91,8 +91,8 @@
 
 1. **DataExportAdminController 无权限注解**（`/admin/data-export-jobs`，任意登录可查全平台导出任务）——新发现（user-journey-guide §7.11），与 AnalyticsAdminController 同款。
 2. **AnalyticsAdminController 无权限注解**——2026-09-20 发现，2026-11-01 复核仍在（guide §7.6）。
-3. `canManageTenants` 含 owner（死权限）；`canHandleAlert` 前端仍 owner-only 而后端已放宽 WORKER——两处前后端不一致待收敛。
-4. batch-handle @Deprecated 仍被前端批量 dismiss 复用，worker 批量 403。
+3. ~~canHandleAlert 前端 owner-only~~ **更正（同日复核，断言失实）**：`5b715cb4`（NIX-52）已同批放宽前后端（canHandleAlert/canBatchAlerts 均含 worker），我方沿用 09-20 基线过时表格所致；真实残留 = canManageTenants 死权限（owner，零使用点）与 batch-dismiss 端点缺失，两者已由 **NIX-351** 修复。
+4. ~~batch-handle 复用 403~~ 已由 NIX-351 终结（新端点 `/alerts/batch-dismiss` 三角色放行，前端已切换）。
 5. 五张 user-journey 时序图 + telemetry 主图基于 09-20 基线（本轮已标注待刷新，archify 重生成另立任务）。
 6. training/00、training/03、marketing/technical-support-guide 引用三文档的**正文口径**未随本轮刷新（引用路径有效），建议下一轮材料刷新时对齐权限矩阵与告警模型。
 

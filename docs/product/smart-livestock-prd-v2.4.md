@@ -2445,6 +2445,7 @@ Error 409 DUPLICATE_RESOURCE: 该牲畜已有同类型设备活跃安装
 POST /api/v1/farms/{farmId}/alerts/{id}/read          标记已读（任意登录用户）
 POST /api/v1/farms/{farmId}/alerts/{id}/dismiss       关闭告警（OWNER/B2B_ADMIN/WORKER）
 POST /api/v1/farms/{farmId}/alerts/batch-read         批量已读
+POST /api/v1/farms/{farmId}/alerts/batch-dismiss      批量关闭（OWNER/B2B_ADMIN/WORKER，跳过非 ACTIVE）
 ```
 
 仅 ACTIVE 可关闭，非法跳转返回 409 STATE_CONFLICT；旧 ack/handle/archive 端点 @Deprecated 保留兼容。

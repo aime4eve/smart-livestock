@@ -104,6 +104,34 @@ class AlertStateMachineJourneyTest extends AbstractJourneyTest {
                     "/api/v1/farms/1/alerts/" + alertId + "/dismiss", null);
             assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
+
+        @Test
+        @DisplayName("worker 批量 dismiss 端点可用（NIX-351）")
+        void workerCanBatchDismiss() {
+            String alertId1 = createActiveAlert(1L);
+            String alertId2 = createActiveAlert(1L);
+
+            var result = postApi(workerToken,
+                    "/api/v1/farms/1/alerts/batch-dismiss",
+                    java.util.Map.of("alertIds", java.util.List.of(alertId1, alertId2)));
+            assertThat(result.get("dismissed")).isEqualTo(2);
+            assertThat(result.get("skipped")).isEqualTo(0);
+        }
+
+        @Test
+        @DisplayName("batch-dismiss 跳过非 ACTIVE 项（NIX-351）")
+        void batchDismiss_skipsNonActive() {
+            String activeId = createActiveAlert(1L);
+            String dismissedId = createActiveAlert(1L);
+            postApi(ownerToken,
+                    "/api/v1/farms/1/alerts/" + dismissedId + "/dismiss", null);
+
+            var result = postApi(ownerToken,
+                    "/api/v1/farms/1/alerts/batch-dismiss",
+                    java.util.Map.of("alertIds", java.util.List.of(activeId, dismissedId)));
+            assertThat(result.get("dismissed")).isEqualTo(1);
+            assertThat(result.get("skipped")).isEqualTo(1);
+        }
     }
 
     @Nested

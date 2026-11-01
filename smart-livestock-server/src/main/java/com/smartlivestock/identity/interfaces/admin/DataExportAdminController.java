@@ -5,6 +5,7 @@ import com.smartlivestock.identity.domain.model.DataExportJob;
 import com.smartlivestock.identity.domain.repository.DataExportJobRepository;
 import com.smartlivestock.shared.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
@@ -17,6 +18,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/admin/data-export-jobs")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('PLATFORM_ADMIN')")
 public class DataExportAdminController {
 
     private final DataExportJobRepository jobRepository;

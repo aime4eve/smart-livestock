@@ -84,7 +84,7 @@ worker 登录（重定向到 /ranch）
 
 ## 3. 种子数据登录凭据
 
-> 凭据属部署细节，统一见 **`docs/reference/deployment.md`**（本文不再罗列明文）。历史"密码 123"在密码策略（8 位四类，`PasswordPolicy.java`，2026-10-15 裁决）生效后已失效。admin bootstrap 迁移为 `V20260907120000__admin_bootstrap.sql`（原 V4/V16 世代已演进）。
+> 凭据属部署细节，统一见 **`docs/reference/deployment.md`**（本文不再罗列明文）。Demo 种子密码现状仍为占位密码（登录字段为 `identifier`，多标识）；密码策略 8 位四类（`PasswordPolicy.java`，2026-10-15 裁决）仅约束新设密/改密，不追溯存量。admin bootstrap 迁移为 `V20260907120000__admin_bootstrap.sql`（原 V4/V16 世代已演进）。
 
 | 角色 | 登录标识 | 关联 | 说明 |
 |------|---------|------|------|
@@ -123,7 +123,7 @@ worker 登录（重定向到 /ranch）
 |------|:-----:|:------:|:--------------:|:---------:|---------|
 | 创建/编辑/删除围栏 | ✅ | ✗ | ✗ | ✗ | `OWNER\|B2B_ADMIN`（更新端点无注解，见 guide §7.10） |
 | 告警标记已读（read/batch-read） | ✅ | ✅ | ✅ | ✅ | 任意登录用户 |
-| 关闭告警（dismiss） | ✅ | ✅（前端按钮 owner；后端已放宽） | ✗ | ✅（后端） | `OWNER\|B2B_ADMIN\|WORKER` |
+| 关闭告警（dismiss，单条/批量） | ✅ | ✅ | ✗ | ✅ | `OWNER\|B2B_ADMIN\|WORKER`（批量走 /alerts/batch-dismiss，NIX-351） |
 | 管理租户 | ⚠️ 死权限 | ✗ | ✅ | ✗ | 仅 `PLATFORM_ADMIN`（owner 前端授权但无入口，guide §7.3） |
 | 创建牧场 | ✅（后端） | ✗ | ✅（前端） | ✅ | `OWNER\|B2B_ADMIN`（前端 canCreateFarm 未含 owner，guide §7.2） |
 | 管理订阅 | ✅ | ✗ | ✗ | ✗ | 订阅端走 `/subscription` |
@@ -206,7 +206,7 @@ ACTIVE ──条件消解──→ AUTO_RESOLVED
 |------|------|---------|
 | 标记已读（单条/批量） | `POST /alerts/{id}/read`、`/alerts/batch-read` | 任意登录用户 |
 | 关闭告警 | `POST /alerts/{id}/dismiss` | OWNER / B2B_ADMIN / WORKER（`AlertController` @PreAuthorize） |
-| ~~acknowledge / handle / archive / batch-handle~~ | `@Deprecated` | 前端批量 dismiss 仍复用 batch-handle（WORKER 调用 403，残留缺口） |
+| ~~acknowledge / handle / archive / batch-handle~~ | `@Deprecated` | 批量关闭已切换至 `/alerts/batch-dismiss`（NIX-351）；旧端点保留兼容 |
 
 **告警类型**（`AlertType` 枚举 14 值）：FENCE_BREACH / FENCE_APPROACH / ZONE_APPROACH / TEMPERATURE_ABNORMAL / DIGESTIVE_ABNORMAL / ESTRUS / EPIDEMIC / AI_ANOMALY / DEVICE_TAMPER / DEVICE_LOW_BATTERY / DEVICE_OFFLINE / LINK_QUALITY / OUTLIER / RETURN_HOME。
 

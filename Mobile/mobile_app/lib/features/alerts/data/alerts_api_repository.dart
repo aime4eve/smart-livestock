@@ -72,10 +72,8 @@ class AlertsApiRepository implements AlertsRepository {
 
   @override
   Future<void> batchDismiss(List<String> alertIds) async {
-    // Backend has no /alerts/batch-dismiss; reuse /alerts/batch-handle
-    // (deprecated but active, internally loops dismiss, OWNER/B2B_ADMIN only).
     await ApiClient.instance
-        .farmPost('/alerts/batch-handle', body: {'alertIds': alertIds});
+        .farmPost('/alerts/batch-dismiss', body: {'alertIds': alertIds});
   }
 
   static AlertItem _alertItemFromMap(Map<String, dynamic> m) {

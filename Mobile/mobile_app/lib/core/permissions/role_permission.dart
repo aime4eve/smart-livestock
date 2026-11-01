@@ -29,8 +29,7 @@ class RolePermission {
 
   static bool canTwinBreedingAction(UserRole role) => role == UserRole.owner;
 
-  static bool canManageTenants(UserRole role) =>
-      role == UserRole.owner || role == UserRole.platformAdmin;
+  static bool canManageTenants(UserRole role) => role == UserRole.platformAdmin;
 
   static bool canCreateTenant(UserRole role) => canManageTenants(role);
 
