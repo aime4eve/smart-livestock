@@ -1,6 +1,6 @@
 # 智慧畜牧软件平台培训手册
 
-> 版本：v1.0（2026-08-26）
+> 版本：v1.1（2026-11-03，口径随 2026-11-01 代码基线对齐：告警 V26 三态关闭模型、6 角色含超管上下文切换、限界上下文补全、事实源死链更新。v1.0：2026-08-26 初版）
 > 适用对象：售前/商务人员、售后支持人员、测试与研发新人、参与方案交付的实施人员
 > 定位：智慧畜牧解决方案中的软件平台分册。硬件细节见《GAT-100 牛羊追踪器培训手册》和《RBC-100 瘤胃胶囊培训手册》；本手册只讲平台如何接入设备数据并形成业务闭环。
 
@@ -77,6 +77,7 @@ App / 管理端 / Open API
 | Health | 健康分析 | 温度、蠕动、发情、疫病、健康概览 |
 | Commerce | 商业化 | 订阅、合同、分润、Feature Gate、配额 |
 | Analytics/Portal | 开放能力 | API 用量、调用日志、趋势统计、开发者门户 |
+| Datagen / Licensing | 合成验证与部署授权 | 合成数据管道、部署 License、试点授权（内部/试点场景） |
 | Shared | 横切能力 | 认证、错误响应、多租户上下文、限流、事件 |
 
 ### 3.3 数据闭环
@@ -92,7 +93,7 @@ App / 管理端 / Open API
      |-- 温度、胃动力、活动趋势
      |-- 健康分析与预警
      |-- Open API 输出
-  -> 用户确认、处理、归档或第三方系统消费
+  -> 用户标记已读、关闭告警或第三方系统消费
 ```
 
 ---
@@ -112,8 +113,9 @@ App / 管理端 / Open API
 
 | 角色 | 主要页面 | 可做的关键操作 |
 |---|---|---|
-| owner | App 全部业务页、后台、牧工管理、订阅 | 管理牲畜、围栏、设备、告警、订阅 |
-| worker | 地图、告警、围栏、我的 | 查看地图和告警，确认告警 |
+| super_admin | /select-context 身份选择 | 选择以 platform_admin / b2b_admin / owner / worker 身份进入（act 重签 + 审计） |
+| owner | App 全部业务页、牧工管理、订阅 | 管理牲畜、围栏、设备、告警、订阅（后台入口已移除） |
+| worker | 地图、告警、围栏、我的 | 查看地图和告警，标记已读并关闭告警 |
 | b2b_admin | B 端控制台 | 管理旗下牧场、牧工、合同、对账 |
 | platform_admin | 平台后台 | 管理租户、用户、合同、订阅服务、API 授权 |
 | api_consumer | API / Portal | 使用 API Key 访问授权数据 |
@@ -121,7 +123,7 @@ App / 管理端 / Open API
 培训重点：
 
 - 牧场不是 owner 随意创建，而是由 b2b_admin 或 platform_admin 创建并分配。
-- worker 只确认告警，不能处理和归档告警。
+- worker 可标记已读并关闭告警（dismiss）；旧"确认/处理/归档"四态流程已废弃（V26 重设计）。
 - 切换牧场后，farm-scoped 数据应自动刷新。
 - 讲解权限时不要承诺矩阵之外的自定义角色。
 
@@ -174,21 +176,23 @@ App / 管理端 / Open API
 告警状态流：
 
 ```text
-pending -> acknowledged -> handled -> archived
+ACTIVE -> DISMISSED（人工关闭）
+ACTIVE -> AUTO_RESOLVED（条件消解）
 ```
 
 角色分工：
 
-| 动作 | owner | worker |
-|---|---|---|
-| 确认告警 | Yes | Yes |
-| 处理告警 | Yes | No |
-| 归档告警 | Yes | No |
+| 动作 | owner | worker | b2b_admin |
+|---|---|---|---|
+| 标记已读 | Yes | Yes | Yes |
+| 关闭告警（dismiss，单条/批量） | Yes | Yes | Yes |
+
+> 标记已读对任意登录用户开放；关闭需 OWNER / B2B_ADMIN / WORKER 角色。重复关闭返回 409。
 
 培训重点：
 
 - 围栏是业务规则，不是地图上的视觉图形。
-- 告警必须讲清“谁收到、谁确认、谁处理、何时归档”。
+- 告警必须讲清“谁收到、谁已读、谁关闭”。
 - 客户要求通知渠道、响应时限或 SLA 时，需商务与技术确认。
 
 ### 4.5 设备接入与数据解析
@@ -301,7 +305,7 @@ GAT-100 按周期上报 GPS / 步数 / 加速度
   -> 平台写入 GPS 日志并更新位置
   -> FenceBreachDetector 判断 Safe / Approaching / Breach
   -> 若越界，生成告警
-  -> worker 确认，owner 处理并归档
+  -> worker / owner 标记已读并关闭告警（dismiss 留痕）
 ```
 
 ### 5.3 RBC-100 数据到健康预警
@@ -338,7 +342,7 @@ RBC-100 投服前验活
 | 2 分钟 | 牲畜档案和地图 | 一头牛对应档案、设备、位置和状态 |
 | 2 分钟 | GAT-100 轨迹和围栏 | 位置如何变成业务规则和告警 |
 | 2 分钟 | RBC-100 温度与胃动力 | 体内数据如何辅助健康判断 |
-| 1 分钟 | 告警闭环 | worker 确认、owner 处理、归档留痕 |
+| 1 分钟 | 告警闭环 | 标记已读、关闭留痕（dismiss） |
 | 1 分钟 | 订阅与 API | 按层级、设备、数据保留和集成范围扩展 |
 | 1 分钟 | 下一步 | 现场勘测、设备组合、POC 成功标准 |
 
@@ -374,7 +378,7 @@ Demo 红线：
 
 ### 练习 2：角色演示
 
-分别用 owner 和 worker 登录，完成查看地图、确认告警、处理告警、归档告警，并说明权限差异。
+分别用 owner 和 worker 登录，完成查看地图、标记已读、关闭告警，并说明权限差异。
 
 ### 练习 3：设备组合判断
 
@@ -394,8 +398,8 @@ Demo 红线：
 
 - `docs/product/system-architecture.md`
 - `docs/product/customer-journey.md`
+- `docs/product/user-journey-guide.md`
 - `docs/reference/project-overview.md`
-- `docs/archive/features/system-feature-list.md`
 - `docs/api-contracts/api-overview.md`
 - `smart-livestock-server/src/main/java/`
 - `Mobile/mobile_app/lib/`

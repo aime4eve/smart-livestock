@@ -1,6 +1,6 @@
 # 智慧畜牧解决方案赋能手册
 
-> 版本：v0.7（2026-08-26）
+> 版本：v0.8（2026-11-03，口径随 2026-11-01 代码基线对齐：6 角色含超管上下文切换、告警 V26 三态关闭模型、worker 关闭权限、统一试点截止日。v0.7：2026-08-26 初版）
 > 适用对象：海外售前/商务人员、售后支持人员、参与客户技术澄清的研发代表
 > 定位：智慧畜牧解决方案总纲，统一 GAT-100 牛羊追踪器、RBC-100 瘤胃胶囊、LoRaWAN 网络和智慧畜牧软件平台的产品事实、方案组合、术语和承诺边界。售前话术见《海外解决方案售前实战手册》，售后流程见《解决方案售后支持实战手册》。
 
@@ -110,7 +110,7 @@ App / 管理端 / Open API
 |---|---|---|---|
 | 地图与定位 | 地图概览、牲畜位置、GPS 日志、历史轨迹、离线瓦片管理 | 从“找牛”变成“在地图上确认位置和行动优先级” | 依赖设备、网络、数据保留策略和地图资源 |
 | 电子围栏 | 围栏创建、编辑、删除、越界检测、告警 | 围栏是业务规则，不只是地图图形 | 围栏数量受订阅层级影响 |
-| 告警工作台 | 告警列表、确认、处理、归档 | 展示从发现到闭环的协作过程 | worker 只能确认；处理和归档由 owner 执行 |
+| 告警工作台 | 告警列表、标记已读、关闭（dismiss） | 展示从发现到闭环的协作过程 | 关闭操作 owner/b2b_admin/worker 均可；旧"确认/处理/归档"流程已废弃（V26 重设计） |
 | 健康分析 | 发热、消化、发情、疫病预警、异常检测 | 用个体遥测辅助健康与繁殖决策 | 需要对应传感器、足量数据、匹配订阅；不能替代兽医诊断 |
 | 设备管理 | 设备、安装关系、License、设备状态和遥测链路 | 设备生命周期可追踪，减少“设备在用但不知道状态”的问题 | 具体设备型号和协议需技术评估 |
 | 牲畜档案 | 牲畜详情、设备绑定、位置和健康数据 | 一头牲畜形成业务与数据档案 | 档案完整度取决于客户录入和设备覆盖 |
@@ -163,7 +163,7 @@ App / 管理端 / Open API
 |---|---|---|---|
 | 租户与用户 | 租户、用户、牧场、角色、JWT 认证、多租户隔离 | 集团与多牧场管控 | 登录、权限、租户状态 |
 | 牧场与牲畜 | 牧场由 b2b_admin 或 platform_admin 创建并分配给 owner | 实施责任分工 | 牧场归属、farm scope、牲畜档案 |
-| 设备与安装 | GPS 追踪器、瘤胃胶囊、安装、License、设备健康管理相关能力 | 结合设备采购计划讨论 | 设备状态、安装关系、License、遥测链路 |
+| 设备与安装 | GPS 追踪器、瘤胃胶囊、智能耳标、安装、License、设备健康管理相关能力 | 结合设备采购计划讨论 | 设备状态、安装关系、License、遥测链路 |
 | GPS 与地图 | GPS 日志、地图、轨迹、离线地图、瓦片多级降级 | 定位与巡查效率 | 时间窗、坐标、瓦片、离线包、轨迹为空 |
 | 围栏与告警 | 电子围栏、越界告警、告警状态流 | 损失控制和响应流程 | 围栏配置、触发条件、状态流转 |
 | 健康分析 | 温度、蠕动、发情、疫病预警等健康上下文 | 早发现与个体管理 | 传感器数据、订阅层级、结果解释 |
@@ -177,10 +177,11 @@ App / 管理端 / Open API
 
 | 角色 | 英文称呼 | 主要用途 |
 |---|---|---|
+| super_admin | Super Administrator | 平台根账号，经 /select-context 选择角色身份进入系统（act 重签 + 审计） |
 | platform_admin | Platform Administrator | 平台级租户、用户、合同、订阅服务、API 授权管理 |
 | b2b_admin | Enterprise Administrator | 管理旗下牧场、牧工、合同、对账 |
 | owner | Farm Owner | 管理牧场业务、牲畜、围栏、告警、设备、订阅 |
-| worker | Farm Worker | 查看地图、告警、围栏，可确认告警 |
+| worker | Farm Worker | 查看地图、告警、围栏，可标记已读并关闭告警 |
 | api_consumer | API Consumer / Developer | 通过 Open API 访问授权数据 |
 
 实施旅程：
@@ -191,8 +192,8 @@ App / 管理端 / Open API
 S1["platform_admin<br/>创建租户与初始用户"]    
 S2["b2b_admin<br/>创建牧场，分配给养殖户owner"]    
 S3["owner<br/>录入牲畜、绑定设备、配置围栏、告警、添加工人"]    
-S4["workers<br/>查看地图、告警，确认处理告警"]    
-S5["owner<br/>处置归档告警、查看数据、管理订阅"]     
+S4["workers<br/>查看地图、告警，标记已读并关闭告警"]
+S5["owner<br/>关闭告警、查看数据、管理订阅"]
 S1 --> S2    
 S2 --> S3    
 S3 --> S4    
@@ -204,8 +205,8 @@ S4 --> S5
 platform_admin creates tenant and initial users
   -> b2b_admin creates farms and assigns them to owners
   -> owner sets up livestock, devices, fences, alerts, workers
-  -> workers view maps and alerts, acknowledge alerts
-  -> owner handles and archives alerts, reviews data and subscriptions
+  -> workers view maps and alerts, mark alerts read and dismiss them
+  -> owner dismisses alerts, reviews data and subscriptions
 ```
 
 权限速查：
@@ -213,8 +214,8 @@ platform_admin creates tenant and initial users
 | 操作 | owner | worker | b2b_admin | platform_admin |
 |---|---|---|---|---|
 | 创建/编辑/删除围栏 | Yes | No | No | No |
-| 确认告警 | Yes | Yes | No | No |
-| 处理/归档告警 | Yes | No | No | No |
+| 标记已读告警 | Yes | Yes | Yes | Yes |
+| 关闭告警（dismiss，单条/批量） | Yes | Yes | Yes | No |
 | 创建牧场 | No | No | Yes | Yes |
 | 管理订阅 | Yes | No | No | No |
 | 查看合同/对账 | No | No | Yes | Yes |
@@ -252,7 +253,7 @@ platform_admin creates tenant and initial users
 |---|---|---|
 | 订阅层级 | 按功能范围和数据保留分档 | basic/standard/premium/enterprise |
 | 按头计费 | 月费按存栏头数 × 所在规模档单价计算 | `月费 = 头数 × unitPriceUsdCents`；付费档无头数上限，仅 basic 限 50 头 |
-| 试用 | 有限时间体验高级能力 | 试用状态和到期降级 |
+| 试用 | 有限时间体验高级能力 | 试用状态和到期降级；免费试点统一截止 2027-09-30（可按租户指定当地日期，2027-10-12 起） |
 | 功能开关 | 某功能当前层级是否可用 | LOCK |
 | 数量上限 | 围栏、牲畜等资源数量限制 | LIMIT |
 | 数据裁剪 | 历史数据保留范围 | FILTER |
@@ -447,6 +448,7 @@ platform_admin creates tenant and initial users
 
 - `docs/reference/project-overview.md`
 - `docs/product/customer-journey.md`
+- `docs/product/user-journey-guide.md`
 - `docs/product/smart-livestock-prd-v2.4.md`
 - `docs/superpowers/specs/2026-05-18-commerce-context-design.md`
 - `Mobile/docs/product/2026-04-10-研发项目立项书.md`

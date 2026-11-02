@@ -32,11 +32,11 @@
 
 `telemetry-data-flow.html` 描述遥测数据从设备采集到结果应用的完整链路，按 5 个阶段组织：
 
-1. **数据采集** — 智能项圈/耳标（CAPSULE · TRACKER）经 MQTT 上报 ThingsBoard（设备侧外部链路，后端不实现 MQTT）；设备也可直连 Agentic 中台（report-record 分页拉取，5min 轮询）
+1. **数据采集** — 项圈 / 耳标 / 瘤胃胶囊三类终端经设备侧 MQTT 上报 ThingsBoard（外部链路，后端不实现 MQTT，平台经 REST 直连拉取）或直连 Agentic 中台（report-record 分页拉取，5min 轮询）；HTTP push / 手动导入 / datagen 合成按 `source` 标记汇入（`TelemetrySource` 五值）
 2. **统一摄取** — `TelemetryIngestionService` 幂等去重汇入，TB 游标轮询防双源重复
 3. **存储 · 事件流** — 原始遥测落 `device_telemetry_logs`（按月分区）；GPS 走 outbox 异步落 `gps_logs`；`telemetry-received` / `gps-log-updated` 事件进 RocketMQ
-4. **数据分析** — 事件驱动的健康规则分析（发热/消化/发情/疫病 · 围栏）+ ai-platform 的 STL/CUSUM 融合评分（读 24h 特征窗口，主链路暂禁用）
-5. **结果应用** — 告警中心聚合 RULE/AI 告警；移动端（Flutter）拉取与已读回写；开放 API（API Key）供第三方消费
+4. **数据分析** — 事件驱动的健康规则分析（发热/消化/发情/疫病 · 围栏）+ ai-platform 的 STL/CUSUM 融合评分（读 24h 特征窗口，`HealthAnomalyScheduler` 自动调度，NIX-243）
+5. **结果应用** — 告警中心聚合 RULE/AI 告警（V26 三态）；移动端（Flutter）拉取 + SSE 信号流实时更新；开放 API（API Key）供第三方消费
 
 图表内置"关键结论"注释卡片，与 `docs/reference/project-overview.md` 的架构描述保持一致。
 
