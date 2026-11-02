@@ -52,8 +52,12 @@ class MinePage extends ConsumerWidget {
                 onTap: () => context.push(AppRoute.platformGatewayOverview.path),
               ),
             ),
+          ],
 
-            // 业务管理功能
+          // 业务管理功能（owner 亦需订阅入口——NIX-219 误收回后恢复，NIX-324 验收回归项）
+          if (role == UserRole.owner ||
+              role == UserRole.platformAdmin ||
+              role == UserRole.b2bAdmin) ...[
             Text(
               l10n.mineBusinessManagement,
               style: Theme.of(context).textTheme.titleMedium,
@@ -61,7 +65,9 @@ class MinePage extends ConsumerWidget {
             const SizedBox(height: AppSpacing.md),
             const SubscriptionStatusCard(),
             const SizedBox(height: AppSpacing.xl),
+          ],
 
+          if (role == UserRole.platformAdmin || role == UserRole.b2bAdmin) ...[
             // 高级管理功能
             _buildAdvancedManagement(context),
           ],

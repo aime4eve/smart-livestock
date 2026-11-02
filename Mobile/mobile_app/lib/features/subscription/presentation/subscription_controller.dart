@@ -54,6 +54,17 @@ class SubscriptionController extends AsyncNotifier<SubscriptionStatus> {
     state = await AsyncValue.guard(
         () => ref.read(subscriptionRepositoryProvider).loadCurrent());
   }
+
+  /// Silent re-fetch that keeps the current value visible while loading.
+  ///
+  /// Used on page entry: the wall-clock health level (14→7→3) and any
+  /// admin-side status change must surface without a full app restart
+  /// (NIX-334 acceptance finding — the cached snapshot hid level changes).
+  Future<void> refreshSilently() async {
+    final result = await AsyncValue.guard(
+        () => ref.read(subscriptionRepositoryProvider).loadCurrent());
+    if (result.hasValue) state = result;
+  }
 }
 
 final subscriptionControllerProvider =

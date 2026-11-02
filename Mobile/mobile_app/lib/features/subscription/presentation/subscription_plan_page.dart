@@ -13,9 +13,15 @@ import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets
 import 'package:hkt_livestock_agentic/features/subscription/presentation/widgets/tier_card.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
-class SubscriptionPlanPage extends ConsumerWidget {
+class SubscriptionPlanPage extends ConsumerStatefulWidget {
   const SubscriptionPlanPage({super.key});
 
+  @override
+  ConsumerState<SubscriptionPlanPage> createState() =>
+      _SubscriptionPlanPageState();
+}
+
+class _SubscriptionPlanPageState extends ConsumerState<SubscriptionPlanPage> {
   static const _tiers = [
     SubscriptionTier.basic,
     SubscriptionTier.standard,
@@ -36,7 +42,17 @@ class SubscriptionPlanPage extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    super.initState();
+    // NIX-334 acceptance finding: the controller is session-cached, so a
+    // level change (14→7→3) or admin-side edit stayed invisible until a full
+    // page reload. Re-fetch silently on every page entry.
+    Future.microtask(() =>
+        ref.read(subscriptionControllerProvider.notifier).refreshSilently());
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final asyncStatus = ref.watch(subscriptionControllerProvider);
     final asyncPlans = ref.watch(subscriptionPlansProvider);
