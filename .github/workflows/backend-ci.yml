@@ -16,7 +16,12 @@ defaults:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Pinned to ubuntu-24.04: the ubuntu-latest label is rolling over to
+    # Ubuntu 26.04 during 2026-10-19 ~ 11-19 (actions/runner-images#14748),
+    # and those runners break Testcontainers (Docker env missing / Docker 29
+    # vs testcontainers-java 1.x), which kills every journey test.
+    # Re-evaluate once the 26.04 image ships a compatible Docker again.
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
