@@ -2190,6 +2190,28 @@ Response 200: { "code": "OK", "data": [ { "id": "f5396a40-…", "name": "牛羊�
 
 ---
 
+## 16. 订阅健康度阈值配置（SubscriptionHealthSettingsAdminController）— 2 端点
+
+平台级 NIX-324 横幅三档天数配置（迁移 `V20261103100000`，单行表 `subscription_health_settings`，种子 14/7/3 与改造前硬编码行为一致）。仅 `platform_admin`（@PreAuthorize + 方法内双重守卫；B2B_ADMIN 不开放——该配置影响所有租户横幅）。判定器 60s 缓存，PUT 成功即失效，**下一判定立即生效**。
+
+### GET /admin/subscription-health-settings
+
+```json
+{ "code": "OK", "data": { "warnDays": 14, "cautionDays": 7, "dangerDays": 3 } }
+```
+
+### PUT /admin/subscription-health-settings
+
+Request: `{ "warnDays": 30, "cautionDays": 10, "dangerDays": 5 }`
+
+- 校验：三档均 >0 且 warn > caution > danger；违反 → 400 `VALIDATION_ERROR`（`commerce.healthSettings.invalidTiers`）
+- 响应：同 GET 结构，返回保存后的三档
+- 语义影响：临期窗口 = `daysToExpiry ≤ warnDays` 判 EXPIRING_SOON；`level` 取三档值本身；`snoozeAllowed = level > dangerDays`（仅 EXPIRING_SOON 非 null，见 app-api.md health 块）
+
+**审计**: 写操作记录 `SUBSCRIPTION_HEALTH_SETTINGS_UPDATED`（audit_logs，detail 含 settingsId/三档/operatorRole）。
+
+---
+
 ## 设计要点
 
 1. **无 Ranch/IoT Admin 端点** — admin 访问任意农场的牲畜/围栏/告警/设备，直接复用 App API 的 `/api/v1/farms/{farmId}/...` 端点，通过 platform_admin 角色在 Farm Scope 校验中放行跨租户访问

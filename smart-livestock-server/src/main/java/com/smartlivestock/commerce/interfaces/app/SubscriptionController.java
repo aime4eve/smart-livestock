@@ -97,6 +97,7 @@ public class SubscriptionController {
                 verdict.daysToExpiry(),
                 verdict.degraded(),
                 verdict.terminatedAt(),
+                verdict.snoozeAllowed(),
                 exportWindow);
     }
 

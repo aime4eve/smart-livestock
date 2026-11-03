@@ -41,6 +41,19 @@ class SubscriptionSemanticsCrossCheckTest {
 
     private record Sample(String name, Subscription subscription) {}
 
+    /** Evaluator wired with a provider stub returning the default 14/7/3 tiers. */
+    private static SubscriptionHealthEvaluator evaluator() {
+        return evaluator(SubscriptionHealthSettingsProvider.HealthThresholds.defaults());
+    }
+
+    /** Evaluator wired with a provider stub returning custom tiers (config test). */
+    private static SubscriptionHealthEvaluator evaluator(
+            SubscriptionHealthSettingsProvider.HealthThresholds thresholds) {
+        var provider = org.mockito.Mockito.mock(SubscriptionHealthSettingsProvider.class);
+        org.mockito.Mockito.when(provider.current()).thenReturn(thresholds);
+        return new SubscriptionHealthEvaluator(new TerminationAnchorResolver(), provider);
+    }
+
     private static Subscription activeExpiringAt(Instant end) {
         Subscription sub = Subscription.startTrial(TENANT_ID, "direct",
                 NOW.minusSeconds(120 * 24 * 3600), NOW);
@@ -87,7 +100,7 @@ class SubscriptionSemanticsCrossCheckTest {
 
         @Test
         void everySampleLandsOnItsMatrixState() {
-            var evaluator = new SubscriptionHealthEvaluator(new TerminationAnchorResolver());
+            var evaluator = evaluator();
             samples().forEach(sample -> {
                 var verdict = evaluator.evaluate(sample.subscription(), NOW);
                 String expected = switch (sample.name()) {
@@ -107,7 +120,7 @@ class SubscriptionSemanticsCrossCheckTest {
 
         @Test
         void trialLapsedDoesNotShowAsTrial() {
-            var evaluator = new SubscriptionHealthEvaluator(new TerminationAnchorResolver());
+            var evaluator = evaluator();
             Subscription trialLapsed = Subscription.startTrial(TENANT_ID, "direct",
                     NOW.minusSeconds(50 * 24 * 3600), NOW.minusSeconds(10 * 24 * 3600));
             var verdict = evaluator.evaluate(trialLapsed, NOW);
@@ -118,10 +131,63 @@ class SubscriptionSemanticsCrossCheckTest {
 
         @Test
         void expiringSoonLevels() {
-            var evaluator = new SubscriptionHealthEvaluator(new TerminationAnchorResolver());
+            var evaluator = evaluator();
             assertThat(evaluator.evaluate(activeExpiringAt(NOW.plusSeconds(10 * 24 * 3600)), NOW).level()).isEqualTo(14);
             assertThat(evaluator.evaluate(activeExpiringAt(NOW.plusSeconds(5 * 24 * 3600)), NOW).level()).isEqualTo(7);
             assertThat(evaluator.evaluate(activeExpiringAt(NOW.plusSeconds(2 * 24 * 3600)), NOW).level()).isEqualTo(3);
+        }
+
+        @Test
+        void defaultTiersKeepSnoozeGateOn14And7Only() {
+            var evaluator = evaluator();
+            assertThat(evaluator.evaluate(activeExpiringAt(NOW.plusSeconds(10 * 24 * 3600)), NOW).snoozeAllowed()).isTrue();
+            assertThat(evaluator.evaluate(activeExpiringAt(NOW.plusSeconds(5 * 24 * 3600)), NOW).snoozeAllowed()).isTrue();
+            assertThat(evaluator.evaluate(activeExpiringAt(NOW.plusSeconds(2 * 24 * 3600)), NOW).snoozeAllowed()).isFalse();
+        }
+
+        @Test
+        void snoozeAllowedIsNullOutsideExpiringSoon() {
+            var evaluator = evaluator();
+            samples().forEach(sample -> {
+                var verdict = evaluator.evaluate(sample.subscription(), NOW);
+                if (verdict.healthStatus() == SubscriptionHealthEvaluator.HealthStatus.EXPIRING_SOON) {
+                    org.assertj.core.api.Assertions.assertThat(verdict.snoozeAllowed()).isNotNull();
+                } else {
+                    org.assertj.core.api.Assertions.assertThat(verdict.snoozeAllowed()).isNull();
+                }
+            });
+        }
+    }
+
+    @Nested
+    class ConfigurableThresholds {
+
+        @Test
+        void customTiersDriveWindowLevelAndSnoozeGate() {
+            var custom = new SubscriptionHealthSettingsProvider.HealthThresholds(30, 10, 5);
+            var evaluator = evaluator(custom);
+
+            // days=20 → warn bucket (30) inside the widened window; snooze allowed.
+            var warn = evaluator.evaluate(activeExpiringAt(NOW.plusSeconds(20 * 24 * 3600)), NOW);
+            assertThat(warn.healthStatus()).isEqualTo(SubscriptionHealthEvaluator.HealthStatus.EXPIRING_SOON);
+            assertThat(warn.level()).isEqualTo(30);
+            assertThat(warn.snoozeAllowed()).isTrue();
+
+            // days=7 → caution bucket (10): > danger(5), ≤ caution(10); snooze allowed.
+            // (Plan example said days=4 → 10, but 4 ≤ danger 5 lands in the
+            // danger bucket — same shape as the original >3→7 mapping.)
+            var caution = evaluator.evaluate(activeExpiringAt(NOW.plusSeconds(7 * 24 * 3600)), NOW);
+            assertThat(caution.level()).isEqualTo(10);
+            assertThat(caution.snoozeAllowed()).isTrue();
+
+            // days=2 → danger bucket (5); snooze NOT allowed (last tier).
+            var danger = evaluator.evaluate(activeExpiringAt(NOW.plusSeconds(2 * 24 * 3600)), NOW);
+            assertThat(danger.level()).isEqualTo(5);
+            assertThat(danger.snoozeAllowed()).isFalse();
+
+            // days=40 → outside the widened window → HEALTHY again.
+            var healthy = evaluator.evaluate(activeExpiringAt(NOW.plusSeconds(40 * 24 * 3600)), NOW);
+            assertThat(healthy.healthStatus()).isEqualTo(SubscriptionHealthEvaluator.HealthStatus.HEALTHY);
         }
     }
 
@@ -130,7 +196,7 @@ class SubscriptionSemanticsCrossCheckTest {
 
         @Test
         void degradedAndExportEligibilityAgreeOnEverySample() {
-            var evaluator = new SubscriptionHealthEvaluator(new TerminationAnchorResolver());
+            var evaluator = evaluator();
             var anchor = new TerminationAnchorResolver();
             var resolver = new TenantSubscriptionResolver(subscriptionRepository, anchor);
             var policy = new SubscriptionExportPolicy(subscriptionRepository, anchor, WINDOW_DAYS);

@@ -38,6 +38,8 @@ public class SubscriptionResponse {
             Long daysToExpiry,
             boolean degraded,
             Instant terminatedAt,
+            /** EXPIRING_SOON only: level above the danger tier → "remind me later" allowed. Backend-computed so the frontend never hardcodes tier numbers. */
+            Boolean snoozeAllowed,
             ExportWindow exportWindow) {}
 
     /** NIX-325 export entitlement; null unless a termination window is open. */

@@ -1098,6 +1098,16 @@ Error 404:
 
 > ENTERPRISE 的 `applicableBand/unitPriceUsdCents/monthlyFeeUsdCents` 为 null（定制价）；`livestockCap` 为 -1 表示无头数上限。
 
+**health 块（NIX-324）**：`data.health` 为当前租户的墙钟判定（UI 状态必须来自该块，不得读裸 status 列）：
+
+| 字段 | 说明 |
+|---|---|
+| `healthStatus` | TRIAL / RENEWAL_FAILED / SUSPENDED / CANCELLED / EXPIRED / EXPIRING_SOON / HEALTHY |
+| `level` | 仅 TRIAL / EXPIRING_SOON 非空：临期分档（平台可配置，默认 14/7/3，见 admin-api.md §16） |
+| `trialActive` / `effectiveTier` / `daysToExpiry` / `degraded` / `terminatedAt` | 判定矩阵明细（spec §2） |
+| `snoozeAllowed` | 仅 EXPIRING_SOON 非空：`level > danger 档` 时 true（"稍后提醒"按钮的门控由后端判定，前端不得硬编码档位数字）；其他状态恒为 null |
+| `exportWindow` | NIX-325 到期数据导出权；无终止窗口时为 null |
+
 ### GET /subscription/plans
 
 各 Tier 定价目录（硬编码自 `SubscriptionTier` 枚举，NIX-245 USD 按头/月 + 存栏规模分档）。

@@ -4,6 +4,17 @@
 
 ---
 
+## 2026-11-03 — 订阅健康度临期阈值可配置化 + health 块 snoozeAllowed
+
+**来源**: NIX-324 后续，2026-10-31 spec §7 开放问题用户裁决（"阈值 14/7/3 改为可配置"），2026-11-03 plan 批准实施。
+
+**变更**:
+- `admin-api.md` 新增 **§16 订阅健康度阈值配置**：`GET/PUT /admin/subscription-health-settings`（platform_admin），单行表 `subscription_health_settings`（迁移 `V20261103100000`，种子 14/7/3 = 改造前硬编码行为）；PUT 校验 warn>caution>danger>0，审计 `SUBSCRIPTION_HEALTH_SETTINGS_UPDATED`，写后判定器缓存即失效。
+- `app-api.md` `GET /subscription` 补 **health 块字段表**，新增 **`snoozeAllowed`**（Boolean）：仅 EXPIRING_SOON 非空，`level > danger 档` 时 true——"稍后提醒"按钮门控改为后端判定，前端 `showsSnooze` 硬编码档位数字随之废弃；其他状态恒 null。
+- 语义影响：`level` 取值与临期窗口随平台配置变化（默认 14/7/3 下行为与此前完全一致）；消费方不得再假设档位恒为 14/7/3。
+
+---
+
 ## 2026-10-29 — Open API 归属校验六处清零（NIX-333）
 
 **来源**: NIX-323 changelog 记录的既有欠账 + 2026-10-29 用户裁决"六处同类一次清零"。
