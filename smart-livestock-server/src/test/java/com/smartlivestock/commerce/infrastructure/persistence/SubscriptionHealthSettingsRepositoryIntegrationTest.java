@@ -35,6 +35,9 @@ class SubscriptionHealthSettingsRepositoryIntegrationTest {
     @Autowired
     private SubscriptionHealthSettingsProvider settingsProvider;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
     @Test
     void seedRowMatchesPreChangeHardcodedTiers() {
         var row = settingsRepository.findFirstByOrderByIdAsc().orElseThrow();
@@ -46,20 +49,29 @@ class SubscriptionHealthSettingsRepositoryIntegrationTest {
 
     @Test
     void unorderedTiersViolateTheCheckConstraint() {
+        // Raw JDBC insert on purpose: a Hibernate saveAndFlush that violates
+        // the CHECK poisons the shared EntityManager ("don't flush the
+        // Session after an exception occurs") and would break any later
+        // query in this transaction. JdbcTemplate keeps Hibernate out of the
+        // failure path; on PostgreSQL the tx is aborted afterwards, so this
+        // test makes no further queries and asserts on the exception itself.
         var bad = new SubscriptionHealthSettingsJpaEntity();
         bad.setWarnDays(7);
         bad.setCautionDays(10); // caution > warn → CHECK violation
         bad.setDangerDays(3);
         bad.setUpdatedBy("it");
-        try {
-            settingsRepository.saveAndFlush(bad);
-            org.junit.jupiter.api.Assertions.fail("expected CHECK violation");
-        } catch (Exception e) {
-            // Hibernate wraps the JDBC constraint violation; any failure here
-            // is fine as long as nothing was persisted.
-            assertThat(settingsRepository.findFirstByOrderByIdAsc().orElseThrow().getWarnDays())
-                    .isEqualTo(14);
-        }
+        org.springframework.dao.DataIntegrityViolationException thrown =
+                org.assertj.core.api.Assertions.catchThrowableOfType(
+                        () -> jdbcTemplate.update(
+                                "INSERT INTO subscription_health_settings "
+                                        + "(warn_days, caution_days, danger_days, updated_by) "
+                                        + "VALUES (?, ?, ?, ?)",
+                                bad.getWarnDays(), bad.getCautionDays(),
+                                bad.getDangerDays(), bad.getUpdatedBy()),
+                        org.springframework.dao.DataIntegrityViolationException.class);
+        org.assertj.core.api.Assertions.assertThat(thrown).isNotNull();
+        // The rejection must come from OUR ordering CHECK, not anything else.
+        assertThat(thrown.getMessage()).contains("subscription_health_settings_ordered");
     }
 
     @Test
