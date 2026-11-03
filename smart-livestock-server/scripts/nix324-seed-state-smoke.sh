@@ -17,7 +17,7 @@ case "$T" in
   expired)        SQL="UPDATE subscriptions SET status='expired', expires_at=now()-interval '10 days' WHERE tenant_id=1;";;
   expiring_13)    SQL="UPDATE subscriptions SET status='active', expires_at=now()+interval '13 days', cancelled_at=NULL, trial_ends_at=NULL WHERE tenant_id=1;";;
   expiring_6)     SQL="UPDATE subscriptions SET status='active', expires_at=now()+interval '6 days', cancelled_at=NULL, trial_ends_at=NULL WHERE tenant_id=1;";;
-  expiring_soon)  SQL="UPDATE subscriptions SET status='active', expires_at=now()+interval '5 days' WHERE tenant_id=1;";;
+  expiring_soon)  SQL="UPDATE subscriptions SET status='active', expires_at=now()+interval '2 days', cancelled_at=NULL, trial_ends_at=NULL WHERE tenant_id=1;";;
   healthy)        SQL="UPDATE subscriptions SET status='active', expires_at=now()+interval '90 days' WHERE tenant_id=1;";;
   restore)        SQL="UPDATE subscriptions SET status='renewal_failed', expires_at=now()-interval '10 days', cancelled_at=NULL, trial_ends_at=NULL WHERE tenant_id=1;";;
   *) echo "unknown state $T"; exit 1;;
