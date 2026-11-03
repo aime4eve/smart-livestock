@@ -39,7 +39,11 @@ echo "==> [1.5] Cleaning old JARs..."
 cd build/libs && ls -t smart-livestock-server-*.jar 2>/dev/null | tail -n +2 | xargs -r rm -f && cd ../..
 
 echo "==> [2/5] Syncing code to remote ($ENV)..."
-rsync -avz \
+# --delete keeps the remote tree identical to local: stale files deleted from
+# git previously survived here and leaked into release jars (839 incident,
+# 2026-11-02 — LoggingSignalOutboxEventPublisher shipped as a duplicate bean).
+# Excluded paths (.env/.env.dev) are protected from deletion by rsync default.
+rsync -avz --delete \
   --exclude='.git' \
   --exclude='.gradle' \
   --exclude='node_modules' \
@@ -52,6 +56,7 @@ rsync -avz \
   --exclude='.env' \
   --exclude='.env.dev' \
   --exclude='._*' \
+  --exclude='nohup.out' \
   . "$REMOTE:$REMOTE_DIR/"
 
 echo "==> [3/5] Cleaning old JARs on remote..."
