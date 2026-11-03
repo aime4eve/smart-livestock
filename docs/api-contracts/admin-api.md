@@ -2206,7 +2206,7 @@ Request: `{ "warnDays": 30, "cautionDays": 10, "dangerDays": 5 }`
 
 - 校验：三档均 >0 且 warn > caution > danger；违反 → 400 `VALIDATION_ERROR`（`commerce.healthSettings.invalidTiers`）
 - 响应：同 GET 结构，返回保存后的三档
-- 语义影响：临期窗口 = `daysToExpiry ≤ warnDays` 判 EXPIRING_SOON；`level` 取三档值本身；`snoozeAllowed = level > dangerDays`（仅 EXPIRING_SOON 非 null，见 app-api.md health 块）
+- 语义影响：临期窗口 = `daysToExpiry ≤ warnDays` 判 EXPIRING_SOON；`level` 取三档值本身；`snoozeAllowed = level > dangerDays` 仅 EXPIRING_SOON 非 null；`severity`（`"info"`/`"warn"`/`"danger"` 按 level 等于哪一档）在 level 非空的状态（TRIAL/EXPIRING_SOON）均由后端判定，见 app-api.md health 块
 
 **审计**: 写操作记录 `SUBSCRIPTION_HEALTH_SETTINGS_UPDATED`（audit_logs，detail 含 settingsId/三档/operatorRole）。
 

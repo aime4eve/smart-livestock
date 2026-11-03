@@ -146,10 +146,53 @@ class SubscriptionSemanticsCrossCheckTest {
         }
 
         @Test
-        void snoozeAllowedIsNullOutsideExpiringSoon() {
+        void defaultTiersMapSeverity14Info7Warn3Danger() {
+            var evaluator = evaluator();
+            assertThat(evaluator.evaluate(activeExpiringAt(NOW.plusSeconds(10 * 24 * 3600)), NOW).severity()).isEqualTo("info");
+            assertThat(evaluator.evaluate(activeExpiringAt(NOW.plusSeconds(5 * 24 * 3600)), NOW).severity()).isEqualTo("warn");
+            assertThat(evaluator.evaluate(activeExpiringAt(NOW.plusSeconds(2 * 24 * 3600)), NOW).severity()).isEqualTo("danger");
+        }
+
+        @Test
+        void trialBannerEscalatesSeverityByLevelWithoutSnooze() {
+            var evaluator = evaluator();
+            // isTrialActive() gates on the real wall clock (not the samples'
+            // reference NOW), so trial ends must be built from Instant.now();
+            // daysUntil is then evaluated against the same real clock.
+            var realNow = Instant.now();
+            // Spec §2: trial escalates color by level like EXPIRING_SOON…
+            assertThat(evaluator.evaluate(
+                    Subscription.startTrial(TENANT_ID, "direct",
+                            realNow.minusSeconds(5 * 24 * 3600), realNow.plusSeconds(10 * 24 * 3600)),
+                    realNow).severity()).isEqualTo("info");
+            assertThat(evaluator.evaluate(
+                    Subscription.startTrial(TENANT_ID, "direct",
+                            realNow.minusSeconds(5 * 24 * 3600), realNow.plusSeconds(5 * 24 * 3600)),
+                    realNow).severity()).isEqualTo("warn");
+            assertThat(evaluator.evaluate(
+                    Subscription.startTrial(TENANT_ID, "direct",
+                            realNow.minusSeconds(5 * 24 * 3600), realNow.plusSeconds(2 * 24 * 3600)),
+                    realNow).severity()).isEqualTo("danger");
+            // …but snooze stays an EXPIRING_SOON-only affordance (spec v1.3).
+            var trial = evaluator.evaluate(
+                    Subscription.startTrial(TENANT_ID, "direct",
+                            realNow.minusSeconds(5 * 24 * 3600), realNow.plusSeconds(5 * 24 * 3600)),
+                    realNow);
+            assertThat(trial.healthStatus()).isEqualTo(SubscriptionHealthEvaluator.HealthStatus.TRIAL);
+            assertThat(trial.level()).isNotNull();
+            assertThat(trial.snoozeAllowed()).isNull();
+        }
+
+        @Test
+        void severityNonNullWhereverLevelPresentSnoozeOnlyInExpiringSoon() {
             var evaluator = evaluator();
             samples().forEach(sample -> {
                 var verdict = evaluator.evaluate(sample.subscription(), NOW);
+                if (verdict.level() != null) {
+                    org.assertj.core.api.Assertions.assertThat(verdict.severity()).isNotNull();
+                } else {
+                    org.assertj.core.api.Assertions.assertThat(verdict.severity()).isNull();
+                }
                 if (verdict.healthStatus() == SubscriptionHealthEvaluator.HealthStatus.EXPIRING_SOON) {
                     org.assertj.core.api.Assertions.assertThat(verdict.snoozeAllowed()).isNotNull();
                 } else {
@@ -172,6 +215,7 @@ class SubscriptionSemanticsCrossCheckTest {
             assertThat(warn.healthStatus()).isEqualTo(SubscriptionHealthEvaluator.HealthStatus.EXPIRING_SOON);
             assertThat(warn.level()).isEqualTo(30);
             assertThat(warn.snoozeAllowed()).isTrue();
+            assertThat(warn.severity()).isEqualTo("info");
 
             // days=7 → caution bucket (10): > danger(5), ≤ caution(10); snooze allowed.
             // (Plan example said days=4 → 10, but 4 ≤ danger 5 lands in the
@@ -179,11 +223,13 @@ class SubscriptionSemanticsCrossCheckTest {
             var caution = evaluator.evaluate(activeExpiringAt(NOW.plusSeconds(7 * 24 * 3600)), NOW);
             assertThat(caution.level()).isEqualTo(10);
             assertThat(caution.snoozeAllowed()).isTrue();
+            assertThat(caution.severity()).isEqualTo("warn");
 
             // days=2 → danger bucket (5); snooze NOT allowed (last tier).
             var danger = evaluator.evaluate(activeExpiringAt(NOW.plusSeconds(2 * 24 * 3600)), NOW);
             assertThat(danger.level()).isEqualTo(5);
             assertThat(danger.snoozeAllowed()).isFalse();
+            assertThat(danger.severity()).isEqualTo("danger");
 
             // days=40 → outside the widened window → HEALTHY again.
             var healthy = evaluator.evaluate(activeExpiringAt(NOW.plusSeconds(40 * 24 * 3600)), NOW);

@@ -10,7 +10,7 @@
 
 **变更**:
 - `admin-api.md` 新增 **§16 订阅健康度阈值配置**：`GET/PUT /admin/subscription-health-settings`（platform_admin），单行表 `subscription_health_settings`（迁移 `V20261103100000`，种子 14/7/3 = 改造前硬编码行为）；PUT 校验 warn>caution>danger>0，审计 `SUBSCRIPTION_HEALTH_SETTINGS_UPDATED`，写后判定器缓存即失效。
-- `app-api.md` `GET /subscription` 补 **health 块字段表**，新增 **`snoozeAllowed`**（Boolean）：仅 EXPIRING_SOON 非空，`level > danger 档` 时 true——"稍后提醒"按钮门控改为后端判定，前端 `showsSnooze` 硬编码档位数字随之废弃；其他状态恒 null。
+- `app-api.md` `GET /subscription` 补 **health 块字段表**，新增 **`snoozeAllowed`**（Boolean）：仅 EXPIRING_SOON 非空，`level > danger 档` 时 true——"稍后提醒"按钮门控改为后端判定，前端 `showsSnooze` 硬编码档位数字随之废弃；其他状态恒 null。同批新增 **`severity`**（"info"/"warn"/"danger"）：横幅颜色档由后端按配置阈值判定，前端颜色分档硬编码（level≤3/≤7）随之废弃；在 level 非空的状态（TRIAL/EXPIRING_SOON）非空——TRIAL 横幅按 spec §2 仍随 level 升级颜色（不随级别降档退化为 info），其余状态恒 null；`snoozeAllowed` 维持仅 EXPIRING_SOON 非空（spec v1.3：TRIAL 无稍后提醒）。
 - 语义影响：`level` 取值与临期窗口随平台配置变化（默认 14/7/3 下行为与此前完全一致）；消费方不得再假设档位恒为 14/7/3。
 
 ---

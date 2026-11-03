@@ -6334,5 +6334,14 @@
   "subscriptionHealthConfirmRestoreTitle": "确认恢复服务？",
   "subscriptionHealthConfirmRestoreBody": "该租户订阅将恢复为生效状态。",
   "subscriptionHealthActionDone": "操作成功",
-  "subscriptionHealthActionFailed": "操作失败"
+  "subscriptionHealthActionFailed": "操作失败",
+  "subscriptionHealthSettingsTitle": "临期阈值设置",
+  "subscriptionHealthSettingsWarnLabel": "临期预警档（天）",
+  "subscriptionHealthSettingsCautionLabel": "中档（天）",
+  "subscriptionHealthSettingsDangerLabel": "最后档（天）",
+  "subscriptionHealthSettingsSave": "保存",
+  "subscriptionHealthSettingsSaved": "阈值已更新，判定即时生效",
+  "subscriptionHealthSettingsSaveFailed": "保存失败",
+  "subscriptionHealthSettingsInvalidOrder": "三档必须为正数且依次递减（预警 > 中档 > 最后档）",
+  "subscriptionHealthSettingsLoadFailed": "阈值加载失败"
 }

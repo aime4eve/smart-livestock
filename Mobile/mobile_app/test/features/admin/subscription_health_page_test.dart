@@ -18,14 +18,38 @@ import 'package:http/testing.dart';
 void main() {
   final capturedQueries = <String>[];
   final capturedPuts = <({String path, Map<String, dynamic>? body})>[];
+  final capturedSettingsPuts = <Map<String, dynamic>?>[];
 
   setUp(() {
     capturedQueries.clear();
     capturedPuts.clear();
+    capturedSettingsPuts.clear();
     FlutterSecureStorage.setMockInitialValues({});
   });
 
   http.Client mockClient() => MockClient((req) async {
+        // Threshold settings card (backend contract §16).
+        if (req.url.path.endsWith('subscription-health-settings')) {
+          if (req.method == 'PUT') {
+            capturedSettingsPuts.add(jsonDecode(req.body) as Map<String, dynamic>?);
+            return http.Response(
+              jsonEncode({
+                'code': 'OK',
+                'data': jsonDecode(req.body),
+              }),
+              200,
+              headers: {'content-type': 'application/json; charset=utf-8'},
+            );
+          }
+          return http.Response(
+            jsonEncode({
+              'code': 'OK',
+              'data': {'warnDays': 14, 'cautionDays': 7, 'dangerDays': 3},
+            }),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        }
         if (req.method == 'PUT') {
           capturedPuts.add((
             path: req.url.path,
@@ -40,7 +64,9 @@ void main() {
             headers: {'content-type': 'application/json; charset=utf-8'},
           );
         }
-        capturedQueries.add(req.url.query);
+        if (req.url.path.endsWith('subscription-overview')) {
+          capturedQueries.add(req.url.query);
+        }
         final items = [
           {
             'tenantId': 2,
@@ -101,6 +127,12 @@ void main() {
       });
 
   Future<void> pumpPage(WidgetTester tester) async {
+    // Tall viewport: the settings card consumes top space and the overview
+    // ListView is lazy — without it the lower rows never build and key
+    // lookups in the ops-column tests miss.
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(const MaterialApp(
       locale: Locale('zh'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -247,4 +279,73 @@ void main() {
             await tester.pumpAndSettle();
             expect(capturedPuts, isEmpty);
           }));
+
+// ── Threshold settings card (backend contract §16) ──────────────────
+
+testWidgets('settings card renders loaded thresholds and PUTs on save',
+    (tester) => withMock(() async {
+          await pumpPage(tester);
+          expect(find.byKey(const Key('health-settings-card')), findsOneWidget);
+          expect(
+            tester.widget<TextField>(
+                find.byKey(const Key('health-settings-warn'))).controller!.text,
+            '14',
+          );
+          expect(
+            tester.widget<TextField>(
+                find.byKey(const Key('health-settings-caution'))).controller!
+                .text,
+            '7',
+          );
+
+          await tester.enterText(
+              find.byKey(const Key('health-settings-warn')), '30');
+          await tester.enterText(
+              find.byKey(const Key('health-settings-caution')), '10');
+          await tester.enterText(
+              find.byKey(const Key('health-settings-danger')), '5');
+          await tester.tap(find.byKey(const Key('health-settings-save')));
+          await tester.pumpAndSettle();
+
+          expect(capturedSettingsPuts, hasLength(1));
+          expect(capturedSettingsPuts.single,
+              {'warnDays': 30, 'cautionDays': 10, 'dangerDays': 5});
+          expect(find.text('阈值已更新，判定即时生效'), findsOneWidget);
+        }));
+
+testWidgets('frontend order validation blocks an invalid save without PUT',
+    (tester) => withMock(() async {
+          await pumpPage(tester);
+          await tester.enterText(
+              find.byKey(const Key('health-settings-warn')), '3');
+          await tester.enterText(
+              find.byKey(const Key('health-settings-caution')), '7');
+          await tester.tap(find.byKey(const Key('health-settings-save')));
+          await tester.pumpAndSettle();
+
+          expect(find.byKey(const Key('health-settings-order-error')),
+              findsOneWidget);
+          expect(capturedSettingsPuts, isEmpty,
+              reason: 'invalid order must not reach the backend');
+        }));
+
+testWidgets('editing any tier field clears the stale order error',
+    (tester) => withMock(() async {
+          await pumpPage(tester);
+          await tester.enterText(
+              find.byKey(const Key('health-settings-warn')), '3');
+          await tester.enterText(
+              find.byKey(const Key('health-settings-caution')), '7');
+          await tester.tap(find.byKey(const Key('health-settings-save')));
+          await tester.pumpAndSettle();
+          expect(find.byKey(const Key('health-settings-order-error')),
+              findsOneWidget);
+
+          await tester.enterText(
+              find.byKey(const Key('health-settings-warn')), '30');
+          await tester.pump();
+          expect(find.byKey(const Key('health-settings-order-error')),
+              findsNothing);
+        }));
+
 }

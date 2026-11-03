@@ -1106,6 +1106,7 @@ Error 404:
 | `level` | 仅 TRIAL / EXPIRING_SOON 非空：临期分档（平台可配置，默认 14/7/3，见 admin-api.md §16） |
 | `trialActive` / `effectiveTier` / `daysToExpiry` / `degraded` / `terminatedAt` | 判定矩阵明细（spec §2） |
 | `snoozeAllowed` | 仅 EXPIRING_SOON 非空：`level > danger 档` 时 true（"稍后提醒"按钮的门控由后端判定，前端不得硬编码档位数字）；其他状态恒为 null |
+| `severity` | 在 `level` 非空的状态（TRIAL / EXPIRING_SOON）非空：横幅颜色档 `"info"` / `"warn"` / `"danger"`（按 level 与平台配置三档的对应关系由后端判定，前端不得按 level 数字硬编码颜色）；`level` 为 null 的状态恒为 null |
 | `exportWindow` | NIX-325 到期数据导出权；无终止窗口时为 null |
 
 ### GET /subscription/plans

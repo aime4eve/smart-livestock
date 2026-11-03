@@ -7899,4 +7899,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get subscriptionHealthActionFailed => 'Action failed';
+
+  @override
+  String get subscriptionHealthSettingsTitle => 'Expiry threshold settings';
+
+  @override
+  String get subscriptionHealthSettingsWarnLabel => 'Expiry warn tier (days)';
+
+  @override
+  String get subscriptionHealthSettingsCautionLabel => 'Caution tier (days)';
+
+  @override
+  String get subscriptionHealthSettingsDangerLabel => 'Final tier (days)';
+
+  @override
+  String get subscriptionHealthSettingsSave => 'Save';
+
+  @override
+  String get subscriptionHealthSettingsSaved =>
+      'Thresholds updated — verdicts take effect immediately';
+
+  @override
+  String get subscriptionHealthSettingsSaveFailed => 'Save failed';
+
+  @override
+  String get subscriptionHealthSettingsInvalidOrder =>
+      'All three tiers must be positive and strictly decreasing (warn > caution > final)';
+
+  @override
+  String get subscriptionHealthSettingsLoadFailed =>
+      'Failed to load thresholds';
 }

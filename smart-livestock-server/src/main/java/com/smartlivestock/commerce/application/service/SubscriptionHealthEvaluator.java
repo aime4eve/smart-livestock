@@ -15,12 +15,13 @@ import java.time.Instant;
  * (identity side).
  *
  * Rendering contract for consumers: the banner type comes from
- * {@link HealthStatus}; the export-entitlement card renders whenever the
- * caller-supplied export window exists (CANCELLED/EXPIRED inside the 30-day
- * window both get it — the channel belongs to TerminationAnchorResolver,
- * not to the banner label). The "remind me later" button is driven by
- * {@code snoozeAllowed} — computed here so the frontend never hardcodes
- * tier numbers (the tiers are platform-configurable since V20261103100000).
+ * {@link HealthStatus}; the banner color tier comes from {@code severity}
+ * (info/warn/danger, computed here so the frontend never hardcodes tier
+ * numbers); the export-entitlement card renders whenever the caller-supplied
+ * export window exists (CANCELLED/EXPIRED inside the 30-day window both get
+ * it — the channel belongs to TerminationAnchorResolver, not to the banner
+ * label). The "remind me later" button is driven by {@code snoozeAllowed} —
+ * computed here for the same reason.
  */
 @Component
 @RequiredArgsConstructor
@@ -38,14 +39,15 @@ public class SubscriptionHealthEvaluator {
             Long daysToExpiry,      // anchor-based whole days, null when no anchor
             boolean degraded,       // termination in effect (basic fallback)
             Instant terminatedAt,   // non-null when degraded
-            Boolean snoozeAllowed   // EXPIRING_SOON only: level above the danger tier
+            Boolean snoozeAllowed,  // EXPIRING_SOON only: level above the danger tier
+            String severity         // level != null (TRIAL/EXPIRING_SOON): "info"/"warn"/"danger"
     ) {
-        /** Back-compat shim for callers/tests that predate snoozeAllowed. */
+        /** Back-compat shim for callers/tests that predate snoozeAllowed/severity. */
         public HealthVerdict(HealthStatus healthStatus, Integer level, boolean trialActive,
                              String effectiveTier, Long daysToExpiry, boolean degraded,
                              Instant terminatedAt) {
             this(healthStatus, level, trialActive, effectiveTier, daysToExpiry,
-                    degraded, terminatedAt, null);
+                    degraded, terminatedAt, null, null);
         }
     }
 
@@ -58,13 +60,15 @@ public class SubscriptionHealthEvaluator {
         String degradedTier = "basic";
         String activeTier = sub.effectiveTier().name().toLowerCase();
 
-        // Matrix #1: active trial. Trial banner is its own type — the snooze
-        // gate stays null (snooze is an EXPIRING_SOON-only affordance).
+        // Matrix #1: active trial. Trial banner is its own type and still
+        // escalates color by level (spec §2): severity follows the same tier
+        // mapping whenever level is present. Only the snooze gate stays null
+        // (snooze is an EXPIRING_SOON-only affordance, spec v1.3).
         if (trialActive) {
             Integer level = levelFor(daysUntil(sub.getTrialEndsAt(), now), thresholds);
             return new HealthVerdict(HealthStatus.TRIAL, level,
                     true, activeTier, daysUntil(sub.getTrialEndsAt(), now), false, null,
-                    null);
+                    null, severityFor(level, thresholds));
         }
         // Matrix #2–#4: explicit revivable/stopped statuses (banners differ,
         // none is "degraded" — RENEWAL_FAILED keeps tier until repayment,
@@ -73,11 +77,11 @@ public class SubscriptionHealthEvaluator {
             case RENEWAL_FAILED -> {
                 return new HealthVerdict(HealthStatus.RENEWAL_FAILED, null, false,
                         activeTier, daysUntil(sub.getExpiresAt(), now), false, null,
-                        null);
+                        null, null);
             }
             case SUSPENDED -> {
                 return new HealthVerdict(HealthStatus.SUSPENDED, null, false,
-                        activeTier, null, false, null, null);
+                        activeTier, null, false, null, null, null);
             }
             case CANCELLED -> {
                 var termination = terminationAnchorResolver.resolve(sub, now);
@@ -86,7 +90,7 @@ public class SubscriptionHealthEvaluator {
                 return new HealthVerdict(HealthStatus.CANCELLED, null, false,
                         degradedTier, null, true,
                         termination.map(TerminationAnchorResolver.Termination::anchoredAt).orElse(null),
-                        null);
+                        null, null);
             }
             default -> { /* fall through to wall-clock matrix below */ }
         }
@@ -96,7 +100,7 @@ public class SubscriptionHealthEvaluator {
         if (termination.isPresent()) {
             Instant anchoredAt = termination.get().anchoredAt();
             return new HealthVerdict(HealthStatus.EXPIRED, null, false,
-                    degradedTier, daysUntil(anchoredAt, now), true, anchoredAt, null);
+                    degradedTier, daysUntil(anchoredAt, now), true, anchoredAt, null, null);
         }
         // Matrix #6: expiring soon (ACTIVE anchored on expiresAt).
         Long days = daysUntil(sub.getExpiresAt(), now);
@@ -104,10 +108,11 @@ public class SubscriptionHealthEvaluator {
             Integer level = levelFor(days, thresholds);
             return new HealthVerdict(HealthStatus.EXPIRING_SOON, level, false,
                     activeTier, days, false, null,
-                    snoozeAllowedFor(level, thresholds));
+                    snoozeAllowedFor(level, thresholds),
+                    severityFor(level, thresholds));
         }
         // Matrix #7: healthy.
-        return new HealthVerdict(HealthStatus.HEALTHY, null, false, activeTier, days, false, null, null);
+        return new HealthVerdict(HealthStatus.HEALTHY, null, false, activeTier, days, false, null, null, null);
     }
 
     private static Long daysUntil(Instant target, Instant now) {
@@ -125,5 +130,14 @@ public class SubscriptionHealthEvaluator {
     private static Boolean snoozeAllowedFor(Integer level, HealthThresholds thresholds) {
         if (level == null) return null;
         return level > thresholds.dangerDays();
+    }
+
+    /** Banner color tier, keyed by which configured threshold the level equals. */
+    private static String severityFor(Integer level, HealthThresholds thresholds) {
+        if (level == null) return null;
+        if (level == thresholds.warnDays()) return "info";
+        if (level == thresholds.cautionDays()) return "warn";
+        if (level == thresholds.dangerDays()) return "danger";
+        return null;
     }
 }

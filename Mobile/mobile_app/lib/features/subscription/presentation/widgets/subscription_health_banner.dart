@@ -20,12 +20,14 @@ class SubscriptionHealthBanner extends StatelessWidget {
   final VoidCallback onRenew;
   final VoidCallback? onExport;
 
-  /// NIX-334: present only while the prototype offers "稍后提醒" —
-  /// EXPIRING_SOON at the 14/7-day levels (the 3-day state removes it).
+  /// NIX-334: present only while the backend says "remind me later" is
+  /// allowed (EXPIRING_SOON above the configured danger tier; the last
+  /// tier removes it). The level-number comparison is gone — thresholds
+  /// are platform-configurable and the verdict is backend-decided.
   final VoidCallback? onSnooze;
 
   static bool showsSnooze(SubscriptionHealth health) =>
-      health.healthStatus == 'EXPIRING_SOON' && (health.level ?? 14) > 3;
+      health.healthStatus == 'EXPIRING_SOON' && health.snoozeAllowed == true;
 
   @override
   Widget build(BuildContext context) {
@@ -127,18 +129,21 @@ class SubscriptionHealthBanner extends StatelessWidget {
   }
 
   // Spec §2 matrix colours: renewal_failed/suspended = warn orange;
-  // trial and expiring_soon escalate through level (14 info → 7 warn →
-  // 3 danger); cancelled/expired = danger red.
+  // cancelled/expired = danger red. EXPIRING_SOON and TRIAL-with-level
+  // consume the backend-decided `severity` ("info"/"warn"/"danger") — the
+  // tier boundaries are platform-configurable so the level number must not
+  // be mapped locally. Missing severity (backend predating the field) falls
+  // back to info: with custom thresholds the level number is meaningless
+  // locally and understating the colour is the safe direction.
   static _Severity _severityFor(SubscriptionHealth h) {
     switch (h.healthStatus) {
       case 'TRIAL':
-        // Matrix #1: info blue, ≤14/7/3 days reuse the level colours.
-        return h.level != null ? _severityForLevel(h.level!) : _info;
+        return h.level != null ? _severityForName(h.severity) : _info;
       case 'RENEWAL_FAILED':
       case 'SUSPENDED':
         return _warn;
       case 'EXPIRING_SOON':
-        return _severityForLevel(h.level ?? 14);
+        return _severityForName(h.severity);
       case 'CANCELLED':
       case 'EXPIRED':
       default:
@@ -146,18 +151,18 @@ class SubscriptionHealthBanner extends StatelessWidget {
     }
   }
 
+  static _Severity _severityForName(String? severity) => switch (severity) {
+        'warn' => _warn,
+        'danger' => _danger,
+        _ => _info,
+      };
+
   static const _info = _Severity(
       accent: Color(0xFF4A7F9D), background: Color(0xFFE2EDF4));
   static const _warn = _Severity(
       accent: Color(0xFFD28A2D), background: Color(0xFFF7EDDD));
   static const _danger = _Severity(
       accent: Color(0xFFC2564B), background: Color(0xFFF7E5E2));
-
-  static _Severity _severityForLevel(int level) {
-    if (level <= 3) return _danger;
-    if (level <= 7) return _warn;
-    return _info;
-  }
 
   (String, String) _copyFor(dynamic l10n, SubscriptionHealth h) {
     switch (h.healthStatus) {

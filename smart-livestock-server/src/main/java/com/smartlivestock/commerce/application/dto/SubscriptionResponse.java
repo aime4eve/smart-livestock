@@ -40,6 +40,8 @@ public class SubscriptionResponse {
             Instant terminatedAt,
             /** EXPIRING_SOON only: level above the danger tier → "remind me later" allowed. Backend-computed so the frontend never hardcodes tier numbers. */
             Boolean snoozeAllowed,
+            /** Present whenever level is present (TRIAL/EXPIRING_SOON): "info" / "warn" / "danger" banner color tier, backend-computed against the configured thresholds. */
+            String severity,
             ExportWindow exportWindow) {}
 
     /** NIX-325 export entitlement; null unless a termination window is open. */

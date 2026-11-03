@@ -98,6 +98,7 @@ public class SubscriptionController {
                 verdict.degraded(),
                 verdict.terminatedAt(),
                 verdict.snoozeAllowed(),
+                verdict.severity(),
                 exportWindow);
     }
 

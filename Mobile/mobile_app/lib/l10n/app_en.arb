@@ -6338,5 +6338,14 @@
   "subscriptionHealthConfirmRestoreTitle": "Restore service?",
   "subscriptionHealthConfirmRestoreBody": "The tenant's subscription will be reactivated.",
   "subscriptionHealthActionDone": "Done",
-  "subscriptionHealthActionFailed": "Action failed"
+  "subscriptionHealthActionFailed": "Action failed",
+  "subscriptionHealthSettingsTitle": "Expiry threshold settings",
+  "subscriptionHealthSettingsWarnLabel": "Expiry warn tier (days)",
+  "subscriptionHealthSettingsCautionLabel": "Caution tier (days)",
+  "subscriptionHealthSettingsDangerLabel": "Final tier (days)",
+  "subscriptionHealthSettingsSave": "Save",
+  "subscriptionHealthSettingsSaved": "Thresholds updated — verdicts take effect immediately",
+  "subscriptionHealthSettingsSaveFailed": "Save failed",
+  "subscriptionHealthSettingsInvalidOrder": "All three tiers must be positive and strictly decreasing (warn > caution > final)",
+  "subscriptionHealthSettingsLoadFailed": "Failed to load thresholds"
 }

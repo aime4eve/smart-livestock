@@ -7704,4 +7704,32 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get subscriptionHealthActionFailed => '操作失败';
+
+  @override
+  String get subscriptionHealthSettingsTitle => '临期阈值设置';
+
+  @override
+  String get subscriptionHealthSettingsWarnLabel => '临期预警档（天）';
+
+  @override
+  String get subscriptionHealthSettingsCautionLabel => '中档（天）';
+
+  @override
+  String get subscriptionHealthSettingsDangerLabel => '最后档（天）';
+
+  @override
+  String get subscriptionHealthSettingsSave => '保存';
+
+  @override
+  String get subscriptionHealthSettingsSaved => '阈值已更新，判定即时生效';
+
+  @override
+  String get subscriptionHealthSettingsSaveFailed => '保存失败';
+
+  @override
+  String get subscriptionHealthSettingsInvalidOrder =>
+      '三档必须为正数且依次递减（预警 > 中档 > 最后档）';
+
+  @override
+  String get subscriptionHealthSettingsLoadFailed => '阈值加载失败';
 }

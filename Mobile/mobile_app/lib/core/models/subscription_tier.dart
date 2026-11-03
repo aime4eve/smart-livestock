@@ -198,13 +198,24 @@ class PlanInfo {
 /// keeps status=TRIAL until someone flips it).
 class SubscriptionHealth {
   final String healthStatus; // TRIAL / RENEWAL_FAILED / SUSPENDED / CANCELLED / EXPIRED / EXPIRING_SOON / HEALTHY
-  final int? level;          // EXPIRING_SOON only: 14 / 7 / 3
+  final int? level;          // EXPIRING_SOON only: configured warn/caution/danger bucket
   final bool trialActive;
   final String effectiveTier;
   final int? daysToExpiry;
   final bool degraded;
   final DateTime? terminatedAt;
   final ExportWindow? exportWindow;
+
+  /// Backend-decided "remind me later" availability (level above the
+  /// configured danger tier). Null for non-EXPIRING_SOON states and for
+  /// responses from backends predating the field — treat as false.
+  final bool? snoozeAllowed;
+
+  /// Backend-decided banner colour tier ("info"/"warn"/"danger") for
+  /// EXPIRING_SOON — never derive colours from the level number, the tier
+  /// boundaries are platform-configurable. Null for other states and for
+  /// responses from backends predating the field.
+  final String? severity;
 
   const SubscriptionHealth({
     required this.healthStatus,
@@ -215,6 +226,8 @@ class SubscriptionHealth {
     required this.degraded,
     this.terminatedAt,
     this.exportWindow,
+    this.snoozeAllowed,
+    this.severity,
   });
 
   bool get isHealthy => healthStatus == 'HEALTHY';
@@ -233,6 +246,8 @@ class SubscriptionHealth {
           ? DateTime.parse(json['terminatedAt'] as String)
           : null,
       exportWindow: ew is Map<String, dynamic> ? ExportWindow.fromJson(ew) : null,
+      snoozeAllowed: json['snoozeAllowed'] as bool?,
+      severity: json['severity'] as String?,
     );
   }
 }

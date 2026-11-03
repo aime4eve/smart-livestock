@@ -4,6 +4,7 @@ import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/admin/presentation/widgets/subscription_health_settings_card.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 /// NIX-324 admin — all-tenant subscription health overview. Urgency-sorted
@@ -89,6 +90,9 @@ class _SubscriptionHealthPageState extends State<SubscriptionHealthPage> {
       ),
       body: Column(
         children: [
+          // Platform-configurable expiry thresholds (above the filters so
+          // the settings card is visible on page entry — lessons #25).
+          const SubscriptionHealthSettingsCard(),
           Padding(
             padding: const EdgeInsets.fromLTRB(
                 AppSpacing.md, AppSpacing.md, AppSpacing.md, 0),

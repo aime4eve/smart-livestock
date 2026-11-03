@@ -14174,6 +14174,60 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'操作失败'**
   String get subscriptionHealthActionFailed;
+
+  /// No description provided for @subscriptionHealthSettingsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'临期阈值设置'**
+  String get subscriptionHealthSettingsTitle;
+
+  /// No description provided for @subscriptionHealthSettingsWarnLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'临期预警档（天）'**
+  String get subscriptionHealthSettingsWarnLabel;
+
+  /// No description provided for @subscriptionHealthSettingsCautionLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'中档（天）'**
+  String get subscriptionHealthSettingsCautionLabel;
+
+  /// No description provided for @subscriptionHealthSettingsDangerLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'最后档（天）'**
+  String get subscriptionHealthSettingsDangerLabel;
+
+  /// No description provided for @subscriptionHealthSettingsSave.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存'**
+  String get subscriptionHealthSettingsSave;
+
+  /// No description provided for @subscriptionHealthSettingsSaved.
+  ///
+  /// In zh, this message translates to:
+  /// **'阈值已更新，判定即时生效'**
+  String get subscriptionHealthSettingsSaved;
+
+  /// No description provided for @subscriptionHealthSettingsSaveFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存失败'**
+  String get subscriptionHealthSettingsSaveFailed;
+
+  /// No description provided for @subscriptionHealthSettingsInvalidOrder.
+  ///
+  /// In zh, this message translates to:
+  /// **'三档必须为正数且依次递减（预警 > 中档 > 最后档）'**
+  String get subscriptionHealthSettingsInvalidOrder;
+
+  /// No description provided for @subscriptionHealthSettingsLoadFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'阈值加载失败'**
+  String get subscriptionHealthSettingsLoadFailed;
 }
 
 class _AppLocalizationsDelegate
