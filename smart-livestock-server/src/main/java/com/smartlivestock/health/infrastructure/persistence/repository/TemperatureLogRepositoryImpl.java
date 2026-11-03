@@ -27,6 +27,14 @@ public class TemperatureLogRepositoryImpl implements TemperatureLogRepository {
     }
 
     @Override
+    public List<TemperatureLog> findWindowByLivestockId(Long livestockId, Instant from, Instant to) {
+        return jpaRepo
+                .findByLivestockIdAndRecordedAtGreaterThanEqualAndRecordedAtLessThanOrderByRecordedAtAsc(
+                        livestockId, from, to)
+                .stream().map(HealthMapper::toDomain).toList();
+    }
+
+    @Override
     public TelemetryPage<TemperatureLog> findPageByLivestock(Long livestockId, Instant from, Instant to, int page, int pageSize) {
         return toPage(jpaRepo.findByLivestockIdAndRecordedAtBetweenOrderByRecordedAtAsc(
                         livestockId, from, to, PageRequest.of(Math.max(0, page - 1), pageSize))

@@ -36,6 +36,17 @@ public final class HealthDtos {
            String status,
            String conclusion,
            List<TemperatureReading> recent72h,
+           // Individual baseline learning provenance (plan 2026-11-03):
+           // all seven fields come straight from the health snapshot and
+           // stay null when no snapshot exists or the baseline is DEFAULT
+           // except baselineSource, which reads "DEFAULT".
+           String baselineSource,
+           Integer baselineSampleCount,
+           Integer baselineQualifiedDays,
+           Instant baselineWindowStart,
+           Instant baselineComputedAt,
+           BigDecimal baselineBandLow,
+           BigDecimal baselineBandHigh,
            AiAnomalySummary aiAnomaly
    ) {}
 
@@ -114,6 +125,11 @@ public final class HealthDtos {
            Instant timestamp,
            String advice,
            List<EstrusTrendPoint> trend7d,
+           // Baseline audit from the latest estrus score row (plan 2026-11-03):
+           // what baseline the score was computed against and its provenance.
+           // Null on legacy rows written before learning existed.
+           BigDecimal baselineUsed,
+           String baselineSource,
            AiAnomalySummary aiAnomaly
    ) {}
 

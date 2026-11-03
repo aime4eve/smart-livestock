@@ -54,4 +54,37 @@ public interface HealthSnapshotJpaRepository extends JpaRepository<HealthSnapsho
     /** All farm ids that have snapshots (drives farm-wide health schedulers). */
     @Query("SELECT DISTINCT s.farmId FROM HealthSnapshotJpaEntity s")
     List<Long> findDistinctFarmIds();
+
+    /**
+     * Targeted UPDATE of the learned-baseline fields only (plan 2026-11-03
+     * §1.4). Deliberately NOT a full-entity save: processTelemetry does a
+     * read-modify-write on the same row, and writing the whole entity here
+     * would resurrect stale health-state columns (dirty-write-back lesson).
+     * {@code updated_at} is bumped like every other write path; no signal
+     * event is fired — the baseline is a slow-moving variable, not a signal.
+     */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(value = """
+            UPDATE health_snapshots
+               SET baseline_temp = :baselineTemp,
+                   baseline_source = 'LEARNED',
+                   baseline_sample_count = :sampleCount,
+                   baseline_qualified_days = :qualifiedDays,
+                   baseline_window_start = :windowStart,
+                   baseline_computed_at = :computedAt,
+                   baseline_band_low = :bandLow,
+                   baseline_band_high = :bandHigh,
+                   baseline_algorithm_version = :algorithmVersion,
+                   updated_at = NOW()
+             WHERE livestock_id = :livestockId
+            """, nativeQuery = true)
+    int updateLearnedBaseline(@Param("livestockId") Long livestockId,
+                              @Param("baselineTemp") java.math.BigDecimal baselineTemp,
+                              @Param("sampleCount") Integer sampleCount,
+                              @Param("qualifiedDays") Integer qualifiedDays,
+                              @Param("windowStart") java.time.Instant windowStart,
+                              @Param("computedAt") java.time.Instant computedAt,
+                              @Param("bandLow") java.math.BigDecimal bandLow,
+                              @Param("bandHigh") java.math.BigDecimal bandHigh,
+                              @Param("algorithmVersion") String algorithmVersion);
 }

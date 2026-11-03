@@ -15,6 +15,10 @@ public class TemperatureLog {
     private Instant createdAt;
     private String source;
 
+    // Which baseline produced this log's baselineTemp/delta (plan 2026-11-03):
+    // DEFAULT = fixed 38.50 baseline, LEARNED = per-animal learned baseline.
+    private String baselineSource = "DEFAULT";
+
     public TemperatureLog() {}
 
     public Long getId() { return id; }
@@ -43,4 +47,7 @@ public class TemperatureLog {
 
     public String getSource() { return source; }
     public void setSource(String source) { this.source = source; }
+
+    public String getBaselineSource() { return baselineSource; }
+    public void setBaselineSource(String baselineSource) { this.baselineSource = baselineSource; }
 }

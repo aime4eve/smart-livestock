@@ -12,6 +12,14 @@ import java.util.List;
 
 public interface TemperatureLogJpaRepository extends JpaRepository<TemperatureLogJpaEntity, Long> {
     List<TemperatureLogJpaEntity> findByLivestockIdAndRecordedAtBetweenOrderByRecordedAtAsc(Long livestockId, Instant from, Instant to);
+
+    /**
+     * Half-open window {@code [from, to)} of one livestock (individual
+     * baseline learning, plan 2026-11-03) — keeps time-partition pruning
+     * intact via the recorded_at bounds.
+     */
+    List<TemperatureLogJpaEntity> findByLivestockIdAndRecordedAtGreaterThanEqualAndRecordedAtLessThanOrderByRecordedAtAsc(
+            Long livestockId, Instant from, Instant to);
     List<TemperatureLogJpaEntity> findByLivestockIdOrderByRecordedAtDesc(Long livestockId);
     List<TemperatureLogJpaEntity> findByDeviceIdAndRecordedAtBetweenOrderByRecordedAtAsc(
             Long deviceId, Instant from, Instant to);

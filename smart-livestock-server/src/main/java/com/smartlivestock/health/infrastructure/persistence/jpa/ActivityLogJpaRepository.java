@@ -10,6 +10,14 @@ import java.util.List;
 
 public interface ActivityLogJpaRepository extends JpaRepository<ActivityLogJpaEntity, Long> {
     List<ActivityLogJpaEntity> findByLivestockIdAndRecordedAtBetweenOrderByRecordedAtAsc(Long livestockId, Instant from, Instant to);
+
+    /**
+     * Half-open window {@code [from, to)} of one livestock (individual
+     * baseline learning, plan 2026-11-03) — keeps time-partition pruning
+     * intact via the recorded_at bounds.
+     */
+    List<ActivityLogJpaEntity> findByLivestockIdAndRecordedAtGreaterThanEqualAndRecordedAtLessThanOrderByRecordedAtAsc(
+            Long livestockId, Instant from, Instant to);
     Page<ActivityLogJpaEntity> findByLivestockIdAndRecordedAtBetweenOrderByRecordedAtAsc(Long livestockId, Instant from, Instant to, Pageable pageable);
     List<ActivityLogJpaEntity> findByLivestockIdOrderByRecordedAtDesc(Long livestockId);
 

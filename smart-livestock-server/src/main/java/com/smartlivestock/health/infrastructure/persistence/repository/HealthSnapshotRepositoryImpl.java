@@ -51,4 +51,18 @@ public class HealthSnapshotRepositoryImpl implements HealthSnapshotRepository {
     public List<Long> findDistinctFarmIds() {
         return jpaRepo.findDistinctFarmIds();
     }
+
+    @Override
+    public int updateLearnedBaseline(LearnedBaselineUpdate update) {
+        return jpaRepo.updateLearnedBaseline(
+                update.livestockId(),
+                update.baselineTemp(),
+                update.sampleCount(),
+                update.qualifiedDays(),
+                update.windowStart(),
+                update.computedAt(),
+                update.bandLow(),
+                update.bandHigh(),
+                update.algorithmVersion());
+    }
 }

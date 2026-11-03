@@ -18,4 +18,27 @@ public interface HealthSnapshotRepository {
     record ActiveLivestock(Long livestockId, Long farmId, String telemetrySource) {}
     /** All farm ids that have snapshots (drives farm-wide health schedulers). */
     List<Long> findDistinctFarmIds();
+
+    /**
+     * Targeted UPDATE that writes only the learned-baseline fields of one
+     * snapshot ({@code baseline_source} is stamped {@code LEARNED}). The
+     * whole-entity write path must not be used here: processTelemetry does a
+     * read-modify-write on the same row and a full-entity save would clobber
+     * concurrent health-state changes (dirty-write-back lesson, plan
+     * 2026-11-03 §1.4).
+     *
+     * @return number of snapshot rows updated (0 = no snapshot for the livestock)
+     */
+    int updateLearnedBaseline(LearnedBaselineUpdate update);
+
+    /** Learned-baseline field set written by {@link #updateLearnedBaseline}. */
+    record LearnedBaselineUpdate(Long livestockId,
+                                 java.math.BigDecimal baselineTemp,
+                                 Integer sampleCount,
+                                 Integer qualifiedDays,
+                                 Instant windowStart,
+                                 Instant computedAt,
+                                 java.math.BigDecimal bandLow,
+                                 java.math.BigDecimal bandHigh,
+                                 String algorithmVersion) {}
 }

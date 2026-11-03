@@ -27,6 +27,19 @@ public class HealthSnapshot {
     private String aiAnomalyType;
     private Instant aiAssessedAt;
 
+    // Individual baseline learning (plan 2026-11-03): which baseline the
+    // snapshot currently carries (DEFAULT fixed 38.50 or LEARNED), the sample
+    // evidence behind it, the event-time window and band it was computed
+    // from, and the algorithm version for audit.
+    private String baselineSource = "DEFAULT";
+    private Integer baselineSampleCount;
+    private Integer baselineQualifiedDays;
+    private Instant baselineWindowStart;
+    private Instant baselineComputedAt;
+    private BigDecimal baselineBandLow;
+    private BigDecimal baselineBandHigh;
+    private String baselineAlgorithmVersion;
+
     public HealthSnapshot() {}
 
     public Long getId() { return id; }
@@ -85,4 +98,21 @@ public class HealthSnapshot {
     public void setAiAnomalyType(String aiAnomalyType) { this.aiAnomalyType = aiAnomalyType; }
     public Instant getAiAssessedAt() { return aiAssessedAt; }
     public void setAiAssessedAt(Instant aiAssessedAt) { this.aiAssessedAt = aiAssessedAt; }
+
+    public String getBaselineSource() { return baselineSource; }
+    public void setBaselineSource(String baselineSource) { this.baselineSource = baselineSource; }
+    public Integer getBaselineSampleCount() { return baselineSampleCount; }
+    public void setBaselineSampleCount(Integer baselineSampleCount) { this.baselineSampleCount = baselineSampleCount; }
+    public Integer getBaselineQualifiedDays() { return baselineQualifiedDays; }
+    public void setBaselineQualifiedDays(Integer baselineQualifiedDays) { this.baselineQualifiedDays = baselineQualifiedDays; }
+    public Instant getBaselineWindowStart() { return baselineWindowStart; }
+    public void setBaselineWindowStart(Instant baselineWindowStart) { this.baselineWindowStart = baselineWindowStart; }
+    public Instant getBaselineComputedAt() { return baselineComputedAt; }
+    public void setBaselineComputedAt(Instant baselineComputedAt) { this.baselineComputedAt = baselineComputedAt; }
+    public BigDecimal getBaselineBandLow() { return baselineBandLow; }
+    public void setBaselineBandLow(BigDecimal baselineBandLow) { this.baselineBandLow = baselineBandLow; }
+    public BigDecimal getBaselineBandHigh() { return baselineBandHigh; }
+    public void setBaselineBandHigh(BigDecimal baselineBandHigh) { this.baselineBandHigh = baselineBandHigh; }
+    public String getBaselineAlgorithmVersion() { return baselineAlgorithmVersion; }
+    public void setBaselineAlgorithmVersion(String baselineAlgorithmVersion) { this.baselineAlgorithmVersion = baselineAlgorithmVersion; }
 }

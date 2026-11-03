@@ -42,6 +42,20 @@ public class EstrusScoreJpaEntity {
     @Column(name = "source", nullable = false, length = 20)
     private String source = "UNKNOWN";
 
+    // Baseline audit trail columns (V20261104100000). baselineSource is
+    // nullable — NULL marks rows scored before learning (legacy semantics).
+    @Column(name = "baseline_used", precision = 5, scale = 2)
+    private BigDecimal baselineUsed;
+
+    @Column(name = "baseline_source", length = 12)
+    private String baselineSource;
+
+    @Column(name = "baseline_computed_at")
+    private Instant baselineComputedAt;
+
+    @Column(name = "baseline_algorithm_version", length = 16)
+    private String baselineAlgorithmVersion;
+
     @PrePersist
     protected void onCreate() { this.createdAt = Instant.now(); }
 
@@ -67,4 +81,13 @@ public class EstrusScoreJpaEntity {
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public String getSource() { return source; }
     public void setSource(String source) { this.source = source; }
+
+    public BigDecimal getBaselineUsed() { return baselineUsed; }
+    public void setBaselineUsed(BigDecimal baselineUsed) { this.baselineUsed = baselineUsed; }
+    public String getBaselineSource() { return baselineSource; }
+    public void setBaselineSource(String baselineSource) { this.baselineSource = baselineSource; }
+    public Instant getBaselineComputedAt() { return baselineComputedAt; }
+    public void setBaselineComputedAt(Instant baselineComputedAt) { this.baselineComputedAt = baselineComputedAt; }
+    public String getBaselineAlgorithmVersion() { return baselineAlgorithmVersion; }
+    public void setBaselineAlgorithmVersion(String baselineAlgorithmVersion) { this.baselineAlgorithmVersion = baselineAlgorithmVersion; }
 }

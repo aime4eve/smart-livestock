@@ -36,6 +36,10 @@ public class TemperatureLogJpaEntity {
     @Column(name = "source", nullable = false, length = 20)
     private String source = "UNKNOWN";
 
+    // Which baseline produced this log's baselineTemp/delta (V20261104100000).
+    @Column(name = "baseline_source", nullable = false, length = 12)
+    private String baselineSource = "DEFAULT";
+
     @PrePersist
     protected void onCreate() { this.createdAt = Instant.now(); }
 
@@ -57,4 +61,7 @@ public class TemperatureLogJpaEntity {
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public String getSource() { return source; }
     public void setSource(String source) { this.source = source; }
+
+    public String getBaselineSource() { return baselineSource; }
+    public void setBaselineSource(String baselineSource) { this.baselineSource = baselineSource; }
 }

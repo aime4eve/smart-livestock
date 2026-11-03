@@ -30,6 +30,18 @@ public interface DrinkingEventJpaRepository extends JpaRepository<DrinkingEventJ
             Long livestockId, Instant from, Instant to);
 
     /**
+     * Drinking events of one livestock whose interval
+     * {@code [event_start_at, event_end_at]} overlaps the half-open window
+     * {@code [from, to)} — the exclusion-window fetch of the individual
+     * baseline learning (plan 2026-11-03). Unlike the start-at range queries
+     * above this also returns events that started before the window but
+     * whose trough (and therefore the kernel-appended recovery window)
+     * reaches into it.
+     */
+    List<DrinkingEventJpaEntity> findByLivestockIdAndEventStartAtLessThanAndEventEndAtGreaterThanEqual(
+            Long livestockId, Instant to, Instant from);
+
+    /**
      * All rows across every farm with {@code event_start_at} in
      * {@code [from, to)}, oldest first with an id tie-break — the admin
      * label export (spec §15.4) dumps the whole marking dataset in a

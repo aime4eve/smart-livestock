@@ -11,6 +11,7 @@ import com.smartlivestock.iot.domain.model.DeviceType;
 import com.smartlivestock.health.domain.model.*;
 import com.smartlivestock.health.domain.repository.*;
 import com.smartlivestock.health.domain.service.*;
+import com.smartlivestock.health.infrastructure.config.BaselineLearningProperties;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
 import com.smartlivestock.ranch.application.signal.SignalEventType;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +54,8 @@ public class HealthApplicationService {
     private final EpidemicAnalysisService epidemicService;
     private final com.smartlivestock.shared.common.MessageResolver messageResolver;
     private final ContactAnalysisService contactAnalysisService;
+    /** Consumption switch for learned baselines (plan 2026-11-03 §1.5). */
+    private final BaselineLearningProperties baselineLearningProperties;
 
     /**
      * Default window of the instant (mark-diseased) analysis track; mirrors
@@ -297,9 +300,17 @@ public class HealthApplicationService {
 
         HealthSnapshot snapshot = livestockId == null ? null
                 : snapshotRepo.findByLivestockId(livestockId).orElse(null);
-        BigDecimal baseline = (snapshot != null && snapshot.getBaselineTemp() != null)
+        // Rollback semantics (plan 2026-11-03 §1.5): with apply-learned=false
+        // new logs fall back to the fixed default so the generated delta and
+        // downstream fever rules return to pre-learning behavior — the same
+        // single decision as estrus scoring (usesLearnedBaseline).
+        boolean learnedApplied = usesLearnedBaseline(snapshot);
+        BigDecimal baseline = learnedApplied
                 ? snapshot.getBaselineTemp() : DEFAULT_BASELINE_TEMP;
         log.setBaselineTemp(baseline);
+        // New logs carry the source of the baseline that produced their
+        // baseline (plan 2026-11-03 §1.5); historical rows are never rewritten.
+        log.setBaselineSource(learnedApplied ? snapshot.getBaselineSource() : "DEFAULT");
 
         log.setRecordedAt(recordedAt);
         log.setSource(source);
@@ -462,14 +473,45 @@ public class HealthApplicationService {
         }
     }
 
+    /**
+     * Effective baseline for estrus scoring (plan 2026-11-03 §1.5): the
+     * learned per-animal baseline when the consumption switch is on and the
+     * snapshot actually carries a LEARNED baseline; otherwise the fixed 38.50
+     * default. Rollback semantics: with {@code apply-learned=false} every
+     * scoring falls back to 38.50 regardless of snapshot state, so a single
+     * config flip restores the pre-learning behavior.
+     */
+    BigDecimal effectiveEstrusBaseline(HealthSnapshot snapshot) {
+        return usesLearnedBaseline(snapshot)
+                ? snapshot.getBaselineTemp()
+                : DEFAULT_BASELINE_TEMP;
+    }
+
+    /** True only when the learned baseline is actually consumed for scoring:
+     *  switch on + snapshot present + LEARNED source + a non-null learned
+     *  value. Kept in one place so the audit columns below can never claim a
+     *  provenance different from the baseline the score really used. */
+    private boolean usesLearnedBaseline(HealthSnapshot snapshot) {
+        return baselineLearningProperties.isApplyLearned()
+                && snapshot != null
+                && "LEARNED".equals(snapshot.getBaselineSource())
+                && snapshot.getBaselineTemp() != null;
+    }
+
     private void triggerEstrusScoring(Long livestockId, Long farmId, String source) {
         List<ActivityLog> recentActivities = activityLogRepo.findByLivestockIdOrderByRecordedAtDesc(livestockId, 7);
         List<TemperatureLog> recentTemps = tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(livestockId, 7);
 
         if (recentActivities.size() < 3 || recentTemps.size() < 2) return;
 
+        // Load the snapshot once up front: its baseline state decides both the
+        // scoring input (effective baseline) and the audit columns persisted
+        // with the score (plan 2026-11-03 §1.5).
+        HealthSnapshot snapshot = snapshotRepo.findByLivestockId(livestockId).orElse(null);
+        BigDecimal baselineUsed = effectiveEstrusBaseline(snapshot);
+
         int stepIncreasePercent = calculateStepIncreasePercent(recentActivities);
-        BigDecimal tempDelta = calculateTempDelta(recentTemps);
+        BigDecimal tempDelta = calculateTempDelta(recentTemps, baselineUsed);
         BigDecimal distanceDelta = calculateDistanceDelta(recentActivities);
 
         int score = estrusAnalysisService.calculateScore(stepIncreasePercent, tempDelta, distanceDelta);
@@ -484,10 +526,23 @@ public class HealthApplicationService {
         estrusScore.setAdvice(estrusAnalysisService.generateAdvice(score));
         estrusScore.setScoredAt(Instant.now());
         estrusScore.setSource(source);
+
+        // Baseline audit trail: what the scoring actually consumed and where
+        // that baseline came from. DEFAULT rows carry null computedAt/version;
+        // null source on a row therefore always means "predates learning"
+        // (legacy fixed 38.50 semantics), never "learned but unrecorded".
+        boolean learnedApplied = usesLearnedBaseline(snapshot);
+        estrusScore.setBaselineUsed(baselineUsed);
+        estrusScore.setBaselineSource(learnedApplied ? snapshot.getBaselineSource() : "DEFAULT");
+        estrusScore.setBaselineComputedAt(learnedApplied ? snapshot.getBaselineComputedAt() : null);
+        // Audit truth: the version stamped on the snapshot at learning time,
+        // not the currently configured value (a later V2 config must not
+        // relabel scores produced under a V1 baseline).
+        estrusScore.setBaselineAlgorithmVersion(learnedApplied
+                ? snapshot.getBaselineAlgorithmVersion() : null);
         estrusScoreRepo.save(estrusScore);
 
-        // Update snapshot with estrus score
-        HealthSnapshot snapshot = snapshotRepo.findByLivestockId(livestockId).orElse(null);
+        // Update snapshot with estrus score (reuses the snapshot loaded above)
         if (snapshot != null) {
             snapshot.setEstrusScore(score);
             snapshotRepo.save(snapshot);
@@ -512,6 +567,19 @@ public class HealthApplicationService {
         if (logs.size() < 2) return BigDecimal.ZERO;
         BigDecimal latest = logs.get(0).getTemperature();
         BigDecimal baseline = logs.get(logs.size() - 1).getBaselineTemp();
+        if (baseline == null) baseline = DEFAULT_BASELINE_TEMP;
+        return latest.subtract(baseline);
+    }
+
+    /**
+     * Delta against an explicit baseline (plan 2026-11-03 §1.5): the caller
+     * resolves the effective baseline from the snapshot so the very same
+     * value is both scored against and stamped into the audit columns.
+     * Legacy variant above is kept untouched for reference/rollback.
+     */
+    private BigDecimal calculateTempDelta(List<TemperatureLog> logs, BigDecimal baseline) {
+        if (logs.size() < 2) return BigDecimal.ZERO;
+        BigDecimal latest = logs.get(0).getTemperature();
         if (baseline == null) baseline = DEFAULT_BASELINE_TEMP;
         return latest.subtract(baseline);
     }
@@ -697,7 +765,8 @@ public class HealthApplicationService {
         HealthSnapshot snapshot = snapshotRepo.findByLivestockId(livestockId).orElse(null);
         if (snapshot == null) {
            return new FeverDetail(String.valueOf(livestockId), "?", null, null,
-                   "NORMAL", "暂无数据", List.of(), null);
+                   "NORMAL", "暂无数据", List.of(),
+                   null, null, null, null, null, null, null, null);
        }
 
         Instant now = Instant.now();
@@ -721,6 +790,13 @@ public class HealthApplicationService {
                snapshot.getTempStatus().name(),
                feverService.generateConclusion(snapshot.getTempStatus(), delta, Duration.ofHours(2)),
                recent72h,
+               snapshot.getBaselineSource(),
+               snapshot.getBaselineSampleCount(),
+               snapshot.getBaselineQualifiedDays(),
+               snapshot.getBaselineWindowStart(),
+               snapshot.getBaselineComputedAt(),
+               snapshot.getBaselineBandLow(),
+               snapshot.getBaselineBandHigh(),
                healthAnomalyService.getLatestSummary(farmId, livestockId).orElse(null));
    }
 
@@ -822,7 +898,8 @@ public class HealthApplicationService {
         if (latest == null) {
            return new EstrusDetail(
                    String.valueOf(livestockId), code, 0, null, null, null,
-                   null, localizeEstrusAdvice(estrusAnalysisService.generateAdvice(0)), trend7d, null);
+                   null, localizeEstrusAdvice(estrusAnalysisService.generateAdvice(0)), trend7d,
+                   null, null, null);
        }
 
        return new EstrusDetail(
@@ -831,6 +908,7 @@ public class HealthApplicationService {
                latest.getTempDelta(), latest.getDistanceDelta(),
                latest.getScoredAt(), localizeEstrusAdvice(latest.getAdvice()),
                trend7d,
+               latest.getBaselineUsed(), latest.getBaselineSource(),
                healthAnomalyService.getLatestSummary(farmId, livestockId).orElse(null));
    }
 
@@ -838,7 +916,8 @@ public class HealthApplicationService {
 
     /**
      * Daily fever hours bar chart data (Standard+ tier).
-     * Returns daily hours where temperature exceeded baseline+1.0°C.
+     * Returns daily hours where temperature exceeded the row's own baseline
+     * by more than 1.0°C.
      */
     public List<HealthDtos.DailyFeverHour> getFeverDurationChart(Long farmId, Long livestockId, Integer tzOffsetMinutes) {
         if (!subscriptionPort.hasFeature("health_score")) {
@@ -856,9 +935,19 @@ public class HealthApplicationService {
             dailyHours.put(dateStr, 0.0);
         }
 
-        BigDecimal threshold = DEFAULT_BASELINE_TEMP.add(new BigDecimal("1.0"));
+        // Per-row delta instead of a fixed 39.5°C threshold: after baseline
+        // learning each row can carry its own baseline, so the old fixed
+        // threshold would contradict the detail page. For DEFAULT rows
+        // (delta = temp − 38.50) this is byte-for-byte the old behavior.
         for (TemperatureLog log : logs) {
-            if (log.getTemperature() != null && log.getTemperature().compareTo(threshold) > 0) {
+            if (log.getTemperature() == null) {
+                continue;
+            }
+            BigDecimal delta = log.getDelta() != null
+                    ? log.getDelta()
+                    : log.getTemperature().subtract(
+                            log.getBaselineTemp() != null ? log.getBaselineTemp() : DEFAULT_BASELINE_TEMP);
+            if (delta.compareTo(BigDecimal.ONE) > 0) {
                 String dateStr = log.getRecordedAt().atZone(zone).toLocalDate().toString();
                 dailyHours.merge(dateStr, 0.5, Double::sum);
             }

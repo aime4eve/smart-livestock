@@ -1356,7 +1356,7 @@ Response 200:
 
 ### GET /farms/{farmId}/health/fever/{livestockId}
 
-发热详情（基线/当前/delta/状态/结论/近期温度序列）。
+发热详情（基线/当前/delta/状态/结论/近期温度序列 + 个体基线学习档案）。
 
 ```
 Response 200:
@@ -1366,12 +1366,17 @@ Response 200:
     "livestockId": "101", "livestockCode": "LIV-1-001",
     "baselineTemp": 38.5, "currentTemp": 40.2, "status": "FEVER",
     "conclusion": "体温偏高，建议隔离观察",
-    "recent72h": [ { "temperature": 40.2, "timestamp": "2026-05-20T10:00:00Z" } ]
+    "recent72h": [ { "temperature": 40.2, "timestamp": "2026-05-20T10:00:00Z" } ],
+    "baselineSource": "LEARNED", "baselineSampleCount": 84, "baselineQualifiedDays": 10,
+    "baselineWindowStart": "2026-05-10T00:00:00Z", "baselineComputedAt": "2026-05-20T00:30:00Z",
+    "baselineBandLow": 38.62, "baselineBandHigh": 39.38
   }
 }
 ```
 
 > `recent72h` 实际窗口 = `min(retentionDays("temperature_monitor") × 24, 72)` 小时（硬上限 72h）；snapshot 不存在时返回占位 `status="NORMAL"`、`conclusion="暂无数据"`、`recent72h=[]`。
+>
+> 基线学习字段（2026-11-03 个体基线自动学习）：7 个字段均来自健康快照当前基线状态。`baselineSource` = `DEFAULT`（固定 38.5℃ 冷启动）或 `LEARNED`（个体学习基线）；快照为 DEFAULT 时 `baselineSampleCount/baselineQualifiedDays/baselineWindowStart/baselineComputedAt/baselineBandLow/baselineBandHigh` 为 `null`；snapshot 不存在时全部为 `null`。
 
 ### GET /farms/{farmId}/health/fever/{livestockId}/duration
 
@@ -1387,7 +1392,7 @@ Response 200:
 }
 ```
 
-> Feature gate `health_score` 未启用 → 返回 `[]`（不报错）。窗口 = `min(retentionDays("health_score"), 7)` 天；温度 > 39.5°C（基线+1.0）的每条日志按 0.5 小时累计。`date` 按 `tzOffsetMinutes` 对应时区的日界归组。
+> Feature gate `health_score` 未启用 → 返回 `[]`（不报错）。窗口 = `min(retentionDays("health_score"), 7)` 天；每条日志按**该行自身 delta**（temperature − 该行 baselineTemp，缺省回退 38.5）是否 > 1.0°C 判超标，超标的每条日志按 0.5 小时累计（2026-11-03 个体基线学习后每行基线可不同，DEFAULT 行与旧固定 39.5°C 口径等价）。`date` 按 `tzOffsetMinutes` 对应时区的日界归组。
 
 ### GET /farms/{farmId}/health/devices/{deviceId}
 
@@ -1431,7 +1436,7 @@ Response 200:
 
 ### GET /farms/{farmId}/health/estrus/{livestockId}
 
-发情详情（最新评分 + 三维子分 + 近 7 条趋势）。
+发情详情（最新评分 + 三维子分 + 近 7 条趋势 + 评分基线审计）。
 
 ```
 Response 200:
@@ -1441,12 +1446,15 @@ Response 200:
     "livestockId": "101", "livestockCode": "LIV-1-001",
     "score": 78, "stepIncreasePercent": 320, "tempDelta": 0.6, "distanceDelta": 2200,
     "timestamp": "2026-05-20T08:00:00Z", "advice": "High estrus，建议 12h 内配种",
-    "trend7d": [ { "score": 78, "timestamp": "2026-05-20T08:00:00Z" }, { "score": 55, "timestamp": "2026-05-19T08:00:00Z" } ]
+    "trend7d": [ { "score": 78, "timestamp": "2026-05-20T08:00:00Z" }, { "score": 55, "timestamp": "2026-05-19T08:00:00Z" } ],
+    "baselineUsed": 39.0, "baselineSource": "LEARNED"
   }
 }
 ```
 
 > 评分公式：`score = stepScore×0.4 + tempScore×0.3 + distanceScore×0.3`。触发需近 7 条 activity（≥3）+ 近 7 条 temperature（≥2），数据不足时不评分，查询返回 `score=0, advice="Not in estrus", trend7d=[]`。
+>
+> `baselineUsed`/`baselineSource`（2026-11-03 个体基线学习审计）：该评分实际使用的基线与其来源（`DEFAULT` = 固定 38.5℃，`LEARNED` = 个体学习基线）；学习功能上线前的历史评分为 `null`。
 
 ### GET /farms/{farmId}/health/estrus/{livestockId}/activity
 

@@ -26,6 +26,14 @@ public class ActivityLogRepositoryImpl implements ActivityLogRepository {
     }
 
     @Override
+    public List<ActivityLog> findWindowByLivestockId(Long livestockId, Instant from, Instant to) {
+        return jpaRepo
+                .findByLivestockIdAndRecordedAtGreaterThanEqualAndRecordedAtLessThanOrderByRecordedAtAsc(
+                        livestockId, from, to)
+                .stream().map(HealthMapper::toDomain).toList();
+    }
+
+    @Override
     public TelemetryPage<ActivityLog> findPageByLivestock(Long livestockId, Instant from, Instant to, int page, int pageSize) {
         return toPage(jpaRepo.findByLivestockIdAndRecordedAtBetweenOrderByRecordedAtAsc(
                         livestockId, from, to, PageRequest.of(Math.max(0, page - 1), pageSize))
