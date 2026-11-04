@@ -65,9 +65,10 @@ class HealthApplicationServiceTelemetryTest {
                 healthAnomalyService,
                 healthAlertBridgeService,
                 signalRevisionService,
-               feverService, digestiveService, estrusAnalysisService, epidemicService,
+                feverService, digestiveService, estrusAnalysisService, epidemicService,
                 messageResolver,
-                org.mockito.Mockito.mock(ContactAnalysisService.class));
+                org.mockito.Mockito.mock(ContactAnalysisService.class),
+                new com.smartlivestock.health.infrastructure.config.BaselineLearningProperties());
 
         // refreshSnapshot calls ensureSnapshotExists then findByLivestockId.
         doNothing().when(snapshotRepo).ensureSnapshotExists(anyLong(), anyLong());

@@ -20,6 +20,7 @@ public final class HealthMapper {
         d.setRecordedAt(e.getRecordedAt());
         d.setCreatedAt(e.getCreatedAt());
         d.setSource(e.getSource());
+        d.setBaselineSource(e.getBaselineSource());
         return d;
     }
 
@@ -33,6 +34,8 @@ public final class HealthMapper {
         e.setRecordedAt(d.getRecordedAt());
         e.setCreatedAt(d.getCreatedAt());
         e.setSource(d.getSource());
+        // Column is NOT NULL — absent value means the DEFAULT baseline.
+        e.setBaselineSource(d.getBaselineSource() != null ? d.getBaselineSource() : "DEFAULT");
         return e;
     }
 
@@ -113,6 +116,10 @@ public final class HealthMapper {
         d.setScoredAt(e.getScoredAt());
         d.setCreatedAt(e.getCreatedAt());
         d.setSource(e.getSource());
+        d.setBaselineUsed(e.getBaselineUsed());
+        d.setBaselineSource(e.getBaselineSource());
+        d.setBaselineComputedAt(e.getBaselineComputedAt());
+        d.setBaselineAlgorithmVersion(e.getBaselineAlgorithmVersion());
         return d;
     }
 
@@ -129,6 +136,11 @@ public final class HealthMapper {
         e.setScoredAt(d.getScoredAt());
         e.setCreatedAt(d.getCreatedAt());
         e.setSource(d.getSource());
+        // Nullable on purpose — NULL marks legacy (pre-learning) rows.
+        e.setBaselineUsed(d.getBaselineUsed());
+        e.setBaselineSource(d.getBaselineSource());
+        e.setBaselineComputedAt(d.getBaselineComputedAt());
+        e.setBaselineAlgorithmVersion(d.getBaselineAlgorithmVersion());
         return e;
     }
 
@@ -157,6 +169,14 @@ public final class HealthMapper {
         d.setAiAnomalyScore(e.getAiAnomalyScore());
         d.setAiAnomalyType(e.getAiAnomalyType());
         d.setAiAssessedAt(e.getAiAssessedAt());
+        d.setBaselineSource(e.getBaselineSource());
+        d.setBaselineSampleCount(e.getBaselineSampleCount());
+        d.setBaselineQualifiedDays(e.getBaselineQualifiedDays());
+        d.setBaselineWindowStart(e.getBaselineWindowStart());
+        d.setBaselineComputedAt(e.getBaselineComputedAt());
+        d.setBaselineBandLow(e.getBaselineBandLow());
+        d.setBaselineBandHigh(e.getBaselineBandHigh());
+        d.setBaselineAlgorithmVersion(e.getBaselineAlgorithmVersion());
         return d;
     }
 
@@ -183,6 +203,15 @@ public final class HealthMapper {
         e.setAiAnomalyScore(d.getAiAnomalyScore());
         e.setAiAnomalyType(d.getAiAnomalyType());
         e.setAiAssessedAt(d.getAiAssessedAt());
+        // Column is NOT NULL — absent value means the DEFAULT baseline.
+        e.setBaselineSource(d.getBaselineSource() != null ? d.getBaselineSource() : "DEFAULT");
+        e.setBaselineSampleCount(d.getBaselineSampleCount());
+        e.setBaselineQualifiedDays(d.getBaselineQualifiedDays());
+        e.setBaselineWindowStart(d.getBaselineWindowStart());
+        e.setBaselineComputedAt(d.getBaselineComputedAt());
+        e.setBaselineBandLow(d.getBaselineBandLow());
+        e.setBaselineBandHigh(d.getBaselineBandHigh());
+        e.setBaselineAlgorithmVersion(d.getBaselineAlgorithmVersion());
         return e;
     }
 

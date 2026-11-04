@@ -68,6 +68,31 @@ public class HealthSnapshotJpaEntity {
     @Column(name = "ai_assessed_at")
     private Instant aiAssessedAt;
 
+    // Individual baseline learning columns (V20261104100000).
+    @Column(name = "baseline_source", nullable = false, length = 12)
+    private String baselineSource = "DEFAULT";
+
+    @Column(name = "baseline_sample_count")
+    private Integer baselineSampleCount;
+
+    @Column(name = "baseline_qualified_days")
+    private Integer baselineQualifiedDays;
+
+    @Column(name = "baseline_window_start")
+    private Instant baselineWindowStart;
+
+    @Column(name = "baseline_computed_at")
+    private Instant baselineComputedAt;
+
+    @Column(name = "baseline_band_low", precision = 5, scale = 2)
+    private BigDecimal baselineBandLow;
+
+    @Column(name = "baseline_band_high", precision = 5, scale = 2)
+    private BigDecimal baselineBandHigh;
+
+    @Column(name = "baseline_algorithm_version", length = 16)
+    private String baselineAlgorithmVersion;
+
     @PrePersist
     protected void onCreate() { Instant now = Instant.now(); this.createdAt = now; this.updatedAt = now; }
 
@@ -117,4 +142,21 @@ public class HealthSnapshotJpaEntity {
     public void setAiAnomalyType(String aiAnomalyType) { this.aiAnomalyType = aiAnomalyType; }
     public Instant getAiAssessedAt() { return aiAssessedAt; }
     public void setAiAssessedAt(Instant aiAssessedAt) { this.aiAssessedAt = aiAssessedAt; }
+
+    public String getBaselineSource() { return baselineSource; }
+    public void setBaselineSource(String baselineSource) { this.baselineSource = baselineSource; }
+    public Integer getBaselineSampleCount() { return baselineSampleCount; }
+    public void setBaselineSampleCount(Integer baselineSampleCount) { this.baselineSampleCount = baselineSampleCount; }
+    public Integer getBaselineQualifiedDays() { return baselineQualifiedDays; }
+    public void setBaselineQualifiedDays(Integer baselineQualifiedDays) { this.baselineQualifiedDays = baselineQualifiedDays; }
+    public Instant getBaselineWindowStart() { return baselineWindowStart; }
+    public void setBaselineWindowStart(Instant baselineWindowStart) { this.baselineWindowStart = baselineWindowStart; }
+    public Instant getBaselineComputedAt() { return baselineComputedAt; }
+    public void setBaselineComputedAt(Instant baselineComputedAt) { this.baselineComputedAt = baselineComputedAt; }
+    public BigDecimal getBaselineBandLow() { return baselineBandLow; }
+    public void setBaselineBandLow(BigDecimal baselineBandLow) { this.baselineBandLow = baselineBandLow; }
+    public BigDecimal getBaselineBandHigh() { return baselineBandHigh; }
+    public void setBaselineBandHigh(BigDecimal baselineBandHigh) { this.baselineBandHigh = baselineBandHigh; }
+    public String getBaselineAlgorithmVersion() { return baselineAlgorithmVersion; }
+    public void setBaselineAlgorithmVersion(String baselineAlgorithmVersion) { this.baselineAlgorithmVersion = baselineAlgorithmVersion; }
 }

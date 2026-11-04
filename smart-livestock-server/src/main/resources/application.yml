@@ -204,6 +204,28 @@ smartlivestock:
   # Blank = legacy rolling windows (pilot now+365d, self-service now+14d).
   trial:
     ends-at: ${SMARTLIVESTOCK_TRIAL_ENDS_AT:2027-09-30T21:00:00Z}
+  # Individual temperature baseline auto-learning (plan 2026-11-03):
+  # learning window (event-time sliding window over recorded_at), sample
+  # admission thresholds (qualified days / samples per day / source
+  # whitelist), and the two rollback switches (enabled = learning scheduler,
+  # apply-learned = consumption of learned baselines).
+  health:
+    baseline-learning:
+      enabled: ${SMARTLIVESTOCK_HEALTH_BASELINE_LEARNING_ENABLED:true}
+      apply-learned: ${SMARTLIVESTOCK_HEALTH_BASELINE_LEARNING_APPLY_LEARNED:true}
+      window-days: ${SMARTLIVESTOCK_HEALTH_BASELINE_LEARNING_WINDOW_DAYS:10}
+      min-qualified-days: ${SMARTLIVESTOCK_HEALTH_BASELINE_LEARNING_MIN_QUALIFIED_DAYS:7}
+      min-samples-per-day: ${SMARTLIVESTOCK_HEALTH_BASELINE_LEARNING_MIN_SAMPLES_PER_DAY:2}
+      mad-floor: ${SMARTLIVESTOCK_HEALTH_BASELINE_LEARNING_MAD_FLOOR:0.05}
+      fever-buffer-hours: ${SMARTLIVESTOCK_HEALTH_BASELINE_LEARNING_FEVER_BUFFER_HOURS:6}
+      drinking-recovery-window-min: ${SMARTLIVESTOCK_HEALTH_BASELINE_LEARNING_DRINKING_RECOVERY_WINDOW_MIN:120}
+      activity-tolerance-min: ${SMARTLIVESTOCK_HEALTH_BASELINE_LEARNING_ACTIVITY_TOLERANCE_MIN:15}
+      poll-ms: ${SMARTLIVESTOCK_HEALTH_BASELINE_LEARNING_POLL_MS:900000}
+      max-per-poll: ${SMARTLIVESTOCK_HEALTH_BASELINE_LEARNING_MAX_PER_POLL:200}
+      min-recalc-interval-minutes: ${SMARTLIVESTOCK_HEALTH_BASELINE_LEARNING_MIN_RECALC_INTERVAL_MINUTES:30}
+      # Comma-separated telemetry source whitelist (bound to List<String>).
+      allowed-sources: ${SMARTLIVESTOCK_HEALTH_BASELINE_LEARNING_ALLOWED_SOURCES:AGENTIC_PLATFORM,THINGSBOARD,HTTP,MANUAL_IMPORT}
+      baseline-algorithm-version: ${SMARTLIVESTOCK_HEALTH_BASELINE_LEARNING_ALGORITHM_VERSION:V1}
 
 # Metrics/actuator exposure for the sp-monitoring stack (NIX-126, 2026-11-01).
 # Scraped by Prometheus on 172.22.1.123 via the app's published port

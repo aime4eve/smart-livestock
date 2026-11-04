@@ -65,7 +65,8 @@ class HealthOverviewFixesTest {
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class),
                 feverService, digestiveService, estrusAnalysisService, epidemicService,
                 messageResolver,
-                org.mockito.Mockito.mock(ContactAnalysisService.class));
+                org.mockito.Mockito.mock(ContactAnalysisService.class),
+                new com.smartlivestock.health.infrastructure.config.BaselineLearningProperties());
         lenient().when(ranchQueryPort.countActiveAlertsByFarmId(1L)).thenReturn(0);
         lenient().when(ranchQueryPort.findActiveAlertsByFarmIdAndTypes(eq(1L), anyCollection()))
                 .thenReturn(List.of());

@@ -17,6 +17,14 @@ public class EstrusScore {
     private Instant createdAt;
     private String source;
 
+    // Baseline audit trail (plan 2026-11-03): the effective baseline used at
+    // scoring time and its provenance. baselineSource is nullable — NULL means
+    // the row predates learning (legacy fixed 38.50 baseline semantics).
+    private BigDecimal baselineUsed;
+    private String baselineSource;
+    private Instant baselineComputedAt;
+    private String baselineAlgorithmVersion;
+
     public EstrusScore() {}
 
     public Long getId() { return id; }
@@ -51,4 +59,13 @@ public class EstrusScore {
 
     public String getSource() { return source; }
     public void setSource(String source) { this.source = source; }
+
+    public BigDecimal getBaselineUsed() { return baselineUsed; }
+    public void setBaselineUsed(BigDecimal baselineUsed) { this.baselineUsed = baselineUsed; }
+    public String getBaselineSource() { return baselineSource; }
+    public void setBaselineSource(String baselineSource) { this.baselineSource = baselineSource; }
+    public Instant getBaselineComputedAt() { return baselineComputedAt; }
+    public void setBaselineComputedAt(Instant baselineComputedAt) { this.baselineComputedAt = baselineComputedAt; }
+    public String getBaselineAlgorithmVersion() { return baselineAlgorithmVersion; }
+    public void setBaselineAlgorithmVersion(String baselineAlgorithmVersion) { this.baselineAlgorithmVersion = baselineAlgorithmVersion; }
 }

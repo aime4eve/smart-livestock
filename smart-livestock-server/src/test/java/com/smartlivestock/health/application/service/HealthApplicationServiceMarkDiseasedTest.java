@@ -89,7 +89,8 @@ class HealthApplicationServiceMarkDiseasedTest {
                 mock(EstrusAnalysisService.class),
                 mock(EpidemicAnalysisService.class),
                 mock(MessageResolver.class),
-                contactAnalysisService);
+                contactAnalysisService,
+                new com.smartlivestock.health.infrastructure.config.BaselineLearningProperties());
         ReflectionTestUtils.setField(service, "analysisWindowHours", 72);
 
         EpidemicAnalysisService metricsService = mock(EpidemicAnalysisService.class);
