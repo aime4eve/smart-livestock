@@ -53,4 +53,107 @@ public class EstrusAnalysisService {
         if (d > 500) return 15 + (d - 500) / 1500.0 * 35;
         return d / 500.0 * 15;
     }
+
+    // ---------------------------------------------------------------------------
+    // Normalized scoring kernel (NIX-380 Task 1). The legacy formula above is
+    // intentionally untouched; the Task 2 wiring selects between the two paths.
+    // ---------------------------------------------------------------------------
+
+    /**
+     * Threshold/score ladder for one normalized feature (activity or distance).
+     * Rungs are absolute level ratios: current-window level divided by the level
+     * of same-phase baseline windows taken 24h apart. Shape: {@code ratio >=
+     * ratioVeryHigh} scores {@code scoreVeryHigh}; {@code ratio >= ratioHigh}
+     * scores {@code scoreHigh}; {@code ratio >= ratioMid} scores {@code scoreMid};
+     * within {@code [1.0, ratioMid)} the score interpolates linearly from 0 up to
+     * {@code scoreMid}; below 1.0 the feature scores 0 (no rise against baseline).
+     *
+     * <p>Instances are built by callers from {@code EstrusScoringProperties}; the
+     * domain kernel stays a pure function of the ladder handed in.</p>
+     */
+    public record EstrusFeatureLadder(
+            double ratioVeryHigh, int scoreVeryHigh,
+            double ratioHigh, int scoreHigh,
+            double ratioMid, int scoreMid) {
+    }
+
+    /**
+     * Default ladder mirroring the {@code smartlivestock.estrus-scoring} defaults
+     * (3.0/100, 2.0/95, 1.5/45). Serves unit tests and callers without an
+     * explicit ladder.
+     */
+    public static final EstrusFeatureLadder DEFAULT_LADDER =
+            new EstrusFeatureLadder(3.0, 100, 2.0, 95, 1.5, 45);
+
+    /**
+     * Normalized estrus scoring across event-time windows (NIX-380).
+     *
+     * <p>Motivation: the legacy component scores are short-window relative ratios
+     * ("recent 3 samples vs the other 4") evaluated inside a single event. At
+     * 30-minute telemetry granularity a gradual ~18h estrus episode never clears
+     * that relative bar, so whole episodes go undetected (simulation:
+     * episodes = 0). This kernel compares absolute levels instead: the activity
+     * and distance arguments are current-window vs same-phase-baseline ratios
+     * (24h-apart windows), so a slow but sustained rise still scores high.</p>
+     *
+     * <p>Component scores: activity and distance via
+     * {@link #ladderScore(double, EstrusFeatureLadder)} with ladders supplied by
+     * the caller (built from {@code EstrusScoringProperties}); temperature reuses
+     * the legacy {@code scoreTempDelta} curve. A null argument means "component
+     * unavailable" — it contributes no score and its weight is dropped from the
+     * denominator, so CAPSULE-only animals (activity + temperature) are scored on
+     * their available components instead of being diluted by zeros. When all
+     * three components are unavailable the method returns 0; callers guard that
+     * case (Task 2), the kernel only guarantees it does not blow up.</p>
+     *
+     * @param activityRatio  current/baseline activity level ratio, null if unavailable
+     * @param tempDelta      temperature delta in °C, null if unavailable
+     * @param distanceRatio  current/baseline distance level ratio, null if unavailable
+     * @param activityLadder activity ladder; falls back to {@link #DEFAULT_LADDER} when null
+     * @param distanceLadder distance ladder; falls back to {@link #DEFAULT_LADDER} when null
+     * @return weighted score 0-100, rounded; weights 0.4 / 0.3 / 0.3 over the
+     *         available components only (same weights as {@link #calculateScore})
+     */
+    public int calculateScoreNormalized(BigDecimal activityRatio, BigDecimal tempDelta, BigDecimal distanceRatio,
+                                        EstrusFeatureLadder activityLadder, EstrusFeatureLadder distanceLadder) {
+        EstrusFeatureLadder actLadder = activityLadder == null ? DEFAULT_LADDER : activityLadder;
+        EstrusFeatureLadder distLadder = distanceLadder == null ? DEFAULT_LADDER : distanceLadder;
+
+        double weightedSum = 0;
+        double weightSum = 0;
+        if (activityRatio != null) {
+            weightedSum += ladderScore(activityRatio.doubleValue(), actLadder) * 0.4;
+            weightSum += 0.4;
+        }
+        if (tempDelta != null) {
+            weightedSum += scoreTempDelta(tempDelta) * 0.3;
+            weightSum += 0.3;
+        }
+        if (distanceRatio != null) {
+            weightedSum += ladderScore(distanceRatio.doubleValue(), distLadder) * 0.3;
+            weightSum += 0.3;
+        }
+        if (weightSum == 0) {
+            return 0;
+        }
+        return (int) Math.round(Math.max(0, Math.min(100, weightedSum / weightSum)));
+    }
+
+    /**
+     * Maps an absolute level ratio onto the ladder. Same shape for activity and
+     * distance: the top rung saturates at {@code scoreVeryHigh}, lower rungs step
+     * at {@code ratioHigh} / {@code ratioMid}, and the {@code [1.0, ratioMid)}
+     * band interpolates linearly from 0 to {@code scoreMid} so a ratio of exactly
+     * 1.0 (no change vs baseline) contributes nothing.
+     *
+     * <p>Package-private for boundary tests; the ratio must be non-null (the
+     * availability check lives in {@link #calculateScoreNormalized}).</p>
+     */
+    static double ladderScore(double ratio, EstrusFeatureLadder ladder) {
+        if (ratio >= ladder.ratioVeryHigh()) return ladder.scoreVeryHigh();
+        if (ratio >= ladder.ratioHigh()) return ladder.scoreHigh();
+        if (ratio >= ladder.ratioMid()) return ladder.scoreMid();
+        if (ratio >= 1.0) return ladder.scoreMid() * (ratio - 1.0) / (ladder.ratioMid() - 1.0);
+        return 0;
+    }
 }
