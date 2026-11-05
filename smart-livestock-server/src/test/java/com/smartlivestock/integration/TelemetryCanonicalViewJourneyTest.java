@@ -29,11 +29,14 @@ import static org.assertj.core.api.Assertions.within;
  * catch), plus AGENTIC/THINGSBOARD singles and a DATAGEN training row, then
  * asserts the switched aggregates count 3 canonical frames — not the 5 raw
  * rows.
+ *
+ * Uses a dedicated device so journey tests sharing one container database
+ * (jdbc:tc URL is cached per JVM) cannot pollute each other; the seed cleans
+ * its own leftovers before re-inserting because every test method re-seeds.
  */
 class TelemetryCanonicalViewJourneyTest extends AbstractJourneyTest {
 
-    private static final long DEVICE_ID = 1L;
-    private static final int TENANT_ID = 1;
+    private static final String DEVICE_CODE = "DEV-NIX369-VIEW";
     private static final String GATEWAY_ID = "GW-NIX369-TEST";
 
     @Autowired
@@ -42,8 +45,24 @@ class TelemetryCanonicalViewJourneyTest extends AbstractJourneyTest {
     @Autowired
     private DeviceTelemetryLogRepository telemetryLogRepository;
 
+    private long deviceId;
+
     @BeforeEach
     void seedCanonicalScenario() {
+        deviceId = jdbcTemplate.queryForObject("""
+                INSERT INTO devices (tenant_id, device_code, device_type, status, battery_level, last_online_at)
+                VALUES (1, ?, 'TRACKER', 'ACTIVE', 80, NOW())
+                ON CONFLICT (device_code) DO UPDATE SET updated_at = NOW()
+                RETURNING id
+                """, Long.class, DEVICE_CODE);
+
+        // Wipe this scenario's leftovers (gateway rows are unique to it) so
+        // every test method starts from exactly the 5 seeded rows.
+        jdbcTemplate.update("""
+                DELETE FROM device_telemetry_logs
+                WHERE device_id = ? OR gateway_id = ?
+                """, deviceId, GATEWAY_ID);
+
         jdbcTemplate.update("""
                 INSERT INTO gateway_registry (gateway_id, latitude, longitude)
                 VALUES (?, 39.9042000, 116.4074000)
@@ -70,9 +89,9 @@ class TelemetryCanonicalViewJourneyTest extends AbstractJourneyTest {
                 INSERT INTO device_telemetry_logs
                     (device_id, tenant_id, battery_level, rssi, snr, gateway_id,
                      step_number, latitude, longitude, report_time, source)
-                VALUES (?, ?, 80, ?, ?, ?, ?, ?, ?, NOW() - ?::interval + ?::interval, ?)
+                VALUES (?, 1, 80, ?, ?, ?, ?, ?, ?, NOW() - ?::interval + ?::interval, ?)
                 """,
-                DEVICE_ID, TENANT_ID, rssi, snr, GATEWAY_ID, step, lat, lng,
+                deviceId, rssi, snr, GATEWAY_ID, step, lat, lng,
                 minutesAgo, msOffset, source);
     }
 
@@ -82,7 +101,7 @@ class TelemetryCanonicalViewJourneyTest extends AbstractJourneyTest {
 
     @Test
     void viewCollapsesDualSourceAndExcludesDatagen() {
-        List<Long> devices = List.of(DEVICE_ID);
+        List<Long> devices = List.of(deviceId);
 
         GatewayUsageSummary usage = telemetryLogRepository
                 .aggregateGatewayUsage(devices, since2h(), since2h())
@@ -92,7 +111,7 @@ class TelemetryCanonicalViewJourneyTest extends AbstractJourneyTest {
         assertThat(usage.avgRssi()).isCloseTo((-70.0 - 80.0 - 96.0) / 3, within(0.5));
 
         GatewayDistanceStats distance = telemetryLogRepository
-                .aggregateGatewayDistances(DEVICE_ID, since2h()).stream().findFirst().orElseThrow();
+                .aggregateGatewayDistances(deviceId, since2h()).stream().findFirst().orElseThrow();
         assertThat(distance.gatewayId()).isEqualTo(GATEWAY_ID);
         assertThat(distance.frames()).isEqualTo(3);
         // Median of ~14 m / ~42 m / ~70 m frame distances.
@@ -100,7 +119,7 @@ class TelemetryCanonicalViewJourneyTest extends AbstractJourneyTest {
         // Last canonical frame by report_time is the weak one (~70 m out).
         assertThat(distance.lastDistanceMeters()).isCloseTo(70.0, within(10.0));
 
-        assertThat(telemetryLogRepository.roamDistanceSamples(DEVICE_ID, since2h(), Instant.now()))
+        assertThat(telemetryLogRepository.roamDistanceSamples(deviceId, since2h(), Instant.now()))
                 .hasSize(3);
 
         List<RssiDistanceSample> samples = telemetryLogRepository
@@ -129,9 +148,10 @@ class TelemetryCanonicalViewJourneyTest extends AbstractJourneyTest {
         List<String> rows = jdbcTemplate.queryForList("""
                 SELECT source FROM v_telemetry_canonical
                 WHERE device_id = ? ORDER BY report_time
-                """, String.class, DEVICE_ID);
-        // 4 canonical rows: dual pair collapsed to one + two singles; DATAGEN gone.
-        assertThat(rows).containsExactly("AGENTIC_PLATFORM", "AGENTIC_PLATFORM", "THINGSBOARD", "AGENTIC_PLATFORM");
+                """, String.class, deviceId);
+        // 3 canonical rows: the dual pair collapsed to its AGENTIC survivor +
+        // the two singles; the DATAGEN row is gone.
+        assertThat(rows).containsExactly("AGENTIC_PLATFORM", "AGENTIC_PLATFORM", "THINGSBOARD");
     }
 
     @Test
@@ -140,7 +160,7 @@ class TelemetryCanonicalViewJourneyTest extends AbstractJourneyTest {
         // every reception path's radio observations, including the DATAGEN rows
         // that live on the base table.
         var stats = telemetryLogRepository
-                .recentLinkQuality(DEVICE_ID, GATEWAY_ID, since2h(), 10)
+                .recentLinkQuality(deviceId, GATEWAY_ID, since2h(), 10)
                 .orElseThrow();
         assertThat(stats.frames()).isEqualTo(5);
         assertThat(stats.avgRssi()).isCloseTo((-70.0 - 70.0 - 80.0 - 96.0 - 56.0) / 5, within(0.5));
