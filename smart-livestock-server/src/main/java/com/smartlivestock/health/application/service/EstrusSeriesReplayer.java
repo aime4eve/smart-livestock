@@ -3,37 +3,63 @@ package com.smartlivestock.health.application.service;
 import com.smartlivestock.health.domain.model.ActivityLog;
 import com.smartlivestock.health.domain.model.TemperatureLog;
 import com.smartlivestock.health.domain.service.EstrusAnalysisService;
+import com.smartlivestock.health.infrastructure.config.EstrusScoringProperties;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
 
 /**
- * Reusable same-input estrus-scoring replayer (plan 2026-11-05 Task 3
- * refactor of what used to be private logic inside
- * {@link BaselineEvaluationService}). ONE identical event sequence (the same
- * temperature/activity rows) is pushed through the production estrus-scoring
- * semantics once per baseline candidate: for every temperature arrival
- * (event-time position i) the "latest 7 activities/temperatures as of that
- * point" feed the production formulas — {@code calculateStepIncreasePercent}
- * (newest 3 vs the rest), {@code calculateDistanceDelta}, latest temp minus
- * the side's baseline — and are scored via
- * {@link EstrusAnalysisService#calculateScore}. This mirrors
- * {@code HealthApplicationService.triggerEstrusScoring} minus every write;
- * positions with fewer than 3 activities or 2 temperatures are skipped
- * exactly like the production guard.
+ * Reusable same-input estrus-scoring replayer. ONE identical event sequence
+ * (the same temperature/activity rows) is pushed through the production
+ * estrus-scoring semantics once per baseline candidate: for every temperature
+ * arrival (event-time position i) the production features feed the scoring
+ * kernel, and ≥70 positions merge into alert episodes exactly like the
+ * production hasActiveAlert dedup approximation.
  *
- * <p>Two sides in one pass: {@link #replay(List, List, BigDecimal, BigDecimal)}
- * always replays the DEFAULT candidate and — when a learned candidate is
- * given — the LEARNED candidate over the very same normalized sequence. The
- * two sides are independent per position (only {@code tempDelta} depends on
- * the baseline), so the result is bit-identical to replaying the sequence
- * once per baseline; the single pass just avoids re-normalizing the input.
- * The learned side is {@code null} when no learned candidate is supplied.</p>
+ * <p><b>Dual path (NIX-380 Task 3):</b> the scoring semantics are selected by
+ * {@code EstrusScoringProperties.getMode()}, the very same switch the
+ * production {@code HealthApplicationService.triggerEstrusScoring} uses:</p>
+ * <ul>
+ *   <li>{@code LEGACY} — the pre-NIX-380 short-window formula, kept
+ *       byte-for-byte: the newest 7 activities/temperatures as of the arrival
+ *       feed {@code calculateStepIncreasePercent} (newest 3 vs the rest),
+ *       {@code calculateDistanceDelta}, latest temp minus the side's baseline,
+ *       scored via {@link EstrusAnalysisService#calculateScore}.</li>
+ *   <li>{@code NORMALIZED} (everything else — the properties bean validates
+ *       the mode to these two values) — the cross-event-window kernel of
+ *       {@code HealthApplicationService.triggerEstrusScoringNormalized}:
+ *       current-window level ÷ pooled median of same-phase baseline windows
+ *       24h apart, per-channel availability guards, scored via
+ *       {@link EstrusAnalysisService#calculateScoreNormalized}. Windows are
+ *       half-open {@code [start, end)}; anchor-timestamped activity frames are
+ *       excluded (deterministic tie handling, same as the production window
+ *       read {@code [anchor − span, anchor)}).</li>
+ * </ul>
+ * Consumers call {@link #replay} and get whichever semantics production is
+ * configured for — replaying a historical configuration only means setting
+ * the mode accordingly (e.g. LEGACY to reproduce pre-NIX-380 report numbers).
+ *
+ * <p>Two sides in one pass: both overloads always replay the DEFAULT
+ * candidate and — when a learned candidate is given — the LEARNED candidate
+ * over the very same normalized sequence. The two sides are independent per
+ * position (only {@code tempDelta} depends on the baseline; the activity and
+ * distance factors are baseline-independent and shared), so the result is
+ * bit-identical to replaying the sequence once per baseline. The learned side
+ * is {@code null} when no learned candidate is supplied.</p>
+ *
+ * <p>Deliberate I/O deviations from production (both paths): the replay runs
+ * over the caller-supplied in-memory sequence without the production read
+ * clamps (LEGACY's 7-row top-read is re-derived in memory; NORMALIZED's
+ * {@code maxWindowRows} SQL clamp against pathological cadences is not
+ * replicated — it is a read-size guard, not scoring semantics).</p>
  *
  * <p>Consumers: the admin baseline A/B evaluation (mechanism comparison) and
  * the datagen simulation evaluation (label-window alignment of ≥70 alert
@@ -45,14 +71,20 @@ public class EstrusSeriesReplayer {
     /** Consecutive ≥70 scoring positions within this gap merge into one episode. */
     private static final Duration EPISODE_MERGE_GAP = Duration.ofHours(24);
 
-    /** Production guard: the newest 7 rows feed each scoring position. */
+    /** Legacy production guard: the newest 7 rows feed each scoring position. */
     private static final int RECENT_WINDOW = 7;
     private static final int HIGH_SCORE_THRESHOLD = 70;
 
-    private final EstrusAnalysisService estrusAnalysisService;
+    /** Scale of level ratios / means / medians — verbatim from the production normalized path. */
+    private static final int RATIO_SCALE = 6;
 
-    public EstrusSeriesReplayer(EstrusAnalysisService estrusAnalysisService) {
+    private final EstrusAnalysisService estrusAnalysisService;
+    private final EstrusScoringProperties estrusScoringProperties;
+
+    public EstrusSeriesReplayer(EstrusAnalysisService estrusAnalysisService,
+                                EstrusScoringProperties estrusScoringProperties) {
         this.estrusAnalysisService = estrusAnalysisService;
+        this.estrusScoringProperties = estrusScoringProperties;
     }
 
     // ------------------------------------------------------------------
@@ -89,7 +121,8 @@ public class EstrusSeriesReplayer {
      * learned candidate. Inputs may arrive in any order: they are filtered
      * (null timestamps/values dropped) and sorted ascending first, which
      * makes the {@code Asc} contract self-enforcing and idempotent for
-     * already-sorted input.
+     * already-sorted input. The scoring semantics follow the configured
+     * {@code EstrusScoringProperties} mode.
      */
     public ReplayResult replay(List<TemperatureLog> tempsAsc, List<ActivityLog> actsAsc,
                                BigDecimal defaultBaseline, BigDecimal learnedBaselineOrNull) {
@@ -113,6 +146,23 @@ public class EstrusSeriesReplayer {
                 .sorted(Comparator.comparing(ActivityLog::getRecordedAt))
                 .toList();
 
+        // Mode dispatch mirrors HealthApplicationService.triggerEstrusScoring;
+        // the properties bean validates the mode to LEGACY/NORMALIZED only.
+        if ("LEGACY".equals(estrusScoringProperties.getMode())) {
+            return replayLegacy(livestockId, tempsAsc, actsAsc,
+                    defaultBaseline, learnedBaselineOrNull);
+        }
+        return replayNormalized(livestockId, tempsAsc, actsAsc,
+                defaultBaseline, learnedBaselineOrNull);
+    }
+
+    // ------------------------------------------------------------------
+    // LEGACY path — the pre-NIX-380 short-window formula, byte-for-byte
+    // ------------------------------------------------------------------
+
+    private ReplayResult replayLegacy(Long livestockId, List<TemperatureLog> tempsAsc,
+                                      List<ActivityLog> actsAsc,
+                                      BigDecimal defaultBaseline, BigDecimal learnedBaselineOrNull) {
         boolean learnedActive = learnedBaselineOrNull != null;
         SideAccumulator defaultSide = new SideAccumulator();
         SideAccumulator learnedSide = learnedActive ? new SideAccumulator() : null;
@@ -142,6 +192,86 @@ public class EstrusSeriesReplayer {
             if (learnedActive) {
                 learnedSide.accept(estrusAnalysisService, at,
                         latestTemp.subtract(learnedBaselineOrNull), stepIncreasePercent, distanceDelta);
+            }
+        }
+
+        return new ReplayResult(defaultSide.build(livestockId),
+                learnedActive ? learnedSide.build(livestockId) : null);
+    }
+
+    // ------------------------------------------------------------------
+    // NORMALIZED path — bit-for-bit replica of
+    // HealthApplicationService.triggerEstrusScoringNormalized, read-only
+    // and evaluated at EVERY temperature arrival (production scores only
+    // the newest; the replay rolls the same semantics over history)
+    // ------------------------------------------------------------------
+
+    private ReplayResult replayNormalized(Long livestockId, List<TemperatureLog> tempsAsc,
+                                          List<ActivityLog> actsAsc,
+                                          BigDecimal defaultBaseline, BigDecimal learnedBaselineOrNull) {
+        EstrusScoringProperties props = estrusScoringProperties;
+        EstrusAnalysisService.EstrusFeatureLadder activityLadder = props.toActivityLadder();
+        EstrusAnalysisService.EstrusFeatureLadder distanceLadder = props.toDistanceLadder();
+
+        boolean learnedActive = learnedBaselineOrNull != null;
+        SideAccumulator defaultSide = new SideAccumulator();
+        SideAccumulator learnedSide = learnedActive ? new SideAccumulator() : null;
+
+        // Activities strictly before the current arrival feed the windows: the
+        // production read is the half-open [anchor − span, anchor), so an
+        // activity frame stamped exactly at the anchor is excluded (deterministic
+        // tie handling). The LEGACY path keeps its <= cursor; only this path
+        // uses the strict <.
+        int actCursor = 0; // activities with recordedAt < the current arrival (strict)
+        for (int i = 0; i < tempsAsc.size(); i++) {
+            Instant at = tempsAsc.get(i).getRecordedAt();
+            while (actCursor < actsAsc.size() && actsAsc.get(actCursor).getRecordedAt().isBefore(at)) {
+                actCursor++;
+            }
+            // The anchor-timestamped frame can never be in the eligible prefix.
+            List<ActivityLog> eligibleActs = actsAsc.subList(0, actCursor);
+
+            // Guard: temperature component needs a minimum sample count. The
+            // production guard counts the newest-7 read; positions in the replay
+            // see i + 1 samples (assumes minTemperatureSamples within the read
+            // clamp, true for the validated configuration space).
+            if (i + 1 < props.getMinTemperatureSamples()) {
+                continue;
+            }
+            // The anchor row is the newest temperature as of this arrival —
+            // the same row production takes recentTemps.get(0) from.
+            BigDecimal latestTemp = tempsAsc.get(i).getTemperature();
+
+            // Channel selection: activityIndex preferred, stepCount as the
+            // ear-tag fallback; never mixed within one channel decision.
+            // Distance is judged independently and may be unavailable (the
+            // kernel drops its weight). Baseline-independent: computed once
+            // per position and shared by both sides.
+            ChannelLevel activityLevel = channelLevel(eligibleActs, at,
+                    ActivityLog::getActivityIndex, props);
+            if (activityLevel == null) {
+                activityLevel = channelLevel(eligibleActs, at,
+                        log -> log.getStepCount() == null ? null : BigDecimal.valueOf(log.getStepCount()),
+                        props);
+            }
+            // Guard: without an activity component there is nothing to normalize.
+            if (activityLevel == null) {
+                continue;
+            }
+            ChannelLevel distanceLevel = channelLevel(eligibleActs, at,
+                    ActivityLog::getDistanceMeters, props);
+
+            defaultSide.acceptNormalized(estrusAnalysisService, at,
+                    latestTemp.subtract(defaultBaseline),
+                    activityLevel.ratio(),
+                    distanceLevel == null ? null : distanceLevel.ratio(),
+                    activityLadder, distanceLadder);
+            if (learnedActive) {
+                learnedSide.acceptNormalized(estrusAnalysisService, at,
+                        latestTemp.subtract(learnedBaselineOrNull),
+                        activityLevel.ratio(),
+                        distanceLevel == null ? null : distanceLevel.ratio(),
+                        activityLadder, distanceLadder);
             }
         }
 
@@ -204,9 +334,24 @@ public class EstrusSeriesReplayer {
         private BigDecimal lastTempDelta;
         private Integer lastScore;
 
+        /** Legacy short-window scoring position. */
         void accept(EstrusAnalysisService scoring, Instant at, BigDecimal tempDelta,
                     int stepIncreasePercent, BigDecimal distanceDelta) {
-            int score = scoring.calculateScore(stepIncreasePercent, tempDelta, distanceDelta);
+            record(scoring.calculateScore(stepIncreasePercent, tempDelta, distanceDelta),
+                    at, tempDelta);
+        }
+
+        /** Normalized cross-event-window scoring position. */
+        void acceptNormalized(EstrusAnalysisService scoring, Instant at, BigDecimal tempDelta,
+                              BigDecimal activityRatio, BigDecimal distanceRatio,
+                              EstrusAnalysisService.EstrusFeatureLadder activityLadder,
+                              EstrusAnalysisService.EstrusFeatureLadder distanceLadder) {
+            record(scoring.calculateScoreNormalized(activityRatio, tempDelta, distanceRatio,
+                            activityLadder, distanceLadder),
+                    at, tempDelta);
+        }
+
+        private void record(int score, Instant at, BigDecimal tempDelta) {
             scoringPoints++;
             if (score >= HIGH_SCORE_THRESHOLD) {
                 highScorePoints++;
@@ -224,7 +369,7 @@ public class EstrusSeriesReplayer {
 
     /**
      * The last {@code count} rows (at most {@code RECENT_WINDOW}), newest
-     * first — the in-memory equivalent of the production
+     * first — the in-memory equivalent of the LEGACY production
      * {@code ...OrderByRecordedAtDesc(id, 7)} read at one arrival instant.
      */
     private static <T> List<T> newestFirst(List<T> ascending, int count) {
@@ -235,6 +380,109 @@ public class EstrusSeriesReplayer {
         }
         return result;
     }
+
+    // ------------------------------------------------------------------
+    // Normalized channel machinery — copied verbatim from
+    // HealthApplicationService (channelLevel / window filter / mean /
+    // median); the private production helpers are not widened for reuse
+    // (the replay must stay a read-only replica, and small duplication is
+    // the accepted price — same as the LEGACY feature copies below)
+    // ------------------------------------------------------------------
+
+    /**
+     * Channel levels of one activity channel: the current-window arithmetic
+     * mean, the pooled median of its qualified baseline-window samples, and
+     * their ratio (mean ÷ median). The ratio feeds the scoring ladder.
+     * Windows are half-open {@code [start, end)} — the same convention as
+     * the production window read feeding them.
+     *
+     * <p>Availability rules (NIX-380 §2, judged per channel on sample counts):
+     * the channel is usable only when the current window holds at least
+     * {@code minCurrentActivitySamples} non-null samples AND at least half of
+     * the baseline windows qualify (each holding at least
+     * {@code minBaselineActivitySamples} non-null samples) — half, not all, so
+     * one polluted or cold-start window cannot disable the baseline. Returns
+     * null when unavailable or when the pooled baseline median is not positive
+     * (median ≤ 0 makes the ratio undefined).</p>
+     */
+    private record ChannelLevel(BigDecimal currentMean, BigDecimal baselineMedian, BigDecimal ratio) {
+    }
+
+    private static ChannelLevel channelLevel(List<ActivityLog> logs, Instant anchor,
+                                             Function<ActivityLog, BigDecimal> channel,
+                                             EstrusScoringProperties props) {
+        long currentWindowHours = props.getCurrentWindowHours();
+        int baselineWindowCount = props.getBaselineWindowCount();
+        long offsetHours = props.getBaselineWindowOffsetHours();
+
+        List<BigDecimal> current = channelSamplesInWindow(
+                logs, anchor.minus(Duration.ofHours(currentWindowHours)), anchor, channel);
+        if (current.size() < props.getMinCurrentActivitySamples()) return null;
+
+        List<BigDecimal> pooled = new ArrayList<>();
+        int qualifiedWindows = 0;
+        for (int k = 1; k <= baselineWindowCount; k++) {
+            // Same wall-clock phase as the current window: each baseline window
+            // sits an exact 24h multiple before it (the offset is validated as
+            // a positive multiple of 24), so the daily activity envelope
+            // cancels out and the ratio reflects the true level change.
+            Instant windowEnd = anchor.minus(Duration.ofHours(offsetHours * k));
+            Instant windowStart = windowEnd.minus(Duration.ofHours(currentWindowHours));
+            List<BigDecimal> samples = channelSamplesInWindow(logs, windowStart, windowEnd, channel);
+            if (samples.size() >= props.getMinBaselineActivitySamples()) {
+                qualifiedWindows++;
+                pooled.addAll(samples);
+            }
+        }
+        // ceil(baselineWindowCount / 2) qualified windows required.
+        if (qualifiedWindows * 2 < baselineWindowCount) return null;
+
+        BigDecimal baselineMedian = median(pooled);
+        if (baselineMedian == null || baselineMedian.signum() <= 0) return null;
+
+        BigDecimal mean = arithmeticMean(current);
+        if (mean == null) return null;
+        return new ChannelLevel(mean, baselineMedian,
+                mean.divide(baselineMedian, RATIO_SCALE, RoundingMode.HALF_UP));
+    }
+
+    /** Non-null channel samples whose recordedAt falls in the half-open window {@code [start, end)}. */
+    private static List<BigDecimal> channelSamplesInWindow(List<ActivityLog> logs, Instant start, Instant end,
+                                                           Function<ActivityLog, BigDecimal> channel) {
+        return logs.stream()
+                .filter(l -> l.getRecordedAt() != null
+                        && !l.getRecordedAt().isBefore(start)
+                        && l.getRecordedAt().isBefore(end))
+                .map(channel)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    /** Arithmetic mean over a non-empty list; null only when the list is empty. */
+    private static BigDecimal arithmeticMean(List<BigDecimal> samples) {
+        if (samples.isEmpty()) return null;
+        BigDecimal sum = samples.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        return sum.divide(BigDecimal.valueOf(samples.size()), RATIO_SCALE, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * Sample median: middle value for an odd count, mean of the two middle
+     * values for an even count. Null only when the list is empty.
+     */
+    private static BigDecimal median(List<BigDecimal> samples) {
+        if (samples.isEmpty()) return null;
+        List<BigDecimal> sorted = new ArrayList<>(samples);
+        sorted.sort(BigDecimal::compareTo);
+        int mid = sorted.size() / 2;
+        if (sorted.size() % 2 == 1) return sorted.get(mid);
+        return sorted.get(mid - 1).add(sorted.get(mid))
+                .divide(BigDecimal.valueOf(2), RATIO_SCALE, RoundingMode.HALF_UP);
+    }
+
+    // ------------------------------------------------------------------
+    // LEGACY feature copies — production semantics copied verbatim from
+    // HealthApplicationService
+    // ------------------------------------------------------------------
 
     /**
      * Production semantics copied verbatim from

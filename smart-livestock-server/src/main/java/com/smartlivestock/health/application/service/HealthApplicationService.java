@@ -704,7 +704,7 @@ public class HealthApplicationService {
         int score = estrusAnalysisService.calculateScoreNormalized(
                 activityLevel.ratio(), tempDelta,
                 distanceLevel == null ? null : distanceLevel.ratio(),
-                activityLadder(props), distanceLadder(props));
+                props.toActivityLadder(), props.toDistanceLadder());
 
         log.debug("feature={} mode=NORMALIZED livestockId={} activityRatio={} distanceRatio={} tempDelta={} score={}",
                 FEATURE_VERSION, livestockId, activityLevel.ratio(),
@@ -832,22 +832,6 @@ public class HealthApplicationService {
         if (sorted.size() % 2 == 1) return sorted.get(mid);
         return sorted.get(mid - 1).add(sorted.get(mid))
                 .divide(BigDecimal.valueOf(2), RATIO_SCALE, RoundingMode.HALF_UP);
-    }
-
-    /** Activity ladder built from the six configured rung values. */
-    private static EstrusAnalysisService.EstrusFeatureLadder activityLadder(EstrusScoringProperties props) {
-        return new EstrusAnalysisService.EstrusFeatureLadder(
-                props.getActivityRatioVeryHigh(), props.getActivityScoreVeryHigh(),
-                props.getActivityRatioHigh(), props.getActivityScoreHigh(),
-                props.getActivityRatioMid(), props.getActivityScoreMid());
-    }
-
-    /** Distance ladder built from the six configured rung values. */
-    private static EstrusAnalysisService.EstrusFeatureLadder distanceLadder(EstrusScoringProperties props) {
-        return new EstrusAnalysisService.EstrusFeatureLadder(
-                props.getDistanceRatioVeryHigh(), props.getDistanceScoreVeryHigh(),
-                props.getDistanceRatioHigh(), props.getDistanceScoreHigh(),
-                props.getDistanceRatioMid(), props.getDistanceScoreMid());
     }
 
     /** LEGACY-shaped increase percent written to

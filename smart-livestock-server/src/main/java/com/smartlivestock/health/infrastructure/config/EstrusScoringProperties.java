@@ -1,5 +1,6 @@
 package com.smartlivestock.health.infrastructure.config;
 
+import com.smartlivestock.health.domain.service.EstrusAnalysisService;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -97,5 +98,26 @@ public class EstrusScoringProperties {
                             + " ladder rungs must satisfy ratioVeryHigh > ratioHigh > ratioMid > 1.0, got "
                             + veryHigh + "/" + high + "/" + mid);
         }
+    }
+
+    /**
+     * Activity scoring ladder built from the six configured activity rung
+     * values — the single definition shared by the production scoring
+     * ({@code HealthApplicationService}) and the replay replica
+     * ({@code EstrusSeriesReplayer}), so the two can never drift.
+     */
+    public EstrusAnalysisService.EstrusFeatureLadder toActivityLadder() {
+        return new EstrusAnalysisService.EstrusFeatureLadder(
+                activityRatioVeryHigh, activityScoreVeryHigh,
+                activityRatioHigh, activityScoreHigh,
+                activityRatioMid, activityScoreMid);
+    }
+
+    /** Distance scoring ladder built from the six configured distance rung values (see {@link #toActivityLadder()}). */
+    public EstrusAnalysisService.EstrusFeatureLadder toDistanceLadder() {
+        return new EstrusAnalysisService.EstrusFeatureLadder(
+                distanceRatioVeryHigh, distanceScoreVeryHigh,
+                distanceRatioHigh, distanceScoreHigh,
+                distanceRatioMid, distanceScoreMid);
     }
 }
