@@ -82,7 +82,7 @@ public class HealthApplicationService {
     /** Algorithm version stamped into NORMALIZED scoring logs (NIX-380; ruling:
      *  kept in logs only, never persisted as a column). */
     private static final String FEATURE_VERSION = "ESTRUS-FEATURE-V2";
-    /** Scale for normalized level ratios (mean/median divisions). */
+    /** Scale for normalized level ratios (mean/mean divisions). */
     private static final int RATIO_SCALE = 6;
     /** Column bound of estrus_scores.distance_delta DECIMAL(10,2) — the meter
      *  delta written on NORMALIZED rows is clamped to ±this so it can never
@@ -627,10 +627,11 @@ public class HealthApplicationService {
      * <p>Replaces the legacy "recent-3 vs rest-4" short-window ratio, which
      * under-detects gradual ~18h estrus episodes at 30-minute telemetry
      * granularity. The current window's activity / distance levels are divided
-     * by the pooled median of same-phase baseline windows taken at exact 24h
-     * multiples before the anchor, so the circadian activity envelope cancels
-     * out of the baseline and a slow but sustained rise still clears the
-     * absolute ratio rungs.</p>
+     * by the pooled mean of same-phase baseline windows taken at exact 24h
+     * multiples before the anchor (mean/mean — see {@link #channelLevel} for
+     * why the median is wrong here), so the circadian activity envelope
+     * cancels out of the baseline and a slow but sustained rise still clears
+     * the absolute ratio rungs.</p>
      *
      * <p>Guards (any miss → return without writing a row, the same fail-silent
      * contract as the legacy {@code size < 3 / size < 2} early returns):
@@ -645,7 +646,7 @@ public class HealthApplicationService {
      * semantics are unchanged from LEGACY — {@code stepIncreasePercent} stays a
      * true increase percent ({@code (activityRatio − 1) × 100}, e.g. ratio 3.0
      * → 200 means a genuine 3× level rise) and {@code distanceDelta} stays an
-     * absolute meter delta (distance currentMean − baselineMedian); only the
+     * absolute meter delta (distance currentMean − baselineLevel); only the
      * computation source moves from the 3-vs-4 short window to the
      * cross-event-window levels. The raw level ratios themselves are recorded
      * only in the FEATURE-V2 debug log. score / advice / the four baseline
@@ -745,11 +746,22 @@ public class HealthApplicationService {
 
     /**
      * Channel levels of one activity channel: the current-window arithmetic
-     * mean, the pooled median of its qualified baseline-window samples, and
-     * their ratio (mean ÷ median). The ratio feeds the scoring ladder; the
-     * mean/median pair feeds the LEGACY-shaped meter delta written to
-     * {@code distance_delta}. Windows are half-open {@code [start, end)} —
-     * the same convention as the window read feeding them.
+     * mean, the pooled arithmetic mean of its qualified baseline-window
+     * samples, and their ratio (mean ÷ pooled mean). The ratio feeds the
+     * scoring ladder; the two levels feed the LEGACY-shaped meter delta
+     * written to {@code distance_delta}. Windows are half-open
+     * {@code [start, end)} — the same convention as the window read feeding
+     * them.
+     *
+     * <p>Mean/mean, not mean/median (simulation forensics, NIX-380): the
+     * activity envelope is bimodal (day U(30,90) vs night U(5,25)), and a 6h
+     * window straddling the 06:00 day boundary holds only a minority of day
+     * frames. Mean vs pooled median on that mix diverges systematically — the
+     * mean is lifted by the minority day frames while the median stays in the
+     * night cluster — inflating clean-cow ratios to ~2× and producing batches
+     * of false episodes at every morning boundary. Same-phase windows carry
+     * the SAME day/night frame mix, so mean ÷ pooled mean estimates one and
+     * the same quantity on both sides and the mix cancels out of the ratio.</p>
      *
      * <p>Availability rules (NIX-380 §2, judged per channel on sample counts):
      * the channel is usable only when the current window holds at least
@@ -757,10 +769,10 @@ public class HealthApplicationService {
      * the baseline windows qualify (each holding at least
      * {@code minBaselineActivitySamples} non-null samples) — half, not all, so
      * one polluted or cold-start window cannot disable the baseline. Returns
-     * null when unavailable or when the pooled baseline median is not positive
-     * (median ≤ 0 makes the ratio undefined).</p>
+     * null when unavailable or when the pooled baseline level is not positive
+     * (level ≤ 0 makes the ratio undefined).</p>
      */
-    private record ChannelLevel(BigDecimal currentMean, BigDecimal baselineMedian, BigDecimal ratio) {
+    private record ChannelLevel(BigDecimal currentMean, BigDecimal baselineLevel, BigDecimal ratio) {
     }
 
     private static ChannelLevel channelLevel(List<ActivityLog> logs, Instant anchor,
@@ -792,13 +804,16 @@ public class HealthApplicationService {
         // ceil(baselineWindowCount / 2) qualified windows required.
         if (qualifiedWindows * 2 < baselineWindowCount) return null;
 
-        BigDecimal baselineMedian = median(pooled);
-        if (baselineMedian == null || baselineMedian.signum() <= 0) return null;
+        // Pooled arithmetic mean, not median — see the ChannelLevel javadoc
+        // (mean/mean coherence on the bimodal day/night envelope). The pool is
+        // non-empty here: qualifiedWindows >= 1 by the ceil guard above.
+        BigDecimal baselineLevel = arithmeticMean(pooled);
+        if (baselineLevel == null || baselineLevel.signum() <= 0) return null;
 
         BigDecimal mean = arithmeticMean(current);
         if (mean == null) return null;
-        return new ChannelLevel(mean, baselineMedian,
-                mean.divide(baselineMedian, RATIO_SCALE, RoundingMode.HALF_UP));
+        return new ChannelLevel(mean, baselineLevel,
+                mean.divide(baselineLevel, RATIO_SCALE, RoundingMode.HALF_UP));
     }
 
     /** Non-null channel samples whose recordedAt falls in the half-open window {@code [start, end)}. */
@@ -820,20 +835,6 @@ public class HealthApplicationService {
         return sum.divide(BigDecimal.valueOf(samples.size()), RATIO_SCALE, RoundingMode.HALF_UP);
     }
 
-    /**
-     * Sample median: middle value for an odd count, mean of the two middle
-     * values for an even count. Null only when the list is empty.
-     */
-    private static BigDecimal median(List<BigDecimal> samples) {
-        if (samples.isEmpty()) return null;
-        List<BigDecimal> sorted = new ArrayList<>(samples);
-        sorted.sort(BigDecimal::compareTo);
-        int mid = sorted.size() / 2;
-        if (sorted.size() % 2 == 1) return sorted.get(mid);
-        return sorted.get(mid - 1).add(sorted.get(mid))
-                .divide(BigDecimal.valueOf(2), RATIO_SCALE, RoundingMode.HALF_UP);
-    }
-
     /** LEGACY-shaped increase percent written to
      *  estrus_scores.step_increase_percent on NORMALIZED rows, computed from
      *  the normalized level ratio: {@code (ratio − 1) × 100} (ratio 3.0 → 200,
@@ -846,11 +847,11 @@ public class HealthApplicationService {
 
     /** LEGACY-shaped absolute meter delta written to
      *  estrus_scores.distance_delta on NORMALIZED rows: distance currentMean −
-     *  baselineMedian at the DECIMAL(10,2) column scale, clamped to the column
+     *  baselineLevel at the DECIMAL(10,2) column scale, clamped to the column
      *  bounds both ways (lesson #13 — an out-of-range value would roll back
      *  the whole telemetry transaction). */
     private static BigDecimal toMeterDelta(ChannelLevel level) {
-        BigDecimal delta = level.currentMean().subtract(level.baselineMedian())
+        BigDecimal delta = level.currentMean().subtract(level.baselineLevel())
                 .setScale(2, RoundingMode.HALF_UP);
         BigDecimal clamped = delta.min(MAX_DISTANCE_DELTA);
         return clamped.max(MAX_DISTANCE_DELTA.negate());

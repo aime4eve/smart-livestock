@@ -36,8 +36,9 @@ import java.util.function.Function;
  *   <li>{@code NORMALIZED} (everything else — the properties bean validates
  *       the mode to these two values) — the cross-event-window kernel of
  *       {@code HealthApplicationService.triggerEstrusScoringNormalized}:
- *       current-window level ÷ pooled median of same-phase baseline windows
- *       24h apart, per-channel availability guards, scored via
+ *       current-window mean ÷ pooled mean of same-phase baseline windows
+ *       24h apart (mean/mean — see ChannelLevel), per-channel availability
+ *       guards, scored via
  *       {@link EstrusAnalysisService#calculateScoreNormalized}. Windows are
  *       half-open {@code [start, end)}; anchor-timestamped activity frames are
  *       excluded (deterministic tie handling, same as the production window
@@ -75,7 +76,7 @@ public class EstrusSeriesReplayer {
     private static final int RECENT_WINDOW = 7;
     private static final int HIGH_SCORE_THRESHOLD = 70;
 
-    /** Scale of level ratios / means / medians — verbatim from the production normalized path. */
+    /** Scale of level ratios / means — verbatim from the production normalized path. */
     private static final int RATIO_SCALE = 6;
 
     private final EstrusAnalysisService estrusAnalysisService;
@@ -383,18 +384,26 @@ public class EstrusSeriesReplayer {
 
     // ------------------------------------------------------------------
     // Normalized channel machinery — copied verbatim from
-    // HealthApplicationService (channelLevel / window filter / mean /
-    // median); the private production helpers are not widened for reuse
+    // HealthApplicationService (channelLevel / window filter / mean);
+    // the private production helpers are not widened for reuse
     // (the replay must stay a read-only replica, and small duplication is
     // the accepted price — same as the LEGACY feature copies below)
     // ------------------------------------------------------------------
 
     /**
      * Channel levels of one activity channel: the current-window arithmetic
-     * mean, the pooled median of its qualified baseline-window samples, and
-     * their ratio (mean ÷ median). The ratio feeds the scoring ladder.
-     * Windows are half-open {@code [start, end)} — the same convention as
-     * the production window read feeding them.
+     * mean, the pooled arithmetic mean of its qualified baseline-window
+     * samples, and their ratio (mean ÷ pooled mean). The ratio feeds the
+     * scoring ladder. Windows are half-open {@code [start, end)} — the same
+     * convention as the production window read feeding them.
+     *
+     * <p>Mean/mean, not mean/median — simulation forensics (NIX-380) showed
+     * mean vs pooled median on the bimodal day/night activity envelope
+     * systematically diverges at day-boundary windows (minority day frames
+     * lift the mean while the median stays in the night cluster), inflating
+     * clean-cow ratios to ~2×. Same-phase windows carry the same frame mix,
+     * so mean ÷ pooled mean is coherent. Verbatim mirror of the production
+     * {@code HealthApplicationService.channelLevel}.</p>
      *
      * <p>Availability rules (NIX-380 §2, judged per channel on sample counts):
      * the channel is usable only when the current window holds at least
@@ -402,10 +411,10 @@ public class EstrusSeriesReplayer {
      * the baseline windows qualify (each holding at least
      * {@code minBaselineActivitySamples} non-null samples) — half, not all, so
      * one polluted or cold-start window cannot disable the baseline. Returns
-     * null when unavailable or when the pooled baseline median is not positive
-     * (median ≤ 0 makes the ratio undefined).</p>
+     * null when unavailable or when the pooled baseline level is not positive
+     * (level ≤ 0 makes the ratio undefined).</p>
      */
-    private record ChannelLevel(BigDecimal currentMean, BigDecimal baselineMedian, BigDecimal ratio) {
+    private record ChannelLevel(BigDecimal currentMean, BigDecimal baselineLevel, BigDecimal ratio) {
     }
 
     private static ChannelLevel channelLevel(List<ActivityLog> logs, Instant anchor,
@@ -437,13 +446,16 @@ public class EstrusSeriesReplayer {
         // ceil(baselineWindowCount / 2) qualified windows required.
         if (qualifiedWindows * 2 < baselineWindowCount) return null;
 
-        BigDecimal baselineMedian = median(pooled);
-        if (baselineMedian == null || baselineMedian.signum() <= 0) return null;
+        // Pooled arithmetic mean, not median — see the ChannelLevel javadoc
+        // (mean/mean coherence on the bimodal day/night envelope). The pool is
+        // non-empty here: qualifiedWindows >= 1 by the ceil guard above.
+        BigDecimal baselineLevel = arithmeticMean(pooled);
+        if (baselineLevel == null || baselineLevel.signum() <= 0) return null;
 
         BigDecimal mean = arithmeticMean(current);
         if (mean == null) return null;
-        return new ChannelLevel(mean, baselineMedian,
-                mean.divide(baselineMedian, RATIO_SCALE, RoundingMode.HALF_UP));
+        return new ChannelLevel(mean, baselineLevel,
+                mean.divide(baselineLevel, RATIO_SCALE, RoundingMode.HALF_UP));
     }
 
     /** Non-null channel samples whose recordedAt falls in the half-open window {@code [start, end)}. */
@@ -463,20 +475,6 @@ public class EstrusSeriesReplayer {
         if (samples.isEmpty()) return null;
         BigDecimal sum = samples.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
         return sum.divide(BigDecimal.valueOf(samples.size()), RATIO_SCALE, RoundingMode.HALF_UP);
-    }
-
-    /**
-     * Sample median: middle value for an odd count, mean of the two middle
-     * values for an even count. Null only when the list is empty.
-     */
-    private static BigDecimal median(List<BigDecimal> samples) {
-        if (samples.isEmpty()) return null;
-        List<BigDecimal> sorted = new ArrayList<>(samples);
-        sorted.sort(BigDecimal::compareTo);
-        int mid = sorted.size() / 2;
-        if (sorted.size() % 2 == 1) return sorted.get(mid);
-        return sorted.get(mid - 1).add(sorted.get(mid))
-                .divide(BigDecimal.valueOf(2), RATIO_SCALE, RoundingMode.HALF_UP);
     }
 
     // ------------------------------------------------------------------

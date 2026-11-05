@@ -245,6 +245,52 @@ class EstrusNormalizedScoringTest {
     // ── 2. NORMALIZED basics: ratio 1.0 → low, ratio 3.0 → ≥70 + percent=300 ──
 
     @Test
+    void normalized_dayBoundaryStraddle_meanMeanKeepsCleanCowQuiet() {
+        // Simulation-forensics regression lock (NIX-380): a 6h window straddling
+        // the morning day boundary carries a MINORITY of day frames (2/12).
+        // Under the former mean/median pair the same-mix baseline pooled median
+        // stayed in the night cluster (~13) while the current mean sat at ~27.3
+        // → ratio 2.1 → 95-rung → a false ≥70 episode on a clean cow at every
+        // morning boundary. Same-phase windows hold the identical frame mix, so
+        // mean ÷ pooled mean cancels it: ratio 1.0 → no crossing (score is the
+        // temp component alone, exactly like the flat ratio-1.0 case).
+        stubTemperatureChain();
+        stubWindowLogs(straddleWindows());
+
+        processAnchorTelemetry();
+
+        EstrusScore saved = captureSavedScore();
+        assertEquals(0, saved.getStepIncreasePercent()); // (1.0 − 1) × 100
+        assertEquals(13, saved.getScore()); // round(42.0 × 0.3 / 1.0) — temp alone
+        assertEquals("Not in estrus", saved.getAdvice());
+        assertBigDecimalEquals("0.00", saved.getDistanceDelta()); // 27.25 − 27.25 meters
+    }
+
+    /** One 12-frame morning-boundary straddle: 10 night frames @15 then 2 day
+     *  frames @88/89 — the shape observed on false episodes in the forensics. */
+    private List<ActivityLog> straddleWindow(Instant start) {
+        List<ActivityLog> logs = new ArrayList<>();
+        for (int f = 0; f < 10; f++) {
+            logs.add(activityAt(start.plus(Duration.ofMinutes(30L * f)), "15", 30, "15.0"));
+        }
+        logs.add(activityAt(start.plus(Duration.ofMinutes(300)), "88", 308, "88.0"));
+        logs.add(activityAt(start.plus(Duration.ofMinutes(330)), "89", 312, "89.0"));
+        return logs;
+    }
+
+    /** Current window + all 3 baseline windows, each with the SAME straddle mix
+     *  (10 night + 2 day frames): mean 27.25 everywhere, ratio 1.0. */
+    private List<ActivityLog> straddleWindows() {
+        List<ActivityLog> logs = new ArrayList<>();
+        logs.addAll(straddleWindow(SPAN_START));
+        logs.addAll(straddleWindow(SPAN_START.plus(Duration.ofHours(24))));
+        logs.addAll(straddleWindow(SPAN_START.plus(Duration.ofHours(48))));
+        logs.addAll(straddleWindow(CURRENT_START));
+        return logs;
+    }
+
+
+    @Test
     void normalized_ratioOne_lowScore_columnsCarryIncreaseAndMeterDelta() {
         stubTemperatureChain();
         // Current window 12 samples (mean 60), all baseline windows 60 → ratio 1.0.
