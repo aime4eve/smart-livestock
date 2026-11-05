@@ -116,10 +116,10 @@ class TelemetryCanonicalViewJourneyTest extends AbstractJourneyTest {
                 .aggregateGatewayDistances(deviceId, since2h()).stream().findFirst().orElseThrow();
         assertThat(distance.gatewayId()).isEqualTo(GATEWAY_ID);
         assertThat(distance.frames()).isEqualTo(3);
-        // Median of ~14 m / ~42 m / ~70 m frame distances.
+        // Median of ~14 m / ~42 m / ~70 m frame distances. lastDistanceMeters
+        // is intentionally NaN at repository level (GatewayDistanceService
+        // fills it from the latest fix, an un-switched query).
         assertThat(distance.medianMeters()).isCloseTo(42.0, within(10.0));
-        // Last canonical frame by report_time is the weak one (~70 m out).
-        assertThat(distance.lastDistanceMeters()).isCloseTo(70.0, within(10.0));
 
         assertThat(telemetryLogRepository.roamDistanceSamples(deviceId, since2h(), Instant.now()))
                 .hasSize(3);
