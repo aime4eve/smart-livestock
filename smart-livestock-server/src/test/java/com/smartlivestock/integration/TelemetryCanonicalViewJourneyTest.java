@@ -127,7 +127,10 @@ class TelemetryCanonicalViewJourneyTest extends AbstractJourneyTest {
         // fills it from the latest fix, an un-switched query).
         assertThat(distance.medianMeters()).isCloseTo(42.0, within(10.0));
 
-        assertThat(telemetryLogRepository.roamDistanceSamples(deviceId, since2h(), Instant.now()))
+        // Upper bound pushed into the future: seeded frames sit at base+30..60s,
+        // which is "now-ish" and would be cut by a strict report_time < now().
+        assertThat(telemetryLogRepository
+                .roamDistanceSamples(deviceId, since2h(), Instant.now().plus(Duration.ofMinutes(5))))
                 .hasSize(3);
 
         List<RssiDistanceSample> samples = telemetryLogRepository
