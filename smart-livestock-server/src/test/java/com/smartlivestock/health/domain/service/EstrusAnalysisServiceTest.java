@@ -39,9 +39,10 @@ class EstrusAnalysisServiceTest {
         // Mid rung [1.5, 2.0) -> 45.
         assertThat(EstrusAnalysisService.ladderScore(1.5, DEFAULT)).isEqualTo(45.0);
         assertThat(EstrusAnalysisService.ladderScore(1.99, DEFAULT)).isEqualTo(45.0);
-        // High rung [2.0, 3.0) -> 95.
-        assertThat(EstrusAnalysisService.ladderScore(2.0, DEFAULT)).isEqualTo(95.0);
-        assertThat(EstrusAnalysisService.ladderScore(2.99, DEFAULT)).isEqualTo(95.0);
+        // High rung [2.0, 3.0) -> 100 (scored 95 before the NIX-380 forensics fix;
+        // a sustained >=2x same-phase rise is a maximal standing-heat signal).
+        assertThat(EstrusAnalysisService.ladderScore(2.0, DEFAULT)).isEqualTo(100.0);
+        assertThat(EstrusAnalysisService.ladderScore(2.99, DEFAULT)).isEqualTo(100.0);
         // Very-high rung [3.0, inf) -> 100, saturating above it.
         assertThat(EstrusAnalysisService.ladderScore(3.0, DEFAULT)).isEqualTo(100.0);
         assertThat(EstrusAnalysisService.ladderScore(3.5, DEFAULT)).isEqualTo(100.0);
@@ -77,10 +78,23 @@ class EstrusAnalysisServiceTest {
 
     @Test
     void normalized_allThreeComponents_fullWeightSum() {
-        // activity 3.0 -> 100, temp 0.55 -> 42, distance 2.0 -> 95.
-        // raw = 100*0.4 + 42*0.3 + 95*0.3 = 40 + 12.6 + 28.5 = 81.1 -> 81
+        // activity 3.0 -> 100 (very-high rung), temp 0.55 -> 42, distance 2.0 -> 100
+        // (high rung scored 100 since the NIX-380 forensics fix).
+        // raw = 100*0.4 + 42*0.3 + 100*0.3 = 40 + 12.6 + 30 = 82.6 -> 83
         assertThat(SERVICE.calculateScoreNormalized(bd("3.0"), bd("0.55"), bd("2.0"), DEFAULT, DEFAULT))
-                .isEqualTo(81);
+                .isEqualTo(83);
+    }
+
+    @Test
+    void normalized_negativeTempDelta_floorsAtZero_notNegativeEvidence() {
+        // NIX-380 forensics regression lock: the legacy curve returns
+        // d/0.2*10 unbounded below, so a drinking-valley tempDelta of -2.0
+        // scored -100 and dragged whole positions to 0. A cooler-than-baseline
+        // reading is NOT evidence against estrus: the component floors at 0
+        // while the activity/distance rungs still carry the score.
+        // raw = 100*0.4 + 0*0.3 + 100*0.3 = 70
+        assertThat(SERVICE.calculateScoreNormalized(bd("2.5"), bd("-2.0"), bd("2.5"), DEFAULT, DEFAULT))
+                .isEqualTo(70);
     }
 
     @Test
@@ -100,18 +114,18 @@ class EstrusAnalysisServiceTest {
     @Test
     void normalized_nullLadderFallsBackToDefault() {
         // Null ladders fall back to DEFAULT_LADDER: identical inputs to the
-        // DEFAULT case of normalized_defaultLadderVersusCustomLadder -> same 72.
+        // DEFAULT case of normalized_defaultLadderVersusCustomLadder -> same 75.
         assertThat(SERVICE.calculateScoreNormalized(bd("2.5"), bd("0.55"), null, null, null))
-                .isEqualTo(72);
+                .isEqualTo(75);
     }
 
     @Test
     void normalized_defaultLadderVersusCustomLadder_sameInputsDifferentScores() {
-        // activity 2.5: DEFAULT ladder -> 95 (high rung), CUSTOM ladder -> 60 (high rung).
+        // activity 2.5: DEFAULT ladder -> 100 (high rung), CUSTOM ladder -> 60 (high rung).
         // temp 0.55 -> 42 either way; distance unavailable.
-        // DEFAULT: (95*0.4 + 42*0.3) / 0.7 = 50.6 / 0.7 = 72.28 -> 72
+        // DEFAULT: (100*0.4 + 42*0.3) / 0.7 = 52.6 / 0.7 = 75.14 -> 75
         assertThat(SERVICE.calculateScoreNormalized(bd("2.5"), bd("0.55"), null, DEFAULT, DEFAULT))
-                .isEqualTo(72);
+                .isEqualTo(75);
         // CUSTOM: (60*0.4 + 42*0.3) / 0.7 = 36.6 / 0.7 = 52.28 -> 52
         assertThat(SERVICE.calculateScoreNormalized(bd("2.5"), bd("0.55"), null, CUSTOM, CUSTOM))
                 .isEqualTo(52);

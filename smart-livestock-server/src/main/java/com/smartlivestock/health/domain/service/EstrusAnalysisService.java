@@ -79,11 +79,11 @@ public class EstrusAnalysisService {
 
     /**
      * Default ladder mirroring the {@code smartlivestock.estrus-scoring} defaults
-     * (3.0/100, 2.0/95, 1.5/45). Serves unit tests and callers without an
+     * (3.0/100, 2.0/100, 1.5/45). Serves unit tests and callers without an
      * explicit ladder.
      */
     public static final EstrusFeatureLadder DEFAULT_LADDER =
-            new EstrusFeatureLadder(3.0, 100, 2.0, 95, 1.5, 45);
+            new EstrusFeatureLadder(3.0, 100, 2.0, 100, 1.5, 45);
 
     /**
      * Normalized estrus scoring across event-time windows (NIX-380).
@@ -99,7 +99,8 @@ public class EstrusAnalysisService {
      * <p>Component scores: activity and distance via
      * {@link #ladderScore(double, EstrusFeatureLadder)} with ladders supplied by
      * the caller (built from {@code EstrusScoringProperties}); temperature reuses
-     * the legacy {@code scoreTempDelta} curve. A null argument means "component
+     * the legacy {@code scoreTempDelta} curve floored at zero for negative
+     * deltas (see the inline comment below). A null argument means "component
      * unavailable" — it contributes no score and its weight is dropped from the
      * denominator, so CAPSULE-only animals (activity + temperature) are scored on
      * their available components instead of being diluted by zeros. When all
@@ -126,7 +127,16 @@ public class EstrusAnalysisService {
             weightSum += 0.4;
         }
         if (tempDelta != null) {
-            weightedSum += scoreTempDelta(tempDelta) * 0.3;
+            // Floored at 0 for negative deltas (NIX-380 simulation forensics):
+            // the legacy curve returns d/0.2×10 unbounded below, and at
+            // 30-minute granularity most positions carry a drinking-valley
+            // tempDelta of −2…−14 °C — a cow being COOLER than her baseline
+            // (drinking bout, diurnal trough, noise) is not evidence against
+            // estrus, so absence of a temperature rise contributes 0 instead
+            // of dragging the whole score down. Positive deltas still score
+            // normally (up to +60). The legacy calculateScore keeps its
+            // original curve untouched.
+            weightedSum += Math.max(0, scoreTempDelta(tempDelta)) * 0.3;
             weightSum += 0.3;
         }
         if (distanceRatio != null) {

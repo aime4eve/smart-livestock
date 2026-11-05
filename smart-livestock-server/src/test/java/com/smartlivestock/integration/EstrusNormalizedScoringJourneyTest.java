@@ -70,9 +70,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * is far cheaper than growing the fixture past the 600-row default (78h span
  * at 5-minute cadence = 936+ rows per head). 62 rows in the read span + clamp
  * 50 drops exactly the oldest 12 rows = baseline window k=3, so the pooled
- * median becomes (60+90)/2 = 75 instead of 60: ratio 180/75 = 2.4 → ladder 95
- * → step_increase_percent 140, score = (95·0.4 + 42·0.3 + 100·0.3) = 80.6 →
- * 81 — numerically distinct from the unclamped 200/83, which proves the clamp
+ * pooled mean becomes (60+90)/2 = 75 instead of 60: ratio 180/75 = 2.4 → ladder
+ * 100 → step_increase_percent 140, score = (100·0.4 + 42·0.3 + 100·0.3) = 82.6 →
+ * 83 — numerically distinct from the unclamped 200/1000-meter row, which proves the clamp
  * really bit while scoring still landed (2 qualified windows ≥ ceil(3/2)).</p>
  *
  * <p>Properties are mutated in-process on the singleton
@@ -115,8 +115,8 @@ public class EstrusNormalizedScoringJourneyTest extends AbstractJourneyTest {
     private static final int EXPECTED_SCORE_LEGACY = 0;
     private static final int EXPECTED_INCREASE_PERCENT_LEGACY = -25;
     private static final String EXPECTED_DISTANCE_DELTA_LEGACY = "-1500.00";
-    /** Clamp: k=3 clipped → median (60+90)/2 = 75 → ratio 2.4 → ladder 95 → percent 140, score 81. */
-    private static final int EXPECTED_SCORE_CLAMPED = 81;
+    /** Clamp: k=3 clipped → pooled mean (60+90)/2 = 75 → ratio 2.4 → ladder 100 → percent 140, score 83. */
+    private static final int EXPECTED_SCORE_CLAMPED = 83;
     private static final int EXPECTED_INCREASE_PERCENT_CLAMPED = 140;
 
     @Autowired
@@ -299,7 +299,7 @@ public class EstrusNormalizedScoringJourneyTest extends AbstractJourneyTest {
      * Task item 6: the read clamp bites (maxWindowRows 50 vs 62 span rows) yet
      * scoring still lands — the clipped k=3 window leaves 2 qualified windows,
      * and the pooled median moves 60 → 75, which shows up as percent 140 /
-     * score 81 instead of the unclamped 200/83.
+     * score 83 instead of the unclamped ratio-3.0 row.
      */
     @Test
     void readClampKeepsScoringOnClippedWindow() {

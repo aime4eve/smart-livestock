@@ -378,8 +378,8 @@ class EstrusNormalizedScoringTest {
         EstrusScore saved = captureSavedScore();
         assertEquals(100, saved.getStepIncreasePercent()); // (2.0 − 1) × 100 = +100%
         assertNull(saved.getDistanceDelta());
-        // round((95×0.4 + 42.0×0.3) / 0.7) = 72 — CAPSULE-only scoring is not diluted.
-        assertEquals(72, saved.getScore());
+        // round((95×0.4 + 42.0×0.3) / 0.7) = 75 — CAPSULE-only scoring is not diluted.
+        assertEquals(75, saved.getScore());
     }
 
     // ── 4. Ear-tag fallback: activityIndex all null → stepCount channel ──

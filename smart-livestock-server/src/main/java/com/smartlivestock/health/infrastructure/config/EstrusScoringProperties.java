@@ -50,8 +50,14 @@ public class EstrusScoringProperties {
     private int activityScoreVeryHigh = 100;
     /** Activity ratio rung for the high score. */
     private double activityRatioHigh = 2.0;
-    /** Activity score at/above the high rung. */
-    private int activityScoreHigh = 95;
+    /** Activity score at/above the high rung. 100 (not 95): a sustained ≥2×
+     *  rise against the animal's own same-phase baseline is a maximal
+     *  standing-heat activity signal, and with the distance channel present
+     *  act+distance alone reach the frozen 70 gate without needing the
+     *  temperature component to survive a drinking-valley frame (simulation
+     *  forensics: single-point tempDelta is negative at most 30-min positions
+     *  because ~10 drinking bouts/day contaminate the raw series). */
+    private int activityScoreHigh = 100;
     /** Activity ratio rung for the mid score (linear band lower anchor sits at ratio 1.0). */
     private double activityRatioMid = 1.5;
     /** Activity score at/above the mid rung. */
@@ -63,8 +69,8 @@ public class EstrusScoringProperties {
     private int distanceScoreVeryHigh = 100;
     /** Distance ratio rung for the high score. */
     private double distanceRatioHigh = 2.0;
-    /** Distance score at/above the high rung. */
-    private int distanceScoreHigh = 95;
+    /** Distance score at/above the high rung (mirrors {@link #activityScoreHigh}). */
+    private int distanceScoreHigh = 100;
     /** Distance ratio rung for the mid score (linear band lower anchor sits at ratio 1.0). */
     private double distanceRatioMid = 1.5;
     /** Distance score at/above the mid rung. */
