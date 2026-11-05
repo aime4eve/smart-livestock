@@ -44,20 +44,20 @@ public class TelemetryIngestionDedupJpaEntity {
     private long providerEventTs;
 
     /**
-     * CHAR(64) columns (fixed-length SHA-256 hex, parking V88 convention) —
-     * the columnDefinition must match or Hibernate schema-validation rejects
-     * the SessionFactory (CI-caught: length=64 alone infers varchar).
+     * 64-char SHA-256 hex keys. VARCHAR on purpose: Hibernate schema-validation
+     * infers varchar for String+length and rejects bpchar (CI-caught), so the
+     * parking CHAR(64) convention is deliberately not copied here.
      */
-    @Column(name = "canonical_key", nullable = false, columnDefinition = "char(64)")
+    @Column(name = "canonical_key", nullable = false, length = 64)
     private String canonicalKey;
 
-    @Column(name = "core_fields_fingerprint", columnDefinition = "char(64)")
+    @Column(name = "core_fields_fingerprint", length = 64)
     private String coreFieldsFingerprint;
 
     @Column(name = "is_canonical", nullable = false)
     private boolean canonical;
 
-    @Column(name = "matched_canonical_key", columnDefinition = "char(64)")
+    @Column(name = "matched_canonical_key", length = 64)
     private String matchedCanonicalKey;
 
     @Column(name = "created_at", nullable = false, updatable = false)

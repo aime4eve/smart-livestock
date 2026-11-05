@@ -24,10 +24,10 @@ CREATE TABLE telemetry_ingestion_dedup (
     external_device_id VARCHAR(64) NOT NULL,
     event_ts TIMESTAMPTZ NOT NULL,
     provider_event_ts BIGINT NOT NULL,
-    canonical_key CHAR(64) NOT NULL,
-    core_fields_fingerprint CHAR(64),
+    canonical_key VARCHAR(64) NOT NULL,
+    core_fields_fingerprint VARCHAR(64),
     is_canonical BOOLEAN NOT NULL DEFAULT FALSE,
-    matched_canonical_key CHAR(64),
+    matched_canonical_key VARCHAR(64),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
