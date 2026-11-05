@@ -12,8 +12,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -72,29 +74,33 @@ class TelemetryCanonicalViewJourneyTest extends AbstractJourneyTest {
                     SET latitude = EXCLUDED.latitude, longitude = EXCLUDED.longitude
                 """, GATEWAY_ID);
 
+        // Anchor on a whole second so the dual pair always lands in the SAME
+        // truncated second: per-statement NOW() drifts between INSERTs and
+        // would randomly split the pair across two seconds (flaky dedup).
+        Instant base = Instant.now().truncatedTo(ChronoUnit.SECONDS);
         // One physical frame, dual-track persistence: AGENTIC first, THINGSBOARD
         // 300 ms later (same second, identical payload).
-        insertFrame("AGENTIC_PLATFORM", "60 minutes", "100 milliseconds", -70, 9.5, 39.9043000, 116.4075000, 100);
-        insertFrame("THINGSBOARD", "60 minutes", "400 milliseconds", -70, 9.5, 39.9043000, 116.4075000, 100);
+        insertFrame("AGENTIC_PLATFORM", base.plusMillis(100), -70, 9.5, 39.9043000, 116.4075000, 100);
+        insertFrame("THINGSBOARD", base.plusMillis(400), -70, 9.5, 39.9043000, 116.4075000, 100);
         // Single AGENTIC frame.
-        insertFrame("AGENTIC_PLATFORM", "50 minutes", "0 milliseconds", -80, 8.0, 39.9045000, 116.4077000, 120);
+        insertFrame("AGENTIC_PLATFORM", base.plusSeconds(30), -80, 8.0, 39.9045000, 116.4077000, 120);
         // Single THINGSBOARD weak frame.
-        insertFrame("THINGSBOARD", "40 minutes", "0 milliseconds", -96, 6.0, 39.9047000, 116.4079000, 140);
+        insertFrame("THINGSBOARD", base.plusSeconds(60), -96, 6.0, 39.9047000, 116.4079000, 140);
         // DATAGEN training frame (fixed strong RSSI, far position) — statistics
         // must never see it (AI training keeps reading the base table).
-        insertFrame("DATAGEN", "45 minutes", "0 milliseconds", -56, 12.0, 39.9090000, 116.4120000, 999);
+        insertFrame("DATAGEN", base.plusSeconds(45), -56, 12.0, 39.9090000, 116.4120000, 999);
     }
 
-    private void insertFrame(String source, String minutesAgo, String msOffset,
+    private void insertFrame(String source, Instant reportTime,
                              int rssi, double snr, double lat, double lng, int step) {
         jdbcTemplate.update("""
                 INSERT INTO device_telemetry_logs
                     (device_id, tenant_id, battery_level, rssi, snr, gateway_id,
                      step_number, latitude, longitude, report_time, source)
-                VALUES (?, 1, 80, ?, ?, ?, ?, ?, ?, NOW() - ?::interval + ?::interval, ?)
+                VALUES (?, 1, 80, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 deviceId, rssi, snr, GATEWAY_ID, step, lat, lng,
-                minutesAgo, msOffset, source);
+                Timestamp.from(reportTime), source);
     }
 
     private Instant since2h() {
