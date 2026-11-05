@@ -79,14 +79,15 @@ public interface SpringDataDeviceTelemetryLogRepository extends JpaRepository<De
      * Per-gateway usage for the discovery list. Which gateways appear is a
      * 90-day scan, while the displayed frames / tier average stay on the 30-day
      * stats window (FILTER) to match the UI "last 30 days" label. Native SQL
-     * for FILTER.
+     * for FILTER. Reads the canonical view so dual-source frames count once
+     * and DATAGEN training rows stay out (NIX-369).
      */
     @Query(value = """
             SELECT t.gateway_id,
                    MAX(t.report_time)                                        AS last_time,
                    COUNT(*) FILTER (WHERE t.report_time >= :statsSince)      AS frames,
                    AVG(t.rssi) FILTER (WHERE t.report_time >= :statsSince)   AS avg_rssi
-            FROM device_telemetry_logs t
+            FROM v_telemetry_canonical t
             WHERE t.device_id IN (:deviceIds)
               AND t.report_time >= :since
               AND t.gateway_id IS NOT NULL AND t.gateway_id <> ''
@@ -123,7 +124,7 @@ public interface SpringDataDeviceTelemetryLogRepository extends JpaRepository<De
                            + cos(radians(g.latitude)) * cos(radians(t.latitude))
                                * power(sin(radians(t.longitude - g.longitude) / 2), 2)
                        )) AS dist
-                FROM device_telemetry_logs t
+                FROM v_telemetry_canonical t
                 JOIN gateway_registry g ON g.gateway_id = t.gateway_id
                 WHERE t.device_id = :deviceId
                   AND t.report_time >= :since
@@ -179,7 +180,7 @@ public interface SpringDataDeviceTelemetryLogRepository extends JpaRepository<De
                            * power(sin(radians(t.longitude - g.longitude) / 2), 2)
                    )),
                    t.report_time
-            FROM device_telemetry_logs t
+            FROM v_telemetry_canonical t
             JOIN gateway_registry g ON g.gateway_id = t.gateway_id
             WHERE t.gateway_id = :gatewayId
               AND t.report_time >= :since
@@ -211,7 +212,7 @@ public interface SpringDataDeviceTelemetryLogRepository extends JpaRepository<De
                        + cos(radians(g.latitude)) * cos(radians(t.latitude))
                            * power(sin(radians(t.longitude - g.longitude) / 2), 2)
                    ))
-            FROM device_telemetry_logs t
+            FROM v_telemetry_canonical t
             JOIN gateway_registry g ON g.gateway_id = t.gateway_id
             WHERE t.device_id = :deviceId
               AND t.report_time >= :fromTime
@@ -226,10 +227,12 @@ public interface SpringDataDeviceTelemetryLogRepository extends JpaRepository<De
                                         @Param("toTime") Instant toTime);
 
     // --- F8 coverage diagnostics ---
-    // All three queries exclude source='DATAGEN': the simulator emits a fixed
-    // strong RSSI (~-56 dBm) at high volume and would dominate every tier
-    // percentage, diluting real edge frames below the advice trigger (AGENTS:
-    // synthetic data must never be passed off as real coverage).
+    // The simulator emits a fixed strong RSSI (~-56 dBm) at high volume and
+    // would dominate every tier percentage, diluting real edge frames below
+    // the advice trigger (AGENTS: synthetic data must never be passed off as
+    // real coverage). The queries read v_telemetry_canonical, which excludes
+    // DATAGEN and additionally collapses dual-source duplicate frames
+    // (NIX-369), so no per-query source filter is needed anymore.
 
     @Query(value = """
             SELECT ROUND(t.latitude / 0.0009)      AS gy,
@@ -238,11 +241,10 @@ public interface SpringDataDeviceTelemetryLogRepository extends JpaRepository<De
                    AVG(t.rssi)                     AS avg_rssi,
                    AVG(t.latitude)                 AS c_lat,
                    AVG(t.longitude)                AS c_lng
-            FROM device_telemetry_logs t
+            FROM v_telemetry_canonical t
             WHERE t.device_id IN (:deviceIds)
               AND t.report_time >= :since
               AND t.gateway_id IS NOT NULL AND t.gateway_id <> ''
-              AND t.source <> 'DATAGEN'
               AND t.rssi IS NOT NULL
               AND t.latitude IS NOT NULL AND t.longitude IS NOT NULL
               AND t.latitude BETWEEN -90 AND 90
@@ -263,11 +265,10 @@ public interface SpringDataDeviceTelemetryLogRepository extends JpaRepository<De
                    AVG(t.latitude),
                    AVG(t.longitude),
                    MIN(t.report_time)
-            FROM device_telemetry_logs t
+            FROM v_telemetry_canonical t
             WHERE t.device_id IN (:deviceIds)
               AND t.report_time >= :since
               AND t.gateway_id IS NOT NULL AND t.gateway_id <> ''
-              AND t.source <> 'DATAGEN'
               AND t.rssi IS NOT NULL
               AND t.latitude IS NOT NULL AND t.longitude IS NOT NULL
               AND t.latitude BETWEEN -90 AND 90
@@ -279,11 +280,10 @@ public interface SpringDataDeviceTelemetryLogRepository extends JpaRepository<De
 
     @Query(value = """
             SELECT AVG(t.latitude), AVG(t.longitude), COUNT(*)
-            FROM device_telemetry_logs t
+            FROM v_telemetry_canonical t
             WHERE t.device_id IN (:deviceIds)
               AND t.report_time >= :since
               AND t.gateway_id IS NOT NULL AND t.gateway_id <> ''
-              AND t.source <> 'DATAGEN'
               AND t.rssi < -95
               AND t.latitude IS NOT NULL AND t.longitude IS NOT NULL
               AND t.latitude BETWEEN -90 AND 90
