@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>智慧畜牧（BoviScout）技术架构图</title>
+<style>
+:root {
+  --background: #ffffff;
+  --foreground: #1c2433;
+  --card: #ffffff;
+  --card-foreground: #1c2433;
+  --muted: #f2f4f8;
+  --muted-foreground: #5c6572;
+  --border: #dcdfe6;
+  --primary: #2f6bff;
+  --primary-foreground: #ffffff;
+  --orange: #e8590c;
+  --viz-series-1: #3d7eff;
+  --viz-series-2: #8f5fe8;
+  --viz-series-3: #16a34a;
+  --viz-series-4: #e8a13c;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 28px 32px;
+}
+.text-small { font-size: 12px; }
+.text-muted { color: var(--muted-foreground); }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92em; }
+</style>
+</head>
+<body>
+<div id="tech-arch-livestock">
+  <style>
+    #tech-arch-livestock { line-height: 1.5; }
+    #tech-arch-livestock h2 { margin: 0 0 2px; }
+    #tech-arch-livestock .ta-sub { margin-bottom: 16px; }
+    #tech-arch-livestock .ta-band { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    #tech-arch-livestock .ta-band svg { width: 16px; height: 16px; flex: none; }
+    #tech-arch-livestock .ta-band b { font-weight: 500; }
+    #tech-arch-livestock .ta-band .ta-note { color: var(--muted-foreground); }
+    #tech-arch-livestock .ta-arrow { text-align: center; color: var(--muted-foreground); margin: 10px 0; }
+    #tech-arch-livestock .ta-pill { display: inline-block; font-weight: 500; font-size: 11px; line-height: 16px; color: var(--muted-foreground); border: 1px dashed var(--border); border-radius: 6px; padding: 0 5px; }
+    #tech-arch-livestock .ta-pill.wip { color: var(--orange); border-style: solid; border-color: color-mix(in srgb, var(--orange) 45%, transparent); }
+    #tech-arch-livestock .ta-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 10px; }
+    #tech-arch-livestock .ta-legend span { display: inline-flex; align-items: center; gap: 6px; }
+    #tech-arch-livestock .ta-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+    #tech-arch-livestock .ta-grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; align-items: start; }
+    #tech-arch-livestock .ta-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 10px; align-items: start; }
+    #tech-arch-livestock .ta-card { border: 1px solid var(--border); border-radius: 12px; padding: 11px 13px; }
+    #tech-arch-livestock .ta-card.soft { background: var(--muted); }
+    #tech-arch-livestock .ta-card.s1 { background: color-mix(in srgb, var(--viz-series-1) 8%, transparent); }
+    #tech-arch-livestock .ta-card.s2 { background: color-mix(in srgb, var(--viz-series-2) 8%, transparent); }
+    #tech-arch-livestock .ta-card.s3 { background: color-mix(in srgb, var(--viz-series-3) 8%, transparent); }
+    #tech-arch-livestock .ta-card.s4 { background: color-mix(in srgb, var(--viz-series-4) 8%, transparent); }
+    #tech-arch-livestock .ta-card.dashed { border-style: dashed; background: color-mix(in srgb, var(--muted) 30%, transparent); }
+    #tech-arch-livestock .ta-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+    #tech-arch-livestock .ta-head svg { width: 16px; height: 16px; flex: none; }
+    #tech-arch-livestock .ta-head b { font-weight: 500; }
+    #tech-arch-livestock .ta-head .ta-tag { margin-left: auto; font-weight: 500; color: var(--primary); border: 1px solid var(--border); border-radius: 6px; padding: 0 5px; font-size: 11px; line-height: 16px; }
+    #tech-arch-livestock .ta-card p { margin: 4px 0 0; color: var(--muted-foreground); overflow-wrap: anywhere; }
+    #tech-arch-livestock td, #tech-arch-livestock .ta-ctx p, #tech-arch-livestock .ta-tbox span, #tech-arch-livestock .ta-foot { overflow-wrap: anywhere; }
+    #tech-arch-livestock .ta-card p b { color: var(--foreground); font-weight: 500; }
+    #tech-arch-livestock .ta-onion { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 8px 0 2px; color: var(--muted-foreground); }
+    #tech-arch-livestock .ta-onion i { font-style: normal; border: 1px solid var(--border); border-radius: 6px; padding: 0 6px; font-size: 11px; line-height: 18px; }
+    #tech-arch-livestock .ta-ctx-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 8px; }
+    #tech-arch-livestock .ta-ctx { border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; }
+    #tech-arch-livestock .ta-ctx .ta-head { margin-bottom: 3px; }
+    #tech-arch-livestock .ta-rel { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 6px; }
+    #tech-arch-livestock .ta-rel code { font-size: 11px; color: var(--primary); }
+    #tech-arch-livestock table { border-collapse: collapse; width: 100%; }
+    #tech-arch-livestock th, #tech-arch-livestock td { text-align: left; padding: 5px 8px; border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent); vertical-align: top; }
+    #tech-arch-livestock th { color: var(--muted-foreground); font-weight: 500; }
+    #tech-arch-livestock tr:last-child td { border-bottom: none; }
+    #tech-arch-livestock td code { font-size: 11px; color: var(--primary); }
+    #tech-arch-livestock .ta-topo { border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+    #tech-arch-livestock .ta-trow { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    #tech-arch-livestock .ta-tbox { border: 1px solid var(--border); border-radius: 10px; padding: 7px 12px; text-align: center; flex: 1 1 150px; max-width: 340px; }
+    #tech-arch-livestock .ta-tbox.entry { border-color: color-mix(in srgb, var(--viz-series-1) 45%, transparent); background: color-mix(in srgb, var(--viz-series-1) 8%, transparent); }
+    #tech-arch-livestock .ta-tbox.core { border-color: color-mix(in srgb, var(--viz-series-2) 45%, transparent); background: color-mix(in srgb, var(--viz-series-2) 8%, transparent); }
+    #tech-arch-livestock .ta-tbox.store { border-color: color-mix(in srgb, var(--viz-series-3) 40%, transparent); background: color-mix(in srgb, var(--viz-series-3) 7%, transparent); }
+    #tech-arch-livestock .ta-tbox b { font-weight: 500; display: block; }
+    #tech-arch-livestock .ta-tbox span { display: block; color: var(--muted-foreground); }
+    #tech-arch-livestock .ta-varrow { text-align: center; color: var(--muted-foreground); margin: 6px 0; }
+    #tech-arch-livestock .ta-harrow { align-self: center; color: var(--muted-foreground); flex: none; }
+    #tech-arch-livestock .ta-side { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    #tech-arch-livestock .ta-side .ta-tbox { flex: 1 1 220px; max-width: none; text-align: left; }
+    #tech-arch-livestock .ta-foot { color: var(--muted-foreground); margin-top: 14px; }
+    #tech-arch-livestock .ta-chip { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--border); border-radius: 8px; padding: 2px 8px; }
+  </style>
+
+  <h2>智慧畜牧（BoviScout）技术架构图</h2>
+  <div class="ta-sub text-small text-muted">按「客户端接入 → 领域划分 → 领域间关系 → 基础 IT 建设 → 设备与外部接入 → 部署逻辑拓扑」六层呈现；按 2026-11 代码基线 as-built 绘制，规划未实现项以虚线标注</div>
+
+  <div class="ta-legend text-small">
+    <span><span class="ta-dot" style="background: var(--viz-series-1);"></span>接入与网关</span>
+    <span><span class="ta-dot" style="background: var(--viz-series-2);"></span>应用与领域</span>
+    <span><span class="ta-dot" style="background: var(--viz-series-3);"></span>数据与基础设施</span>
+    <span><span class="ta-dot" style="background: var(--viz-series-4);"></span>外部系统</span>
+    <span><span class="ta-pill">规划未实现</span>虚线框标注</span>
+  </div>
+
+  <!-- ① 客户端接入 -->
+  <div class="ta-band"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m10 17 5-5-5-5" /> <path d="M15 12H3" /> <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /> </svg><b>① 客户端接入层</b><span class="ta-note text-small">—— 所有客户端经统一入口 nginx 进入，双轨认证 + SSE 实时推送</span></div>
+  <div class="ta-grid3">
+    <div class="ta-card s1">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <rect width="20" height="14" x="2" y="3" rx="2" /> <line x1="8" x2="16" y1="21" y2="21" /> <line x1="12" x2="12" y1="17" y2="21" /> </svg><b>Flutter Web（主渠道）</b></div>
+      <p>单一 Flutter Web 应用，nginx 静态托管 SPA 回退（<code>try_files → /index.html</code>）。App 内路由：<b>/</b> 孪生首页 · <b>/ops/admin</b> 平台后台 · <b>/b2b/admin</b> B 端控制台（61 条路由，同一代码库）。PWA 禁用（防 service worker 回吐旧包），<code>main.dart.js</code> no-cache + gzip（5MB→1.2MB）</p>
+    </div>
+    <div class="ta-card s1">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <rect width="14" height="20" x="5" y="2" rx="2" ry="2" /> <path d="M12 18h.01" /> </svg><b>移动 App（iOS / Android）</b></div>
+      <p>与 Web 同一 Flutter 代码库。<b>Android</b>：APK 由登录页 <code>/downloads/</code> 直下；<b>iOS</b>：TestFlight 渠道（正式开发者签名，构建 90 天有效）。API 地址经 <code>--dart-define=API_BASE_URL</code> 指向各环境 <code>/api/v1</code></p>
+    </div>
+    <div class="ta-card s1">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2" /> <path d="m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06" /> <path d="m12 6 3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 0 8" /> </svg><b>第三方系统（Open API）</b></div>
+      <p><code>/api/v1/open/*</code> 独立端点组：牲畜/围栏/告警/设备/GPS/遥测查询 + 设备批量自注册 + 到期租户 GDPR 导出。API Key 认证（SHA-256 哈希校验），频率限制按 Key 分钟级 + 日配额</p>
+    </div>
+    <div class="ta-card s2">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z" /> <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" /> </svg><b>双轨认证</b></div>
+      <p><b>JWT</b>（用户态）：Access 1h + Refresh 7d；Token 内 <code>tid</code> → TenantContext（ThreadLocal）→ 数据库 <code>tenant_id</code> 强制隔离。<b>API Key</b>（第三方）：不设租户上下文，由 Key 关联租户在应用层过滤。超管上下文切换 = 重签 act 标记 Token + 审计</p>
+    </div>
+    <div class="ta-card s2">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M16.247 7.761a6 6 0 0 1 0 8.478" /> <path d="M19.075 4.933a10 10 0 0 1 0 14.134" /> <path d="M4.925 19.067a10 10 0 0 1 0-14.134" /> <path d="M7.753 16.239a6 6 0 0 1 0-8.478" /> <circle cx="12" cy="12" r="2" /> </svg><b>SSE 实时信号流</b></div>
+      <p><code>POST /farms/{id}/signals/stream-ticket</code> 领一次性票据 → <code>GET /stream</code>（text/event-stream）建立长连接；10 类事件（位置/瘤胃指标/告警/围栏/健康/AI 评估/设备/安装/牲畜）。nginx 专用 location 关闭缓冲、读超时 120s</p>
+    </div>
+    <div class="ta-card dashed">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M16.247 7.761a6 6 0 0 1 0 8.478" /> <path d="M19.075 4.933a10 10 0 0 1 0 14.134" /> <path d="M4.925 19.067a10 10 0 0 1 0-14.134" /> <path d="M7.753 16.239a6 6 0 0 1 0-8.478" /> <circle cx="12" cy="12" r="2" /> </svg><b>系统离线推送</b><span class="ta-tag">规划未实现</span></div>
+      <p>APNs / FCM 离线推送、SMS、邮件汇总均未实现；当前实时性依赖 SSE + 站内通知表拉取</p>
+    </div>
+  </div>
+
+  <div class="ta-arrow text-small">↓ 经 nginx 统一入口（静态资源 + /api/v1 反代）进入单体后端</div>
+
+  <!-- ② 领域划分 -->
+  <div class="ta-band"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z" /> <path d="m7 16.5-4.74-2.85" /> <path d="m7 16.5 5-3" /> <path d="M7 16.5v5.17" /> <path d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z" /> <path d="m17 16.5-5-3" /> <path d="m17 16.5 4.74-2.85" /> <path d="M17 16.5v5.17" /> <path d="M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z" /> <path d="M12 8 7.26 5.15" /> <path d="m12 8 4.74-2.85" /> <path d="M12 13.5V8" /> </svg><b>② 领域划分</b><span class="ta-note text-small">—— Spring Boot 3.3 单体（Java 17）· DDD 洋葱架构 · 9 个限界上下文</span></div>
+  <div class="ta-card soft">
+    <div class="ta-onion text-small">每个上下文内部四层（依赖倒置，Domain 零框架依赖）：<i>Interfaces（REST/DTO）</i>→<i>Application（用例/Port）</i>→<i>Domain（模型/事件）</i>←<i>Infrastructure（JPA/ACL/MQ）</i></div>
+    <div class="ta-ctx-grid" style="margin-top:8px;">
+      <div class="ta-ctx"><div class="ta-head text-small"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z" /> <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" /> </svg><b>Identity</b><span class="ta-tag">P0</span></div><p class="text-small">多租户隔离 · 用户/角色 · JWT 授权 · 审计日志 · API Key</p></div>
+      <div class="ta-ctx"><div class="ta-head text-small"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" /> <circle cx="12" cy="10" r="3" /> </svg><b>Ranch</b><span class="ta-tag">P0</span></div><p class="text-small">牧场/牲畜档案 · 虚拟围栏 · 越界检测 · 告警状态机 · 看板地图瓦片</p></div>
+      <div class="ta-ctx"><div class="ta-head text-small"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 20v2" /> <path d="M12 2v2" /> <path d="M17 20v2" /> <path d="M17 2v2" /> <path d="M2 12h2" /> <path d="M2 17h2" /> <path d="M2 7h2" /> <path d="M20 12h2" /> <path d="M20 17h2" /> <path d="M20 7h2" /> <path d="M7 20v2" /> <path d="M7 2v2" /> <rect x="4" y="4" width="16" height="16" rx="2" /> <rect x="8" y="8" width="8" height="8" rx="1" /> </svg><b>IoT</b><span class="ta-tag">P0</span></div><p class="text-small">设备生命周期 · License 配额 · 安装绑定 · 遥测管道 · GPS 日志</p></div>
+      <div class="ta-ctx"><div class="ta-head text-small"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" /> <path d="M3.22 13H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27" /> </svg><b>Health</b><span class="ta-tag">P0</span></div><p class="text-small">发热/消化/发情/疫病分析引擎 · 时序数据 · AI 异常分数存储</p></div>
+      <div class="ta-ctx"><div class="ta-head text-small"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <rect width="20" height="14" x="2" y="5" rx="2" /> <line x1="2" x2="22" y1="10" y2="10" /> </svg><b>Commerce</b><span class="ta-tag">P1</span></div><p class="text-small">订阅七态状态机 · 合同/分润 · Tier 配额 · FeatureGate 门控</p></div>
+      <div class="ta-ctx"><div class="ta-head text-small"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M16 7h6v6" /> <path d="m22 7-8.5 8.5-5-5L2 17" /> </svg><b>Analytics</b><span class="ta-tag">P1</span></div><p class="text-small">Open API 用量统计 · 开发者门户 · API Key 审批 · 趋势报表</p></div>
+      <div class="ta-ctx"><div class="ta-head text-small"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2" /> <path d="M6.453 15h11.094" /> <path d="M8.5 2h7" /> </svg><b>Datagen</b><span class="ta-tag">P1</span></div><p class="text-small">场景驱动合成数据 · GroundTruth 标签 · AI 评估框架 · 行为数据集</p></div>
+      <div class="ta-ctx"><div class="ta-head text-small"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" /> <path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" /> <path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" /> </svg><b>Platform（支撑子域）</b></div><p class="text-small">请求级配额拦截 · 跨域事件聚合消费 · 统一通知中心（notifications 表）</p></div>
+      <div class="ta-ctx"><div class="ta-head text-small"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /> <path d="m9 12 2 2 4-4" /> </svg><b>Shared Kernel（共享内核）</b></div><p class="text-small">安全过滤链 · 租户上下文 · 牧场作用域 · 错误码/包络 · 限流 · MQ 发布基建（零业务依赖）</p></div>
+    </div>
+  </div>
+
+  <div class="ta-arrow text-small">↓ 上下文之间：查询走 ACL 端口（同步），写副作用走 RocketMQ 事件（异步）——零直接代码依赖、无跨上下文外键</div>
+
+  <!-- ③ 领域间关系 -->
+  <div class="ta-band"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <rect width="8" height="8" x="3" y="3" rx="2" /> <path d="M7 11v4a2 2 0 0 0 2 2h4" /> <rect width="8" height="8" x="13" y="13" rx="2" /> </svg><b>③ 领域间关系</b><span class="ta-note text-small">—— 同步 ACL 端口 + 异步事件总线，两条协作通道</span></div>
+  <div class="ta-grid2">
+    <div class="ta-card s2">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M6.3 20.3a2.4 2.4 0 0 0 3.4 0L12 18l-6-6-2.3 2.3a2.4 2.4 0 0 0 0 3.4Z" /> <path d="m2 22 3-3" /> <path d="M7.5 13.5 10 11" /> <path d="M10.5 16.5 13 14" /> <path d="m18 3-4 4h6l-4 4" /> </svg><b>同步协作：ACL 端口（Port / Adapter）</b></div>
+      <div class="text-small" style="color: var(--muted-foreground);">跨域查询经 Application 层 Port 接口 + DTO，不引用对方领域模型：</div>
+      <p class="text-small ta-rel"><code>Datagen → IoT</code> TelemetryIngestionPort（合成数据喂入标准遥测管道）</p>
+      <p class="text-small ta-rel"><code>Datagen → IoT</code> DeviceQueryPort（查活跃安装清单）</p>
+      <p class="text-small ta-rel"><code>Datagen → Ranch</code> FenceQueryPort（查围栏几何，做越界模拟）</p>
+      <p class="text-small ta-rel"><code>Datagen → Health</code> AnomalyScoreQueryPort（读 AI 预测做评估）</p>
+      <p class="text-small ta-rel"><code>Platform → Commerce</code> QuotaCheckService（<code>@QuotaCheck</code> 请求级配额门控）</p>
+      <p class="text-small ta-rel"><code>Ranch ⇄ IoT</code> 安装编排（跨聚合校验：设备状态 + 同类型单活跃安装）</p>
+    </div>
+    <div class="ta-card s2">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z" /> <path d="m21.854 2.147-10.94 10.939" /> </svg><b>异步协作：RocketMQ 事件总线（16 topic）</b></div>
+      <table class="text-small">
+        <tr><th>发布方</th><th>Topic（代表）</th><th>消费方</th></tr>
+        <tr><td>IoT</td><td><code>telemetry-received</code></td><td>Health（触发健康分析）</td></tr>
+        <tr><td>IoT</td><td><code>gps-log-updated</code></td><td>Ranch（触发越界检测）</td></tr>
+        <tr><td>IoT</td><td><code>device-activated</code> · <code>license-expired</code></td><td>Platform</td></tr>
+        <tr><td>Ranch</td><td><code>fence-breach-detected</code> · <code>alert-status-changed</code></td><td>Platform</td></tr>
+        <tr><td>Identity</td><td><code>tenant-phase-changed</code></td><td>Platform</td></tr>
+        <tr><td>Commerce</td><td><code>subscription-*</code>（6 态）· <code>contract-signed</code> · <code>service-*</code></td><td>Platform</td></tr>
+      </table>
+      <p class="text-small">全部跨域事件由 PlatformEventConsumer 汇聚 → 通知中心 / 审计；MQ 不可用时静默降级保证可用</p>
+    </div>
+  </div>
+  <div class="ta-grid2" style="margin-top: 10px;">
+    <div class="ta-card s2">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 18V5" /> <path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4" /> <path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5" /> <path d="M17.997 5.125a4 4 0 0 1 2.526 5.77" /> <path d="M18 18a4 4 0 0 0 2-7.464" /> <path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517" /> <path d="M6 18a4 4 0 0 1-2-7.464" /> <path d="M6.003 5.125a4 4 0 0 0-2.526 5.77" /> </svg><b>Health ⇄ ai-platform（进程外协作）</b></div>
+      <p class="text-small">HealthAnomalyScheduler 每 5 分钟对近 2h 有温度数据的牲畜逐头调 <code>/ai/health/analyze</code>（HTTP，超时 5s；Redis 去重每头每小时 1 次）。失败降级规则引擎（try/catch 空返回，非熔断器）；行为训练/评估走 <code>/ai/behavior/*</code>（超时 5min）</p>
+    </div>
+    <div class="ta-card soft">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="18" cy="18" r="3" /> <circle cx="6" cy="6" r="3" /> <path d="M6 21V9a9 9 0 0 0 9 9" /> </svg><b>解耦收益（演进预留）</b></div>
+      <p class="text-small">单体内完成上下文解耦；未来拆微服务只需改部署方式 + ACL 实现类，领域层零改动（Phase 3 规划：牲畜 &gt;5 万或并发 &gt;500 时拆 IoT/Health/Analytics → Phase 4 K8s）</p>
+    </div>
+  </div>
+
+  <div class="ta-arrow text-small">↓ 九个上下文共同依赖的基础 IT 建设</div>
+
+  <!-- ④ 基础 IT 建设 -->
+  <div class="ta-band"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <rect width="20" height="8" x="2" y="2" rx="2" ry="2" /> <rect width="20" height="8" x="2" y="14" rx="2" ry="2" /> <line x1="6" x2="6.01" y1="6" y2="6" /> <line x1="6" x2="6.01" y1="18" y2="18" /> </svg><b>④ 基础 IT 建设</b><span class="ta-note text-small">—— 领域运行所依赖的全部基础设施组件（均为 Compose 容器，随栈一键部署）</span></div>
+  <div class="ta-grid3">
+    <div class="ta-card s3">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <ellipse cx="12" cy="5" rx="9" ry="3" /> <path d="M3 5V19A9 3 0 0 0 21 19V5" /> <path d="M3 12A9 3 0 0 0 21 12" /> </svg><b>PostgreSQL 16</b><span class="ta-tag">自建加固镜像</span></div>
+      <p class="text-small">业务库 + <b>5 张时序分区表</b>（temperature · rumen_motility · activity · telemetry · anomaly_scores，按月分区由 PartitionMaintenanceService 每日 02:10 自动预建）；Flyway 117 个迁移版本化；数据保留治理（时序 30 天 / API 日志 90 天）；ai_reader 只读账号供 AI 平台</p>
+    </div>
+    <div class="ta-card s3">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" /> </svg><b>Redis 7</b></div>
+      <p class="text-small">三大用途：业务热点缓存（告警/牧场总览/个体基线学习）· Open API 限流（Lua 滑动窗口：分钟频率 + 日配额）· AI 告警去重（每头 1 次/小时）</p>
+    </div>
+    <div class="ta-card s3">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z" /> <path d="m21.854 2.147-10.94 10.939" /> </svg><b>RocketMQ 5.1</b></div>
+      <p class="text-small">NameServer + Broker 两容器承载 16 个跨域 topic（dev/test 附 Dashboard）；不可用时事件发布静默跳过，保证应用可启动</p>
+    </div>
+    <div class="ta-card s3">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" /> <path d="M15 5.764v15" /> <path d="M9 3.236v15" /> </svg><b>tileserver-gl 瓦片服务</b></div>
+      <p class="text-small">10 个牧场区域 MBTiles 离线瓦片（长沙/内蒙古/东非/澳洲/阿根廷/巴西/印度等）；nginx <code>/tiles/</code> 反代 + 404 透传供前端降级 OSM</p>
+    </div>
+    <div class="ta-card s3">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m15 12-9.373 9.373a1 1 0 0 1-3.001-3L12 9" /> <path d="m18 15 4-4" /> <path d="m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172v-.344a2 2 0 0 0-.586-1.414l-1.657-1.657A6 6 0 0 0 12.516 3H9l1.243 1.243A6 6 0 0 1 12 8.485V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5" /> </svg><b>tile-worker 瓦片生产</b></div>
+      <p class="text-small">轮询 app API 领取瓦片任务，按牧场 bbox + 16km 缓冲生成新 MBTiles 写入共享卷——离线地图按需生产，不用预置全球瓦片</p>
+    </div>
+    <div class="ta-card s3">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /> </svg><b>nginx 反向代理</b></div>
+      <p class="text-small">全栈唯一宿主入口：静态 SPA 托管 + <code>/api/v1</code> 反代 + <code>/tiles/</code> 反代 + SSE 专用 location（关缓冲/120s）+ gzip；release 栈 80 全局 301 → 443 TLS 终止（TLSv1.2/1.3，证书挂载 secrets/certs）</p>
+    </div>
+    <div class="ta-card s2">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 18V5" /> <path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4" /> <path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5" /> <path d="M17.997 5.125a4 4 0 0 1 2.526 5.77" /> <path d="M18 18a4 4 0 0 0 2-7.464" /> <path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517" /> <path d="M6 18a4 4 0 0 1-2-7.464" /> <path d="M6.003 5.125a4 4 0 0 0-2.526 5.77" /> </svg><b>ai-platform（Python 微服务）</b></div>
+      <p class="text-small">FastAPI + scikit-learn，容器 :8000 仅内网；L1 无监督异常检测 + 行为模型训练/评估；ai_reader 只读 PG；behavior-models 独立卷持久化模型</p>
+    </div>
+    <div class="ta-card s3">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M10 5H3" /> <path d="M12 19H3" /> <path d="M14 3v4" /> <path d="M16 17v4" /> <path d="M21 12h-9" /> <path d="M21 19h-5" /> <path d="M21 5h-7" /> <path d="M8 10v4" /> <path d="M8 12H3" /> </svg><b>Nacos 配置中心</b><span class="ta-tag">仅 dev/test</span></div>
+      <p class="text-small">blade 地址等环境配置启动期 HTTP v1 拉取（自建 NacosRemoteConfigLoader，弃官方 gRPC starter）；优先级 OS env &gt; Nacos &gt; application.yml；release/ONPREM 不依赖</p>
+    </div>
+    <div class="ta-card s3">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m12 14 4-4" /> <path d="M3.34 19a10 10 0 1 1 17.32 0" /> </svg><b>监控（Prometheus）</b></div>
+      <p class="text-small">经 app 直连端口（dev 19081 / test 18081，nginx 不转发）抓取 <code>/actuator/prometheus</code>，接入 sp-monitoring 监控栈（Grafana/Alertmanager）</p>
+    </div>
+  </div>
+
+  <div class="ta-arrow text-small">↓ 设备遥测多源汇入 + 外部平台依赖</div>
+
+  <!-- ⑤ 设备与外部接入 -->
+  <div class="ta-band"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M4.9 16.1C1 12.2 1 5.8 4.9 1.9" /> <path d="M7.8 4.7a6.14 6.14 0 0 0-.8 7.5" /> <circle cx="12" cy="9" r="2" /> <path d="M16.2 4.8c2 2 2.26 5.11.8 7.47" /> <path d="M19.1 1.9a9.96 9.96 0 0 1 0 14.1" /> <path d="M9.5 18h5" /> <path d="m8 22 4-11 4 11" /> </svg><b>⑤ 设备与外部系统接入</b><span class="ta-note text-small">—— 遥测五源统一汇入 TelemetryIngestionService，无 MQTT 直连</span></div>
+  <div class="ta-grid2">
+    <div class="ta-card s1">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="18" r="3" /> <circle cx="6" cy="6" r="3" /> <circle cx="18" cy="6" r="3" /> <path d="M18 9v2c0 .6-.4 1-1 1H7c-.6 0-1-.4-1-1V9" /> <path d="M12 12v3" /> </svg><b>遥测数据管道（五源入湖）</b></div>
+      <table class="text-small">
+        <tr><th>来源</th><th>通道</th><th>说明</th></tr>
+        <tr><td><code>AGENTIC_PLATFORM</code></td><td>blade 中台轮询（Feign）</td><td>dev→SIT / test→客户试用环境</td></tr>
+        <tr><td><code>THINGSBOARD</code></td><td>REST 直连轮询</td><td>5 分钟轮询、回看 7 天；游标冻结 15 分钟自动降级 blade；开通向导 + 对账工具</td></tr>
+        <tr><td><code>DATAGEN</code></td><td>合成数据 ACL 写入</td><td>带标记入库，仅研发评估用</td></tr>
+        <tr><td><code>HTTP</code></td><td>第三方直推端点</td><td>外部系统主动上报</td></tr>
+        <tr><td><code>MANUAL_IMPORT</code></td><td>文件批量导入</td><td>历史数据回填（XLSX/RTK）</td></tr>
+      </table>
+      <p class="text-small">GPS 写入走 outbox：ingest 主事务只写 <code>gps_ingestion_tasks</code> → GpsIngestionTaskScheduler 异步落 <code>gps_logs</code>；幂等键 <code>(device_id, recorded_at)</code></p>
+    </div>
+    <div class="ta-card s4">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" /> <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" /> <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" /> <path d="M10 6h4" /> <path d="M10 10h4" /> <path d="M10 14h4" /> <path d="M10 18h4" /> </svg><b>外部平台依赖</b></div>
+      <p class="text-small"><b>blade 设备中台</b>：OAuth2 服务账号换票（client hkt_openapi）+ 设备注册/遥测/License 三组 REST；地址经 Nacos 下发（dev→172.22.2.237 SIT / test→172.22.4.17 客户试用）</p>
+      <p class="text-small"><b>ThingsBoard</b>：直连通道（172.22.3.105），设备开通向导 + 批量对账 + profile 白名单</p>
+      <p class="text-small"><b>HKT-DeviceHub</b>：<span class="ta-pill wip">灰度默认关</span> REST 查询 + 消费其 RocketMQ <code>DEVICEHUB_TELEMETRY_FRAME</code>（设备帧直入，未来替代轮询的演进方向）</p>
+      <p class="text-small"><b>Nacos</b>：172.22.3.16:8848，smartlivestock 命名空间（blade 地址事实源）</p>
+    </div>
+  </div>
+  <div class="ta-grid2" style="margin-top: 10px;">
+    <div class="ta-card soft">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M4.9 16.1C1 12.2 1 5.8 4.9 1.9" /> <path d="M7.8 4.7a6.14 6.14 0 0 0-.8 7.5" /> <circle cx="12" cy="9" r="2" /> <path d="M16.2 4.8c2 2 2.26 5.11.8 7.47" /> <path d="M19.1 1.9a9.96 9.96 0 0 1 0 14.1" /> <path d="M9.5 18h5" /> <path d="m8 22 4-11 4 11" /> </svg><b>端到端物理链路</b></div>
+      <p class="text-small">瘤胃胶囊 / GPS 追踪器（LoRaWAN）→ 牧场网关 → 网络服务器 NS（预置 172.17.201.15）→ blade 中台 / ThingsBoard → 本系统定时轮询拉取 → 统一遥测管道</p>
+    </div>
+    <div class="ta-card dashed">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M16.247 7.761a6 6 0 0 1 0 8.478" /> <path d="M19.075 4.933a10 10 0 0 1 0 14.134" /> <path d="M4.925 19.067a10 10 0 0 1 0-14.134" /> <path d="M7.753 16.239a6 6 0 0 1 0-8.478" /> <circle cx="12" cy="12" r="2" /> </svg><b>MQTT 设备直连</b><span class="ta-tag">规划未实现</span></div>
+      <p class="text-small">7 个 MQTT 主题设计保留为演进方向（tracker/gps、capsule/temp 等）；当前后端零 MQTT 客户端代码，全量遥测经上述五源进入</p>
+    </div>
+  </div>
+
+  <div class="ta-arrow text-small">↓ 以上组件的部署形态与逻辑拓扑</div>
+
+  <!-- ⑥ 部署逻辑拓扑 -->
+  <div class="ta-band"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M22 7.7c0-.6-.4-1.2-.8-1.5l-6.3-3.9a1.72 1.72 0 0 0-1.7 0l-10.3 6c-.5.2-.9.8-.9 1.4v6.6c0 .5.4 1.2.8 1.5l6.3 3.9a1.72 1.72 0 0 0 1.7 0l10.3-6c.5-.3.9-1 .9-1.5Z" /> <path d="M10 21.9V14L2.1 9.1" /> <path d="m10 14 11.9-6.9" /> <path d="M14 19.8v-8.1" /> <path d="M18 17.5V9.4" /> </svg><b>⑥ 部署逻辑拓扑</b><span class="ta-note text-small">—— Docker Compose 单机多容器 · 10 服务 · nginx 唯一宿主暴露</span></div>
+  <div class="ta-topo">
+    <div class="ta-trow">
+      <div class="ta-tbox"><b>浏览器</b><span>Flutter Web</span></div>
+      <div class="ta-tbox"><b>Android / iOS</b><span>Flutter App</span></div>
+      <div class="ta-tbox"><b>第三方系统</b><span>Open API</span></div>
+      <div class="ta-tbox"><b>设备侧</b><span>经 blade / TB / 直推汇入</span></div>
+    </div>
+    <div class="ta-varrow text-small">↓ HTTPS / HTTP（release：80→301→443 TLS 终止）</div>
+    <div class="ta-trow">
+      <div class="ta-tbox entry"><b>nginx（唯一宿主入口）</b><span>静态 SPA + /api/v1 反代 + /tiles/ 反代 + SSE 透传 + gzip</span></div>
+    </div>
+    <div class="ta-varrow text-small">↓ 容器内网（Docker Compose network）</div>
+    <div class="ta-trow">
+      <div class="ta-tbox core" style="flex: 2 1 300px; max-width: 480px;"><b>app — Spring Boot 单体 :8080</b><span>9 个限界上下文 · REST/SSE · JWT/API Key · 调度器（分区维护/健康检测/GPS outbox/datagen）</span></div>
+      <div class="ta-harrow text-small">— HTTP :8000 →</div>
+      <div class="ta-tbox core"><b>ai-platform :8000</b><span>FastAPI 异常检测/行为训练（仅内网）</span></div>
+    </div>
+    <div class="ta-varrow text-small">↓ 读写 / 事件 / 瓦片</div>
+    <div class="ta-trow">
+      <div class="ta-tbox store"><b>postgres :5432</b><span>业务 + 时序分区 + Flyway</span></div>
+      <div class="ta-tbox store"><b>redis</b><span>缓存 / 限流 / 去重</span></div>
+      <div class="ta-tbox store"><b>rocketmq namesrv + broker</b><span>16 topic 事件总线</span></div>
+      <div class="ta-tbox store"><b>tileserver-gl :8080</b><span>MBTiles 瓦片服务</span></div>
+    </div>
+    <div class="ta-side">
+      <div class="ta-tbox"><b>tile-worker（旁路）</b><span>→ 调 app API 领任务，生成 MBTiles 写 tileserver 共享卷</span></div>
+      <div class="ta-tbox"><b>Prometheus（外部旁路）</b><span>→ 直连 app :19081/:18081 抓 /actuator/prometheus（不经 nginx）</span></div>
+      <div class="ta-tbox"><b>共享卷</b><span>pgdata · tileserver-data · exports-data · behavior-models；release 另挂 /etc/machine-id:ro（ONPREM 指纹）</span></div>
+    </div>
+  </div>
+
+  <div class="ta-grid2" style="margin-top: 10px;">
+    <div class="ta-card soft">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <rect width="20" height="8" x="2" y="2" rx="2" ry="2" /> <rect width="20" height="8" x="2" y="14" rx="2" ry="2" /> <line x1="6" x2="6.01" y1="6" y2="6" /> <line x1="6" x2="6.01" y1="18" y2="18" /> </svg><b>四环境布局</b></div>
+      <table class="text-small">
+        <tr><th>环境</th><th>定位</th><th>入口</th><th>形态</th></tr>
+        <tr><td>dev</td><td>日常开发</td><td>123 服务器 :19080</td><td>compose dev 栈（端口段 19xxx/16xxx）</td></tr>
+        <tr><td>test</td><td>集成验证 + 演示</td><td>123 服务器 :18080</td><td>compose test 栈（端口段 18xxx/15xxx），同机双栈完全隔离</td></tr>
+        <tr><td>86 HOSTED</td><td>我方托管运营</td><td>:80/:443</td><td>release 发布包（预构建镜像 docker load 离线装）</td></tr>
+        <tr><td>223 ONPREM</td><td>客户私有化</td><td>:80/:443</td><td>release 包 + machine-id 指纹 License + DATAGEN 关闭</td></tr>
+      </table>
+    </div>
+    <div class="ta-card soft">
+      <div class="ta-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" /> <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" /> <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" /> <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" /> </svg><b>发布链与演进</b></div>
+      <p class="text-small"><b>全量发布链</b>：build_web.sh（前端产物进 nginx 镜像）→ deploy dev → deploy test → 123 打包（build-release-package.sh，1.6–1.7GB tar）→ Mac 两跳传输逐台升级 86/223（资源预检、旧版本目录留作回滚点、免 sudo）</p>
+      <p class="text-small"><b>架构演进</b>：<span class="ta-pill wip">当前</span> 单体 + AI 微服务 Compose → <span class="ta-pill">规划</span> Phase 3 按需拆分高负载上下文（&gt;5 万头 / &gt;500 并发）→ <span class="ta-pill">规划</span> Phase 4 K8s 多区域</p>
+    </div>
+  </div>
+
+  <p class="ta-foot text-small">口径说明（截至 2026-11-05 代码基线，as-built）：本图对 PRD v2.4 §4.4 全景图做了三处纠偏——MQTT/EMQX 为规划未实现（全仓零 MQTT 客户端代码）；compose 实为 10 服务（postgres/redis/rocketmq×3/app/ai-platform/tileserver/nginx/tile-worker，无 device-simulator）；ai-platform 容器端口 8000。事实源：docker-compose.{dev,test,release}.yml、docs/reference/deployment.md、docs/deployment/release-deployment-playbook.md、PRD §4。</p>
+</div>
+
+</body>
+</html>

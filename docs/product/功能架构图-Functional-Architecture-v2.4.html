@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>智慧畜牧（BoviScout）功能架构图</title>
+<style>
+:root {
+  --background: #ffffff;
+  --foreground: #1c2433;
+  --card: #ffffff;
+  --card-foreground: #1c2433;
+  --muted: #f2f4f8;
+  --muted-foreground: #5c6572;
+  --border: #dcdfe6;
+  --primary: #2f6bff;
+  --primary-foreground: #ffffff;
+  --orange: #e8590c;
+  --viz-series-1: #3d7eff;
+  --viz-series-2: #8f5fe8;
+  --viz-series-3: #16a34a;
+  --viz-series-4: #e8a13c;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 28px 32px;
+}
+.text-small { font-size: 12px; }
+.text-muted { color: var(--muted-foreground); }
+</style>
+</head>
+<body>
+<div id="func-arch-livestock">
+  <style>
+    #func-arch-livestock { line-height: 1.5; }
+    #func-arch-livestock h2 { margin: 0 0 2px; }
+    #func-arch-livestock .fa-sub { margin-bottom: 16px; }
+    #func-arch-livestock .fa-band-label { font-weight: 500; color: var(--muted-foreground); margin-bottom: 8px; }
+    #func-arch-livestock .fa-arrow { text-align: center; color: var(--muted-foreground); margin: 12px 0; }
+    #func-arch-livestock .fa-roles { display: flex; flex-wrap: wrap; gap: 8px; }
+    #func-arch-livestock .fa-role { flex: 1 1 160px; min-width: 160px; display: flex; flex-direction: column; gap: 1px; background: var(--muted); border-radius: 10px; padding: 7px 12px; }
+    #func-arch-livestock .fa-role b { font-weight: 500; }
+    #func-arch-livestock .fa-flows { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px; }
+    #func-arch-livestock .fa-flow { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; background: var(--muted); border-radius: 10px; padding: 7px 12px; }
+    #func-arch-livestock .fa-flow.span2 { grid-column: 1 / -1; }
+    #func-arch-livestock .fa-flow.plan { background: transparent; border: 1px dashed var(--border); }
+    #func-arch-livestock .fa-pid { flex: none; font-weight: 500; color: var(--primary); border: 1px solid var(--border); border-radius: 6px; padding: 0 5px; }
+    #func-arch-livestock .fa-steps { color: var(--muted-foreground); }
+    #func-arch-livestock .fa-pill { display: inline-block; font-weight: 500; font-size: 11px; line-height: 16px; color: var(--muted-foreground); border: 1px dashed var(--border); border-radius: 6px; padding: 0 5px; }
+    #func-arch-livestock .fa-pill.wip { color: var(--orange); border-style: solid; border-color: color-mix(in srgb, var(--orange) 45%, transparent); }
+    #func-arch-livestock .fa-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 10px; }
+    #func-arch-livestock .fa-legend span { display: inline-flex; align-items: center; gap: 6px; }
+    #func-arch-livestock .fa-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+    #func-arch-livestock .fa-modules { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 10px; align-items: start; }
+    #func-arch-livestock .fa-module { border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+    #func-arch-livestock .fa-module.t1 { background: color-mix(in srgb, var(--viz-series-1) 8%, transparent); }
+    #func-arch-livestock .fa-module.t2 { background: color-mix(in srgb, var(--viz-series-2) 8%, transparent); }
+    #func-arch-livestock .fa-module.t3 { background: color-mix(in srgb, var(--viz-series-3) 8%, transparent); }
+    #func-arch-livestock .fa-module.t4 { background: color-mix(in srgb, var(--viz-series-4) 8%, transparent); }
+    #func-arch-livestock .fa-module.unbuilt { border-style: dashed; background: color-mix(in srgb, var(--muted) 30%, transparent); }
+    #func-arch-livestock .t1 .fa-dot { background: var(--viz-series-1); }
+    #func-arch-livestock .t2 .fa-dot { background: var(--viz-series-2); }
+    #func-arch-livestock .t3 .fa-dot { background: var(--viz-series-3); }
+    #func-arch-livestock .t4 .fa-dot { background: var(--viz-series-4); }
+    #func-arch-livestock .fa-mod-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+    #func-arch-livestock .fa-mod-head svg { width: 16px; height: 16px; flex: none; }
+    #func-arch-livestock .fa-mod-head b { font-weight: 500; }
+    #func-arch-livestock .fa-ctx { color: var(--muted-foreground); }
+    #func-arch-livestock .fa-tag { margin-left: auto; font-weight: 500; color: var(--primary); border: 1px solid var(--border); border-radius: 6px; padding: 0 5px; }
+    #func-arch-livestock .fa-group { margin-top: 8px; }
+    #func-arch-livestock .fa-group b { display: block; font-weight: 500; }
+    #func-arch-livestock .fa-group span { display: block; color: var(--muted-foreground); }
+    #func-arch-livestock .fa-group.plan { border-top: 1px dashed var(--border); padding-top: 6px; }
+    #func-arch-livestock .fa-group.plan > b { color: var(--muted-foreground); }
+    #func-arch-livestock .fa-support { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+    #func-arch-livestock .fa-supp { border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; background: color-mix(in srgb, var(--muted) 55%, transparent); }
+    #func-arch-livestock .fa-supp-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    #func-arch-livestock .fa-supp-head svg { width: 16px; height: 16px; flex: none; }
+    #func-arch-livestock .fa-supp-head b { font-weight: 500; }
+    #func-arch-livestock .fa-foot { color: var(--muted-foreground); margin-top: 14px; }
+  </style>
+
+  <h2>智慧畜牧（BoviScout）功能架构图</h2>
+  <div class="fa-sub text-small text-muted">按「用户角色 → 核心业务流程 → 业务支撑模块 → 平台支撑能力」四层归纳；已交付与未交付能力同图呈现，交付状态以标签区分</div>
+
+  <div class="fa-band-label">① 用户与操作端</div>
+  <div class="fa-roles">
+    <div class="fa-role text-small"><b>SUPER_ADMIN 超管</b><span class="text-muted">选角色进入系统（上下文切换）</span></div>
+    <div class="fa-role text-small"><b>platform_admin 平台管理员</b><span class="text-muted">平台后台 /ops/admin</span></div>
+    <div class="fa-role text-small"><b>b2b_admin B 端管理员</b><span class="text-muted">B 端控制台 /b2b/admin</span></div>
+    <div class="fa-role text-small"><b>owner 牧场主</b><span class="text-muted">移动端 App（孪生首页）</span></div>
+    <div class="fa-role text-small"><b>worker 牧工</b><span class="text-muted">移动端 App（受限视图）</span></div>
+    <div class="fa-role text-small"><b>api_consumer API 开发者</b><span class="text-muted">Open API 接入，无 App 端</span></div>
+  </div>
+
+  <div class="fa-arrow text-small">↓ 六类角色驱动十条核心业务流程</div>
+
+  <div class="fa-band-label">② 核心业务流程（模块归纳来源）</div>
+  <div class="fa-flows text-small">
+    <div class="fa-flow"><span class="fa-pid">P1</span><b>平台入驻与租户开通</b><span class="fa-steps">创建租户 → 配置设备 License → 创建用户账号 → 试点授权 / 订阅</span></div>
+    <div class="fa-flow"><span class="fa-pid">P2</span><b>牧场与牲畜建档</b><span class="fa-steps">创建牧场 → 分配牧场主 → 牲畜建档 → 群组 / 牧工管理</span></div>
+    <div class="fa-flow"><span class="fa-pid">P3</span><b>设备入网与遥测采集</b><span class="fa-steps">设备注册 → blade / ThingsBoard 接入 → 安装绑定 → 遥测 / GPS 采集 → 设备健康监控</span></div>
+    <div class="fa-flow"><span class="fa-pid">P4</span><b>位置监控与围栏管控</b><span class="fa-steps">实时定位 → 虚拟围栏 → 越界 / 离群 / 防盗检测 → 轨迹回放</span></div>
+    <div class="fa-flow"><span class="fa-pid">P5</span><b>健康监测与预警</b><span class="fa-steps">多源遥测 → 发热 / 消化 / 发情 / 疫病分析 → AI 联合检测 → 分级预警</span></div>
+    <div class="fa-flow"><span class="fa-pid">P6</span><b>告警接收与处置</b><span class="fa-steps">告警触发 → SSE / 站内通知 → 人工关闭 / 自动消解 → 工作台治理</span></div>
+    <div class="fa-flow"><span class="fa-pid">P7</span><b>订阅计费与商业运营</b><span class="fa-steps">订阅开通 → 合同签署 → 功能门控 → 分润对账 → 到期治理</span></div>
+    <div class="fa-flow"><span class="fa-pid">P8</span><b>数据开放与集成</b><span class="fa-steps">API Key 申请 → 审批 → Open API 接入 → 用量统计 → GDPR 导出</span></div>
+    <div class="fa-flow"><span class="fa-pid">D1</span><b>合成数据与评估（研发支撑）</b><span class="fa-steps">场景创建 → 数据合成 → 真值标签（GroundTruth）→ 精确率 / 召回率评估 → 参数校准</span><span class="fa-pill wip" data-tooltip="C0–C5 已交付，C6–C10 真实数据适配与评估推进中">推进中</span></div>
+    <div class="fa-flow plan"><span class="fa-pid">P9</span><b>无人机巡检与信号搜寻</b><span class="fa-steps">自动巡航 → 视频回传 → 告警联动追踪 → 丢失信号搜寻</span><span class="fa-pill">未交付 · P2 未启动</span></div>
+  </div>
+
+  <div class="fa-arrow text-small">↓ 每条流程归纳为一个主要业务支撑模块（模块右上角标注其支撑的流程编号）</div>
+
+  <div class="fa-band-label">③ 主要业务支撑模块（功能 / 子功能）</div>
+  <div class="fa-legend text-small">
+    <span><span class="fa-dot" style="background: var(--viz-series-1);"></span>业务运营底座</span>
+    <span><span class="fa-dot" style="background: var(--viz-series-2);"></span>智能应用</span>
+    <span><span class="fa-dot" style="background: var(--viz-series-3);"></span>商业运营</span>
+    <span><span class="fa-dot" style="background: var(--viz-series-4);"></span>数据与开放</span>
+    <span><span class="fa-pill wip">推进中</span>部分交付 / 验证进行中</span>
+    <span><span class="fa-pill">未交付</span>规划未启动或依赖未满足（虚线框 / 虚线分组）</span>
+  </div>
+  <div class="fa-modules">
+
+    <div class="fa-module t1">
+      <div class="fa-mod-head"><span class="fa-dot"></span><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z" /> <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" /> </svg><b>M1 身份与租户管理</b><span class="fa-ctx text-small">Identity</span><span class="fa-tag text-small" data-tooltip="支撑流程 P1：平台入驻与租户开通">P1</span></div>
+      <div class="fa-group text-small"><b>租户管理</b><span>开通 / 禁用（禁用后 5 分钟内令牌全失效）· 设备 License 配额与用量监控 · 设备跨租户移交（含审计）· 免费试点授权与重授 · 私有化部署 License 发放 / 校验</span></div>
+      <div class="fa-group text-small"><b>用户与角色</b><span>6 角色体系 · 账号创建 / 启停 · 牧工管理 · B 端用户分配</span></div>
+      <div class="fa-group text-small"><b>认证与审计</b><span>JWT 登录 / 刷新 · 超管选角色上下文切换（令牌重签 + 审计）· 全操作审计日志查询 / 导出</span></div>
+      <div class="fa-group text-small"><b>时区治理</b><span>牧场 → 租户 → 平台三级时区继承链</span></div>
+    </div>
+
+    <div class="fa-module t1">
+      <div class="fa-mod-head"><span class="fa-dot"></span><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <rect width="8" height="4" x="8" y="2" rx="1" ry="1" /> <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /> <path d="M12 11h4" /> <path d="M12 16h4" /> <path d="M8 11h.01" /> <path d="M8 16h.01" /> </svg><b>M2 牧场与牲畜管理</b><span class="fa-ctx text-small">Ranch</span><span class="fa-tag text-small" data-tooltip="支撑流程 P2：牧场与牲畜建档">P2</span></div>
+      <div class="fa-group text-small"><b>牧场管理</b><span>创建牧场并分配牧场主 · 多牧场切换（数据隔离自动刷新）</span></div>
+      <div class="fa-group text-small"><b>牲畜档案</b><span>耳标号全局唯一 · 品种 / 性别 / 体重 / 出生日期 · 健康档案与告警历史 · 群组管理</span></div>
+      <div class="fa-group text-small"><b>B 端后台</b><span>旗下牧场 / 牲畜 / 牧工总览看板 · 牧工跨牧场分配明细</span></div>
+    </div>
+
+    <div class="fa-module t1">
+      <div class="fa-mod-head"><span class="fa-dot"></span><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 20v2" /> <path d="M12 2v2" /> <path d="M17 20v2" /> <path d="M17 2v2" /> <path d="M2 12h2" /> <path d="M2 17h2" /> <path d="M2 7h2" /> <path d="M20 12h2" /> <path d="M20 17h2" /> <path d="M20 7h2" /> <path d="M7 20v2" /> <path d="M7 2v2" /> <rect x="4" y="4" width="16" height="16" rx="2" /> <rect x="8" y="8" width="8" height="8" rx="1" /> </svg><b>M3 设备与遥测接入</b><span class="fa-ctx text-small">IoT</span><span class="fa-tag text-small" data-tooltip="支撑流程 P3：设备入网与遥测采集">P3</span></div>
+      <div class="fa-group text-small"><b>设备管理</b><span>注册 / 编辑（设备编码全局唯一）· 电量 / 信号强度 / 在线状态监控</span></div>
+      <div class="fa-group text-small"><b>安装管理</b><span>安装 / 卸载记录 · 同类型单活跃安装约束 · 安装前设备状态校验</span></div>
+      <div class="fa-group text-small"><b>接入通道</b><span>blade 平台对接（OAuth2 + 19 属性物模型）· ThingsBoard 直连 · 开通向导与批量对账 · 遥测 / GPS 数据管道（异步幂等）</span></div>
+      <div class="fa-group text-small"><b>设备健康</b><span>健康评分模型 · 防拆 / 低电量 / 离线 / 链路质量监测</span></div>
+    </div>
+
+    <div class="fa-module t1">
+      <div class="fa-mod-head"><span class="fa-dot"></span><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" /> <circle cx="12" cy="10" r="3" /> </svg><b>M4 定位与电子围栏</b><span class="fa-ctx text-small">Ranch + IoT</span><span class="fa-tag text-small" data-tooltip="支撑流程 P4：位置监控与围栏管控">P4</span></div>
+      <div class="fa-group text-small"><b>实时地图</b><span>牧群 / 个体实时位置 · 设备在线状态 · 图层切换 · 瓦片三级智能路由</span></div>
+      <div class="fa-group text-small"><b>虚拟围栏</b><span>手绘多边形 / 模板创建 · 进入 / 离开 / 区域限制三类围栏 · 时间策略 · 围栏分区与版本控制</span></div>
+      <div class="fa-group text-small"><b>越界与防盗</b><span>射线法越界判定 · 离群检测（偏离牛群 2km 且超 2 小时）· 夜间异常移动预警</span></div>
+      <div class="fa-group text-small"><b>轨迹分析</b><span>24h / 7d / 30d 轨迹回放 · 放牧密度热力图</span></div>
+      <div class="fa-group text-small"><b>网关与数据质量</b><span>网关位置标记 · 通讯距离与链路质量分档 · 覆盖诊断建议 · GPS 质量检验（RTK / 批量）</span></div>
+      <div class="fa-group text-small"><b>离线数据访问（部分交付）</b><span>离线瓦片下载 / 管理 / 删除 — 已交付</span><span><span class="fa-pill">未交付</span> 围栏 / 牲畜业务数据离线缓存 · 网络恢复自动增量同步（US-23）</span></div>
+    </div>
+
+    <div class="fa-module t2">
+      <div class="fa-mod-head"><span class="fa-dot"></span><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" /> <path d="M3.22 13H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27" /> </svg><b>M5 健康智能监测</b><span class="fa-ctx text-small">Health + AI</span><span class="fa-tag text-small" data-tooltip="支撑流程 P5：健康监测与预警">P5</span></div>
+      <div class="fa-group text-small"><b>数智孪生总览</b><span>牲畜总数 / 健康率 / 预警数 / 设备在线率四项统计 · 四场景入口</span></div>
+      <div class="fa-group text-small"><b>发热预警</b><span>个体体温基线自动学习（默认档 → 学习档）· 基线偏离预警 · 72 小时体温曲线</span></div>
+      <div class="fa-group text-small"><b>消化管理</b><span>瘤胃蠕动频率监测 · 24 小时蠕动趋势</span></div>
+      <div class="fa-group text-small"><b>发情识别</b><span>多指标融合评分 · 配种时机提醒</span></div>
+      <div class="fa-group text-small"><b>疫病防控</b><span>群体指标偏移预警 · GPS 接触链路追踪</span></div>
+      <div class="fa-group text-small"><b>饮水与生理事件</b><span>饮水事件检测（瘤胃温度谷内核）· 人工标注与数据集导出 · 生理事件人工登记时间线（已交付）</span></div>
+      <div class="fa-group text-small"><b>AI 异常检测</b><span>无监督多维联合检测 · 规则告警 + AI 异常指数双轨展示</span></div>
+      <div class="fa-group text-small plan">
+        <b>规划扩展（AI Phase C / P2）</b>
+        <span><span class="fa-pill">未交付</span> 繁殖管理闭环：配种记录 → 受孕判断 → 预产期倒计时 → 产犊预警（NIX-286）</span>
+        <span><span class="fa-pill">未交付</span> 饮水异常告警 DRINKING_ABNORMAL（NIX-285 二期，依赖 L3 达标）</span>
+        <span><span class="fa-pill">未交付</span> 监督式健康分类器（真实数据迁移重训练）· 行为识别（反刍 / 进食 / 躺卧 / 行走 / 产犊）· 发情升级模式识别</span>
+        <span><span class="fa-pill">未交付</span> L2/L3 多智能体（LLM Agent）协同编排</span>
+        <span><span class="fa-pill wip">推进中</span> 真实数据迁移与重训练（datagen C6–C10）</span>
+      </div>
+    </div>
+
+    <div class="fa-module t2">
+      <div class="fa-mod-head"><span class="fa-dot"></span><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M10.268 21a2 2 0 0 0 3.464 0" /> <path d="M22 8c0-2.3-.8-4.3-2-6" /> <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" /> <path d="M4 2C2.8 3.7 2 5.7 2 8" /> </svg><b>M6 告警中心</b><span class="fa-ctx text-small">Ranch + Platform</span><span class="fa-tag text-small" data-tooltip="支撑流程 P6：告警接收与处置">P6</span></div>
+      <div class="fa-group text-small"><b>告警类型</b><span>14 类：围栏 3 类 / 健康 5 类 / 设备 4 类 / 行为 2 类</span></div>
+      <div class="fa-group text-small"><b>状态机与已读</b><span>活跃 → 人工关闭 / 条件自动消解 · 非法流转拦截 · 已读按用户隔离 · 批量已读</span></div>
+      <div class="fa-group text-small"><b>告警通知</b><span>SSE 实时信号流 · 站内通知中心</span></div>
+      <div class="fa-group text-small"><b>告警工作台</b><span>分桶 / 分类治理 · 角色分级处置（牧工仅可确认）</span></div>
+      <div class="fa-group text-small plan">
+        <b>规划扩展</b>
+        <span><span class="fa-pill">未交付</span> 离线系统推送（APNs / FCM）· SMS 短信 · 邮件汇总</span>
+        <span><span class="fa-pill">未交付</span> 追踪器蓝牙断链丢失告警（NIX-154，依赖固件 0xB0/0xB1）· 无人机巡检异常 / 设备信号搜寻告警（随 P2）</span>
+      </div>
+    </div>
+
+    <div class="fa-module t3">
+      <div class="fa-mod-head"><span class="fa-dot"></span><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <rect width="20" height="14" x="2" y="5" rx="2" /> <line x1="2" x2="22" y1="10" y2="10" /> </svg><b>M7 订阅计费与商业化</b><span class="fa-ctx text-small">Commerce</span><span class="fa-tag text-small" data-tooltip="支撑流程 P7：订阅计费与商业运营">P7</span></div>
+      <div class="fa-group text-small"><b>订阅管理</b><span>基础 / 标准 / 专业 / 企业四档 · 七态订阅状态机 · 直订 / 分润 / 独立部署三种计费模式 · 按头每月计费</span></div>
+      <div class="fa-group text-small"><b>合同与分润</b><span>合同全生命周期管理 · 分润周期与对账报表</span></div>
+      <div class="fa-group text-small"><b>功能门控</b><span>功能开关 + 配额拦截引擎（23 个功能开关）· 锁定功能升级提示 · 到期降档不拒绝</span></div>
+      <div class="fa-group text-small"><b>到期治理</b><span>双端到期横幅与稍后提醒 · 订阅健康总览与运营动作 · 过期租户 GDPR 自助导出</span></div>
+    </div>
+
+    <div class="fa-module t4">
+      <div class="fa-mod-head"><span class="fa-dot"></span><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <ellipse cx="12" cy="5" rx="9" ry="3" /> <path d="M3 5V19A9 3 0 0 0 21 19V5" /> <path d="M3 12A9 3 0 0 0 21 12" /> </svg><b>M8 开放平台与数据智能</b><span class="fa-ctx text-small">Analytics + Datagen</span><span class="fa-tag text-small" data-tooltip="支撑流程 P8：数据开放与集成 · D1：合成数据与评估">P8 · D1</span></div>
+      <div class="fa-group text-small"><b>Open API</b><span>牲畜 / 围栏 / 告警 / 设备 / GPS / 遥测数据查询 · 资源归属校验 · 设备批量自注册</span></div>
+      <div class="fa-group text-small"><b>API Key 与门户</b><span>密钥生命周期（创建 / 吊销 / 过期）· 分钟 / 日双维度频率限制 · 开发者门户与审批</span></div>
+      <div class="fa-group text-small"><b>数据导出</b><span>过期租户机器可读全量导出 · 导出操作审计</span></div>
+      <div class="fa-group text-small"><b>数据合成与评估（研发支撑）</b><span>场景驱动合成 · 健康异常注入 + 围栏越界模拟 · 真值标签 · 精确率 / 召回率 / F1 评估（C0–C5 已交付）· 饮水标注工具链与参数校准</span></div>
+      <div class="fa-group text-small plan">
+        <b>真实数据闭环</b>
+        <span><span class="fa-pill wip">推进中</span> datagen 切换真实数据源 + 模型重训练评估（C6–C10）</span>
+        <span><span class="fa-pill">未交付</span> 兽医标注基础设施：标注 UI + source=MANUAL + 主动学习候选池（#56）</span>
+      </div>
+    </div>
+
+    <div class="fa-module t1 unbuilt">
+      <div class="fa-mod-head"><span class="fa-dot" style="background: var(--border);"></span><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M2 22h20" /> <path d="M6.36 17.4 4 17l-2-4 1.1-.55a2 2 0 0 1 1.8 0l.17.1a2 2 0 0 0 1.8 0L8 12 5 6l.9-.45a2 2 0 0 1 2.09.2l4.02 3a2 2 0 0 0 2.1.2l4.19-2.06a2.41 2.41 0 0 1 1.73-.17L21 7a1.4 1.4 0 0 1 .87 1.99l-.38.76c-.23.46-.6.84-1.07 1.08L7.58 17.2a2 2 0 0 1-1.22.18Z" /> </svg><b>M9 无人机巡检与移动网关</b><span class="fa-ctx text-small">IoT 扩展</span><span class="fa-pill">未交付 · P2 未启动</span></div>
+      <div class="fa-group text-small"><b>自动巡航</b><span>第三方工业无人机 SDK 集成 · 航线规划 · 实时视频回传</span></div>
+      <div class="fa-group text-small"><b>告警联动</b><span>越界告警自动触发起飞追踪 · 声音驱赶越界 / 迷失牲畜回栏</span></div>
+      <div class="fa-group text-small"><b>移动网关与搜寻</b><span>Semtech SX1302 轻量化移动 LoRaWAN 网关补盲 · 主动搜寻丢失动物信号</span></div>
+      <div class="fa-group text-small"><b>孪生融合</b><span>巡检视频与轨迹数据融合到数智孪生平台</span></div>
+    </div>
+
+  </div>
+
+  <div class="fa-arrow text-small">↓ 全部模块依赖的平台支撑能力</div>
+
+  <div class="fa-band-label">④ 平台支撑能力（Platform / Shared / 基础设施）</div>
+  <div class="fa-support">
+    <div class="fa-supp">
+      <div class="fa-supp-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" /> <path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" /> <path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" /> </svg><b>Platform 平台调度台</b></div>
+      <div class="text-small text-muted">请求级配额拦截 · 跨上下文事件聚合消费 · 统一通知中心（站内 + SSE）</div>
+    </div>
+    <div class="fa-supp">
+      <div class="fa-supp-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /> <path d="m9 12 2 2 4-4" /> </svg><b>Shared 共享内核</b></div>
+      <div class="text-small text-muted">JWT / API Key 双轨认证 · 多租户上下文隔离 · 牧场作用域校验 · 统一响应包络与错误码 · Redis 限流 · RocketMQ 事件总线</div>
+    </div>
+    <div class="fa-supp">
+      <div class="fa-supp-head"><!-- @license lucide-static v0.544.0 - ISC --> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <rect width="20" height="8" x="2" y="2" rx="2" ry="2" /> <rect width="20" height="8" x="2" y="14" rx="2" ry="2" /> <line x1="6" x2="6.01" y1="6" y2="6" /> <line x1="6" x2="6.01" y1="18" y2="18" /> </svg><b>数据与前端基础设施</b></div>
+      <div class="text-small text-muted">时序表分区自动维护 · GPS 写入异步幂等 · 地图瓦片生成管线与三级降级 · 中英双语在线切换</div>
+    </div>
+  </div>
+
+  <p class="fa-foot text-small">状态口径（截至 2026-11-05 代码基线）：无标注 = 已交付并部署验证；「推进中」= 部分交付 / 验证进行中；「未交付」= 规划未启动或依赖未满足。饮水检测真实数据评估（L2-real）顺延、L3 待立项。事实源：《智慧畜牧产品规划 PRD v2.4》§2 / §4 / §6 / §10 及 Linear 工单（NIX-154 / 285 / 286、#55 / #56）。</p>
+</div>
+
+</body>
+</html>
