@@ -43,7 +43,15 @@ public enum ScenarioType {
     // Device failure scenarios (Phase 3)
     DEVICE_LOW_BATTERY("device_low_battery", Category.DEVICE, 300, Duration.ofHours(6), null, null),
     DEVICE_SIGNAL_DEGRADATION("device_signal_degradation", Category.DEVICE, 300, Duration.ofHours(3), null, null),
-    DEVICE_ANTI_DISASSEMBLY("device_anti_disassembly", Category.DEVICE, 300, Duration.ofMinutes(5), null, null);
+    DEVICE_ANTI_DISASSEMBLY("device_anti_disassembly", Category.DEVICE, 300, Duration.ofMinutes(5), null, null),
+
+    // Simulation-only ground-truth label types (literature-parameterized herd
+    // simulator, plan 2026-11-05 Task 2). Persisted as ground_truth_labels.pattern
+    // via GroundTruthLabelService; never emitted by synthesis scenario ticks
+    // (their modulation is null so the HEALTH/DEVICE branches safely no-op).
+    PREPARTUM("prepartum", Category.HEALTH, 30, Duration.ofHours(48), null, null),
+    ILLNESS("illness", Category.HEALTH, 30, Duration.ofHours(18), null, null),
+    DETACHED("detached", Category.DEVICE, 300, Duration.ofMinutes(60), null, null);
 
     public enum Category { BASELINE, HEALTH, FENCE, DEVICE }
 
@@ -71,6 +79,13 @@ public enum ScenarioType {
     public Duration getDefaultDuration() { return defaultDuration; }
     public TemporalShape getTemporalShape() { return temporalShape; }
     public DimensionModulation getModulation() { return modulation; }
+
+    /** True for the simulation-only label types written by the herd
+     *  generator (plan 2026-11-05) — never emitted by synthesis ticks and
+     *  excluded from the anomaly-label evaluation window. */
+    public boolean isSimulationOnly() {
+        return this == PREPARTUM || this == ILLNESS || this == DETACHED;
+    }
 
     public static ScenarioType fromDbValue(String value) {
         for (ScenarioType t : values()) {

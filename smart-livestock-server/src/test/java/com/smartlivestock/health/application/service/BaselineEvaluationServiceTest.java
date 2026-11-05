@@ -97,7 +97,8 @@ class BaselineEvaluationServiceTest {
                         org.mockito.ArgumentMatchers.any());
         service = new BaselineEvaluationService(properties, new BaselineLearningCalculator(),
                 assembler, snapshotRepo, tempLogRepo, activityLogRepo,
-                new EstrusAnalysisService(), tenantZoneResolver, messageResolver);
+                new EstrusSeriesReplayer(new EstrusAnalysisService()),
+                tenantZoneResolver, messageResolver);
 
         when(tenantZoneResolver.zoneForFarm(eq(FARM_ID), any())).thenReturn(ZoneOffset.UTC);
         when(physiologyQueryPort.activeWindows(anyLong(), any(), any())).thenReturn(List.of());
