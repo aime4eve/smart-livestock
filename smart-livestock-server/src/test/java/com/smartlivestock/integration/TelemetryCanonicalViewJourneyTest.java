@@ -49,10 +49,12 @@ class TelemetryCanonicalViewJourneyTest extends AbstractJourneyTest {
 
     @BeforeEach
     void seedCanonicalScenario() {
+        // uq_devices_code_active is a PARTIAL unique index (deleted_at IS NULL,
+        // V20260721100000) — the conflict target must carry the same predicate.
         deviceId = jdbcTemplate.queryForObject("""
                 INSERT INTO devices (tenant_id, device_code, device_type, status, battery_level, last_online_at)
                 VALUES (1, ?, 'TRACKER', 'ACTIVE', 80, NOW())
-                ON CONFLICT (device_code) DO UPDATE SET updated_at = NOW()
+                ON CONFLICT (device_code) WHERE deleted_at IS NULL DO UPDATE SET updated_at = NOW()
                 RETURNING id
                 """, Long.class, DEVICE_CODE);
 
