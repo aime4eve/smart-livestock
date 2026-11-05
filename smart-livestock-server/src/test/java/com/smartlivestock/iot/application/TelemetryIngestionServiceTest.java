@@ -49,6 +49,7 @@ class TelemetryIngestionServiceTest {
     @Mock private GpsDataGovernanceService gpsDataGovernanceService;
     @Mock private DeviceLinkQualityService deviceLinkQualityService;
     @Mock private com.smartlivestock.ranch.application.signal.SignalRevisionService signalRevisionService;
+    @Mock private TelemetryDedupApplicationService telemetryDedupService;
 
     private TelemetryIngestionService service;
 
@@ -60,7 +61,7 @@ class TelemetryIngestionServiceTest {
                 new GpsDistanceDerivationService(),
                 gpsDataGovernanceService, deviceLinkQualityService,
                 new com.fasterxml.jackson.databind.ObjectMapper(),
-                signalRevisionService);
+                signalRevisionService, telemetryDedupService);
     }
 
     private Device createCapsuleDevice(Long id) {
