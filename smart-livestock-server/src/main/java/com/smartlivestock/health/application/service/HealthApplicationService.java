@@ -479,8 +479,14 @@ public class HealthApplicationService {
             signalRevisionService.bumpStatus(farmId, metricEvents);
         }
 
-        // Trigger estrus scoring
-        triggerEstrusScoring(livestockId, farmId, source);
+        // Trigger estrus scoring. The caller-loaded snapshot instance is passed
+        // through: the domain repository returns a FRESH mapped instance per
+        // read, so a re-read inside the scoring path would mutate a different
+        // object and the alert bridge below would never see the >=70 flip
+        // (found by the NIX-380 dev smoke: score row + snapshot updated, no
+        // alert — the estrus flip was unreachable ever since the mapper-based
+        // repo lost the persistence-context identity).
+        triggerEstrusScoring(livestockId, farmId, source, snapshot);
 
         // Keep alert tickets consistent with the rule states that drive map markers
         if (HealthAlertBridgeService.hasStateChanged(snapshot, prevTempStatus,
@@ -514,11 +520,13 @@ public class HealthApplicationService {
                 && snapshot.getBaselineTemp() != null;
     }
 
-    private void triggerEstrusScoring(Long livestockId, Long farmId, String source) {
-        // NIX-380 Task 2: mode-gated dispatch. The LEGACY branch below is kept
-        // byte-for-byte identical to the pre-NIX-380 implementation.
+    private void triggerEstrusScoring(Long livestockId, Long farmId, String source,
+                                      HealthSnapshot callerSnapshot) {
+        // NIX-380 Task 2: mode-gated dispatch. The LEGACY branch below keeps its
+        // scoring formulas byte-for-byte; the snapshot instance passed in (see
+        // the call site) only fixes which object the score lands on.
         if ("NORMALIZED".equals(estrusScoringProperties.getMode())) {
-            triggerEstrusScoringNormalized(livestockId, farmId, source);
+            triggerEstrusScoringNormalized(livestockId, farmId, source, callerSnapshot);
             return;
         }
         List<ActivityLog> recentActivities = activityLogRepo.findByLivestockIdOrderByRecordedAtDesc(livestockId, 7);
@@ -526,10 +534,11 @@ public class HealthApplicationService {
 
         if (recentActivities.size() < 3 || recentTemps.size() < 2) return;
 
-        // Load the snapshot once up front: its baseline state decides both the
-        // scoring input (effective baseline) and the audit columns persisted
-        // with the score (plan 2026-11-03 §1.5).
-        HealthSnapshot snapshot = snapshotRepo.findByLivestockId(livestockId).orElse(null);
+        // Snapshot state decides both the scoring input (effective baseline) and
+        // the audit columns persisted with the score (plan 2026-11-03 §1.5).
+        HealthSnapshot snapshot = callerSnapshot != null
+                ? callerSnapshot
+                : snapshotRepo.findByLivestockId(livestockId).orElse(null);
         BigDecimal baselineUsed = effectiveEstrusBaseline(snapshot);
 
         int stepIncreasePercent = calculateStepIncreasePercent(recentActivities);
@@ -657,7 +666,8 @@ public class HealthApplicationService {
      * activity frames are excluded (deterministic tie handling; numerically
      * negligible vs the legacy 7-latest read).</p>
      */
-    private void triggerEstrusScoringNormalized(Long livestockId, Long farmId, String source) {
+    private void triggerEstrusScoringNormalized(Long livestockId, Long farmId, String source,
+                                                HealthSnapshot callerSnapshot) {
         EstrusScoringProperties props = estrusScoringProperties;
 
         // Guard 1: anchor = newest temperature sample; no temperature → nothing to score.
@@ -669,10 +679,14 @@ public class HealthApplicationService {
         // Guard 2: temperature component needs a minimum sample count.
         if (recentTemps.size() < props.getMinTemperatureSamples()) return;
 
-        // Load the snapshot once up front: its baseline state decides both the
-        // scoring input (effective baseline) and the audit columns persisted
-        // with the score (plan 2026-11-03 §1.5) — same as the legacy path.
-        HealthSnapshot snapshot = snapshotRepo.findByLivestockId(livestockId).orElse(null);
+        // The caller-loaded snapshot instance: its baseline state decides both
+        // the scoring input (effective baseline) and the audit columns persisted
+        // with the score (plan 2026-11-03 §1.5) — same as the legacy path. The
+        // score lands on THIS instance so the alert bridge after the scoring
+        // sees the >=70 flip (see the call-site comment for the identity trap).
+        HealthSnapshot snapshot = callerSnapshot != null
+                ? callerSnapshot
+                : snapshotRepo.findByLivestockId(livestockId).orElse(null);
         BigDecimal baselineUsed = effectiveEstrusBaseline(snapshot);
 
         // One activity read spanning the current window plus every baseline

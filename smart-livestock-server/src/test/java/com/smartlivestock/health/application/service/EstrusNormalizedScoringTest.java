@@ -245,6 +245,25 @@ class EstrusNormalizedScoringTest {
     // ── 2. NORMALIZED basics: ratio 1.0 → low, ratio 3.0 → ≥70 + percent=300 ──
 
     @Test
+    void normalized_crossingNotifiesAlertBridge_snapshotInstanceCarriesFlip() {
+        // NIX-380 dev-smoke regression lock: the domain repo returns a FRESH
+        // mapped instance per read, so when the scoring path re-loaded the
+        // snapshot the >=70 flip landed on a different object and the alert
+        // bridge (comparing against the caller's instance) never saw the
+        // transition — the score row and snapshot updated but no alert. The
+        // caller-loaded snapshot must be the one the score lands on.
+        stubTemperatureChain();
+        List<ActivityLog> logs = baselineWindows("60", null, null);
+        logs.addAll(series(CURRENT_START, ANCHOR, "180", null, null));
+        stubWindowLogs(logs);
+
+        processAnchorTelemetry();
+
+        verify(healthAlertBridgeService, atLeastOnce())
+                .syncAlertsWithSnapshot(any(HealthSnapshot.class), anyString());
+    }
+
+    @Test
     void normalized_dayBoundaryStraddle_meanMeanKeepsCleanCowQuiet() {
         // Simulation-forensics regression lock (NIX-380): a 6h window straddling
         // the morning day boundary carries a MINORITY of day frames (2/12).
