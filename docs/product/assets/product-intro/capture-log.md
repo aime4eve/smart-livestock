@@ -41,3 +41,10 @@
 
 - **fig-5-1 硬件全家福**：98-hkt-iot 仓（其他传感器线）与本仓均无畜牧硬件（胶囊/追踪器/耳标）实物照片或渲染图 → 需用户提供产品图（营销素材/ODM 渲染图），收到后按型号+认证状态核验入册
 - **P2 数据上报节奏图**：裁定不做——上报频率信息已由 fig-5-2（佩戴示意图）与 fig-4-1（链路图箭头标注）覆盖，重复表述
+
+## fig-5-1 补录（2026-11-06）
+
+- 图源：hktlora.com 官网三个产品页主图（用户裁决来源）——瘤胃胶囊 `product/lorawan-rumen-bio-capsules`（bolus-main3.jpg）、GPS 追踪器 `product/lorawan-gps-cattle-tracker`（tracker-800x800.jpg）、智能耳标 `product/lorawan-ear-tag`（eartag-2.jpg，实拍佩戴场景）
+- 原图存 `src/`（3 张）；组合图 fig-5-1-family.png（三卡横排+型号+来源注）
+- 文档 §5.1 嵌入，20 页版；§5.2 因表格跨页断裂改为新页起（pageBreakBefore）
+- 图序修正：第七章图 7-3→7-2（第七章仅两图）
