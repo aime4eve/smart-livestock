@@ -16,6 +16,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.Instant;
 import java.util.List;
@@ -27,13 +29,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.doNothing;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class TbTelemetryChannelTest {
 
     @Mock
@@ -57,6 +59,10 @@ class TbTelemetryChannelTest {
         properties.setBatchSize(10);
         channel = new TbTelemetryChannel(properties, tbClient, bindingRepository,
                 deviceRepository, deviceTelemetryLogRepository, ingestionService);
+        // Frames reach ingest through the NIX-370 dedup-gated entry now;
+        // default the arbitration to CANONICAL so poll cycles behave as before.
+        lenient().when(ingestionService.ingestWithDedup(any(), any(), any()))
+                .thenReturn(TelemetryIngestionService.DedupIngestOutcome.INGESTED);
     }
 
     private Device activeTracker() {
@@ -95,21 +101,18 @@ class TbTelemetryChannelTest {
 
         channel.poll();
 
-        verify(ingestionService).ingest(eq(122L), any(), any(),
-                eq(com.smartlivestock.iot.domain.model.TelemetrySource.THINGSBOARD));
-        verify(ingestionService).ingest(eq(990L), any(), any(),
-                eq(com.smartlivestock.iot.domain.model.TelemetrySource.THINGSBOARD));
+        ArgumentCaptor<TelemetryDedupApplicationService.Observation> obsCaptor =
+                ArgumentCaptor.forClass(TelemetryDedupApplicationService.Observation.class);
+        verify(ingestionService, org.mockito.Mockito.times(2)).ingestWithDedup(
+                obsCaptor.capture(), any(), any());
+        assertThat(obsCaptor.getAllValues())
+                .extracting(TelemetryDedupApplicationService.Observation::deviceId)
+                .containsExactlyInAnyOrder(122L, 990L);
     }
 
     @Test
     void shouldIngestFramesAndAdvanceCursor() {
-        TbDeviceBinding binding = new TbDeviceBinding();
-        binding.setId(1L);
-        binding.setDeviceId(122L);
-        binding.setDeviceEui("00956906000285cf");
-        binding.setExternalDeviceId("tb-uuid");
-        binding.setStatus(TbDeviceBinding.Status.RESOLVED);
-        binding.setTelemetryCursorMs(null);
+        TbDeviceBinding binding = resolvedBinding(null);
 
         when(bindingRepository.findByStatus(TbDeviceBinding.Status.RESOLVED))
                 .thenReturn(List.of(binding));
@@ -120,14 +123,38 @@ class TbTelemetryChannelTest {
         channel.poll();
 
         ArgumentCaptor<Instant> tsCaptor = ArgumentCaptor.forClass(Instant.class);
-        verify(ingestionService, org.mockito.Mockito.times(2)).ingest(
-                eq(122L), any(), tsCaptor.capture(), eq(com.smartlivestock.iot.domain.model.TelemetrySource.THINGSBOARD));
+        verify(ingestionService, org.mockito.Mockito.times(2)).ingestWithDedup(
+                any(), any(), tsCaptor.capture());
         assertThat(tsCaptor.getAllValues()).isSorted();
         assertThat(tsCaptor.getAllValues()).hasSize(2);
 
         ArgumentCaptor<TbDeviceBinding> bindingCaptor = ArgumentCaptor.forClass(TbDeviceBinding.class);
         verify(bindingRepository).save(bindingCaptor.capture());
         assertThat(bindingCaptor.getValue().getTelemetryCursorMs()).isEqualTo(2000L);
+    }
+
+    @Test
+    void shouldCarryBindingIdentityAndFingerprintIntoArbitration() {
+        TbDeviceBinding binding = resolvedBinding(null);
+
+        when(bindingRepository.findByStatus(TbDeviceBinding.Status.RESOLVED))
+                .thenReturn(List.of(binding));
+        when(deviceRepository.findById(122L)).thenReturn(Optional.of(activeTracker()));
+        when(tbClient.fetchTimeseries(eq("tb-uuid"), anyLong(), anyLong(), anyInt()))
+                .thenReturn(parse(timeseries("1000", "65")));
+
+        channel.poll();
+
+        ArgumentCaptor<TelemetryDedupApplicationService.Observation> obsCaptor =
+                ArgumentCaptor.forClass(TelemetryDedupApplicationService.Observation.class);
+        verify(ingestionService).ingestWithDedup(obsCaptor.capture(), any(), any());
+        TelemetryDedupApplicationService.Observation observation = obsCaptor.getValue();
+        assertThat(observation.deviceId()).isEqualTo(122L);
+        assertThat(observation.provider()).isEqualTo("THINGSBOARD");
+        assertThat(observation.channel()).isEqualTo(TbTelemetryChannel.DEDUP_CHANNEL);
+        assertThat(observation.externalDeviceId()).isEqualTo("tb-uuid");
+        assertThat(observation.providerEventTs()).isEqualTo(1000L);
+        assertThat(observation.coreFieldsFingerprint()).hasSize(64);
     }
 
     @Test
@@ -143,7 +170,7 @@ class TbTelemetryChannelTest {
 
         channel.poll();
 
-        verify(ingestionService, never()).ingest(any(), any(), any(), any());
+        verify(ingestionService, never()).ingestWithDedup(any(), any(), any());
         ArgumentCaptor<TbDeviceBinding> bindingCaptor = ArgumentCaptor.forClass(TbDeviceBinding.class);
         verify(bindingRepository).save(bindingCaptor.capture());
         assertThat(bindingCaptor.getValue().getTelemetryCursorMs()).isEqualTo(1000L);
@@ -159,22 +186,54 @@ class TbTelemetryChannelTest {
                 .thenReturn(parse("{\"result\":[" + frameJson("1000", "65")
                         + "," + frameJson("2000", "66")
                         + "," + frameJson("3000", "67") + "]}"));
-        doNothing()
-                .doThrow(new RuntimeException("ingest failed"))
-                .doNothing()
-                .when(ingestionService).ingest(eq(122L), any(), any(), any());
+        when(ingestionService.ingestWithDedup(any(), any(),
+                eq(Instant.ofEpochMilli(1000L))))
+                .thenReturn(TelemetryIngestionService.DedupIngestOutcome.INGESTED);
+        when(ingestionService.ingestWithDedup(any(), any(),
+                eq(Instant.ofEpochMilli(2000L))))
+                .thenThrow(new RuntimeException("ingest failed"));
+        when(ingestionService.ingestWithDedup(any(), any(),
+                eq(Instant.ofEpochMilli(3000L))))
+                .thenReturn(TelemetryIngestionService.DedupIngestOutcome.INGESTED);
 
         channel.poll();
 
-        verify(ingestionService).ingest(eq(122L), any(),
-                eq(Instant.ofEpochMilli(1000L)), any());
-        verify(ingestionService).ingest(eq(122L), any(),
-                eq(Instant.ofEpochMilli(2000L)), any());
-        verify(ingestionService, never()).ingest(eq(122L), any(),
-                eq(Instant.ofEpochMilli(3000L)), any());
+        verify(ingestionService).ingestWithDedup(any(), any(),
+                eq(Instant.ofEpochMilli(1000L)));
+        verify(ingestionService).ingestWithDedup(any(), any(),
+                eq(Instant.ofEpochMilli(2000L)));
+        verify(ingestionService, never()).ingestWithDedup(any(), any(),
+                eq(Instant.ofEpochMilli(3000L)));
         ArgumentCaptor<TbDeviceBinding> bindingCaptor = ArgumentCaptor.forClass(TbDeviceBinding.class);
         verify(bindingRepository).save(bindingCaptor.capture());
         assertThat(bindingCaptor.getValue().getTelemetryCursorMs()).isEqualTo(1000L);
+    }
+
+    @Test
+    void shouldNotWedgeCursorWhenDuplicateObservationStopsIngest() {
+        // NIX-370: the second data point of an upstream re-write returns
+        // DUPLICATE — the frame is intentionally not ingested, but the poll
+        // cycle must treat it as success so the cursor keeps advancing.
+        TbDeviceBinding binding = resolvedBinding(null);
+        when(bindingRepository.findByStatus(TbDeviceBinding.Status.RESOLVED))
+                .thenReturn(List.of(binding));
+        when(deviceRepository.findById(122L)).thenReturn(Optional.of(activeTracker()));
+        when(tbClient.fetchTimeseries(eq("tb-uuid"), anyLong(), anyLong(), anyInt()))
+                .thenReturn(parse("{\"result\":[" + frameJson("1000", "65")
+                        + "," + frameJson("1134", "65") + "]}"));
+        when(ingestionService.ingestWithDedup(any(), any(),
+                eq(Instant.ofEpochMilli(1000L))))
+                .thenReturn(TelemetryIngestionService.DedupIngestOutcome.INGESTED);
+        when(ingestionService.ingestWithDedup(any(), any(),
+                eq(Instant.ofEpochMilli(1134L))))
+                .thenReturn(TelemetryIngestionService.DedupIngestOutcome.DUPLICATE);
+
+        channel.poll();
+
+        ArgumentCaptor<TbDeviceBinding> bindingCaptor = ArgumentCaptor.forClass(TbDeviceBinding.class);
+        verify(bindingRepository).save(bindingCaptor.capture());
+        assertThat(bindingCaptor.getValue().getTelemetryCursorMs()).isEqualTo(1134L);
+        assertThat(bindingCaptor.getValue().getConsecutiveFailures()).isZero();
     }
 
     @Test
@@ -216,8 +275,8 @@ class TbTelemetryChannelTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, Object>> readingsCaptor =
                 ArgumentCaptor.forClass(Map.class);
-        verify(ingestionService).ingest(eq(122L), readingsCaptor.capture(),
-                eq(Instant.ofEpochMilli(1000L)), any());
+        verify(ingestionService).ingestWithDedup(any(), readingsCaptor.capture(),
+                eq(Instant.ofEpochMilli(1000L)));
         assertThat(readingsCaptor.getValue()).containsEntry("latitude", null);
         assertThat(readingsCaptor.getValue()).containsEntry("longitude", new java.math.BigDecimal("112.85"));
     }
@@ -237,7 +296,7 @@ class TbTelemetryChannelTest {
         channel.poll();
 
         verify(tbClient, never()).fetchTimeseries(any(), anyLong(), anyLong(), anyInt());
-        verify(ingestionService, never()).ingest(any(), any(), any(), any());
+        verify(ingestionService, never()).ingestWithDedup(any(), any(), any());
     }
 
     @Test
@@ -256,8 +315,8 @@ class TbTelemetryChannelTest {
 
         channel.poll();
 
-        verify(ingestionService).ingest(eq(122L), any(),
-                eq(Instant.ofEpochMilli(1000L)), any());
+        verify(ingestionService).ingestWithDedup(any(), any(),
+                eq(Instant.ofEpochMilli(1000L)));
         ArgumentCaptor<TbDeviceBinding> bindingCaptor = ArgumentCaptor.forClass(TbDeviceBinding.class);
         verify(bindingRepository).save(bindingCaptor.capture());
         assertThat(bindingCaptor.getValue().getTelemetryCursorMs()).isEqualTo(1500L);

@@ -68,6 +68,36 @@ public class TelemetryIngestionService {
     private final DeviceLinkQualityService deviceLinkQualityService;
     private final ObjectMapper objectMapper;
     private final SignalRevisionService signalRevisionService;
+    private final TelemetryDedupApplicationService telemetryDedupService;
+
+    /** Outcome of a dedup-gated ingest (NIX-370). */
+    public enum DedupIngestOutcome { INGESTED, DUPLICATE }
+
+    /**
+     * Dedup-gated ingest for the THINGSBOARD REST channel (NIX-370, parking
+     * TelemetryDedupApplicationService pattern): arbitrate the observation in
+     * telemetry_ingestion_dedup first; only CANONICAL observations reach
+     * ingest(). The upstream write path re-sends one physical frame as two
+     * data points ~134ms apart, so exact-ts idempotency alone lets the second
+     * point through as a duplicated business row.
+     * <p>
+     * One transaction on purpose: an ingest failure rolls the arbitration
+     * back with it, so the frame is retried whole on the next poll — no lost
+     * frames, no wedged cursor, no orphaned canonical rows.
+     */
+    @Transactional
+    public DedupIngestOutcome ingestWithDedup(
+            TelemetryDedupApplicationService.Observation observation,
+            Map<String, Object> readings, Instant recordedAt) {
+        TelemetryDedupApplicationService.Result result = telemetryDedupService.register(observation);
+        if (result != TelemetryDedupApplicationService.Result.CANONICAL) {
+            log.debug("Duplicate observation for device [{}] ts={} ({}), ingest skipped",
+                    observation.deviceId(), recordedAt, result);
+            return DedupIngestOutcome.DUPLICATE;
+        }
+        ingest(observation.deviceId(), readings, recordedAt, TelemetrySource.THINGSBOARD);
+        return DedupIngestOutcome.INGESTED;
+    }
 
     /**
      * Ingest telemetry data from any source (Phase 3 unified entry point).
@@ -79,8 +109,7 @@ public class TelemetryIngestionService {
      */
     @Transactional
     public void ingest(Long deviceId, Map<String, Object> readings,
-                       Instant recordedAt, TelemetrySource source) {
-        Instant effectiveRecordedAt = recordedAt != null ? recordedAt : Instant.now();
+                       Instant recordedAt, TelemetrySource source) {        Instant effectiveRecordedAt = recordedAt != null ? recordedAt : Instant.now();
         readings = new HashMap<>(readings);
 
         Device device = deviceRepository.findById(deviceId)

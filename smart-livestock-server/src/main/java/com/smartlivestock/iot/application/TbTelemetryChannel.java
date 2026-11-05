@@ -3,7 +3,6 @@ package com.smartlivestock.iot.application;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.model.DeviceStatus;
-import com.smartlivestock.iot.domain.model.TelemetrySource;
 import com.smartlivestock.iot.domain.model.TbDeviceBinding;
 import com.smartlivestock.iot.domain.repository.DeviceRepository;
 import com.smartlivestock.iot.domain.repository.DeviceTelemetryLogRepository;
@@ -46,6 +45,9 @@ import java.util.concurrent.TimeUnit;
 public class TbTelemetryChannel {
 
     private static final int MAX_PAGES_PER_CYCLE = 50;
+
+    /** Dedup registry channel tag (parking telemetry_ingestion_dedup convention). */
+    static final String DEDUP_CHANNEL = "tb-rest";
 
     public enum TriggerResult { TRIGGERED, BINDING_NOT_FOUND, TRIGGER_FAILED }
 
@@ -175,7 +177,7 @@ public class TbTelemetryChannel {
                 // Continuation pages re-fetch the boundary frame (startTs is
                 // inclusive); skip already-ingested frames.
                 if (pages > 0 && frame.ts() <= pageStart) continue;
-                if (!ingestFrame(device, frame)) {
+                if (!ingestFrame(device, binding, frame)) {
                     failed = true;
                     break;
                 }
@@ -211,7 +213,7 @@ public class TbTelemetryChannel {
         bindingRepository.save(binding);
     }
 
-    private boolean ingestFrame(Device device, TbTelemetryFrameParser.Frame frame) {
+    private boolean ingestFrame(Device device, TbDeviceBinding binding, TbTelemetryFrameParser.Frame frame) {
         Map<String, Object> readings = new java.util.HashMap<>(frame.readings());
         clampGps(readings, device.getId());
         if (device.getDeviceType() == com.smartlivestock.iot.domain.model.DeviceType.TRACKER) {
@@ -223,8 +225,24 @@ public class TbTelemetryChannel {
             log.debug("[TB] device {} frame {} already ingested", device.getId(), frame.ts());
             return true;
         }
+        // NIX-370: upstream re-writes one physical frame as two data points
+        // ~134ms apart (result×2 + dataHex×2, identical payload) — exact-ts
+        // idempotency above cannot catch those. Arbitrate against the dedup
+        // registry (±2s window + core-fields fingerprint) in the same
+        // transaction as the ingest; non-canonical observations stop here.
+        TelemetryDedupApplicationService.Observation observation =
+                new TelemetryDedupApplicationService.Observation(
+                        device.getId(), "THINGSBOARD", DEDUP_CHANNEL,
+                        binding.getExternalDeviceId(), recordedAt, frame.ts(),
+                        TelemetryDedupApplicationService.coreFieldsFingerprint(readings));
         try {
-            ingestionService.ingest(device.getId(), readings, recordedAt, TelemetrySource.THINGSBOARD);
+            TelemetryIngestionService.DedupIngestOutcome outcome =
+                    ingestionService.ingestWithDedup(observation, readings, recordedAt);
+            // DUPLICATE is an intentional skip, not a failure: returning false
+            // here would wedge the cursor forever in front of a deduplicated
+            // frame (every retry re-observes it as DUPLICATE).
+            return outcome == TelemetryIngestionService.DedupIngestOutcome.INGESTED
+                    || outcome == TelemetryIngestionService.DedupIngestOutcome.DUPLICATE;
         } catch (Exception e) {
             if (e instanceof DataIntegrityViolationException
                     && deviceTelemetryLogRepository.existsByDeviceIdAndReportTime(device.getId(), recordedAt)) {
@@ -235,7 +253,6 @@ public class TbTelemetryChannel {
                     device.getId(), frame.ts(), e.getMessage());
             return false;
         }
-        return true;
     }
 
     private void clampGps(Map<String, Object> readings, Long deviceId) {
