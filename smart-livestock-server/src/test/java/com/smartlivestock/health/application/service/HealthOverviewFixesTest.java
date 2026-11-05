@@ -66,12 +66,20 @@ class HealthOverviewFixesTest {
                 feverService, digestiveService, estrusAnalysisService, epidemicService,
                 messageResolver,
                 org.mockito.Mockito.mock(ContactAnalysisService.class),
-                new com.smartlivestock.health.infrastructure.config.BaselineLearningProperties());
+                new com.smartlivestock.health.infrastructure.config.BaselineLearningProperties(),
+                legacyEstrusScoringProperties());
         lenient().when(ranchQueryPort.countActiveAlertsByFarmId(1L)).thenReturn(0);
         lenient().when(ranchQueryPort.findActiveAlertsByFarmIdAndTypes(eq(1L), anyCollection()))
                 .thenReturn(List.of());
         lenient().when(ranchQueryPort.findLivestockById(org.mockito.ArgumentMatchers.anyLong()))
                 .thenReturn(java.util.Optional.empty());
+    }
+
+    /** LEGACY mode: these tests lock the pre-NIX-380 scoring behavior. */
+    private static com.smartlivestock.health.infrastructure.config.EstrusScoringProperties legacyEstrusScoringProperties() {
+        var props = new com.smartlivestock.health.infrastructure.config.EstrusScoringProperties();
+        props.setMode("LEGACY");
+        return props;
     }
 
     private HealthSnapshot snap(long id, TempStatus temp, MotilityStatus motility, Integer estrus) {

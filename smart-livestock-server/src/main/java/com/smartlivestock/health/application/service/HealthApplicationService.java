@@ -12,6 +12,7 @@ import com.smartlivestock.health.domain.model.*;
 import com.smartlivestock.health.domain.repository.*;
 import com.smartlivestock.health.domain.service.*;
 import com.smartlivestock.health.infrastructure.config.BaselineLearningProperties;
+import com.smartlivestock.health.infrastructure.config.EstrusScoringProperties;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
 import com.smartlivestock.ranch.application.signal.SignalEventType;
 import lombok.RequiredArgsConstructor;
@@ -22,10 +23,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -56,6 +59,8 @@ public class HealthApplicationService {
     private final ContactAnalysisService contactAnalysisService;
     /** Consumption switch for learned baselines (plan 2026-11-03 §1.5). */
     private final BaselineLearningProperties baselineLearningProperties;
+    /** Window/ratio tunables and the LEGACY/NORMALIZED scoring path selector (NIX-380 Task 2). */
+    private final EstrusScoringProperties estrusScoringProperties;
 
     /**
      * Default window of the instant (mark-diseased) analysis track; mirrors
@@ -73,6 +78,17 @@ public class HealthApplicationService {
      *  from fever assessment so they can neither trigger rules nor mask real ones. */
     private static final BigDecimal MIN_PLAUSIBLE_TEMP = new BigDecimal("35.0");
     private static final BigDecimal MAX_PLAUSIBLE_TEMP = new BigDecimal("43.0");
+
+    /** Algorithm version stamped into NORMALIZED scoring logs (NIX-380; ruling:
+     *  kept in logs only, never persisted as a column). */
+    private static final String FEATURE_VERSION = "ESTRUS-FEATURE-V2";
+    /** Scale for normalized level ratios (mean/median divisions). */
+    private static final int RATIO_SCALE = 6;
+    /** Column bound of estrus_scores.distance_delta DECIMAL(10,2) — the meter
+     *  delta written on NORMALIZED rows is clamped to ±this so it can never
+     *  overflow the column and roll back the whole telemetry transaction
+     *  (lesson #13). */
+    private static final BigDecimal MAX_DISTANCE_DELTA = new BigDecimal("99999999.99");
 
     /**
      * Resolves the bucketing timezone for day/hour grouping. Priority
@@ -499,6 +515,12 @@ public class HealthApplicationService {
     }
 
     private void triggerEstrusScoring(Long livestockId, Long farmId, String source) {
+        // NIX-380 Task 2: mode-gated dispatch. The LEGACY branch below is kept
+        // byte-for-byte identical to the pre-NIX-380 implementation.
+        if ("NORMALIZED".equals(estrusScoringProperties.getMode())) {
+            triggerEstrusScoringNormalized(livestockId, farmId, source);
+            return;
+        }
         List<ActivityLog> recentActivities = activityLogRepo.findByLivestockIdOrderByRecordedAtDesc(livestockId, 7);
         List<TemperatureLog> recentTemps = tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(livestockId, 7);
 
@@ -595,6 +617,259 @@ public class HealthApplicationService {
                 .map(l -> l.getDistanceMeters() != null ? l.getDistanceMeters() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         return recentDist.subtract(olderDist);
+    }
+
+    // ── Normalized estrus scoring (NIX-380 Task 2) ─────────────
+
+    /**
+     * Cross-event-window normalized scoring path (NIX-380 Task 2).
+     *
+     * <p>Replaces the legacy "recent-3 vs rest-4" short-window ratio, which
+     * under-detects gradual ~18h estrus episodes at 30-minute telemetry
+     * granularity. The current window's activity / distance levels are divided
+     * by the pooled median of same-phase baseline windows taken at exact 24h
+     * multiples before the anchor, so the circadian activity envelope cancels
+     * out of the baseline and a slow but sustained rise still clears the
+     * absolute ratio rungs.</p>
+     *
+     * <p>Guards (any miss → return without writing a row, the same fail-silent
+     * contract as the legacy {@code size < 3 / size < 2} early returns):
+     * (1) anchor temperature exists; (2) temperature samples ≥
+     * minTemperatureSamples; (3) activity component available (activityIndex
+     * channel, else stepCount channel — see {@link #channelLevel});
+     * (4) temperature delta available — the latest temperature over the
+     * effective baseline, which is never null (defaults to 38.50), so only the
+     * sample count and a non-null reading are at stake.</p>
+     *
+     * <p>Persistence semantics: the {@code estrus_scores} row shape and column
+     * semantics are unchanged from LEGACY — {@code stepIncreasePercent} stays a
+     * true increase percent ({@code (activityRatio − 1) × 100}, e.g. ratio 3.0
+     * → 200 means a genuine 3× level rise) and {@code distanceDelta} stays an
+     * absolute meter delta (distance currentMean − baselineMedian); only the
+     * computation source moves from the 3-vs-4 short window to the
+     * cross-event-window levels. The raw level ratios themselves are recorded
+     * only in the FEATURE-V2 debug log. score / advice / the four baseline
+     * audit columns / scoredAt / source and the snapshot estrusScore update
+     * are produced exactly as in the legacy path.</p>
+     *
+     * <p>Windows are half-open {@code [start, end)}; anchor-timestamped
+     * activity frames are excluded (deterministic tie handling; numerically
+     * negligible vs the legacy 7-latest read).</p>
+     */
+    private void triggerEstrusScoringNormalized(Long livestockId, Long farmId, String source) {
+        EstrusScoringProperties props = estrusScoringProperties;
+
+        // Guard 1: anchor = newest temperature sample; no temperature → nothing to score.
+        List<TemperatureLog> anchorTemps = tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(livestockId, 1);
+        if (anchorTemps.isEmpty()) return;
+        Instant anchor = anchorTemps.get(0).getRecordedAt();
+
+        List<TemperatureLog> recentTemps = tempLogRepo.findByLivestockIdOrderByRecordedAtDesc(livestockId, 7);
+        // Guard 2: temperature component needs a minimum sample count.
+        if (recentTemps.size() < props.getMinTemperatureSamples()) return;
+
+        // Load the snapshot once up front: its baseline state decides both the
+        // scoring input (effective baseline) and the audit columns persisted
+        // with the score (plan 2026-11-03 §1.5) — same as the legacy path.
+        HealthSnapshot snapshot = snapshotRepo.findByLivestockId(livestockId).orElse(null);
+        BigDecimal baselineUsed = effectiveEstrusBaseline(snapshot);
+
+        // One activity read spanning the current window plus every baseline
+        // window, clamped to the configured max row count (read clamp).
+        long spanHours = (long) props.getBaselineWindowCount() * props.getBaselineWindowOffsetHours()
+                + props.getCurrentWindowHours();
+        List<ActivityLog> windowLogs = activityLogRepo.findWindowByLivestockId(
+                livestockId,
+                anchor.minus(Duration.ofHours(spanHours)),
+                anchor,
+                props.getMaxWindowRows());
+
+        // Channel selection: activityIndex preferred, stepCount as the ear-tag
+        // fallback; never mixed within one channel decision. Distance is judged
+        // independently and may be unavailable (the kernel drops its weight).
+        ChannelLevel activityLevel = channelLevel(windowLogs, anchor, ActivityLog::getActivityIndex, props);
+        if (activityLevel == null) {
+            activityLevel = channelLevel(windowLogs, anchor,
+                    log -> log.getStepCount() == null ? null : BigDecimal.valueOf(log.getStepCount()), props);
+        }
+        // Guard 3: without an activity component there is nothing to normalize.
+        if (activityLevel == null) return;
+        ChannelLevel distanceLevel = channelLevel(windowLogs, anchor, ActivityLog::getDistanceMeters, props);
+
+        // Guard 4: latest temperature over the effective baseline.
+        BigDecimal latestTemp = recentTemps.get(0).getTemperature();
+        if (latestTemp == null) return;
+        BigDecimal tempDelta = latestTemp.subtract(baselineUsed);
+
+        int score = estrusAnalysisService.calculateScoreNormalized(
+                activityLevel.ratio(), tempDelta,
+                distanceLevel == null ? null : distanceLevel.ratio(),
+                activityLadder(props), distanceLadder(props));
+
+        log.debug("feature={} mode=NORMALIZED livestockId={} activityRatio={} distanceRatio={} tempDelta={} score={}",
+                FEATURE_VERSION, livestockId, activityLevel.ratio(),
+                distanceLevel == null ? null : distanceLevel.ratio(), tempDelta, score);
+
+        EstrusScore estrusScore = new EstrusScore();
+        estrusScore.setFarmId(farmId);
+        estrusScore.setLivestockId(livestockId);
+        estrusScore.setScore(score);
+        // NORMALIZED rows keep the LEGACY column semantics (increase percent /
+        // absolute meter delta), computed from the cross-event-window levels
+        // instead of the 3-vs-4 short window; the raw level ratios live only
+        // in the FEATURE-V2 debug log above.
+        estrusScore.setStepIncreasePercent(toIncreasePercent(activityLevel.ratio()));
+        estrusScore.setTempDelta(tempDelta);
+        estrusScore.setDistanceDelta(distanceLevel == null ? null : toMeterDelta(distanceLevel));
+        estrusScore.setAdvice(estrusAnalysisService.generateAdvice(score));
+        estrusScore.setScoredAt(Instant.now());
+        estrusScore.setSource(source);
+
+        // Baseline audit trail: what the scoring actually consumed and where
+        // that baseline came from — identical to the legacy path
+        // (plan 2026-11-03 §1.5).
+        boolean learnedApplied = usesLearnedBaseline(snapshot);
+        estrusScore.setBaselineUsed(baselineUsed);
+        estrusScore.setBaselineSource(learnedApplied ? snapshot.getBaselineSource() : "DEFAULT");
+        estrusScore.setBaselineComputedAt(learnedApplied ? snapshot.getBaselineComputedAt() : null);
+        estrusScore.setBaselineAlgorithmVersion(learnedApplied
+                ? snapshot.getBaselineAlgorithmVersion() : null);
+        estrusScoreRepo.save(estrusScore);
+
+        // Update snapshot with estrus score (reuses the snapshot loaded above)
+        if (snapshot != null) {
+            snapshot.setEstrusScore(score);
+            snapshotRepo.save(snapshot);
+        }
+    }
+
+    /**
+     * Channel levels of one activity channel: the current-window arithmetic
+     * mean, the pooled median of its qualified baseline-window samples, and
+     * their ratio (mean ÷ median). The ratio feeds the scoring ladder; the
+     * mean/median pair feeds the LEGACY-shaped meter delta written to
+     * {@code distance_delta}. Windows are half-open {@code [start, end)} —
+     * the same convention as the window read feeding them.
+     *
+     * <p>Availability rules (NIX-380 §2, judged per channel on sample counts):
+     * the channel is usable only when the current window holds at least
+     * {@code minCurrentActivitySamples} non-null samples AND at least half of
+     * the baseline windows qualify (each holding at least
+     * {@code minBaselineActivitySamples} non-null samples) — half, not all, so
+     * one polluted or cold-start window cannot disable the baseline. Returns
+     * null when unavailable or when the pooled baseline median is not positive
+     * (median ≤ 0 makes the ratio undefined).</p>
+     */
+    private record ChannelLevel(BigDecimal currentMean, BigDecimal baselineMedian, BigDecimal ratio) {
+    }
+
+    private static ChannelLevel channelLevel(List<ActivityLog> logs, Instant anchor,
+                                             Function<ActivityLog, BigDecimal> channel,
+                                             EstrusScoringProperties props) {
+        long currentWindowHours = props.getCurrentWindowHours();
+        int baselineWindowCount = props.getBaselineWindowCount();
+        long offsetHours = props.getBaselineWindowOffsetHours();
+
+        List<BigDecimal> current = channelSamplesInWindow(
+                logs, anchor.minus(Duration.ofHours(currentWindowHours)), anchor, channel);
+        if (current.size() < props.getMinCurrentActivitySamples()) return null;
+
+        List<BigDecimal> pooled = new ArrayList<>();
+        int qualifiedWindows = 0;
+        for (int k = 1; k <= baselineWindowCount; k++) {
+            // Same wall-clock phase as the current window: each baseline window
+            // sits an exact 24h multiple before it (the offset is validated as
+            // a positive multiple of 24), so the daily activity envelope
+            // cancels out and the ratio reflects the true level change.
+            Instant windowEnd = anchor.minus(Duration.ofHours(offsetHours * k));
+            Instant windowStart = windowEnd.minus(Duration.ofHours(currentWindowHours));
+            List<BigDecimal> samples = channelSamplesInWindow(logs, windowStart, windowEnd, channel);
+            if (samples.size() >= props.getMinBaselineActivitySamples()) {
+                qualifiedWindows++;
+                pooled.addAll(samples);
+            }
+        }
+        // ceil(baselineWindowCount / 2) qualified windows required.
+        if (qualifiedWindows * 2 < baselineWindowCount) return null;
+
+        BigDecimal baselineMedian = median(pooled);
+        if (baselineMedian == null || baselineMedian.signum() <= 0) return null;
+
+        BigDecimal mean = arithmeticMean(current);
+        if (mean == null) return null;
+        return new ChannelLevel(mean, baselineMedian,
+                mean.divide(baselineMedian, RATIO_SCALE, RoundingMode.HALF_UP));
+    }
+
+    /** Non-null channel samples whose recordedAt falls in the half-open window {@code [start, end)}. */
+    private static List<BigDecimal> channelSamplesInWindow(List<ActivityLog> logs, Instant start, Instant end,
+                                                           Function<ActivityLog, BigDecimal> channel) {
+        return logs.stream()
+                .filter(l -> l.getRecordedAt() != null
+                        && !l.getRecordedAt().isBefore(start)
+                        && l.getRecordedAt().isBefore(end))
+                .map(channel)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    /** Arithmetic mean over a non-empty list; null only when the list is empty. */
+    private static BigDecimal arithmeticMean(List<BigDecimal> samples) {
+        if (samples.isEmpty()) return null;
+        BigDecimal sum = samples.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        return sum.divide(BigDecimal.valueOf(samples.size()), RATIO_SCALE, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * Sample median: middle value for an odd count, mean of the two middle
+     * values for an even count. Null only when the list is empty.
+     */
+    private static BigDecimal median(List<BigDecimal> samples) {
+        if (samples.isEmpty()) return null;
+        List<BigDecimal> sorted = new ArrayList<>(samples);
+        sorted.sort(BigDecimal::compareTo);
+        int mid = sorted.size() / 2;
+        if (sorted.size() % 2 == 1) return sorted.get(mid);
+        return sorted.get(mid - 1).add(sorted.get(mid))
+                .divide(BigDecimal.valueOf(2), RATIO_SCALE, RoundingMode.HALF_UP);
+    }
+
+    /** Activity ladder built from the six configured rung values. */
+    private static EstrusAnalysisService.EstrusFeatureLadder activityLadder(EstrusScoringProperties props) {
+        return new EstrusAnalysisService.EstrusFeatureLadder(
+                props.getActivityRatioVeryHigh(), props.getActivityScoreVeryHigh(),
+                props.getActivityRatioHigh(), props.getActivityScoreHigh(),
+                props.getActivityRatioMid(), props.getActivityScoreMid());
+    }
+
+    /** Distance ladder built from the six configured rung values. */
+    private static EstrusAnalysisService.EstrusFeatureLadder distanceLadder(EstrusScoringProperties props) {
+        return new EstrusAnalysisService.EstrusFeatureLadder(
+                props.getDistanceRatioVeryHigh(), props.getDistanceScoreVeryHigh(),
+                props.getDistanceRatioHigh(), props.getDistanceScoreHigh(),
+                props.getDistanceRatioMid(), props.getDistanceScoreMid());
+    }
+
+    /** LEGACY-shaped increase percent written to
+     *  estrus_scores.step_increase_percent on NORMALIZED rows, computed from
+     *  the normalized level ratio: {@code (ratio − 1) × 100} (ratio 3.0 → 200,
+     *  ratio 0.58 → −42), so the "步数增幅 %" readers keep a true reading;
+     *  clamped to the int range. */
+    private static Integer toIncreasePercent(BigDecimal ratio) {
+        long percent = Math.round((ratio.doubleValue() - 1.0) * 100);
+        return (int) Math.max(Integer.MIN_VALUE, Math.min(Integer.MAX_VALUE, percent));
+    }
+
+    /** LEGACY-shaped absolute meter delta written to
+     *  estrus_scores.distance_delta on NORMALIZED rows: distance currentMean −
+     *  baselineMedian at the DECIMAL(10,2) column scale, clamped to the column
+     *  bounds both ways (lesson #13 — an out-of-range value would roll back
+     *  the whole telemetry transaction). */
+    private static BigDecimal toMeterDelta(ChannelLevel level) {
+        BigDecimal delta = level.currentMean().subtract(level.baselineMedian())
+                .setScale(2, RoundingMode.HALF_UP);
+        BigDecimal clamped = delta.min(MAX_DISTANCE_DELTA);
+        return clamped.max(MAX_DISTANCE_DELTA.negate());
     }
 
     private ActivityStatus assessActivityStatus(BigDecimal activityIndex) {

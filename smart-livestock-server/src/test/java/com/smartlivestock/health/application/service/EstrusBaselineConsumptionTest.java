@@ -82,6 +82,9 @@ class EstrusBaselineConsumptionTest {
     private final TenantZoneResolver tenantZoneResolver = mock(TenantZoneResolver.class);
 
     private BaselineLearningProperties properties;
+    /** NIX-380 Task 2: this suite locks the LEGACY scoring path (pre-normalization semantics). */
+    private final com.smartlivestock.health.infrastructure.config.EstrusScoringProperties estrusScoringProperties =
+            legacyEstrusScoringProperties();
     private HealthApplicationService service;
 
     @BeforeEach
@@ -100,13 +103,21 @@ class EstrusBaselineConsumptionTest {
                 feverService, digestiveService, estrusAnalysisService, epidemicService,
                 messageResolver,
                 mock(ContactAnalysisService.class),
-                properties);
+                properties,
+                estrusScoringProperties);
 
         when(tenantZoneResolver.zoneForFarm(anyLong(), any())).thenReturn(ZoneOffset.UTC);
         doNothing().when(snapshotRepo).ensureSnapshotExists(anyLong(), anyLong());
     }
 
     // ── helpers ─────────────────────────────────────────────────
+
+    /** LEGACY mode: this suite predates the normalized scoring path (NIX-380 Task 2). */
+    private static com.smartlivestock.health.infrastructure.config.EstrusScoringProperties legacyEstrusScoringProperties() {
+        var props = new com.smartlivestock.health.infrastructure.config.EstrusScoringProperties();
+        props.setMode("LEGACY");
+        return props;
+    }
 
     private HealthSnapshot learnedSnapshot() {
         HealthSnapshot snapshot = new HealthSnapshot();

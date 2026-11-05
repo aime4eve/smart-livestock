@@ -90,9 +90,20 @@ class HealthApplicationServiceMarkDiseasedTest {
                 mock(EpidemicAnalysisService.class),
                 mock(MessageResolver.class),
                 contactAnalysisService,
-                new com.smartlivestock.health.infrastructure.config.BaselineLearningProperties());
+                new com.smartlivestock.health.infrastructure.config.BaselineLearningProperties(),
+                legacyEstrusScoringProperties());
         ReflectionTestUtils.setField(service, "analysisWindowHours", 72);
+        stubWorkbenchDependencies();
+    }
 
+    /** LEGACY mode: these tests lock the pre-NIX-380 scoring behavior. */
+    private static com.smartlivestock.health.infrastructure.config.EstrusScoringProperties legacyEstrusScoringProperties() {
+        var props = new com.smartlivestock.health.infrastructure.config.EstrusScoringProperties();
+        props.setMode("LEGACY");
+        return props;
+    }
+
+    private void stubWorkbenchDependencies() {
         EpidemicAnalysisService metricsService = mock(EpidemicAnalysisService.class);
         when(metricsService.calculateHerdMetrics(any())).thenReturn(new EpidemicAnalysisService.HerdMetrics(
                 BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0, 0));

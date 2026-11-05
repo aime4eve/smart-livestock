@@ -3,6 +3,7 @@ package com.smartlivestock.health.infrastructure.persistence.repository;
 import com.smartlivestock.health.domain.model.ActivityLog;
 import com.smartlivestock.shared.domain.TelemetryPage;
 import com.smartlivestock.health.domain.repository.ActivityLogRepository;
+import com.smartlivestock.health.infrastructure.persistence.entity.ActivityLogJpaEntity;
 import com.smartlivestock.health.infrastructure.persistence.jpa.ActivityLogJpaRepository;
 import com.smartlivestock.health.infrastructure.persistence.mapper.HealthMapper;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,20 @@ public class ActivityLogRepositoryImpl implements ActivityLogRepository {
                 .findByLivestockIdAndRecordedAtGreaterThanEqualAndRecordedAtLessThanOrderByRecordedAtAsc(
                         livestockId, from, to)
                 .stream().map(HealthMapper::toDomain).toList();
+    }
+
+    @Override
+    public List<ActivityLog> findWindowByLivestockId(Long livestockId, Instant from, Instant to, int limit) {
+        List<ActivityLogJpaEntity> rows = jpaRepo
+                .findByLivestockIdAndRecordedAtGreaterThanEqualAndRecordedAtLessThanOrderByRecordedAtAsc(
+                        livestockId, from, to);
+        // Clamp to the newest `limit` rows: the list is ordered ascending, so
+        // the oldest samples past the clamp are dropped (NIX-380 read clamp).
+        // Same fetch-then-limit style as findByLivestockIdOrderByRecordedAtDesc
+        // below — a window at 30-minute cadence holds ~10^2 rows, so a derived
+        // query with Pageable would add a second query shape for no real gain.
+        int fromIndex = Math.max(0, rows.size() - Math.max(limit, 0));
+        return rows.subList(fromIndex, rows.size()).stream().map(HealthMapper::toDomain).toList();
     }
 
     @Override
