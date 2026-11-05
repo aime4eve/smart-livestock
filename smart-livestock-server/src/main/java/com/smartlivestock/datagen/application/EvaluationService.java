@@ -37,9 +37,14 @@ public class EvaluationService {
         for (Long id : livestockIds) {
             for (GroundTruthLabel l : labelRepository.findByLivestockIdAndPeriodOverlap(id, from, to)) {
                 ScenarioType t = l.getType();
-                if (t.getCategory() == ScenarioType.Category.HEALTH) healthLabels.add(l);
-                else if (t == ScenarioType.FENCE_BREACH) breachLabels.add(l);
-                else if (t == ScenarioType.FENCE_APPROACH) approachLabels.add(l);
+                // Simulation-only labels (V20261105100000) carry no AI-anomaly
+                // modulation — they are not positives for this anomaly
+                // evaluation and must not leak into the health window.
+                if (!t.isSimulationOnly()) {
+                    if (t.getCategory() == ScenarioType.Category.HEALTH) healthLabels.add(l);
+                    else if (t == ScenarioType.FENCE_BREACH) breachLabels.add(l);
+                    else if (t == ScenarioType.FENCE_APPROACH) approachLabels.add(l);
+                }
             }
         }
 
