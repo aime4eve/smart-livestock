@@ -3,7 +3,7 @@
 - 立单日期：2026-11-06（用户裁决立项）
 - 来源：文献参数仿真评估管道的定量实证（`docs/reports/2026-11-05-simulation-baseline-calving-prep.md` §二）——30min 上报粒度下发情机制两侧全漏检
 - 优先级：**阻断级**——真实胶囊（30min 上报）即使基线学习完美，现有发情评分也几乎不会命中
-- 状态：已获批编码（2026-11-06 用户批准四段方案 + 推荐项四项 + 验收增强"同 seed 复现+2 新 seed"；plan 见 `docs/superpowers/plans/2026-11-06-nix380-estrus-scoring-window-normalization-plan.md`）
+- 状态：**已交付待用户集成测试**（2026-11-06 编码+验证全链完成：三 seed 双侧仿真回归全 PASS、dev 端到端冒烟含告警桥、CI 绿；执行收口全文见 plan 同名文件追记段；PR #138 待用户批准合并）
 
 ## 实证（仿真口径，可复算）
 
