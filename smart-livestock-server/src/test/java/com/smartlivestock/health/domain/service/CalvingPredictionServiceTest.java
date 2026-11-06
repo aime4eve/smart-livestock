@@ -153,6 +153,65 @@ class CalvingPredictionServiceTest {
         assertThat(SERVICE.computeTempDrop(null, NOW, defaults())).isNull();
     }
 
+    // ------------------------------------------------------------ stale-window selection (review 2d)
+
+    @Test
+    void computeTempDrop_staleWindowSelectsNewestCleanWindowWithAnchoredReferences() {
+        // Daytime evaluation: drinking exclusion left only 3 samples after last
+        // night's clean window, which ends at t0 = now-10h.
+        List<TempSample> samples = concat(
+                tempSeries(15.5, 12, "38.50"),   // clean night window [now-16h, now-10h) -> t0 = now-10h
+                // an OLDER clean block inside the lag at another level: newest wins, not oldest
+                tempSeries(23, 12, "38.80"),
+                // post-t0 scarcity: every newer candidate window holds fewer than 8 samples
+                tempSeries(6, 1, "38.50"), tempSeries(3, 1, "38.50"), tempSeries(1, 1, "38.50"),
+                // references anchored at t0: [now-40h, now-34h) and [now-64h, now-58h)
+                tempSeries(40, 12, "38.90"), tempSeries(64, 12, "38.70"),
+                // decoys where now-anchored references would read (4 samples each: they qualify)
+                tempSeries(30, 4, "38.00"), tempSeries(54, 4, "38.00"));
+
+        // t0-anchored: ref = (38.90 + 38.70) / 2 = 38.80 -> 38.80 - 38.50 = 0.30
+        // (now-anchored references would pool the 38.00 decoys -> -0.50)
+        assertThat(SERVICE.computeTempDrop(samples, NOW, defaults())).isEqualByComparingTo("0.30");
+    }
+
+    @Test
+    void computeTempDrop_referenceAnchoredToObservationWindow_circadianCancels() {
+        // 24h-periodic square wave (±0.20 around 38.80), no decline. Continuous from
+        // now-64.5h to t0 = now-10h, then only 2 samples -> the night window is read.
+        List<TempSample> samples = new ArrayList<>();
+        for (double h = 64.5; h >= 10; h -= 0.5) {
+            samples.add(new TempSample(hoursAgo(h), circadian(h, "0.20")));
+        }
+        samples.add(new TempSample(hoursAgo(4), circadian(4, "0.20")));
+        samples.add(new TempSample(hoursAgo(1), circadian(1, "0.20")));
+
+        // References 24h / 48h before the OBSERVATION window sample the same phase:
+        // ref - current = 0.00 exactly (window [now-16h, now-10h): 4 high + 8 low slots,
+        // so are both references). Anchored at now they would read 12 high slots -> 0.27.
+        assertThat(SERVICE.computeTempDrop(samples, NOW, defaults())).isEqualByComparingTo("0.00");
+    }
+
+    @Test
+    void computeTempDrop_staleLagBoundary_inclusiveAtLimitNullBeyond() {
+        CalvingPredictionProperties p = defaults();
+        // Newest clean candidate exactly at the lag limit: t0 = now-24h (lag 24 <= 24).
+        // Its window [now-30h, now-24h) holds 11 samples (the one at t0 is the open end).
+        List<TempSample> atLimit = concat(
+                tempSeries(29.5, 12, "38.50"),
+                tempSeries(54, 12, "38.80"),     // ref [t0-30h, t0-24h) = [now-54h, now-48h)
+                tempSeries(78, 12, "38.80"));    // ref [t0-54h, t0-48h) = [now-78h, now-72h)
+        assertThat(SERVICE.computeTempDrop(atLimit, NOW, p)).isEqualByComparingTo("0.30");
+
+        // Same block shifted half an hour older: newest candidate now-24.5h is beyond the
+        // lag -> no clean window close enough -> null (the no-temperature cap takes over).
+        List<TempSample> beyondLimit = concat(
+                tempSeries(30, 12, "38.50"),
+                tempSeries(54.5, 12, "38.80"),
+                tempSeries(78.5, 12, "38.80"));
+        assertThat(SERVICE.computeTempDrop(beyondLimit, NOW, p)).isNull();
+    }
+
     // ------------------------------------------------------------ activity channel
 
     @Test
@@ -535,6 +594,18 @@ class CalvingPredictionServiceTest {
     }
 
     @Test
+    void detectOnset_circadianOnly_noFalseOnsetWithPerPointReference() {
+        // Pure 24h square wave (±0.10 around 38.80), no decline, continuous 60h grid.
+        // A now-anchored reference pools two high-phase windows (38.90) and reads the
+        // night levels as drops: the oldest-first scan fires a false onset at now-43h,
+        // the first night stretch (window 3 high + 9 low slots -> drop 1.5 × 0.10 = 0.15,
+        // inclusive; observed in the red run before the fix). Anchored per point, every
+        // level is compared with its own phase -> 0.00 at full references; truncated
+        // references at the series start leak at most (0.10 + 0.10/3) / 2 = 0.07.
+        assertThat(SERVICE.detectOnset(grid(j -> circadian(j * 0.5, "0.10")), NOW, defaults())).isEmpty();
+    }
+
+    @Test
     void detectOnset_referenceUnavailableOrNoInput_returnsEmpty() {
         CalvingPredictionProperties p = defaults();
         // The decline of the first onset case cut to the last 20h: no sample in either
@@ -702,6 +773,13 @@ class CalvingPredictionServiceTest {
     }
 
     /** Flat BASE, then a linear decline of 0.004 °C per 30-min step from now - 24h (j = 48). */
+    /** 24h-periodic square wave phase-locked to NOW: the 48 half-hour slots split into
+     *  24 high ({@code BASE + amplitude}) and 24 low ({@code BASE - amplitude}). */
+    private static BigDecimal circadian(double hoursAgo, String amplitude) {
+        long slot = Math.round(hoursAgo * 2) % 48;
+        return slot < 24 ? BASE.add(bd(amplitude)) : BASE.subtract(bd(amplitude));
+    }
+
     private static List<TempSample> declineGrid() {
         return grid(j -> j >= 48 ? BASE : BASE.subtract(bd("0.004").multiply(BigDecimal.valueOf(48 - j))));
     }

@@ -42,6 +42,10 @@ class CalvingPredictionPropertiesTest {
         assertThat(p.getSingleChannelCapNoTemp()).isEqualTo(60);
         assertThat(p.getOnsetWindowStartHours()).isEqualTo(2L);
         assertThat(p.getOnsetWindowEndHours()).isEqualTo(30L);
+        // review 2d: stale-window lag + orchestration tunables shared with Task 3/4
+        assertThat(p.getStaleWindowMaxLagHours()).isEqualTo(24);
+        assertThat(p.getDrinkingExclusionBufferMinutes()).isEqualTo(120);
+        assertThat(p.getAlertPersistencePoints()).isEqualTo(2);
     }
 
     @Test
@@ -66,6 +70,38 @@ class CalvingPredictionPropertiesTest {
         assertThatThrownBy(p::validate)
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("weights");
+    }
+
+    @Test
+    void validate_rejectsBadStaleLagBufferAndPersistence() {
+        CalvingPredictionProperties lagZero = new CalvingPredictionProperties();
+        lagZero.setStaleWindowMaxLagHours(0);
+        assertThatThrownBy(lagZero::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("stale-window-max-lag-hours");
+        CalvingPredictionProperties lagTooLong = new CalvingPredictionProperties();
+        lagTooLong.setStaleWindowMaxLagHours(49);
+        assertThatThrownBy(lagTooLong::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("stale-window-max-lag-hours");
+        CalvingPredictionProperties lagAtMax = new CalvingPredictionProperties();
+        lagAtMax.setStaleWindowMaxLagHours(48);
+        assertThatCode(lagAtMax::validate).doesNotThrowAnyException();
+
+        CalvingPredictionProperties negativeBuffer = new CalvingPredictionProperties();
+        negativeBuffer.setDrinkingExclusionBufferMinutes(-1);
+        assertThatThrownBy(negativeBuffer::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("drinking-exclusion-buffer-minutes");
+        CalvingPredictionProperties zeroBuffer = new CalvingPredictionProperties();
+        zeroBuffer.setDrinkingExclusionBufferMinutes(0);
+        assertThatCode(zeroBuffer::validate).doesNotThrowAnyException();
+
+        CalvingPredictionProperties zeroPersistence = new CalvingPredictionProperties();
+        zeroPersistence.setAlertPersistencePoints(0);
+        assertThatThrownBy(zeroPersistence::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("alert-persistence-points");
     }
 
     @Test

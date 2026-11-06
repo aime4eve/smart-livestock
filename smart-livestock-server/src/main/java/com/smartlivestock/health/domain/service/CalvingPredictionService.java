@@ -27,11 +27,15 @@ import java.util.TreeSet;
  *       sample stamped exactly at {@code now} is never read, so samples at or
  *       after {@code now} never influence a result (no look-ahead).</li>
  *   <li>Same-phase reference level: for each configured offset (24h, 48h) the
- *       window of the current window's width ending {@code offset} hours
- *       before {@code now} is averaged; windows below the sample guard are
- *       skipped and the qualified window means are averaged with EQUAL weight
- *       (each offset counts once whatever its sample count). This differs on
- *       purpose from NIX-380, which pools the raw samples.</li>
+ *       window of the observation window's width ending {@code offset} hours
+ *       before the ANCHOR is averaged — the anchor is the observation window
+ *       end (t0 for the temperature drop, each evaluation point for the onset
+ *       scan, {@code now} for the activity ratio), never a fixed {@code now}
+ *       against a different observation window, so the circadian envelope
+ *       cancels. Windows below the sample guard are skipped and the qualified
+ *       window means are averaged with EQUAL weight (each offset counts once
+ *       whatever its sample count). This differs on purpose from NIX-380,
+ *       which pools the raw samples.</li>
  *   <li>Samples with a null timestamp or value (e.g. a null activityIndex)
  *       are skipped; input order is not trusted.</li>
  *   <li>Drinking valleys are not filtered here: callers pass temperature
@@ -146,28 +150,66 @@ public class CalvingPredictionService {
 
     /**
      * Net temperature drop {@code refLevel − currentLevel} in °C (2 decimals
-     * HALF_UP). {@code currentLevel} is the mean of
-     * {@code [now − currentTempWindowHours, now)}; {@code refLevel} is the
-     * equal-weight mean of the same-phase reference window means. Positive =
-     * cooler than the animal's own same-phase reference (prepartum signal);
-     * negative = warmer.
+     * HALF_UP), read from the NEWEST CLEAN window (stale-window selection,
+     * NIX-381 review 2d). Drinking exclusion empties the trailing 6h window for
+     * most of the day while the prepartum decline lasts ≥ 24h, so a fixed
+     * {@code [now − 6h, now)} read would leave the channel usable only a few
+     * hours per night.
+     *
+     * <ul>
+     *   <li>Observation window: {@code [t0 − currentTempWindowHours, t0)} where
+     *       t0 is the LARGEST candidate instant ≥ {@code now −
+     *       staleWindowMaxLagHours} whose window holds at least
+     *       minCurrentTempSamples samples; candidates are {@code now} itself
+     *       and every sample instant ≤ now. A fresh series therefore reads
+     *       exactly {@code [now − 6h, now)} (t0 = now), as before.</li>
+     *   <li>Reference: the same-phase level ANCHORED AT t0, i.e. the windows
+     *       {@code [t0 − offset − 6h, t0 − offset)} — the circadian envelope
+     *       only cancels when the reference sits exact 24h multiples before the
+     *       observation window, not before {@code now}.</li>
+     * </ul>
+     *
+     * <p>Positive = cooler than the animal's own same-phase reference
+     * (prepartum signal); negative = warmer.</p>
      *
      * <p>Input: the caller's series with drinking-event windows already
      * excluded ({@link #excludeWindows}); the window means here do not reject
      * drinking valleys.</p>
      *
-     * @return the drop, or null (component unavailable) when the current
-     *         window holds fewer than minCurrentTempSamples samples or no
-     *         reference window holds minRefTempSamples samples
+     * @return the drop, or null (component unavailable — the no-temperature
+     *         score cap takes over) when no clean window exists within the
+     *         stale lag or no reference window holds minRefTempSamples samples
      */
     public BigDecimal computeTempDrop(List<TempSample> tempsAsc, Instant now, CalvingPredictionProperties p) {
         List<Point> points = tempPoints(tempsAsc);
         Duration width = Duration.ofHours(p.getCurrentTempWindowHours());
-        BigDecimal currentLevel = windowMean(points, now.minus(width), now, p.getMinCurrentTempSamples());
-        if (currentLevel == null) {
+
+        TreeSet<Instant> candidates = new TreeSet<>();
+        for (Point point : points) {
+            if (!point.at().isAfter(now)) {
+                candidates.add(point.at());
+            }
+        }
+        candidates.add(now);
+        Instant lagFloor = now.minus(Duration.ofHours(p.getStaleWindowMaxLagHours()));
+
+        Instant t0 = null;
+        BigDecimal currentLevel = null;
+        for (Instant t : candidates.descendingSet()) {
+            if (t.isBefore(lagFloor)) {
+                break; // older than the stale lag: no clean window close enough
+            }
+            BigDecimal mean = windowMean(points, t.minus(width), t, p.getMinCurrentTempSamples());
+            if (mean != null) {
+                t0 = t;
+                currentLevel = mean;
+                break;
+            }
+        }
+        if (t0 == null) {
             return null;
         }
-        BigDecimal refLevel = samePhaseReferenceLevel(points, now, width,
+        BigDecimal refLevel = samePhaseReferenceLevel(points, t0, width,
                 p.getRefWindowOffsetHours(), p.getMinRefTempSamples());
         if (refLevel == null) {
             return null;
@@ -419,8 +461,13 @@ public class CalvingPredictionService {
      *       sample at {@code t} is not part of its own window. A point whose
      *       window holds fewer than minCurrentTempSamples samples is skipped:
      *       it neither counts toward nor breaks a run.</li>
-     *   <li>Reference: the same-phase level of {@link #computeTempDrop},
-     *       anchored on {@code now} and fixed for the whole scan.</li>
+     *   <li>Reference: per evaluation point, the same-phase level anchored on
+     *       that point — windows {@code [t − offset − 6h, t − offset)} (NIX-381
+     *       review 2d; the anchoring helper is shared with
+     *       {@link #computeTempDrop}). One now-anchored reference would compare
+     *       night levels against day-phase windows across a 36h+ scan and
+     *       fabricate crossings. A point whose reference windows are all
+     *       under-sampled is skipped (the run carries over).</li>
      *   <li>Onset: the instant {@code t} of the first point of the first run of
      *       onsetConsecutiveSamples consecutive points that each satisfy
      *       {@code refLevel − level(t) ≥ onsetDropCelsius} (inclusive); the
@@ -436,8 +483,8 @@ public class CalvingPredictionService {
      * excluded ({@link #excludeWindows}); a trailing mean does not reject a
      * drinking valley (one −3 °C sample lowers a 12-sample level by 0.25 °C).</p>
      *
-     * @return the onset, or empty when the reference level is unavailable or
-     *         no qualifying run exists
+     * @return the onset, or empty when no qualifying run exists (including when
+     *         no evaluation point has a qualified reference)
      */
     public Optional<Instant> detectOnset(List<TempSample> tempsAsc, Instant now, CalvingPredictionProperties p) {
         List<Point> points = new ArrayList<>();
@@ -447,11 +494,6 @@ public class CalvingPredictionService {
             }
         }
         Duration width = Duration.ofHours(p.getCurrentTempWindowHours());
-        BigDecimal refLevel = samePhaseReferenceLevel(points, now, width,
-                p.getRefWindowOffsetHours(), p.getMinRefTempSamples());
-        if (refLevel == null) {
-            return Optional.empty();
-        }
 
         TreeSet<Instant> evaluationPoints = new TreeSet<>();
         for (Point point : points) {
@@ -464,6 +506,12 @@ public class CalvingPredictionService {
             BigDecimal level = windowMean(points, t.minus(width), t, p.getMinCurrentTempSamples());
             if (level == null) {
                 // Under-sampled point: skipped, the run carries over.
+                continue;
+            }
+            BigDecimal refLevel = samePhaseReferenceLevel(points, t, width,
+                    p.getRefWindowOffsetHours(), p.getMinRefTempSamples());
+            if (refLevel == null) {
+                // Reference unavailable at this point: skipped, the run carries over.
                 continue;
             }
             if (refLevel.subtract(level).compareTo(p.getOnsetDropCelsius()) >= 0) {

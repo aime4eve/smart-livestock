@@ -43,12 +43,18 @@ public class CalvingPredictionProperties {
 
     /** Current temperature window length in hours: {@code [now - h, now)}. */
     private long currentTempWindowHours = 6;
-    /** Same-phase reference window offsets in hours; each must be a positive multiple of 24. */
+    /** Same-phase reference window offsets in hours, measured back from the temperature
+     *  observation window end (t0), so the circadian envelope cancels; each must be a
+     *  positive multiple of 24. */
     private List<Long> refWindowOffsetHours = List.of(24L, 48L);
     /** Samples required inside the current temperature window (8 of 12 at 30-minute granularity). */
     private int minCurrentTempSamples = 8;
     /** Samples required per reference temperature window for it to count; also guards each rebound block. */
     private int minRefTempSamples = 4;
+    /** How far back (hours, max 48) the stale-window selection may search for the newest
+     *  clean temperature window: the prepartum decline lasts >= 24h, so the last clean
+     *  (typically night) window stays readable through a drinking-excluded day. */
+    private int staleWindowMaxLagHours = 24;
 
     /** Temperature drop (°C) rung for the high score (Burfeind 2011 24h drop). */
     private BigDecimal tempDropHighCelsius = new BigDecimal("0.30");
@@ -155,6 +161,17 @@ public class CalvingPredictionProperties {
     private long onsetWindowStartHours = 2;
     /** Onset-path window end, in hours after the detected onset (see {@link #onsetWindowStartHours}). */
     private long onsetWindowEndHours = 30;
+
+    // ----------------------- orchestration tunables (Task 3/4 consumers, defined here)
+
+    /** Drinking exclusion window = [event_start, event_end + this buffer]. The kernel
+     *  never fetches events: the caller applies the buffer — this field is the shared
+     *  production/replay definition of the exclusion span. */
+    private int drinkingExclusionBufferMinutes = 120;
+    /** Consecutive evaluations scoring >= alert-threshold before an alert is raised
+     *  (review 2c: the first crossing only lands the score). Release below
+     *  release-threshold stays immediate. */
+    private int alertPersistencePoints = 2;
     /** Activity-path window start, in hours after now. */
     private long activityWindowStartHours = 2;
     /** Activity-path window end, in hours after now. */
@@ -243,6 +260,17 @@ public class CalvingPredictionProperties {
         if (singleChannelCapNoTemp >= alertThreshold) {
             throw invalid("single-channel-cap-no-temp", "must be below alert-threshold " + alertThreshold,
                     singleChannelCapNoTemp);
+        }
+
+        // Orchestration tunables shared with Task 3/4 (exclusion span, alert persistence).
+        if (staleWindowMaxLagHours <= 0 || staleWindowMaxLagHours > 48) {
+            throw invalid("stale-window-max-lag-hours", "must be within 1-48", staleWindowMaxLagHours);
+        }
+        if (drinkingExclusionBufferMinutes < 0) {
+            throw invalid("drinking-exclusion-buffer-minutes", "must be >= 0", drinkingExclusionBufferMinutes);
+        }
+        if (alertPersistencePoints < 1) {
+            throw invalid("alert-persistence-points", "must be >= 1", alertPersistencePoints);
         }
 
         // Onset and window estimate.
