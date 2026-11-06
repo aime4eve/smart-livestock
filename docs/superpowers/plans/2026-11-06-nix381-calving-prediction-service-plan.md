@@ -170,3 +170,12 @@ Task 2c 落地后（单通道封顶 60/onset 窗 [+2h,+30h]/活动不排除，56
 2. **新增三个共享配置**（Task 3/4 消费）：`drinkingExclusionBufferMinutes=120`（排除窗=[event_start, event_end+buffer]，可调到谷核窄窗做标定迭代）、`alertPersistencePoints=2`、`staleWindowMaxLagHours=24`。
 3. **先验通道对检出率的地位**（Task 4 评估设计依据）：仿真生成器不产 BREEDING 事件 → 无先验场景下检出需体温≥中档∧活动≥中档，提前量由活动升高窗（末 8h）主导 ~5–8h；有先验场景（真实部署有配种记录）体温中档+先验即 79 分，提前量可至 ~12h。**Task 4 必须双场景评估**：A=无配种记录（保守，验收判据作用于此）、B=有配种记录（以真值产犊倒推 283d 合成配种日期，如实标注为"记录可用场景"非预测能力）；报告分列。
 4. incidental 确认：先验-only（体温活动双缺）也封 60 语义正确（无生理证据最多提示级）。
+
+## Task 3 交付与评审（2026-11-06，通过）
+
+交付 f17b6721（23 文件：编排服务 398 行+调度器+桥扩展+9 触点+测试 1097 行 63 例），评审通过（独立复跑目标测试集 BUILD SUCCESSFUL）。范围微调（获批 plan 内的合理演化，记录如下）：
+
+1. **后端 i18n 提前至 Task 3**（原 Task 6）：桥建单即需 messageKey，避免中间态断链；Task 6 收窄为纯 Flutter。
+2. 采纳的实证偏离：先验取数改 `PhysiologyEventJpaRepository.findFirst...EventTypeIn[BREEDING,CALVING]...Source=MANUAL`（port.activeWindows 只产 ILLNESS 窗；BREEDING 外加 CALVING 里程碑/未来/超 400d 三守卫）；告警 source 从样本列判定（任一样本 DATAGEN 即整评 DATAGEN，防合成分冒充规则单）；读窗长度随配置动态计算（体温 78h/活动 56h）；**sub-persist 无单重置陈旧 prev 列**（防旧 prev≥70 与单次穿越拼假持续——子智能体超出字面 spec 的正确防御）。
+3. 子智能体自主加分点（采纳）：地图红点过滤集 +CALVING_WARNING（维持"地图与告警中心一致"不变量，有专测）；`prior_enabled` 列语义=本次评分有可用配种记录（支撑 Task 4 双场景）。
+4. 遗留：`usesLearnedBaseline` 统一抽取（后续单）；`buildHealthAlertSummary` 固定 4 键未加 CALVING（Task 6 前端时裁决）；告警 source 只认 MANUAL 配种事件（ALERT_CONFIRM 来源待后续）。
