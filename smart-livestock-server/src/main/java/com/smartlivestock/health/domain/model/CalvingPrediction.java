@@ -7,7 +7,7 @@ import java.time.Instant;
  * Calving risk evaluation history row (NIX-381). One row per evaluation that
  * was worth persisting (score >= 50 or an alert-threshold crossing); steady
  * state writes nothing. Field-for-field mirror of the calving_predictions
- * table (V20261106100000).
+ * table (V20261106130000).
  */
 public class CalvingPrediction {
 

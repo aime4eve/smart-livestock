@@ -15,6 +15,6 @@ public enum AlertType {
     LINK_QUALITY,
     OUTLIER,
     RETURN_HOME,
-    // NIX-381: calving risk alert (chk_alerts_type rebuilt in V20261106100000)
+    // NIX-381: calving risk alert (chk_alerts_type rebuilt in V20261106130000)
     CALVING_WARNING
 }

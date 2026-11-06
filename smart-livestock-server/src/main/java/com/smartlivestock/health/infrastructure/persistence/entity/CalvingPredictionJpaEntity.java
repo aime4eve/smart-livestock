@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
- * JPA mirror of the calving_predictions table (V20261106100000). Table shape
+ * JPA mirror of the calving_predictions table (V20261106130000). Table shape
  * is a precise structural twin of estrus_scores (V20 + V20261104100000 audit
  * columns): farm-scoped score rows, no FK on livestock_id, CHECK-bounded
  * score, nullable feature channels, DESC time indexes.

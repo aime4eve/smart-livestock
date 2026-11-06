@@ -90,7 +90,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CalvingPredictionApplicationService {
 
-    /** Feature gate seeded by V20261106100000 (premium/enterprise open). */
+    /** Feature gate seeded by V20261106130000 (premium/enterprise open). */
     static final String FEATURE_KEY = "calving_warning";
     static final String ALERT_TYPE = "CALVING_WARNING";
     /** Fixed default baseline stamped when no learned baseline is consumed. */

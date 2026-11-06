@@ -93,7 +93,7 @@ public class HealthSnapshotJpaEntity {
     @Column(name = "baseline_algorithm_version", length = 16)
     private String baselineAlgorithmVersion;
 
-    // Calving risk score (V20261106100000). NULL = never assessed. Written
+    // Calving risk score (V20261106130000). NULL = never assessed. Written
     // only via the targeted updateCalvingRiskScore UPDATE, never whole-entity
     // (concurrent writers on this row would be clobbered).
     @Column(name = "calving_risk_score")

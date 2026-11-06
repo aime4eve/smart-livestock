@@ -48,7 +48,7 @@ CalvingPredictionScheduler（fixedDelay，默认 1h，对齐 IndividualBaselineL
 - 配种先验可用 → 与 [283d−3d, 283d+7d] 取交集；空交集时保留体征窗（先验与体征矛盾，报告告警正文不带窗）
 - 输出 `expected_window_start/end` + 中点 `expected_calving_at`（存 calving_predictions，告警正文带格式化窗）
 
-### 数据与 DDL（单迁移 V20261106100000__calving_prediction.sql 四节）
+### 数据与 DDL（单迁移 V20261106130000__calving_prediction.sql 四节；原编号 100000 已于 Task 7 重编号，见末节）
 
 1. `ALTER TABLE health_snapshots ADD COLUMN calving_risk_score INT`（NULL=从未评估）
 2. `CREATE TABLE calving_predictions`：`id, livestock_id NOT NULL, farm_id NOT NULL, risk_score INT NOT NULL, temp_drop_celsius DECIMAL(4,2), activity_ratio DECIMAL(5,2), prior_enabled BOOLEAN, expected_window_start TIMESTAMP NULL, expected_window_end TIMESTAMP NULL, predicted_at TIMESTAMP NOT NULL` + 审计四列对齐 estrus_scores（`baseline_used DECIMAL(5,2), baseline_source VARCHAR(12), baseline_computed_at, baseline_algorithm_version VARCHAR(16)`）+ 索引 `(livestock_id, predicted_at DESC)`、`(farm_id, predicted_at DESC)`。建表风格精确对齐 V20 estrus_scores（Task 0 核对原文）
@@ -191,3 +191,11 @@ Task 2c 落地后（单通道封顶 60/onset 窗 [+2h,+30h]/活动不排除，56
 ## Task 6 交付与评审（2026-11-06，通过）
 
 交付 9238b59d（Flutter 18 文件：26 落点按"grep ESTRUS 全量枚举→逐点镜像"方法论落位，arb 中英各 +3 key，`Icons.pregnant_woman`）+ 6b 修正 5afc6bc5。评审通过。关键情报：①**实时地图真缺陷已修**（信号同步路径下发 status=WATCH+activeAlertTypes=[CALVING_WARNING]，修前落默认分支显红色、详情副标签显裸字符串）；②admin 门控页按 category 分组无兜底——不加 FeatureMeta 即不可见；③Task 0"Flutter 无 type→group 映射"结论修正：`ranch_page._clientGroupCount` 有兜底映射（已对齐 GROUP_HEALTH）；④AlertWorkbench 正文=后端 messageKey 本地化，无需分支；⑤多处镜像点是未挂载死代码，**Task 7 真实可走查面=地图 marker 色/牲畜详情标签图标/admin 门控卡/待办任务**。6b 修正（评审抓出）：待办任务四 helper 不认临产——临产牛落兜底"编号 异常"空副标题空路由 → 补临产分支（与 estrus 并发时 estrus 优先锁测）+ DashboardController 摘要副本一致性；远程通道补跑 RanchOverviewIntegrationTest 11/0、DashboardMeJourneyTest 13/0。**接受遗留**：订阅目录有意不加分娩预警（对外分级红线，真实数据验证后再进商业目录）；三个既有门控 key 缺 FeatureMeta 另开单；临产与消化共用橙色 v1 接受；四 helper 硬编码中文为既有 i18n 债（未扩大）。
+
+## Task 7 收口记录（2026-11-06）
+
+### 7a 全量预检
+`./scripts/precheck-ci.sh` 真实退出码 0（读日志 PRECHECK_EXIT，非管道尾码）：后端编译+全量单测 ✅、Flutter analyze（6 info 均在未触碰文件，CI 同参非致命）✅、Flutter 全量 692 例 ✅。
+
+### 7b 迁移重编号（部署前对账抓到的阻断级问题）
+分支覆盖部署检查单对账：dev 库已应用 PR #139 的 `V20261106120000`（telemetry canonical view），本单原编号 `V20261106100000` 更早 → Flyway 默认 outOfOrder=false，部署即 validate 失败（"resolved migration not applied"）→ 启动失败重启循环。**影响面不止 dev**：凡先部署过 #139 的环境，两者合入 master 后都会撞。test 库停在 20261026100000（两者均未应用，按序无碍）。**裁决=重编号为 `V20261106130000`**（未在任何环境应用过，改名零 checksum 风险；拒绝全局开 outOfOrder）；5 处 Java 注释同步，plan 历史记录保留原编号如实留痕。Journey 全新库复验见下。
