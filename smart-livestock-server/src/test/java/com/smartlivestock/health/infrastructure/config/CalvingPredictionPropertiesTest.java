@@ -1,0 +1,129 @@
+package com.smartlivestock.health.infrastructure.config;
+
+import org.junit.jupiter.api.Test;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.within;
+
+/**
+ * Fail-fast rules of {@link CalvingPredictionProperties#validate()} (NIX-381
+ * Task 2). The defaults must always pass: validate() runs at bean init, so a
+ * rejected default would stop every application context from starting.
+ * Pure construction, no Spring context.
+ */
+class CalvingPredictionPropertiesTest {
+
+    @Test
+    void defaults_matchPlanDraftAndPassValidation() {
+        CalvingPredictionProperties p = new CalvingPredictionProperties();
+        assertThatCode(p::validate).doesNotThrowAnyException();
+
+        assertThat(p.isEnabled()).isTrue();
+        assertThat(p.getPollMs()).isEqualTo(3_600_000L);
+        assertThat(p.getActiveWindowMinutes()).isEqualTo(1440);
+        assertThat(p.getMaxPerPoll()).isEqualTo(200);
+        assertThat(p.getRefWindowOffsetHours()).containsExactly(24L, 48L);
+        assertThat(p.getRefActivityWindowOffsetHours()).containsExactly(24L, 48L);
+        assertThat(p.getTempDropHighCelsius()).isEqualByComparingTo("0.30");
+        assertThat(p.getActivityRatioLow()).isEqualByComparingTo("1.15");
+        assertThat(p.getWeightTempDrop() + p.getWeightActivity() + p.getWeightPrior())
+                .isCloseTo(1.0, within(1e-9));
+        // plan open question 5: the rebound component ships enabled
+        assertThat(p.isReboundDetectionEnabled()).isTrue();
+        assertThat(p.getPersistThreshold()).isEqualTo(50);
+        assertThat(p.getAlertThreshold()).isEqualTo(70);
+        assertThat(p.getReleaseThreshold()).isEqualTo(55);
+    }
+
+    @Test
+    void validate_rejectsNonMonotonicLadders() {
+        CalvingPredictionProperties temp = new CalvingPredictionProperties();
+        temp.setTempDropMidCelsius(new BigDecimal("0.30"));   // mid == high
+        assertThatThrownBy(temp::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("temp-drop ladder");
+
+        CalvingPredictionProperties activity = new CalvingPredictionProperties();
+        activity.setActivityRatioLow(BigDecimal.ONE);          // "no change" must never score
+        assertThatThrownBy(activity::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("activity-ratio ladder");
+    }
+
+    @Test
+    void validate_rejectsNegativeWeight() {
+        CalvingPredictionProperties p = new CalvingPredictionProperties();
+        p.setWeightPrior(-0.1);
+        assertThatThrownBy(p::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("weights");
+    }
+
+    @Test
+    void validate_rejectsReleaseThresholdNotBelowAlertThreshold() {
+        CalvingPredictionProperties p = new CalvingPredictionProperties();
+        p.setReleaseThreshold(70);
+        assertThatThrownBy(p::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("release-threshold");
+    }
+
+    @Test
+    void validate_rejectsInvertedOnsetAndActivityWindows() {
+        CalvingPredictionProperties onset = new CalvingPredictionProperties();
+        onset.setOnsetWindowStartHours(48);                    // start == end
+        assertThatThrownBy(onset::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("onset window");
+
+        CalvingPredictionProperties activity = new CalvingPredictionProperties();
+        activity.setActivityWindowStartHours(20);              // start > end 16
+        assertThatThrownBy(activity::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("activity window");
+    }
+
+    @Test
+    void validate_rejectsReferenceOffsetsBreakingSamePhase() {
+        CalvingPredictionProperties offPhase = new CalvingPredictionProperties();
+        offPhase.setRefWindowOffsetHours(List.of(24L, 36L));
+        assertThatThrownBy(offPhase::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("ref-window-offset-hours");
+
+        CalvingPredictionProperties empty = new CalvingPredictionProperties();
+        empty.setRefActivityWindowOffsetHours(List.of());
+        assertThatThrownBy(empty::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("ref-activity-window-offset-hours");
+    }
+
+    @Test
+    void validate_rejectsReboundLookbackWithoutThreeWholeBlocks() {
+        CalvingPredictionProperties twoBlocks = new CalvingPredictionProperties();
+        twoBlocks.setReboundLookbackHours(6);
+        assertThatThrownBy(twoBlocks::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("rebound-lookback-hours");
+
+        CalvingPredictionProperties ragged = new CalvingPredictionProperties();
+        ragged.setReboundLookbackHours(10);
+        assertThatThrownBy(ragged::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("rebound-lookback-hours");
+    }
+
+    @Test
+    void validate_rejectsPriorBandsOutOfOrder() {
+        CalvingPredictionProperties p = new CalvingPredictionProperties();
+        p.setPriorSuppressBelowDays(275);                      // above prior-normal-min-days 270
+        assertThatThrownBy(p::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("prior bands");
+    }
+}
