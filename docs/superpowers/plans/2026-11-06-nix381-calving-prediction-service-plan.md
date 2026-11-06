@@ -187,3 +187,7 @@ Task 2c 落地后（单通道封顶 60/onset 窗 [+2h,+30h]/活动不排除，56
 ## Task 5 交付与评审（2026-11-06，通过）
 
 交付 3749d108（步骤 0 死参数清理 + `CalvingPredictionJourneyTest` 6 场景 592 行）。评审通过：**主智能体独立重跑远程通道 `./scripts/remote-integration-test.sh --with-journey --target CalvingPredictionJourneyTest` → 🟢 全绿（BUILD SUCCESSFUL 36s，tests=6 failures=0）**；`SimulationEvaluationJourneyTest` 回归绿。验收项 1（全新库 Flyway 含 V20261106100000 四节）与验收项 3（真库 Journey）闭环。Journey 设计要点：全部走生产调度入口；建单拆 poll1 落分/poll2 crossed→raise（persistence=2 生产语义成为被断言行为）；oracle 87 分手算锁（渐降窗级 0.27→temp70 + 活动×1.5→100 + 先验 281d→100）；source 透传 RULE/DATAGEN 成对断言；gate 锁定零写入（显式租户解析即被测点）。实证修正：36h 字面渐降在同相位窗级只余 0.16（参考窗自身在渐降段内），fixture 改 24h 渐降（Burfeind 口径）——该发现提示 Task 7 回归需盯仿真 36h 渐降的窗级实测降幅与 tempScore 分档落位。
+
+## Task 6 交付与评审（2026-11-06，通过）
+
+交付 9238b59d（Flutter 18 文件：26 落点按"grep ESTRUS 全量枚举→逐点镜像"方法论落位，arb 中英各 +3 key，`Icons.pregnant_woman`）+ 6b 修正 5afc6bc5。评审通过。关键情报：①**实时地图真缺陷已修**（信号同步路径下发 status=WATCH+activeAlertTypes=[CALVING_WARNING]，修前落默认分支显红色、详情副标签显裸字符串）；②admin 门控页按 category 分组无兜底——不加 FeatureMeta 即不可见；③Task 0"Flutter 无 type→group 映射"结论修正：`ranch_page._clientGroupCount` 有兜底映射（已对齐 GROUP_HEALTH）；④AlertWorkbench 正文=后端 messageKey 本地化，无需分支；⑤多处镜像点是未挂载死代码，**Task 7 真实可走查面=地图 marker 色/牲畜详情标签图标/admin 门控卡/待办任务**。6b 修正（评审抓出）：待办任务四 helper 不认临产——临产牛落兜底"编号 异常"空副标题空路由 → 补临产分支（与 estrus 并发时 estrus 优先锁测）+ DashboardController 摘要副本一致性；远程通道补跑 RanchOverviewIntegrationTest 11/0、DashboardMeJourneyTest 13/0。**接受遗留**：订阅目录有意不加分娩预警（对外分级红线，真实数据验证后再进商业目录）；三个既有门控 key 缺 FeatureMeta 另开单；临产与消化共用橙色 v1 接受；四 helper 硬编码中文为既有 i18n 债（未扩大）。
