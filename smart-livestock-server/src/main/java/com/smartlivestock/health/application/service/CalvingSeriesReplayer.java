@@ -105,9 +105,11 @@ public class CalvingSeriesReplayer {
 
     /**
      * Replays the sequence through the production kernel and state machine.
-     * Inputs may arrive in any order: they are filtered (null timestamps or
-     * values dropped) and sorted ascending first, which makes the grid and
-     * cursor walk order-independent and idempotent for already-sorted input.
+     * Inputs may arrive in any order — the temperature/activity series AND
+     * the drinking windows: all three are filtered (null timestamps, values
+     * or window starts dropped) and sorted ascending first, which makes the
+     * grid and cursor walk order-independent and idempotent for
+     * already-sorted input.
      */
     public CalvingReplayResult replay(Long livestockId,
                                       List<TempSample> temps, List<ActivitySample> acts,
@@ -128,6 +130,12 @@ public class CalvingSeriesReplayer {
 
         // Buffered exclusion windows, production rule verbatim (orchestration
         // drinkingExclusionWindows): [start, max(start, trough) + buffer).
+        // Sorted by start — the winCursor visibility prefix below depends on
+        // ascending order, and the raw windows arrive straight from a
+        // repository read with no ORDER BY (physical row order is NOT time
+        // order), so an unsorted list silently hides early windows behind a
+        // stalled cursor. The buffer never moves the start, so sorting the
+        // buffered windows sorts the raw ones.
         List<ExclusionWindow> windows = drinkingWindows == null ? List.of() : drinkingWindows.stream()
                 .filter(w -> w != null && w.start() != null)
                 .map(w -> {
@@ -135,6 +143,7 @@ public class CalvingSeriesReplayer {
                     Instant end = trough == null || trough.isBefore(w.start()) ? w.start() : trough;
                     return new ExclusionWindow(w.start(), end.plus(buffer));
                 })
+                .sorted(Comparator.comparing(ExclusionWindow::start))
                 .toList();
 
         // Grid: fixed poll cadence anchored at now (the evaluation baseline),

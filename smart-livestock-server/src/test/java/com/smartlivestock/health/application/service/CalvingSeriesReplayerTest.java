@@ -300,6 +300,61 @@ class CalvingSeriesReplayerTest {
     }
 
     // ------------------------------------------------------------------
+    // Drinking-window input order (cursor-prefix visibility)
+    // ------------------------------------------------------------------
+
+    /**
+     * The drinking windows reach the replayer straight from a repository read
+     * with no ORDER BY — physical row order is NOT time order (dev: 59 of
+     * 136 events on one animal). The cursor-prefix visibility over the
+     * windows therefore requires the replayer to sort them by start itself,
+     * exactly like the temperature/activity series. This fixture locks that:
+     * a deep 36.00 °C valley (T−10h..T−8h, event [−10h,−9h) → buffered
+     * [−10h,−7h)) plus a later-event window ([−6h,−5h) → [−6h,−3h)) replayed
+     * with the windows in DESCENDING-start order must be bit-identical to the
+     * ascending order — the cursor stalls on the later −6h start and hides
+     * the earlier −10h valley at the grid points where it is already visible,
+     * which under the bug fabricates an episode (raise T−4h → release T−6h)
+     * and bends the availability count. The 36.00 depth deliberately stays
+     * clear of the physiological-gate edge (35.0) so only the exclusion can
+     * remove the samples; the no-window control replay proves the fixture is
+     * actually sensitive to a leaked valley (the equality assertion is not
+     * trivially true).
+     */
+    @Test
+    void drinkingWindowOrder_shuffledInputReplaysIdentical() {
+        List<TempSample> temps = new ArrayList<>();
+        for (int k = 0; k <= 71; k++) { // T−36h .. T−0.5h
+            double hoursAgo = 36 - 0.5 * k;
+            boolean valley = hoursAgo <= 10 && hoursAgo >= 8; // T−10h .. T−8h
+            temps.add(temp(hoursAgo, valley ? "36.00" : "38.80"));
+        }
+        ExclusionWindow valleyEvent = new ExclusionWindow(
+                NOW.minus(Duration.ofHours(10)), NOW.minus(Duration.ofHours(9)));
+        ExclusionWindow lateEvent = new ExclusionWindow(
+                NOW.minus(Duration.ofHours(6)), NOW.minus(Duration.ofHours(5)));
+
+        CalvingReplayResult ascending = replayer.replay(null, temps, List.of(),
+                List.of(valleyEvent, lateEvent), null, NOW);
+
+        // Shuffled (descending-start) input must replay bit-identically.
+        CalvingReplayResult shuffled = replayer.replay(null, temps, List.of(),
+                List.of(lateEvent, valleyEvent), null, NOW);
+        assertThat(shuffled.points()).isEqualTo(ascending.points());
+        assertThat(shuffled.episodes()).isEqualTo(ascending.episodes());
+        assertThat(shuffled.tempChannelAvailablePoints()).isEqualTo(ascending.tempChannelAvailablePoints());
+        assertThat(shuffled.totalPoints()).isEqualTo(ascending.totalPoints());
+
+        // Discriminating power: without the exclusion the same series replays
+        // differently (the leaked valley scores — this is what an order-bound
+        // cursor accidentally produces), so the equality above is meaningful.
+        CalvingReplayResult unexcluded = replayer.replay(null, temps, List.of(),
+                List.of(), null, NOW);
+        assertThat(unexcluded.points()).isNotEqualTo(ascending.points());
+        assertThat(unexcluded.episodes()).isNotEqualTo(ascending.episodes());
+    }
+
+    // ------------------------------------------------------------------
     // Physiological gate (production-replay parity)
     // ------------------------------------------------------------------
 

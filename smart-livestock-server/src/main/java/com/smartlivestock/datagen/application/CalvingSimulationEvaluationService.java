@@ -37,6 +37,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -138,10 +139,14 @@ public class CalvingSimulationEvaluationService {
                     .stream().map(a -> new ActivitySample(a.getRecordedAt(), a.getActivityIndex()))
                     .toList();
             // Raw event windows — the replayer applies the production buffer rule.
+            // Sorted by start (defense in depth; the replayer sorts its own
+            // copy anyway): the repository read carries no ORDER BY, and
+            // physical row order is not time order.
             List<ExclusionWindow> drinking = drinkingEventJpaRepository
                     .findByLivestockIdAndEventStartAtLessThanAndEventEndAtGreaterThanEqual(
                             truth.livestockId(), asOf, windowStart.minus(buffer))
                     .stream().map(event -> new ExclusionWindow(event.getEventStartAt(), event.getEventEndAt()))
+                    .sorted(Comparator.comparing(ExclusionWindow::start))
                     .toList();
             Instant breedingAt = syntheticBreedingAt(calvingAt, withBreedingPrior, properties);
 
