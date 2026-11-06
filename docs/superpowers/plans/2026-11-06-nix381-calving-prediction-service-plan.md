@@ -136,3 +136,15 @@ CalvingPredictionScheduler（fixedDelay，默认 1h，对齐 IndividualBaselineL
 6. **health 的 RanchQueryPortImpl**（`@Component("healthRanchQueryPort")`）直接注入 ranch 的 `LivestockRepository`/`AlertRepository`——跨模块仓储直注是既有形态，增 identity `FarmRepository` 注入合规。
 
 分支：`feature/calving-prediction-service`（自 origin/master 新建），本计划 + 本追记随 Task 0 提交落档。
+
+## 设计迭代（Task 2 评审裁决，2026-11-06）
+
+Task 2 交付后主智能体评审抓到三处仿真口径缺陷（子智能体如实上报未擅自改，评审定案退回修正）：
+
+1. **onset 字面口径必误**：相邻样本对降幅 ≥0.15℃ 在 30min 粒度真渐降（36h 降 0.3℃ ≈ 0.004℃/步）上永不触发、在饮水谷（2.3–4.9℃/2 网格点）上必误触发——与 NIX-380"短窗增幅失灵"同构。**裁决=改水平口径**：滚动 6h 尾窗均值 vs 同相位池化参考水平 ≥0.15℃ 持续 2 评估点，onset 取连续段首点。
+2. **饮水谷主导体温通道**：仿真噪声 SD 0.4 + 每日约 10 次饮水谷，6h 均值波动远大于阶梯间距。**裁决=内核加共享 excludeWindows 静态过滤**（半开窗），生产编排与回放器统一先过滤饮水事件窗再进内核；窗口统计维持均值（NIX-380 实证池化 mean 优于 median，靠排除不靠稳健统计量）；Task 4 评估须统计非产前牛 rebound 命中率。
+3. **先验交集按字面空转**：体征窗 ≤now+48h 永远早于 now+7d 上界，截断永不生效。**裁决=先验窗直接计算** [now+(280−g)×24h, now+(290−g)×24h] 与体征窗求交，交空=矛盾保留原窗（WindowEstimate.priorConflict 标记，子智能体合理增补）。
+
+另接受子智能体自主决定（均合理）：抑制=先验 0 分保权重+总分×0.5 双重压分（保守方向正确）；rebound 固定 3h 块（12h 回看 4 块，块样本门槛复用 minRefTempSamples）；特征值 2 位 HALF_UP 先舍入再评分（与落库精度一致）；配置校验超集+独立配置测试类 8 例。
+
+Task 2 产物：内核 6 API + 测试 34 例全绿 + 配置测试 8 例全绿（提交 6f249926）；变异检查实证（注入 4 错 → 6 用例失败 → 还原 sha256 一致）。修正落盘为 Task 2b 提交。
