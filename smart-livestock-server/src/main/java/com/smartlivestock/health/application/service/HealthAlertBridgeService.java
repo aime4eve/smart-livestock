@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
@@ -153,6 +154,16 @@ public class HealthAlertBridgeService {
      * Plain parameters on purpose: the caller's targeted snapshot UPDATE
      * clears the persistence context, so nothing here may rely on a managed
      * snapshot entity.
+     * <p>
+     * Evidence presentation (NIX-381 wrap-up): the message key is selected on
+     * a 2×2 grid — breeding prior available (gestationDays != null) or not ×
+     * window shown or not — so the rendered text always discloses the three
+     * analysis channels (temperature change, activity multiple, breeding
+     * days / no record) next to the score. The message column is pre-formatted
+     * with the zh template; MessageSource re-rendering uses the same args via
+     * {@code alert.health.calving.evidence.*}. The legacy keys
+     * {@code alert.health.calving} / {@code alert.health.calving.window} stay
+     * in the bundles for stored tickets.
      *
      * @param score         evaluated score; at/above the alert threshold
      *                      raises (deduplicated against an ACTIVE ticket),
@@ -162,9 +173,18 @@ public class HealthAlertBridgeService {
      *                      no estimate)
      * @param source        telemetry source; DATAGEN stays DATAGEN, anything
      *                      else becomes RULE
+     * @param tempDrop      temperature change vs the reference period in °C
+     *                      (the clamped value persisted on the prediction
+     *                      row); null renders as "—" (honest gap)
+     * @param activityRatio activity multiple of the normal level (the clamped
+     *                      value persisted on the prediction row); null
+     *                      renders as "—"
+     * @param gestationDays days since the usable BREEDING record, or null
+     *                      when none exists (noPrior keys)
      */
     public void syncCalvingAlert(Long farmId, Long livestockId, Integer score,
-                                 String windowDisplay, String source) {
+                                 String windowDisplay, String source,
+                                 BigDecimal tempDrop, BigDecimal activityRatio, Integer gestationDays) {
         boolean alarming = score != null && score >= calvingProperties.getAlertThreshold();
         if (!alarming) {
             ranchCommandPort.resolveAlert(livestockId, TYPE_CALVING);
@@ -174,30 +194,49 @@ public class HealthAlertBridgeService {
 
         String code = livestockCode(livestockId);
         String scoreText = String.valueOf(score);
-        AlertInfo info;
-        if (windowDisplay != null) {
-            String message = String.format("牲畜 [%s] 临产风险偏高：%s 分，预计分娩窗口 %s",
-                    code, scoreText, windowDisplay);
-            info = new AlertInfo(farmId, livestockId, TYPE_CALVING, "WARNING", message, mapSource(source),
-                    "alert.health.calving.window", List.of(code, scoreText, windowDisplay));
-        } else {
-            String message = String.format("牲畜 [%s] 临产风险偏高：%s 分", code, scoreText);
-            info = new AlertInfo(farmId, livestockId, TYPE_CALVING, "WARNING", message, mapSource(source),
-                    "alert.health.calving", List.of(code, scoreText));
+        String tempDropText = evidenceText(tempDrop);
+        String activityRatioText = evidenceText(activityRatio);
+        boolean withPrior = gestationDays != null;
+        // messageArgs order is fixed by the properties templates:
+        // [code, score, tempDrop, activityRatio, (gestationDays), (windowDisplay)]
+        String messageKey = "alert.health.calving.evidence."
+                + (withPrior ? "withPrior" : "noPrior")
+                + "." + (windowDisplay != null ? "withWindow" : "noWindow");
+        List<Object> args = new ArrayList<>(List.of(code, scoreText, tempDropText, activityRatioText));
+        if (withPrior) {
+            args.add(String.valueOf(gestationDays));
         }
-        ranchCommandPort.createAlert(info);
+        if (windowDisplay != null) {
+            args.add(windowDisplay);
+        }
+        // zh pre-format kept literally aligned with messages_zh.properties.
+        String message = String.format(
+                "牲畜 [%s] 临产风险偏高：%s 分。分析依据：体温较参考期变化 %s℃；活动量为常态的 %s 倍；%s%s",
+                code, scoreText, tempDropText, activityRatioText,
+                withPrior ? "配种后 " + gestationDays + " 天" : "未录配种记录",
+                windowDisplay != null ? "。预计分娩窗口 " + windowDisplay : "");
+        ranchCommandPort.createAlert(new AlertInfo(farmId, livestockId, TYPE_CALVING, "WARNING",
+                message, mapSource(source), messageKey, args));
         log.info("Created {} alert for livestock [{}] (calving score={})", TYPE_CALVING, livestockId, score);
     }
 
     /**
-     * {@link #syncCalvingAlert(Long, Long, Integer, String, String)} with the
-     * window still as instants: formats it in the farm zone first. A missing
-     * bound or an empty / inverted window leaves the window out of the text.
+     * {@link #syncCalvingAlert(Long, Long, Integer, String, String, BigDecimal,
+     * BigDecimal, Integer)} with the window still as instants: formats it in
+     * the farm zone first. A missing bound or an empty / inverted window
+     * leaves the window out of the text.
      */
     public void syncCalvingAlert(Long farmId, Long livestockId, Integer score,
-                                 Instant windowStart, Instant windowEnd, String source) {
+                                 Instant windowStart, Instant windowEnd, String source,
+                                 BigDecimal tempDrop, BigDecimal activityRatio, Integer gestationDays) {
         syncCalvingAlert(farmId, livestockId, score,
-                formatCalvingWindow(farmId, windowStart, windowEnd), source);
+                formatCalvingWindow(farmId, windowStart, windowEnd), source,
+                tempDrop, activityRatio, gestationDays);
+    }
+
+    /** Evidence slot: plain decimal string, or an em dash for an honest gap. */
+    private static String evidenceText(BigDecimal value) {
+        return value != null ? value.toPlainString() : "—";
     }
 
     /**

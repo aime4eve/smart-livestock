@@ -217,6 +217,11 @@ public class CalvingPredictionApplicationService {
         // 5. Plain values for the bridge, captured BEFORE the targeted UPDATE
         //    (clearAutomatically detaches everything loaded in this transaction).
         String alertSource = alertSource(temperatures, activities);
+        // Evidence display values: the same clamped figures the prediction row
+        // persists, so the alert text always matches calving_predictions (the
+        // raw activity ratio can exceed the DECIMAL(5,2) range on a glitch).
+        BigDecimal tempDropEvidence = clampToColumn(tempDrop, TEMP_DROP_COLUMN_LIMIT);
+        BigDecimal activityRatioEvidence = clampToColumn(activityRatio, ACTIVITY_RATIO_COLUMN_LIMIT);
         Instant displayStart = null;
         Instant displayEnd = null;
         if (window.isEstimated() && !window.priorConflict()) {
@@ -238,9 +243,13 @@ public class CalvingPredictionApplicationService {
             }
         }
         if (raise) {
-            alertBridge.syncCalvingAlert(farmId, livestockId, score, displayStart, displayEnd, alertSource);
+            alertBridge.syncCalvingAlert(farmId, livestockId, score, displayStart, displayEnd, alertSource,
+                    tempDropEvidence, activityRatioEvidence, gestationDays);
         } else if (release) {
-            alertBridge.syncCalvingAlert(farmId, livestockId, score, null, alertSource);
+            // Release only resolves the ticket; the evidence values are unused
+            // on that path but keep the call signature uniform.
+            alertBridge.syncCalvingAlert(farmId, livestockId, score, null, alertSource,
+                    tempDropEvidence, activityRatioEvidence, gestationDays);
         }
 
         log.debug("Calving evaluation livestock={} score={} prev={} tempDrop={} activityRatio={} "

@@ -1,5 +1,6 @@
 package com.smartlivestock.integration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartlivestock.health.application.CalvingPredictionScheduler;
 import com.smartlivestock.health.infrastructure.persistence.entity.ActivityLogJpaEntity;
 import com.smartlivestock.health.infrastructure.persistence.entity.TemperatureLogJpaEntity;
@@ -51,7 +52,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * the signal. The onset scan detects the decline at T−9h (drop reaches 0.15
  * there and 0.15 ÷ slope), so the estimated window is [T−7h, T+21h] (28h
  * span) and the ticket message carries
- * {@code alert.health.calving.window}.</p>
+ * {@code alert.health.calving.evidence.withPrior.withWindow} — score plus the
+ * three evidence channels (temperature change, activity multiple, 281 breeding
+ * days) plus the window, six frozen messageArgs.</p>
  *
  * <p>Alert-state semantics (alertPersistencePoints = 2): the FIRST at-threshold
  * evaluation only lands the score; the SECOND consecutive one raises the
@@ -180,7 +183,7 @@ public class CalvingPredictionJourneyTest extends AbstractJourneyTest {
      * LEARNED baseline audit values.
      */
     @Test
-    void highRiskHead_detectedThroughRealScheduler() {
+    void highRiskHead_detectedThroughRealScheduler() throws Exception {
         Head headA = createHead("CPA");
         stampLearnedSnapshot(headA);
         insertPrepartumSeries(headA, "AGENTIC_PLATFORM");
@@ -223,14 +226,21 @@ public class CalvingPredictionJourneyTest extends AbstractJourneyTest {
         assertThat(snap).isNotNull();
         assertThat(snap).isGreaterThanOrEqualTo(70);
 
-        // Exactly one ACTIVE ticket, WARNING severity, RULE source, window key.
+        // Exactly one ACTIVE ticket, WARNING severity, RULE source, evidence key.
         List<Map<String, Object>> tickets = calvingTickets(headA.livestockId());
         assertThat(tickets).hasSize(1);
         Map<String, Object> ticket = tickets.get(0);
         assertThat(ticket.get("status")).isEqualTo("ACTIVE");
         assertThat(ticket.get("severity")).isEqualTo("WARNING");
         assertThat(ticket.get("source")).isEqualTo("RULE");
-        assertThat(ticket.get("message_key")).isEqualTo("alert.health.calving.window");
+        assertThat(ticket.get("message_key"))
+                .isEqualTo("alert.health.calving.evidence.withPrior.withWindow");
+        // Frozen evidence args: [code, score, tempDrop, activityRatio,
+        // gestationDays, window] — six slots with the 281-day prior disclosed.
+        Object[] args = new ObjectMapper().readValue((String) ticket.get("message_args"), Object[].class);
+        assertThat(args).hasSize(6);
+        assertThat(args[1]).isEqualTo("87");
+        assertThat(args[4]).isEqualTo("281");
     }
 
     // ── Scenario 2: repeated evaluation does not duplicate the ticket ──

@@ -251,13 +251,14 @@ class HealthAlertBridgeServiceTest {
         assertTrue(types.contains("DIGESTIVE_ABNORMAL"));
     }
 
-    // ── Calving (NIX-381) ───────────────────────────────────────
+    // ── Calving (NIX-381 evidence presentation, 2×2 key grid) ────
 
     @Test
-    void calvingRaise_withWindow_createsWindowTicketKeepingDatagenSource() {
+    void calvingRaise_withPriorWithWindow_createsEvidenceTicketKeepingDatagenSource() {
         when(ranchQueryPort.hasActiveAlert(LIVESTOCK_ID, "CALVING_WARNING")).thenReturn(false);
 
-        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 75, "11-07 02:00 ~ 11-08 06:00", "DATAGEN");
+        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 75, "11-07 02:00 ~ 11-08 06:00", "DATAGEN",
+                new BigDecimal("0.30"), new BigDecimal("1.36"), 281);
 
         AlertInfo info = capturedAlert();
         assertEquals(FARM_ID, info.farmId());
@@ -265,32 +266,66 @@ class HealthAlertBridgeServiceTest {
         assertEquals("CALVING_WARNING", info.alertType());
         assertEquals("WARNING", info.severity());
         assertEquals("DATAGEN", info.source());
-        assertEquals("alert.health.calving.window", info.messageKey());
-        assertEquals(List.of("ST-22", "75", "11-07 02:00 ~ 11-08 06:00"), info.messageArgs());
-        assertEquals("牲畜 [ST-22] 临产风险偏高：75 分，预计分娩窗口 11-07 02:00 ~ 11-08 06:00", info.message());
+        assertEquals("alert.health.calving.evidence.withPrior.withWindow", info.messageKey());
+        assertEquals(List.of("ST-22", "75", "0.30", "1.36", "281", "11-07 02:00 ~ 11-08 06:00"),
+                info.messageArgs());
+        assertEquals("牲畜 [ST-22] 临产风险偏高：75 分。分析依据：体温较参考期变化 0.30℃；活动量为常态的 1.36 倍；"
+                + "配种后 281 天。预计分娩窗口 11-07 02:00 ~ 11-08 06:00", info.message());
         verify(ranchCommandPort, never()).resolveAlert(anyLong(), anyString());
     }
 
     @Test
-    void calvingRaise_withoutWindow_createsPlainTicketAsRuleSource() {
+    void calvingRaise_withPriorNoWindow_createsEvidenceTicketAsRuleSource() {
         when(ranchQueryPort.hasActiveAlert(LIVESTOCK_ID, "CALVING_WARNING")).thenReturn(false);
 
-        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 70, null, "THINGSBOARD");
+        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 70, null, "THINGSBOARD",
+                new BigDecimal("0.20"), new BigDecimal("1.20"), 275);
 
         AlertInfo info = capturedAlert();
         assertEquals("CALVING_WARNING", info.alertType());
         assertEquals("WARNING", info.severity());
         assertEquals("RULE", info.source());
-        assertEquals("alert.health.calving", info.messageKey());
-        assertEquals(List.of("ST-22", "70"), info.messageArgs());
-        assertEquals("牲畜 [ST-22] 临产风险偏高：70 分", info.message());
+        assertEquals("alert.health.calving.evidence.withPrior.noWindow", info.messageKey());
+        assertEquals(List.of("ST-22", "70", "0.20", "1.20", "275"), info.messageArgs());
+        assertEquals("牲畜 [ST-22] 临产风险偏高：70 分。分析依据：体温较参考期变化 0.20℃；活动量为常态的 1.20 倍；"
+                + "配种后 275 天", info.message());
+    }
+
+    @Test
+    void calvingRaise_noPriorWithWindow_createsEvidenceTicket() {
+        when(ranchQueryPort.hasActiveAlert(LIVESTOCK_ID, "CALVING_WARNING")).thenReturn(false);
+
+        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 75, "11-07 02:00 ~ 11-08 06:00", "DATAGEN",
+                new BigDecimal("0.30"), new BigDecimal("1.36"), null);
+
+        AlertInfo info = capturedAlert();
+        assertEquals("DATAGEN", info.source());
+        assertEquals("alert.health.calving.evidence.noPrior.withWindow", info.messageKey());
+        assertEquals(List.of("ST-22", "75", "0.30", "1.36", "11-07 02:00 ~ 11-08 06:00"), info.messageArgs());
+        assertEquals("牲畜 [ST-22] 临产风险偏高：75 分。分析依据：体温较参考期变化 0.30℃；活动量为常态的 1.36 倍；"
+                + "未录配种记录。预计分娩窗口 11-07 02:00 ~ 11-08 06:00", info.message());
+    }
+
+    @Test
+    void calvingRaise_noPriorNoWindow_missingFeaturesRenderDash() {
+        when(ranchQueryPort.hasActiveAlert(LIVESTOCK_ID, "CALVING_WARNING")).thenReturn(false);
+
+        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 70, null, "THINGSBOARD", null, null, null);
+
+        AlertInfo info = capturedAlert();
+        assertEquals("RULE", info.source());
+        assertEquals("alert.health.calving.evidence.noPrior.noWindow", info.messageKey());
+        assertEquals(List.of("ST-22", "70", "—", "—"), info.messageArgs());
+        assertEquals("牲畜 [ST-22] 临产风险偏高：70 分。分析依据：体温较参考期变化 —℃；活动量为常态的 — 倍；"
+                + "未录配种记录", info.message());
     }
 
     @Test
     void calvingRaise_activeTicketExists_skipsDuplicateCreation() {
         when(ranchQueryPort.hasActiveAlert(LIVESTOCK_ID, "CALVING_WARNING")).thenReturn(true);
 
-        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 88, "11-07 02:00 ~ 11-08 06:00", "DATAGEN");
+        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 88, "11-07 02:00 ~ 11-08 06:00", "DATAGEN",
+                new BigDecimal("0.30"), new BigDecimal("1.36"), 281);
 
         verify(ranchCommandPort, never()).createAlert(any());
         verify(ranchCommandPort, never()).resolveAlert(anyLong(), anyString());
@@ -298,8 +333,8 @@ class HealthAlertBridgeServiceTest {
 
     @Test
     void calvingBelowAlertThreshold_resolvesTicket() {
-        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 40, null, "DATAGEN");
-        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, null, null, "DATAGEN");
+        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 40, null, "DATAGEN", null, null, null);
+        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, null, null, "DATAGEN", null, null, null);
 
         verify(ranchCommandPort, org.mockito.Mockito.times(2)).resolveAlert(LIVESTOCK_ID, "CALVING_WARNING");
         verify(ranchCommandPort, never()).createAlert(any());
@@ -314,7 +349,7 @@ class HealthAlertBridgeServiceTest {
                 ranchQueryPort, ranchCommandPort, tenantZoneResolver, properties);
         when(ranchQueryPort.hasActiveAlert(LIVESTOCK_ID, "CALVING_WARNING")).thenReturn(false);
 
-        tuned.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 66, null, "DATAGEN");
+        tuned.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 66, null, "DATAGEN", null, null, null);
 
         assertEquals("CALVING_WARNING", capturedAlert().alertType());
     }
@@ -325,11 +360,13 @@ class HealthAlertBridgeServiceTest {
 
         // 18:00Z / 22:00Z next day = 02:00 / 06:00 in UTC+8, across a date change
         service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 75,
-                Instant.parse("2026-11-06T18:00:00Z"), Instant.parse("2026-11-07T22:00:00Z"), "DATAGEN");
+                Instant.parse("2026-11-06T18:00:00Z"), Instant.parse("2026-11-07T22:00:00Z"), "DATAGEN",
+                new BigDecimal("0.27"), new BigDecimal("1.50"), 281);
 
         AlertInfo info = capturedAlert();
-        assertEquals("alert.health.calving.window", info.messageKey());
-        assertEquals(List.of("ST-22", "75", "11-07 02:00 ~ 11-08 06:00"), info.messageArgs());
+        assertEquals("alert.health.calving.evidence.withPrior.withWindow", info.messageKey());
+        assertEquals(List.of("ST-22", "75", "0.27", "1.50", "281", "11-07 02:00 ~ 11-08 06:00"),
+                info.messageArgs());
         verify(tenantZoneResolver).zoneForFarm(FARM_ID, null);
     }
 
@@ -337,11 +374,12 @@ class HealthAlertBridgeServiceTest {
     void calvingWindowInstants_missingBound_dropsWindowFromText() {
         when(ranchQueryPort.hasActiveAlert(LIVESTOCK_ID, "CALVING_WARNING")).thenReturn(false);
 
-        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 75, null, Instant.parse("2026-11-07T22:00:00Z"), "DATAGEN");
+        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 75, null, Instant.parse("2026-11-07T22:00:00Z"),
+                "DATAGEN", new BigDecimal("0.27"), new BigDecimal("1.50"), 281);
 
         AlertInfo info = capturedAlert();
-        assertEquals("alert.health.calving", info.messageKey());
-        assertEquals(List.of("ST-22", "75"), info.messageArgs());
+        assertEquals("alert.health.calving.evidence.withPrior.noWindow", info.messageKey());
+        assertEquals(List.of("ST-22", "75", "0.27", "1.50", "281"), info.messageArgs());
     }
 
     @Test
@@ -349,14 +387,16 @@ class HealthAlertBridgeServiceTest {
         when(ranchQueryPort.hasActiveAlert(LIVESTOCK_ID, "CALVING_WARNING")).thenReturn(false);
         Instant at = Instant.parse("2026-11-07T22:00:00Z");
 
-        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 75, at, at, "DATAGEN");
-        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 75, at, at.minusSeconds(3600), "DATAGEN");
+        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 75, at, at, "DATAGEN",
+                new BigDecimal("0.27"), new BigDecimal("1.50"), 281);
+        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 75, at, at.minusSeconds(3600), "DATAGEN",
+                new BigDecimal("0.27"), new BigDecimal("1.50"), 281);
 
         ArgumentCaptor<AlertInfo> captor = ArgumentCaptor.forClass(AlertInfo.class);
         verify(ranchCommandPort, org.mockito.Mockito.times(2)).createAlert(captor.capture());
         captor.getAllValues().forEach(info -> {
-            assertEquals("alert.health.calving", info.messageKey());
-            assertEquals(List.of("ST-22", "75"), info.messageArgs());
+            assertEquals("alert.health.calving.evidence.withPrior.noWindow", info.messageKey());
+            assertEquals(List.of("ST-22", "75", "0.27", "1.50", "281"), info.messageArgs());
         });
     }
 }

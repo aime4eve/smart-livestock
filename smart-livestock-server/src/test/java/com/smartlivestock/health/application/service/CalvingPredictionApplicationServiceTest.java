@@ -213,10 +213,13 @@ class CalvingPredictionApplicationServiceTest {
         assertThat(info.alertType()).isEqualTo("CALVING_WARNING");
         assertThat(info.severity()).isEqualTo("WARNING");
         assertThat(info.source()).isEqualTo("DATAGEN");
-        assertThat(info.messageKey()).isEqualTo("alert.health.calving.window");
-        // display window = [max(window.start, now), window.end) in UTC+8
-        assertThat(info.messageArgs()).isEqualTo(List.of("ST-22", "87", "11-06 20:00 ~ 11-08 00:00"));
-        assertThat(info.message()).isEqualTo("牲畜 [ST-22] 临产风险偏高：87 分，预计分娩窗口 11-06 20:00 ~ 11-08 00:00");
+        assertThat(info.messageKey()).isEqualTo("alert.health.calving.evidence.noPrior.withWindow");
+        // display window = [max(window.start, now), window.end) in UTC+8;
+        // no breeding record stubbed -> noPrior, evidence channels disclosed
+        assertThat(info.messageArgs())
+                .isEqualTo(List.of("ST-22", "87", "0.30", "1.36", "11-06 20:00 ~ 11-08 00:00"));
+        assertThat(info.message()).isEqualTo("牲畜 [ST-22] 临产风险偏高：87 分。分析依据：体温较参考期变化 0.30℃；"
+                + "活动量为常态的 1.36 倍；未录配种记录。预计分娩窗口 11-06 20:00 ~ 11-08 00:00");
     }
 
     @Test
@@ -424,9 +427,66 @@ class CalvingPredictionApplicationServiceTest {
         assertThat(row.getExpectedWindowEnd()).isEqualTo(NOW.plus(Duration.ofHours(28)));
 
         AlertInfo info = createdAlert();
-        assertThat(info.messageKey()).isEqualTo("alert.health.calving");
-        assertThat(info.messageArgs()).isEqualTo(List.of("ST-22", "90"));
-        assertThat(info.message()).isEqualTo("牲畜 [ST-22] 临产风险偏高：90 分");
+        assertThat(info.messageKey()).isEqualTo("alert.health.calving.evidence.withPrior.noWindow");
+        assertThat(info.messageArgs()).isEqualTo(List.of("ST-22", "90", "0.30", "1.36", "275"));
+        assertThat(info.message()).isEqualTo("牲畜 [ST-22] 临产风险偏高：90 分。分析依据：体温较参考期变化 0.30℃；"
+                + "活动量为常态的 1.36 倍；配种后 275 天");
+    }
+
+    /** BREEDING at now-283d (due today): prior NORMAL, its due window
+     *  [now-3d, now+7d] overlaps the signs window [now, now+28h] -> the
+     *  window stays in the alert text alongside the prior evidence.
+     *  score = (100x0.45 + 70x0.35 + 100x0.20) / 1.0 = 89.5 -> 90. */
+    @Test
+    void priorNormal_windowDisplayed_withPriorWithWindowEvidence() {
+        when(snapshotRepo.findByLivestockId(LIVESTOCK_ID)).thenReturn(Optional.of(snapshot(90)));
+        when(ranchQueryPort.hasActiveAlert(LIVESTOCK_ID, "CALVING_WARNING")).thenReturn(false);
+        stubReads(alertingTemps("THINGSBOARD"), alertingActivities("THINGSBOARD"));
+        when(physiologyEventJpaRepository
+                .findFirstByLivestockIdAndEventTypeInAndSourceOrderByOccurredAtDesc(
+                        eq(LIVESTOCK_ID), any(), eq(PhysiologySource.MANUAL)))
+                .thenReturn(Optional.of(physiologyEvent(PhysiologyEventType.BREEDING,
+                        NOW.minus(Duration.ofDays(283)))));
+
+        service.evaluateHead(LIVESTOCK_ID);
+
+        CalvingPrediction row = savedRow();
+        assertThat(row.getRiskScore()).isEqualTo(90);
+        assertThat(row.getPriorEnabled()).isTrue();
+        // intersection of signs [now, now+28h] and due [now-3d, now+7d]
+        assertThat(row.getExpectedWindowStart()).isEqualTo(NOW);
+        assertThat(row.getExpectedWindowEnd()).isEqualTo(NOW.plus(Duration.ofHours(28)));
+
+        AlertInfo info = createdAlert();
+        assertThat(info.messageKey()).isEqualTo("alert.health.calving.evidence.withPrior.withWindow");
+        assertThat(info.messageArgs())
+                .isEqualTo(List.of("ST-22", "90", "0.30", "1.36", "283", "11-06 20:00 ~ 11-08 00:00"));
+        assertThat(info.message()).isEqualTo("牲畜 [ST-22] 临产风险偏高：90 分。分析依据：体温较参考期变化 0.30℃；"
+                + "活动量为常态的 1.36 倍；配种后 283 天。预计分娩窗口 11-06 20:00 ~ 11-08 00:00");
+    }
+
+    /** No activity logs at all: activityRatio null -> the evidence slot shows
+     *  the honest "—" gap. Temperature alone scores 100 (renormalized weight),
+     *  which still raises. */
+    @Test
+    void activityMissing_evidenceShowsDashForGap() {
+        when(snapshotRepo.findByLivestockId(LIVESTOCK_ID)).thenReturn(Optional.of(snapshot(87)));
+        when(ranchQueryPort.hasActiveAlert(LIVESTOCK_ID, "CALVING_WARNING")).thenReturn(false);
+        stubReads(alertingTemps("THINGSBOARD"), List.of());
+
+        service.evaluateHead(LIVESTOCK_ID);
+
+        CalvingPrediction row = savedRow();
+        assertThat(row.getRiskScore()).isEqualTo(100);
+        assertThat(row.getTempDropCelsius()).isEqualByComparingTo("0.30");
+        assertThat(row.getActivityRatio()).isNull();
+
+        AlertInfo info = createdAlert();
+        assertThat(info.messageKey()).isEqualTo("alert.health.calving.evidence.noPrior.withWindow");
+        assertThat(info.messageArgs())
+                .isEqualTo(List.of("ST-22", "100", "0.30", "—", "11-06 20:00 ~ 11-08 00:00"));
+        assertThat(info.message()).isEqualTo("牲畜 [ST-22] 临产风险偏高：100 分。分析依据：体温较参考期变化 0.30℃；"
+                + "活动量为常态的 — 倍；未录配种记录。预计分娩窗口 11-06 20:00 ~ 11-08 00:00");
     }
 
     @Test
