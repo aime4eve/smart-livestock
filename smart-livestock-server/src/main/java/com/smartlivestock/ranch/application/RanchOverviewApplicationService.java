@@ -37,6 +37,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RanchOverviewApplicationService {
 
+    /**
+     * Calving risk at/above which the map marker turns WARNING (NIX-381 map
+     * linkage). Mirrors the default of {@code smartlivestock.calving.alert-threshold};
+     * hardcoded like the estrus 70 above it because ranch must not depend on
+     * health configuration.
+     */
+    private static final int CALVING_WARNING_SCORE = 70;
+
     private final FenceRepository fenceRepository;
     private final LivestockRepository livestockRepository;
     private final AlertRepository alertRepository;
@@ -111,7 +119,8 @@ public class RanchOverviewApplicationService {
                         || a.getType() == AlertType.DIGESTIVE_ABNORMAL
                         || a.getType() == AlertType.ESTRUS
                         || a.getType() == AlertType.EPIDEMIC
-                        || a.getType() == AlertType.AI_ANOMALY)
+                        || a.getType() == AlertType.AI_ANOMALY
+                        || a.getType() == AlertType.CALVING_WARNING)
                 .map(Alert::getLivestockId)
                 .collect(Collectors.toSet());
 
@@ -367,6 +376,7 @@ public class RanchOverviewApplicationService {
         summary.put("DIGESTIVE_ABNORMAL", 0);
         summary.put("ESTRUS", 0);
         summary.put("EPIDEMIC", 0);
+        summary.put("CALVING_WARNING", 0);
         for (Alert alert : alerts) {
             if (alert.getStatus() != AlertStatus.ACTIVE) continue;
             String type = alert.getType().name();
@@ -383,6 +393,8 @@ public class RanchOverviewApplicationService {
         if ("ABNORMAL".equals(health.motilityStatus())) return "WARNING";
         if ("ELEVATED".equals(health.tempStatus())) return "WARNING";
         if (health.estrusScore() >= 70) return "WARNING";
+        // NIX-381 map linkage: null = never scored / released, never alarming.
+        if (health.calvingRiskScore() != null && health.calvingRiskScore() >= CALVING_WARNING_SCORE) return "WARNING";
         return "NORMAL";
     }
 
@@ -390,6 +402,7 @@ public class RanchOverviewApplicationService {
         if ("CRITICAL".equals(health.tempStatus()) || "FEVER".equals(health.tempStatus())) return "FEVER";
         if ("ABNORMAL".equals(health.motilityStatus())) return "DIGESTIVE";
         if (health.estrusScore() >= 70) return "ESTRUS";
+        if (health.calvingRiskScore() != null && health.calvingRiskScore() >= CALVING_WARNING_SCORE) return "CALVING";
         return "";
     }
 
@@ -397,6 +410,7 @@ public class RanchOverviewApplicationService {
         if ("CRITICAL".equals(health.tempStatus()) || "FEVER".equals(health.tempStatus())) return "发热预警";
         if ("ABNORMAL".equals(health.motilityStatus())) return "消化异常";
         if (health.estrusScore() >= 70) return "发情高分";
+        if (health.calvingRiskScore() != null && health.calvingRiskScore() >= CALVING_WARNING_SCORE) return "临产预警";
         return "异常";
     }
 
@@ -404,6 +418,7 @@ public class RanchOverviewApplicationService {
         if ("CRITICAL".equals(health.tempStatus()) || "FEVER".equals(health.tempStatus())) return "体温异常需关注";
         if ("ABNORMAL".equals(health.motilityStatus())) return "蠕动异常需观察";
         if (health.estrusScore() >= 70) return "发情评分 " + health.estrusScore();
+        if (health.calvingRiskScore() != null && health.calvingRiskScore() >= CALVING_WARNING_SCORE) return "临产风险 " + health.calvingRiskScore();
         return "";
     }
 
@@ -411,6 +426,8 @@ public class RanchOverviewApplicationService {
         if ("CRITICAL".equals(health.tempStatus()) || "FEVER".equals(health.tempStatus())) return "/twin/fever/" + livestockId;
         if ("ABNORMAL".equals(health.motilityStatus())) return "/twin/digestive/" + livestockId;
         if (health.estrusScore() >= 70) return "/twin/estrus/" + livestockId;
+        // No dedicated calving detail page yet: same empty route as the fallback below.
+        if (health.calvingRiskScore() != null && health.calvingRiskScore() >= CALVING_WARNING_SCORE) return "";
         return "";
     }
 }

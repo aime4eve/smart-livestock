@@ -41,4 +41,16 @@ public interface HealthSnapshotRepository {
                                  java.math.BigDecimal bandLow,
                                  java.math.BigDecimal bandHigh,
                                  String algorithmVersion) {}
+
+    /**
+     * Targeted UPDATE that writes only {@code calving_risk_score} of one
+     * snapshot (NIX-381). {@code null} clears the column (alert released =
+     * back to never-assessed semantics). The whole-entity write path must
+     * not be used here: processTelemetry and the baseline learner do
+     * read-modify-write on the same row and a full-entity save would clobber
+     * their concurrent changes (dirty-write-back lesson, plan 2026-11-03).
+     *
+     * @return number of snapshot rows updated (0 = no snapshot for the livestock)
+     */
+    int updateCalvingRiskScore(Long livestockId, Integer riskScore);
 }

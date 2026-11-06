@@ -418,6 +418,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ranchAlertTypeEpidemic => 'Epidemic';
 
   @override
+  String get ranchAlertTypeCalving => 'Calving';
+
+  @override
   String get ranchAlertTypeShortApproach => 'Approach';
 
   @override
@@ -2109,6 +2112,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get featEpidemicAlert => 'Epidemic Alert';
+
+  @override
+  String get featCalvingWarning => 'Calving Warning';
 
   @override
   String get analyticsTitle => 'Analytics';
@@ -4368,6 +4374,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alertTypeAiAnomaly => 'AI Anomaly';
+
+  @override
+  String get alertTypeCalvingWarning => 'Calving Warning';
 
   @override
   String get alertTypeDeviceTamper => 'Device Tamper';

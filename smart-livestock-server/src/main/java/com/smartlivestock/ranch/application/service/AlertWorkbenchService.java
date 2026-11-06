@@ -49,7 +49,8 @@ public class AlertWorkbenchService {
     private static final Set<String> FENCE_TYPES = Set.of(
             "FENCE_BREACH", "FENCE_APPROACH", "ZONE_APPROACH");
     private static final Set<String> HEALTH_TYPES = Set.of(
-            "TEMPERATURE_ABNORMAL", "DIGESTIVE_ABNORMAL", "ESTRUS", "EPIDEMIC", "AI_ANOMALY");
+            "TEMPERATURE_ABNORMAL", "DIGESTIVE_ABNORMAL", "ESTRUS", "EPIDEMIC", "AI_ANOMALY",
+            "CALVING_WARNING");
     private static final Set<String> DEVICE_TYPES = Set.of(
             "DEVICE_TAMPER", "DEVICE_LOW_BATTERY", "DEVICE_OFFLINE");
     private static final List<String> BUCKETS =

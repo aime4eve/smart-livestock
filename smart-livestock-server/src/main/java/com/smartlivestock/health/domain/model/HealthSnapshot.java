@@ -40,6 +40,11 @@ public class HealthSnapshot {
     private BigDecimal baselineBandHigh;
     private String baselineAlgorithmVersion;
 
+    // Calving risk (NIX-381): last score written by the calving predictor.
+    // NULL means the animal has never been assessed. Written only via the
+    // targeted repository UPDATE, never through whole-entity saves.
+    private Integer calvingRiskScore;
+
     public HealthSnapshot() {}
 
     public Long getId() { return id; }
@@ -115,4 +120,7 @@ public class HealthSnapshot {
     public void setBaselineBandHigh(BigDecimal baselineBandHigh) { this.baselineBandHigh = baselineBandHigh; }
     public String getBaselineAlgorithmVersion() { return baselineAlgorithmVersion; }
     public void setBaselineAlgorithmVersion(String baselineAlgorithmVersion) { this.baselineAlgorithmVersion = baselineAlgorithmVersion; }
+
+    public Integer getCalvingRiskScore() { return calvingRiskScore; }
+    public void setCalvingRiskScore(Integer calvingRiskScore) { this.calvingRiskScore = calvingRiskScore; }
 }

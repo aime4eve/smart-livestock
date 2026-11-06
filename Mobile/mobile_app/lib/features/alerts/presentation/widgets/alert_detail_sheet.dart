@@ -526,6 +526,7 @@ class _AlertDetailSheetState extends ConsumerState<AlertDetailSheet> {
       'TEMPERATURE_ABNORMAL' => Icons.thermostat,
       'DIGESTIVE_ABNORMAL' => Icons.pets,
       'ESTRUS' => Icons.favorite,
+      'CALVING_WARNING' => Icons.pregnant_woman,
       'EPIDEMIC' => Icons.shield,
       'AI_ANOMALY' => Icons.psychology,
       'DEVICE_TAMPER' => Icons.sensors,
@@ -547,7 +548,7 @@ class _AlertDetailSheetState extends ConsumerState<AlertDetailSheet> {
           AppColors.danger.withValues(alpha: 0.1),
           AppColors.danger
         ),
-      'TEMPERATURE_ABNORMAL' || 'DIGESTIVE_ABNORMAL' ||
+      'TEMPERATURE_ABNORMAL' || 'DIGESTIVE_ABNORMAL' || 'CALVING_WARNING' ||
       'DEVICE_LOW_BATTERY' || 'DEVICE_TAMPER' || 'FENCE_APPROACH' => (
           AppColors.warning.withValues(alpha: 0.1),
           AppColors.warning
@@ -567,6 +568,7 @@ class _AlertDetailSheetState extends ConsumerState<AlertDetailSheet> {
       'TEMPERATURE_ABNORMAL' => l10n.alertTypeTemperatureAbnormal,
       'DIGESTIVE_ABNORMAL' => l10n.alertTypeDigestiveAbnormal,
       'ESTRUS' => l10n.alertTypeEstrus,
+      'CALVING_WARNING' => l10n.alertTypeCalvingWarning,
       'EPIDEMIC' => l10n.alertTypeEpidemic,
       'AI_ANOMALY' => l10n.alertTypeAiAnomaly,
       'DEVICE_TAMPER' => l10n.alertTypeDeviceTamper,
@@ -604,7 +606,7 @@ class _AlertDetailSheetState extends ConsumerState<AlertDetailSheet> {
     if (isResolved) return AppColors.success.withValues(alpha: 0.1);
     return switch (_alert.type) {
       'FENCE_BREACH' || 'EPIDEMIC' => AppColors.danger.withValues(alpha: 0.1),
-      'TEMPERATURE_ABNORMAL' || 'DIGESTIVE_ABNORMAL' ||
+      'TEMPERATURE_ABNORMAL' || 'DIGESTIVE_ABNORMAL' || 'CALVING_WARNING' ||
       'DEVICE_LOW_BATTERY' || 'DEVICE_TAMPER' || 'FENCE_APPROACH' =>
         AppColors.warning.withValues(alpha: 0.1),
       'ESTRUS' => AppColors.estrus.withValues(alpha: 0.1),
@@ -619,7 +621,7 @@ class _AlertDetailSheetState extends ConsumerState<AlertDetailSheet> {
     if (isResolved) return AppColors.success;
     return switch (_alert.type) {
       'FENCE_BREACH' || 'EPIDEMIC' => AppColors.danger,
-      'TEMPERATURE_ABNORMAL' || 'DIGESTIVE_ABNORMAL' ||
+      'TEMPERATURE_ABNORMAL' || 'DIGESTIVE_ABNORMAL' || 'CALVING_WARNING' ||
       'DEVICE_LOW_BATTERY' || 'DEVICE_TAMPER' || 'FENCE_APPROACH' =>
         const Color(0xFF92580E),
       'ESTRUS' => AppColors.estrus,

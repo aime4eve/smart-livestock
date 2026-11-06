@@ -2,6 +2,8 @@ package com.smartlivestock.health.infrastructure.acl;
 
 import com.smartlivestock.health.domain.port.RanchQueryPort;
 import com.smartlivestock.health.domain.port.dto.LivestockInfo;
+import com.smartlivestock.identity.domain.model.Farm;
+import com.smartlivestock.identity.domain.repository.FarmRepository;
 import com.smartlivestock.ranch.domain.model.AlertStatus;
 import com.smartlivestock.ranch.domain.model.AlertType;
 import com.smartlivestock.ranch.domain.model.Livestock;
@@ -24,14 +26,19 @@ public class RanchQueryPortImpl implements RanchQueryPort {
     private final AlertRepository alertRepository;
     private final SpringDataAlertRepository springDataAlertRepo;
     private final SpringDataAlertReadStatusRepository readStatusRepo;
+    // Cross-module repository injection is the established shape of this ACL
+    // (ranch repositories above); farms live in identity (NIX-381 Task 0).
+    private final FarmRepository farmRepository;
 
     public RanchQueryPortImpl(LivestockRepository livestockRepository, AlertRepository alertRepository,
                               SpringDataAlertRepository springDataAlertRepo,
-                              SpringDataAlertReadStatusRepository readStatusRepo) {
+                              SpringDataAlertReadStatusRepository readStatusRepo,
+                              FarmRepository farmRepository) {
         this.livestockRepository = livestockRepository;
         this.alertRepository = alertRepository;
         this.springDataAlertRepo = springDataAlertRepo;
         this.readStatusRepo = readStatusRepo;
+        this.farmRepository = farmRepository;
     }
 
     @Override
@@ -102,6 +109,13 @@ public class RanchQueryPortImpl implements RanchQueryPort {
     public Set<Long> findReadAlertIds(Long userId, Collection<Long> alertIds) {
         if (alertIds == null || alertIds.isEmpty()) return Set.of();
         return readStatusRepo.findReadAlertIdsByUserId(userId, alertIds);
+    }
+
+    @Override
+    public Optional<Long> findTenantIdByFarm(Long farmId) {
+        if (farmId == null) return Optional.empty();
+        // Optional.map turns a farm without tenant (null) into empty.
+        return farmRepository.findById(farmId).map(Farm::getTenantId);
     }
 
     private LivestockInfo toInfo(Livestock l) {

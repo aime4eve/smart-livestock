@@ -10,6 +10,11 @@ import java.util.Optional;
  */
 public interface HealthQueryPort {
 
+    /**
+     * Health state of one livestock for ranch views. {@code calvingRiskScore}
+     * mirrors {@code health_snapshots.calving_risk_score} (NIX-381) and is
+     * null when the calving predictor never scored the animal or released it.
+     */
     record LivestockHealthState(
             Long livestockId,
             String tempStatus,
@@ -17,7 +22,8 @@ public interface HealthQueryPort {
             int estrusScore,
             BigDecimal currentTemp,
             BigDecimal currentMotility,
-            String activityStatus
+            String activityStatus,
+            Integer calvingRiskScore
     ) {}
 
     /**

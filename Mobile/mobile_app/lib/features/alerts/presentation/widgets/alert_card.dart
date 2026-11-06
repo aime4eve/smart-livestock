@@ -257,6 +257,7 @@ class AlertCard extends StatelessWidget {
       'FENCE_BREACH' || 'EPIDEMIC' => AppColors.danger.withValues(alpha: 0.1),
       'TEMPERATURE_ABNORMAL' ||
       'DIGESTIVE_ABNORMAL' ||
+      'CALVING_WARNING' ||
       'DEVICE_LOW_BATTERY' ||
       'DEVICE_TAMPER' => AppColors.warning.withValues(alpha: 0.1),
       'ESTRUS' => AppColors.estrus.withValues(alpha: 0.1),
@@ -275,6 +276,7 @@ class AlertCard extends StatelessWidget {
       'FENCE_BREACH' || 'EPIDEMIC' => AppColors.danger,
       'TEMPERATURE_ABNORMAL' ||
       'DIGESTIVE_ABNORMAL' ||
+      'CALVING_WARNING' ||
       'DEVICE_LOW_BATTERY' ||
       'DEVICE_TAMPER' => AppColors.warning,
       'ESTRUS' => AppColors.estrus,
@@ -292,6 +294,7 @@ class AlertCard extends StatelessWidget {
       'TEMPERATURE_ABNORMAL' => Icons.thermostat,
       'DIGESTIVE_ABNORMAL' => Icons.pets,
       'ESTRUS' => Icons.favorite,
+      'CALVING_WARNING' => Icons.pregnant_woman,
       'EPIDEMIC' => Icons.shield,
       'AI_ANOMALY' => Icons.psychology,
       'DEVICE_TAMPER' => Icons.sensors,
@@ -341,6 +344,7 @@ class _TypeBadge extends StatelessWidget {
       'TEMPERATURE_ABNORMAL' => l10n.alertTypeTemperatureAbnormal,
       'DIGESTIVE_ABNORMAL' => l10n.alertTypeDigestiveAbnormal,
       'ESTRUS' => l10n.alertTypeEstrus,
+      'CALVING_WARNING' => l10n.alertTypeCalvingWarning,
       'EPIDEMIC' => l10n.alertTypeEpidemic,
       'AI_ANOMALY' => l10n.alertTypeAiAnomaly,
       'DEVICE_TAMPER' => l10n.alertTypeDeviceTamper,
@@ -356,6 +360,7 @@ class _TypeBadge extends StatelessWidget {
             ),
             'TEMPERATURE_ABNORMAL' ||
             'DIGESTIVE_ABNORMAL' ||
+            'CALVING_WARNING' ||
             'DEVICE_LOW_BATTERY' ||
             'DEVICE_TAMPER' ||
             'FENCE_APPROACH' => (

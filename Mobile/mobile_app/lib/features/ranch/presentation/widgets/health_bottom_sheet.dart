@@ -648,6 +648,7 @@ class _HealthBottomSheetState extends ConsumerState<HealthBottomSheet> {
       'DIGESTIVE_ABNORMAL' ||
       'BEHAVIOR_ABNORMAL' => l.ranchAlertTypeShortDigestive,
       'ESTRUS' => l.ranchAlertTypeEstrus,
+      'CALVING_WARNING' => l.ranchAlertTypeCalving,
       'EPIDEMIC' => l.ranchAlertTypeEpidemic,
       _ => type,
     };
@@ -849,6 +850,7 @@ class _HealthDetailContent extends StatelessWidget {
       'TEMPERATURE_ABNORMAL' || 'FEVER' => l.ranchAlertTypeFever,
       'DIGESTIVE_ABNORMAL' || 'BEHAVIOR_ABNORMAL' => l.ranchAlertTypeDigestive,
       'ESTRUS' => l.ranchAlertTypeEstrus,
+      'CALVING_WARNING' => l.ranchAlertTypeCalving,
       'EPIDEMIC' => l.ranchAlertTypeEpidemic,
       _ => type,
     };

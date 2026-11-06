@@ -866,6 +866,12 @@ abstract class AppLocalizations {
   /// **'疫病'**
   String get ranchAlertTypeEpidemic;
 
+  /// No description provided for @ranchAlertTypeCalving.
+  ///
+  /// In zh, this message translates to:
+  /// **'临产'**
+  String get ranchAlertTypeCalving;
+
   /// No description provided for @ranchAlertTypeShortApproach.
   ///
   /// In zh, this message translates to:
@@ -3849,6 +3855,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'疫情预警'**
   String get featEpidemicAlert;
+
+  /// No description provided for @featCalvingWarning.
+  ///
+  /// In zh, this message translates to:
+  /// **'分娩预警'**
+  String get featCalvingWarning;
 
   /// No description provided for @analyticsTitle.
   ///
@@ -8008,6 +8020,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'AI异常'**
   String get alertTypeAiAnomaly;
+
+  /// No description provided for @alertTypeCalvingWarning.
+  ///
+  /// In zh, this message translates to:
+  /// **'分娩预警'**
+  String get alertTypeCalvingWarning;
 
   /// No description provided for @alertTypeDeviceTamper.
   ///

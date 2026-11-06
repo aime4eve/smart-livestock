@@ -87,4 +87,23 @@ public interface HealthSnapshotJpaRepository extends JpaRepository<HealthSnapsho
                               @Param("bandLow") java.math.BigDecimal bandLow,
                               @Param("bandHigh") java.math.BigDecimal bandHigh,
                               @Param("algorithmVersion") String algorithmVersion);
+
+    /**
+     * Targeted UPDATE of calving_risk_score only (NIX-381, plan 2026-11-06).
+     * Deliberately NOT a full-entity save — same dirty-write-back reasoning
+     * as {@link #updateLearnedBaseline}: the calving scheduler shares this
+     * row with the telemetry chain and the baseline learner. {@code null}
+     * riskScore writes NULL (alert released = never-assessed semantics).
+     * {@code updated_at} is bumped like every other write path; no signal
+     * event is fired here.
+     */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(value = """
+            UPDATE health_snapshots
+               SET calving_risk_score = :riskScore,
+                   updated_at = NOW()
+             WHERE livestock_id = :livestockId
+            """, nativeQuery = true)
+    int updateCalvingRiskScore(@Param("livestockId") Long livestockId,
+                               @Param("riskScore") Integer riskScore);
 }

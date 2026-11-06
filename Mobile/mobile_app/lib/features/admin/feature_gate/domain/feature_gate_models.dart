@@ -44,6 +44,7 @@ class FeatureMeta {
     'health_score':           FeatureMeta(nameKey: 'featHealthScore',         category: FeatureCategory.health,   unit: FeatureUnit.day),
     'estrus_detect':          FeatureMeta(nameKey: 'featEstrusDetect',        category: FeatureCategory.health,   unit: FeatureUnit.day),
     'epidemic_alert':         FeatureMeta(nameKey: 'featEpidemicAlert',       category: FeatureCategory.health,   unit: FeatureUnit.day),
+    'calving_warning':        FeatureMeta(nameKey: 'featCalvingWarning',      category: FeatureCategory.health,   unit: FeatureUnit.day),
   };
 
   static FeatureMeta? forKey(String featureKey) => _map[featureKey];

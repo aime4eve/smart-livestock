@@ -65,4 +65,9 @@ public class HealthSnapshotRepositoryImpl implements HealthSnapshotRepository {
                 update.bandHigh(),
                 update.algorithmVersion());
     }
+
+    @Override
+    public int updateCalvingRiskScore(Long livestockId, Integer riskScore) {
+        return jpaRepo.updateCalvingRiskScore(livestockId, riskScore);
+    }
 }

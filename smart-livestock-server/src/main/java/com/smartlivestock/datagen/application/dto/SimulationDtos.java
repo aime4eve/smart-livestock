@@ -144,4 +144,101 @@ public final class SimulationDtos {
             int fn,
             Double falseAlarmRate) {
     }
+
+    // ------------------------------------------------------------------
+    // Calving prediction evaluation (NIX-381 Task 4)
+    // ------------------------------------------------------------------
+
+    /**
+     * Request body for POST /calving-evaluation. {@code runId} is required
+     * and must exist (otherwise RESOURCE_NOT_FOUND). {@code withBreedingPrior}
+     * selects the evaluation scenario (null = false):
+     * <ul>
+     *   <li><b>false — scenario A, "no breeding record"</b>: the gestation
+     *       prior is unavailable for every head (the conservative basis the
+     *       acceptance thresholds apply to).</li>
+     *   <li><b>true — scenario B, "record available"</b>: the breeding date is
+     *       SYNTHESIZED backwards from the ground-truth calving
+     *       ({@code period_end − gestationDays}). This measures the pipeline
+     *       WITH a usable record — it is NOT a prediction ability, and every
+     *       scenario-B number must be read as such (simulation red line).</li>
+     * </ul>
+     */
+    public record CalvingEvaluationRequest(Long runId, Boolean withBreedingPrior) {
+    }
+
+    /**
+     * Calving detection evaluation of one simulation run: per head the
+     * telemetry window is replayed through the production calving kernel and
+     * the shared alert state machine ({@code CalvingSeriesReplayer}), then the
+     * alert episodes are aligned against the ground truth. PREPARTUM heads:
+     * detection = the alert was raised INSIDE the prepartum truth window
+     * ({@code ground_truth_labels} PREPARTUM {@code [period_start, period_end]}
+     * = [calving − 48h, calving] from the generator) — an alert raised BEFORE
+     * the window does NOT count as a detection even if it persists through
+     * calving; it counts as a prepartum early false alarm instead. Lead =
+     * calving − the LATEST in-window raise. Non-PREPARTUM heads
+     * (CLEAN/WATER/FEVER/ESTRUS/DETACHED): every episode is a false alarm
+     * (episode caliber). {@code falseAlarmEpisodes} keeps that non-prepartum
+     * semantic; {@code prepartumEarlyFalseAlarms} adds the pre-window episodes
+     * of PREPARTUM heads; {@code totalFalseAlarms} is their sum.
+     * {@code note} always carries the simulated-data boundary (MessageSource
+     * key {@code simulation.evaluation.note}).
+     */
+    public record CalvingEvaluationReport(
+            Long runId,
+            Instant evaluatedAt,
+            boolean withBreedingPrior,
+            int detected,
+            int missed,
+            Double leadMinHours,
+            Double leadMedianHours,
+            Double leadMaxHours,
+            int falseAlarmEpisodes,
+            int prepartumEarlyFalseAlarms,
+            int totalFalseAlarms,
+            ChannelAvailability channelAvailability,
+            Double reboundHitRateNonPrepartum,
+            List<PerHeadCalving> perHead,
+            String note) {
+    }
+
+    /**
+     * Temperature-channel availability (the drinking-exclusion shape leaves
+     * the channel dark for most of the day by design, review 2b/2d): grid
+     * points with a usable temperature drop vs all replayed grid points,
+     * grouped by herd class — the Task 4/7 reports must publish this per
+     * class so a detection ceiling is never mistaken for a detector failure.
+     */
+    public record ChannelAvailability(
+            int prepartumAvailablePoints,
+            int prepartumTotalPoints,
+            int nonPrepartumAvailablePoints,
+            int nonPrepartumTotalPoints) {
+    }
+
+    /**
+     * One head of the calving evaluation. {@code raiseAt} is the matching
+     * detection raise (the LATEST episode raise INSIDE the prepartum truth
+     * window {@code [period_start, period_end]}) for detected PREPARTUM heads,
+     * null otherwise; {@code leadHours} = (calving − raiseAt) in hours;
+     * {@code episodeCount} is the head's total episode count (= its
+     * false-alarm contribution for non-PREPARTUM heads); {@code
+     * earlyFalseAlarms} is the head's episode count raised BEFORE the truth
+     * window (prepartum heads only — an alert raised early that persists
+     * through calving is an early false alarm, not a detection; 0 for
+     * non-PREPARTUM heads, whose episodes all count in
+     * {@code falseAlarmEpisodes}); {@code tempAvailableRatio} =
+     * available/total grid points (null when the head replayed no points).
+     */
+    public record PerHeadCalving(
+            Long livestockId,
+            String herdClass,
+            Instant raiseAt,
+            Instant calvingAt,
+            Double leadHours,
+            int episodeCount,
+            int earlyFalseAlarms,
+            Double tempAvailableRatio) {
+    }
 }

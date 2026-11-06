@@ -85,6 +85,7 @@ class AlertFilterBar extends StatelessWidget {
       'TEMPERATURE_ABNORMAL' => l10n.alertTypeTemperatureAbnormal,
       'DIGESTIVE_ABNORMAL' => l10n.alertTypeDigestiveAbnormal,
       'ESTRUS' => l10n.alertTypeEstrus,
+      'CALVING_WARNING' => l10n.alertTypeCalvingWarning,
       'EPIDEMIC' => l10n.alertTypeEpidemic,
       'AI_ANOMALY' => l10n.alertTypeAiAnomaly,
       'DEVICE_TAMPER' => l10n.alertTypeDeviceTamper,
@@ -97,6 +98,7 @@ class AlertFilterBar extends StatelessWidget {
     return switch (type) {
       'FENCE_BREACH' => AppColors.danger,
       'FENCE_APPROACH' || 'TEMPERATURE_ABNORMAL' || 'DIGESTIVE_ABNORMAL' ||
+      'CALVING_WARNING' ||
       'EPIDEMIC' || 'DEVICE_LOW_BATTERY' || 'DEVICE_TAMPER' =>
         AppColors.warning,
       'ESTRUS' => AppColors.estrus,

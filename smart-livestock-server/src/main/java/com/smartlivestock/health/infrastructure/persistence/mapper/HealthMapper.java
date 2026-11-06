@@ -177,6 +177,7 @@ public final class HealthMapper {
         d.setBaselineBandLow(e.getBaselineBandLow());
         d.setBaselineBandHigh(e.getBaselineBandHigh());
         d.setBaselineAlgorithmVersion(e.getBaselineAlgorithmVersion());
+        d.setCalvingRiskScore(e.getCalvingRiskScore());
         return d;
     }
 
@@ -211,6 +212,51 @@ public final class HealthMapper {
         e.setBaselineComputedAt(d.getBaselineComputedAt());
         e.setBaselineBandLow(d.getBaselineBandLow());
         e.setBaselineBandHigh(d.getBaselineBandHigh());
+        e.setBaselineAlgorithmVersion(d.getBaselineAlgorithmVersion());
+        e.setCalvingRiskScore(d.getCalvingRiskScore());
+        return e;
+    }
+
+    // ── CalvingPrediction ───────────────────────────────────────
+
+    public static CalvingPrediction toDomain(CalvingPredictionJpaEntity e) {
+        CalvingPrediction d = new CalvingPrediction();
+        d.setId(e.getId());
+        d.setFarmId(e.getFarmId());
+        d.setLivestockId(e.getLivestockId());
+        d.setRiskScore(e.getRiskScore());
+        d.setTempDropCelsius(e.getTempDropCelsius());
+        d.setActivityRatio(e.getActivityRatio());
+        d.setPriorEnabled(e.getPriorEnabled());
+        d.setExpectedWindowStart(e.getExpectedWindowStart());
+        d.setExpectedWindowEnd(e.getExpectedWindowEnd());
+        d.setExpectedCalvingAt(e.getExpectedCalvingAt());
+        d.setPredictedAt(e.getPredictedAt());
+        d.setBaselineUsed(e.getBaselineUsed());
+        d.setBaselineSource(e.getBaselineSource());
+        d.setBaselineComputedAt(e.getBaselineComputedAt());
+        d.setBaselineAlgorithmVersion(e.getBaselineAlgorithmVersion());
+        d.setCreatedAt(e.getCreatedAt());
+        return d;
+    }
+
+    public static CalvingPredictionJpaEntity toJpa(CalvingPrediction d) {
+        CalvingPredictionJpaEntity e = new CalvingPredictionJpaEntity();
+        e.setId(d.getId());
+        e.setFarmId(d.getFarmId());
+        e.setLivestockId(d.getLivestockId());
+        e.setRiskScore(d.getRiskScore());
+        e.setTempDropCelsius(d.getTempDropCelsius());
+        e.setActivityRatio(d.getActivityRatio());
+        e.setPriorEnabled(d.getPriorEnabled());
+        e.setExpectedWindowStart(d.getExpectedWindowStart());
+        e.setExpectedWindowEnd(d.getExpectedWindowEnd());
+        e.setExpectedCalvingAt(d.getExpectedCalvingAt());
+        e.setPredictedAt(d.getPredictedAt());
+        // Nullable on purpose — same provenance semantics as estrus_scores.
+        e.setBaselineUsed(d.getBaselineUsed());
+        e.setBaselineSource(d.getBaselineSource());
+        e.setBaselineComputedAt(d.getBaselineComputedAt());
         e.setBaselineAlgorithmVersion(d.getBaselineAlgorithmVersion());
         return e;
     }

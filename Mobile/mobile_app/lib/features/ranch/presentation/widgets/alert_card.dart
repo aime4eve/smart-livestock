@@ -164,6 +164,7 @@ class AlertCard extends StatelessWidget {
     'TEMPERATURE_ABNORMAL' || 'FEVER' => Icons.thermostat,
     'DIGESTIVE_ABNORMAL' || 'BEHAVIOR_ABNORMAL' => Icons.pets,
     'ESTRUS' => Icons.favorite,
+    'CALVING_WARNING' => Icons.pregnant_woman,
     'EPIDEMIC' => Icons.shield,
     _ => Icons.warning,
   };
@@ -177,6 +178,7 @@ class AlertCard extends StatelessWidget {
       'TEMPERATURE_ABNORMAL' || 'FEVER' => l.ranchAlertTypeFever,
       'DIGESTIVE_ABNORMAL' || 'BEHAVIOR_ABNORMAL' => l.ranchAlertTypeDigestive,
       'ESTRUS' => l.ranchAlertTypeEstrus,
+      'CALVING_WARNING' => l.ranchAlertTypeCalving,
       'EPIDEMIC' => l.ranchAlertTypeEpidemic,
       _ => type,
     };
