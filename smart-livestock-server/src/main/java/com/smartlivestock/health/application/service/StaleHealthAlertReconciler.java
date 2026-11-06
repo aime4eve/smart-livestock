@@ -7,6 +7,7 @@ import com.smartlivestock.health.domain.port.RanchCommandPort;
 import com.smartlivestock.health.domain.port.RanchQueryPort;
 import com.smartlivestock.health.domain.port.RanchQueryPort.AlertBrief;
 import com.smartlivestock.health.domain.repository.HealthSnapshotRepository;
+import com.smartlivestock.health.infrastructure.config.CalvingPredictionProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -26,27 +27,35 @@ import java.util.stream.Collectors;
  * This reconciler resolves such tickets using the same state mapping as the
  * health alert bridge (all sources of that type — if the state is normal
  * again, any ticket of that type is stale).
+ * <p>
+ * CALVING_WARNING (NIX-381) follows the calving release rule: the ticket is
+ * stale once {@code calving_risk_score} is null (released / never scored) or
+ * below the configured release threshold. The 55–70 hold band keeps the
+ * ticket, mirroring the hysteresis of the calving evaluation itself.
  */
 @Slf4j
 @Service
 public class StaleHealthAlertReconciler {
 
     static final Set<String> HEALTH_TYPES = Set.of(
-            "TEMPERATURE_ABNORMAL", "DIGESTIVE_ABNORMAL", "ESTRUS");
+            "TEMPERATURE_ABNORMAL", "DIGESTIVE_ABNORMAL", "ESTRUS", "CALVING_WARNING");
 
     private final HealthSnapshotRepository snapshotRepo;
     private final RanchQueryPort ranchQueryPort;
     private final RanchCommandPort ranchCommandPort;
+    private final CalvingPredictionProperties calvingProperties;
 
     @Value("${health.alert-reconcile.enabled:true}")
     private boolean enabled;
 
     public StaleHealthAlertReconciler(HealthSnapshotRepository snapshotRepo,
                                       RanchQueryPort ranchQueryPort,
-                                      RanchCommandPort ranchCommandPort) {
+                                      RanchCommandPort ranchCommandPort,
+                                      CalvingPredictionProperties calvingProperties) {
         this.snapshotRepo = snapshotRepo;
         this.ranchQueryPort = ranchQueryPort;
         this.ranchCommandPort = ranchCommandPort;
+        this.calvingProperties = calvingProperties;
     }
 
     @Scheduled(cron = "${health.alert-reconcile.cron:0 40 * * * *}")
@@ -90,6 +99,8 @@ public class StaleHealthAlertReconciler {
             case "TEMPERATURE_ABNORMAL" -> snap.getTempStatus() == TempStatus.NORMAL;
             case "DIGESTIVE_ABNORMAL" -> snap.getMotilityStatus() != MotilityStatus.ABNORMAL;
             case "ESTRUS" -> snap.getEstrusScore() == null || snap.getEstrusScore() < 70;
+            case "CALVING_WARNING" -> snap.getCalvingRiskScore() == null
+                    || snap.getCalvingRiskScore() < calvingProperties.getReleaseThreshold();
             default -> false;
         };
     }

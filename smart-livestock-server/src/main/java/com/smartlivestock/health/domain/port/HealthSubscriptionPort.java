@@ -18,4 +18,13 @@ public interface HealthSubscriptionPort {
      * Check whether the current tenant has access to the given feature key.
      */
     boolean hasFeature(String featureKey);
+
+    /**
+     * Explicit-tenant variant of {@link #hasFeature} for threads that carry
+     * no TenantContext (schedulers): {@code hasFeature} would silently fall
+     * back to the basic tier there and lock every premium gate (NIX-381
+     * Task 0 finding 1). Same tier resolution and gate semantics otherwise —
+     * a null tenant, a missing or inactive subscription resolves to basic.
+     */
+    boolean hasFeatureForTenant(Long tenantId, String featureKey);
 }

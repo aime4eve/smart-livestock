@@ -7,6 +7,7 @@ import com.smartlivestock.health.domain.port.RanchCommandPort;
 import com.smartlivestock.health.domain.port.RanchQueryPort;
 import com.smartlivestock.health.domain.port.RanchQueryPort.AlertBrief;
 import com.smartlivestock.health.domain.repository.HealthSnapshotRepository;
+import com.smartlivestock.health.infrastructure.config.CalvingPredictionProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +34,8 @@ class StaleHealthAlertReconcilerTest {
 
     @BeforeEach
     void setUp() {
-        reconciler = new StaleHealthAlertReconciler(snapshotRepo, ranchQueryPort, ranchCommandPort);
+        reconciler = new StaleHealthAlertReconciler(snapshotRepo, ranchQueryPort, ranchCommandPort,
+                new CalvingPredictionProperties());
         ReflectionTestUtils.setField(reconciler, "enabled", true);
     }
 
@@ -89,5 +91,37 @@ class StaleHealthAlertReconcilerTest {
 
         assertThat(reconciler.reconcileFarm(1L)).isEqualTo(1);
         verify(ranchCommandPort).resolveAlert(5L, "ESTRUS");
+    }
+
+    private HealthSnapshot calvingSnapshot(long id, Integer calvingRiskScore) {
+        HealthSnapshot s = snapshot(id, TempStatus.NORMAL, MotilityStatus.NORMAL, 0);
+        s.setCalvingRiskScore(calvingRiskScore);
+        return s;
+    }
+
+    @Test
+    void calvingTicket_resolvedWhenScoreClearedOrBelowRelease_keptInHoldBand() {
+        when(ranchQueryPort.findActiveAlertsByFarmIdAndTypes(1L, StaleHealthAlertReconciler.HEALTH_TYPES))
+                .thenReturn(List.of(
+                        new AlertBrief(1L, 6L, "CALVING_WARNING", "WARNING", Instant.now(), null),
+                        new AlertBrief(2L, 7L, "CALVING_WARNING", "WARNING", Instant.now(), null),
+                        new AlertBrief(3L, 8L, "CALVING_WARNING", "WARNING", Instant.now(), null),
+                        new AlertBrief(4L, 9L, "CALVING_WARNING", "WARNING", Instant.now(), null)));
+        when(snapshotRepo.findByFarmId(1L)).thenReturn(List.of(
+                calvingSnapshot(6L, null),   // released / never scored → stale
+                calvingSnapshot(7L, 54),     // below release 55 → stale
+                calvingSnapshot(8L, 55),     // hold band → keep
+                calvingSnapshot(9L, 82)));   // still alarming → keep
+
+        assertThat(reconciler.reconcileFarm(1L)).isEqualTo(2);
+        verify(ranchCommandPort).resolveAlert(6L, "CALVING_WARNING");
+        verify(ranchCommandPort).resolveAlert(7L, "CALVING_WARNING");
+        verify(ranchCommandPort, never()).resolveAlert(8L, "CALVING_WARNING");
+        verify(ranchCommandPort, never()).resolveAlert(9L, "CALVING_WARNING");
+    }
+
+    @Test
+    void healthTypes_includeCalvingWarning() {
+        assertThat(StaleHealthAlertReconciler.HEALTH_TYPES).contains("CALVING_WARNING");
     }
 }

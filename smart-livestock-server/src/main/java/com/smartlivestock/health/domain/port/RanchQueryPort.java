@@ -49,6 +49,15 @@ public interface RanchQueryPort {
     /** Which of the given alert ids the user already read. */
     Set<Long> findReadAlertIds(Long userId, Collection<Long> alertIds);
 
+    /**
+     * Tenant owning the farm ({@code farms.tenant_id}). Scheduler threads
+     * carry no TenantContext, so tenant-scoped checks (feature gates) must
+     * resolve the tenant explicitly from the farm (NIX-381 Task 0 finding 1).
+     *
+     * @return the tenant id, or empty when the farm does not exist or has no tenant
+     */
+    Optional<Long> findTenantIdByFarm(Long farmId);
+
     /** Minimal alert projection shared with the health workbenches. */
     record AlertBrief(Long alertId, Long livestockId, String type, String severity,
                       Instant createdAt, Instant resolvedAt) {}

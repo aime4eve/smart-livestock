@@ -7,6 +7,8 @@ import com.smartlivestock.health.domain.port.RanchCommandPort;
 import com.smartlivestock.health.domain.port.RanchQueryPort;
 import com.smartlivestock.health.domain.port.dto.AlertInfo;
 import com.smartlivestock.health.domain.port.dto.LivestockInfo;
+import com.smartlivestock.health.infrastructure.config.CalvingPredictionProperties;
+import com.smartlivestock.identity.application.TenantZoneResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,13 +19,18 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,17 +41,22 @@ class HealthAlertBridgeServiceTest {
 
     private static final Long LIVESTOCK_ID = 3L;
     private static final Long FARM_ID = 1L;
+    /** UTC+8 without DST: fixed expectations for the calving window text. */
+    private static final ZoneId FARM_ZONE = ZoneId.of("Asia/Shanghai");
 
     @Mock private RanchQueryPort ranchQueryPort;
     @Mock private RanchCommandPort ranchCommandPort;
+    @Mock private TenantZoneResolver tenantZoneResolver;
 
     private HealthAlertBridgeService service;
 
     @BeforeEach
     void setUp() {
-        service = new HealthAlertBridgeService(ranchQueryPort, ranchCommandPort);
+        service = new HealthAlertBridgeService(ranchQueryPort, ranchCommandPort,
+                tenantZoneResolver, new CalvingPredictionProperties());
         when(ranchQueryPort.findLivestockById(LIVESTOCK_ID)).thenReturn(Optional.of(
                 new LivestockInfo(LIVESTOCK_ID, FARM_ID, "ST-22", "FEMALE", "ANGUS")));
+        when(tenantZoneResolver.zoneForFarm(eq(FARM_ID), isNull())).thenReturn(FARM_ZONE);
     }
 
     private HealthSnapshot snapshot(TempStatus tempStatus, MotilityStatus motilityStatus, Integer estrusScore) {
@@ -237,5 +249,114 @@ class HealthAlertBridgeServiceTest {
         List<String> types = captor.getAllValues().stream().map(AlertInfo::alertType).toList();
         assertTrue(types.contains("TEMPERATURE_ABNORMAL"));
         assertTrue(types.contains("DIGESTIVE_ABNORMAL"));
+    }
+
+    // ── Calving (NIX-381) ───────────────────────────────────────
+
+    @Test
+    void calvingRaise_withWindow_createsWindowTicketKeepingDatagenSource() {
+        when(ranchQueryPort.hasActiveAlert(LIVESTOCK_ID, "CALVING_WARNING")).thenReturn(false);
+
+        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 75, "11-07 02:00 ~ 11-08 06:00", "DATAGEN");
+
+        AlertInfo info = capturedAlert();
+        assertEquals(FARM_ID, info.farmId());
+        assertEquals(LIVESTOCK_ID, info.livestockId());
+        assertEquals("CALVING_WARNING", info.alertType());
+        assertEquals("WARNING", info.severity());
+        assertEquals("DATAGEN", info.source());
+        assertEquals("alert.health.calving.window", info.messageKey());
+        assertEquals(List.of("ST-22", "75", "11-07 02:00 ~ 11-08 06:00"), info.messageArgs());
+        assertEquals("牲畜 [ST-22] 临产风险偏高：75 分，预计分娩窗口 11-07 02:00 ~ 11-08 06:00", info.message());
+        verify(ranchCommandPort, never()).resolveAlert(anyLong(), anyString());
+    }
+
+    @Test
+    void calvingRaise_withoutWindow_createsPlainTicketAsRuleSource() {
+        when(ranchQueryPort.hasActiveAlert(LIVESTOCK_ID, "CALVING_WARNING")).thenReturn(false);
+
+        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 70, null, "THINGSBOARD");
+
+        AlertInfo info = capturedAlert();
+        assertEquals("CALVING_WARNING", info.alertType());
+        assertEquals("WARNING", info.severity());
+        assertEquals("RULE", info.source());
+        assertEquals("alert.health.calving", info.messageKey());
+        assertEquals(List.of("ST-22", "70"), info.messageArgs());
+        assertEquals("牲畜 [ST-22] 临产风险偏高：70 分", info.message());
+    }
+
+    @Test
+    void calvingRaise_activeTicketExists_skipsDuplicateCreation() {
+        when(ranchQueryPort.hasActiveAlert(LIVESTOCK_ID, "CALVING_WARNING")).thenReturn(true);
+
+        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 88, "11-07 02:00 ~ 11-08 06:00", "DATAGEN");
+
+        verify(ranchCommandPort, never()).createAlert(any());
+        verify(ranchCommandPort, never()).resolveAlert(anyLong(), anyString());
+    }
+
+    @Test
+    void calvingBelowAlertThreshold_resolvesTicket() {
+        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 40, null, "DATAGEN");
+        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, null, null, "DATAGEN");
+
+        verify(ranchCommandPort, org.mockito.Mockito.times(2)).resolveAlert(LIVESTOCK_ID, "CALVING_WARNING");
+        verify(ranchCommandPort, never()).createAlert(any());
+        verify(ranchQueryPort, never()).hasActiveAlert(anyLong(), anyString());
+    }
+
+    @Test
+    void calvingAlarming_followsConfiguredAlertThreshold() {
+        CalvingPredictionProperties properties = new CalvingPredictionProperties();
+        properties.setAlertThreshold(65);
+        HealthAlertBridgeService tuned = new HealthAlertBridgeService(
+                ranchQueryPort, ranchCommandPort, tenantZoneResolver, properties);
+        when(ranchQueryPort.hasActiveAlert(LIVESTOCK_ID, "CALVING_WARNING")).thenReturn(false);
+
+        tuned.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 66, null, "DATAGEN");
+
+        assertEquals("CALVING_WARNING", capturedAlert().alertType());
+    }
+
+    @Test
+    void calvingWindowInstants_formattedInFarmZone() {
+        when(ranchQueryPort.hasActiveAlert(LIVESTOCK_ID, "CALVING_WARNING")).thenReturn(false);
+
+        // 18:00Z / 22:00Z next day = 02:00 / 06:00 in UTC+8, across a date change
+        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 75,
+                Instant.parse("2026-11-06T18:00:00Z"), Instant.parse("2026-11-07T22:00:00Z"), "DATAGEN");
+
+        AlertInfo info = capturedAlert();
+        assertEquals("alert.health.calving.window", info.messageKey());
+        assertEquals(List.of("ST-22", "75", "11-07 02:00 ~ 11-08 06:00"), info.messageArgs());
+        verify(tenantZoneResolver).zoneForFarm(FARM_ID, null);
+    }
+
+    @Test
+    void calvingWindowInstants_missingBound_dropsWindowFromText() {
+        when(ranchQueryPort.hasActiveAlert(LIVESTOCK_ID, "CALVING_WARNING")).thenReturn(false);
+
+        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 75, null, Instant.parse("2026-11-07T22:00:00Z"), "DATAGEN");
+
+        AlertInfo info = capturedAlert();
+        assertEquals("alert.health.calving", info.messageKey());
+        assertEquals(List.of("ST-22", "75"), info.messageArgs());
+    }
+
+    @Test
+    void calvingWindowInstants_emptyOrInvertedWindow_dropsWindowFromText() {
+        when(ranchQueryPort.hasActiveAlert(LIVESTOCK_ID, "CALVING_WARNING")).thenReturn(false);
+        Instant at = Instant.parse("2026-11-07T22:00:00Z");
+
+        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 75, at, at, "DATAGEN");
+        service.syncCalvingAlert(FARM_ID, LIVESTOCK_ID, 75, at, at.minusSeconds(3600), "DATAGEN");
+
+        ArgumentCaptor<AlertInfo> captor = ArgumentCaptor.forClass(AlertInfo.class);
+        verify(ranchCommandPort, org.mockito.Mockito.times(2)).createAlert(captor.capture());
+        captor.getAllValues().forEach(info -> {
+            assertEquals("alert.health.calving", info.messageKey());
+            assertEquals(List.of("ST-22", "75"), info.messageArgs());
+        });
     }
 }

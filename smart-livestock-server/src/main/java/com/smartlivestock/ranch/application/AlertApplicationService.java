@@ -41,7 +41,8 @@ public class AlertApplicationService {
     private static final String SUMMARY_CACHE_PREFIX = "alerts:summary:";
     private static final Set<String> GROUP_FENCE = Set.of("FENCE_BREACH", "FENCE_APPROACH", "ZONE_APPROACH");
     private static final Set<String> GROUP_HEALTH = Set.of(
-            "TEMPERATURE_ABNORMAL", "DIGESTIVE_ABNORMAL", "ESTRUS", "EPIDEMIC", "AI_ANOMALY");
+            "TEMPERATURE_ABNORMAL", "DIGESTIVE_ABNORMAL", "ESTRUS", "EPIDEMIC", "AI_ANOMALY",
+            "CALVING_WARNING");
     private static final Set<String> GROUP_DEVICE = Set.of("DEVICE_TAMPER", "DEVICE_LOW_BATTERY", "DEVICE_OFFLINE");
     private static final Set<String> GROUP_PRESENCE = Set.of("RETURN_HOME", "OUTLIER");
 

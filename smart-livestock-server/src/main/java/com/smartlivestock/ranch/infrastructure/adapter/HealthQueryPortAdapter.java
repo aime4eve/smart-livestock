@@ -35,7 +35,9 @@ public class HealthQueryPortAdapter implements HealthQueryPort {
                         s.getEstrusScore() != null ? s.getEstrusScore() : 0,
                         s.getCurrentTemp(),
                         s.getCurrentMotility(),
-                        s.getActivityStatus() != null ? s.getActivityStatus().name() : "NORMAL"
+                        s.getActivityStatus() != null ? s.getActivityStatus().name() : "NORMAL",
+                        // Nullable on purpose: null = never scored / released (NIX-381)
+                        s.getCalvingRiskScore()
                 ));
     }
 
@@ -49,7 +51,8 @@ public class HealthQueryPortAdapter implements HealthQueryPort {
                         s.getEstrusScore() != null ? s.getEstrusScore() : 0,
                         s.getCurrentTemp(),
                         s.getCurrentMotility(),
-                        s.getActivityStatus() != null ? s.getActivityStatus().name() : "NORMAL"
+                        s.getActivityStatus() != null ? s.getActivityStatus().name() : "NORMAL",
+                        s.getCalvingRiskScore()
                 ))
                 .toList();
     }

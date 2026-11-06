@@ -37,6 +37,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RanchOverviewApplicationService {
 
+    /**
+     * Calving risk at/above which the map marker turns WARNING (NIX-381 map
+     * linkage). Mirrors the default of {@code smartlivestock.calving.alert-threshold};
+     * hardcoded like the estrus 70 above it because ranch must not depend on
+     * health configuration.
+     */
+    private static final int CALVING_WARNING_SCORE = 70;
+
     private final FenceRepository fenceRepository;
     private final LivestockRepository livestockRepository;
     private final AlertRepository alertRepository;
@@ -111,7 +119,8 @@ public class RanchOverviewApplicationService {
                         || a.getType() == AlertType.DIGESTIVE_ABNORMAL
                         || a.getType() == AlertType.ESTRUS
                         || a.getType() == AlertType.EPIDEMIC
-                        || a.getType() == AlertType.AI_ANOMALY)
+                        || a.getType() == AlertType.AI_ANOMALY
+                        || a.getType() == AlertType.CALVING_WARNING)
                 .map(Alert::getLivestockId)
                 .collect(Collectors.toSet());
 
@@ -383,6 +392,8 @@ public class RanchOverviewApplicationService {
         if ("ABNORMAL".equals(health.motilityStatus())) return "WARNING";
         if ("ELEVATED".equals(health.tempStatus())) return "WARNING";
         if (health.estrusScore() >= 70) return "WARNING";
+        // NIX-381 map linkage: null = never scored / released, never alarming.
+        if (health.calvingRiskScore() != null && health.calvingRiskScore() >= CALVING_WARNING_SCORE) return "WARNING";
         return "NORMAL";
     }
 

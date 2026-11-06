@@ -58,4 +58,27 @@ public class HealthSubscriptionPortImpl implements HealthSubscriptionPort {
                 .map(gate -> gate.getGateType() != GateType.LOCK)
                 .orElse(false);
     }
+
+    /**
+     * Same gate semantics as {@link #hasFeature}, but the tier comes from the
+     * given tenant instead of the TenantContext ThreadLocal (scheduler threads
+     * have none). The ThreadLocal is never read or written here.
+     */
+    @Override
+    public boolean hasFeatureForTenant(Long tenantId, String featureKey) {
+        String tier = resolveTierForTenant(tenantId);
+        return featureGateRepository.findByTierAndFeatureKey(tier, featureKey)
+                .filter(FeatureGate::isEnabled)
+                .map(gate -> gate.getGateType() != GateType.LOCK)
+                .orElse(false);
+    }
+
+    /** Tier of an explicit tenant; mirrors {@link #resolveTier} minus the ThreadLocal read. */
+    private String resolveTierForTenant(Long tenantId) {
+        if (tenantId == null) return DEFAULT_TIER;
+        return subscriptionRepository.findByTenantId(tenantId)
+                .filter(Subscription::isActiveOrTrial)
+                .map(sub -> sub.effectiveTier().name().toLowerCase())
+                .orElse(DEFAULT_TIER);
+    }
 }
