@@ -14,6 +14,7 @@ import com.smartlivestock.health.domain.repository.HealthSnapshotRepository;
 import com.smartlivestock.health.domain.repository.TemperatureLogRepository;
 import com.smartlivestock.health.domain.service.CalvingPredictionService;
 import com.smartlivestock.health.domain.service.CalvingPredictionService.ActivitySample;
+import com.smartlivestock.health.domain.service.CalvingPredictionService.AlertTransition;
 import com.smartlivestock.health.domain.service.CalvingPredictionService.ExclusionWindow;
 import com.smartlivestock.health.domain.service.CalvingPredictionService.TempSample;
 import com.smartlivestock.health.domain.service.CalvingPredictionService.WindowEstimate;
@@ -47,6 +48,11 @@ import java.util.Optional;
  * <h2>Alert state machine</h2>
  * The only state is {@code health_snapshots.calving_risk_score} ({@code prev};
  * null = never scored or released) plus the ACTIVE ticket itself — no Redis.
+ * The decision rules below were extracted in Task 4 into the pure kernel
+ * functions {@link CalvingPredictionService#transition} /
+ * {@link CalvingPredictionService#crossedAlert} so the simulation replayer
+ * replays the identical transitions; this class only owns the I/O around
+ * them (the guarded ticket lookup and the writes).
  * <ul>
  *   <li><b>crossed</b>: the score has persisted at/above the alert threshold —
  *       {@code new >= alert} when alertPersistencePoints is 1, otherwise
@@ -190,31 +196,21 @@ public class CalvingPredictionApplicationService {
         boolean activityRiseSeen = activityRatio != null && calvingKernel.activityRatioScore(activityRatio, p) > 0;
         WindowEstimate window = calvingKernel.estimateWindow(now, onset, activityRiseSeen, gestationDays, p);
 
-        // 4. State machine (see class javadoc).
+        // 4. State machine (see class javadoc) — shared kernel function since
+        //    the Task 4 extraction, so the simulation replayer decides the
+        //    identical transitions. The ticket lookup only runs when crossed
+        //    or a score is stored; transition() re-guards internally, so the
+        //    guarded result passed here reproduces the decision exactly.
         Integer prev = snapshot.getCalvingRiskScore();
-        int alertThreshold = p.getAlertThreshold();
-        int releaseThreshold = p.getReleaseThreshold();
-        int persistThreshold = p.getPersistThreshold();
-        boolean crossed = p.getAlertPersistencePoints() <= 1
-                ? score >= alertThreshold
-                : prev != null && prev >= alertThreshold && score >= alertThreshold;
+        boolean crossed = calvingKernel.crossedAlert(prev, score, p);
         boolean alertActive = (crossed || prev != null)
                 && ranchQueryPort.hasActiveAlert(livestockId, ALERT_TYPE);
-        boolean raise = crossed && !alertActive;
-        boolean release = alertActive && score < releaseThreshold;
-
-        boolean writeColumn;
-        Integer columnValue = null;
-        if (release) {
-            writeColumn = true;
-        } else if (score >= persistThreshold || crossed || alertActive) {
-            columnValue = score;
-            writeColumn = !Objects.equals(prev, score);
-        } else {
-            // Below persist without a ticket: reset a stale prev, else stay silent.
-            writeColumn = prev != null;
-        }
-        boolean writeRow = score >= persistThreshold || raise || release;
+        AlertTransition transition = calvingKernel.transition(prev, score, alertActive, p);
+        boolean raise = transition.raise();
+        boolean release = transition.release();
+        Integer columnValue = transition.newColumnValue();
+        boolean writeColumn = transition.storeColumn(prev);
+        boolean writeRow = transition.storeRow();
 
         // 5. Plain values for the bridge, captured BEFORE the targeted UPDATE
         //    (clearAutomatically detaches everything loaded in this transaction).

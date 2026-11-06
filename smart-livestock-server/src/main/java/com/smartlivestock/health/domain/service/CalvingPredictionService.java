@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeSet;
 
@@ -120,6 +121,110 @@ public class CalvingPredictionService {
 
     /** Normalized internal sample: non-null timestamp and value. */
     private record Point(Instant at, BigDecimal value) {
+    }
+
+    // ------------------------------------------------------------ alert state machine
+
+    /**
+     * Alert state-machine decision for one evaluation (NIX-381 Task 4
+     * extraction of the orchestration's private rules — see
+     * {@code CalvingPredictionApplicationService} "Alert state machine").
+     * Extracted so the production evaluation and the simulation replayer
+     * share one implementation instead of a copied one. Pure: no I/O, no
+     * clock.
+     *
+     * <ul>
+     *   <li>{@code newColumnValue}: value for health_snapshots.calving_risk_score.
+     *       Non-null = store the score (persist / crossed / hold band);
+     *       null = clear (release) or reset (sub-persist score without a
+     *       ticket, so a stale {@code prev >= alert} can never pair with a
+     *       later crossing as two "consecutive" evaluations). Whether the
+     *       UPDATE actually runs is {@link #storeColumn}.</li>
+     *   <li>{@code raise}: the score has persisted at/above the alert
+     *       threshold (crossed) and no ACTIVE ticket exists — create it.</li>
+     *   <li>{@code release}: an ACTIVE ticket exists and the score fell
+     *       below the release threshold — resolve it (immediate hysteresis;
+     *       the hold band between release and alert keeps the ticket).</li>
+     *   <li>{@code storeRow}: write a calving_predictions history row
+     *       (score at/above persist, a raise or a release; steady state
+     *       writes nothing).</li>
+     * </ul>
+     */
+    public record AlertTransition(Integer newColumnValue, boolean raise, boolean release, boolean storeRow) {
+
+        /**
+         * Whether the targeted column UPDATE must run: the stored value
+         * actually changes. A release/reset clears a non-null column, the
+         * persist/crossed/hold branch stores a score different from prev,
+         * same-value steady state skips the write. (Release implies a
+         * non-null prev — an ACTIVE ticket always coexists with a stored
+         * score — so the equality form reproduces the orchestration's
+         * unconditional release write exactly.)
+         */
+        public boolean storeColumn(Integer prevColumnValue) {
+            return !Objects.equals(prevColumnValue, newColumnValue);
+        }
+    }
+
+    /**
+     * Persistence rule: whether {@code newScore} counts as a sustained
+     * crossing of the alert threshold. With alertPersistencePoints 1 a single
+     * score at/above the threshold crosses; above 1 the PREVIOUS column value
+     * must already sit at/above it ({@code prev >= alert && new >= alert} —
+     * review 2b: the first crossing only lands the score). The column holds
+     * one previous score, so any alertPersistencePoints above 2 behaves as 2.
+     * Separated from {@link #transition} because the caller needs the verdict
+     * before deciding whether an ACTIVE-ticket lookup can matter at all.
+     */
+    public boolean crossedAlert(Integer prevColumnValue, int newScore, CalvingPredictionProperties p) {
+        return p.getAlertPersistencePoints() <= 1
+                ? newScore >= p.getAlertThreshold()
+                : prevColumnValue != null && prevColumnValue >= p.getAlertThreshold()
+                        && newScore >= p.getAlertThreshold();
+    }
+
+    /**
+     * One step of the alert state machine (semantics of the Task 3
+     * orchestration, verbatim):
+     *
+     * <ol>
+     *   <li>{@code crossed = crossedAlert(prev, newScore, p)}.</li>
+     *   <li>{@code alertActive = (crossed || prev != null) && hasActiveAlert}
+     *       — the caller only looks up the ticket when crossed or a score is
+     *       stored (never-scored heads cost no lookup), and raise/release
+     *       commit with the column, so an ACTIVE ticket implies a non-null
+     *       column.</li>
+     *   <li>{@code raise = crossed && !alertActive}.</li>
+     *   <li>{@code release = alertActive && newScore < releaseThreshold}.</li>
+     *   <li>Column: release → null (clear); score at/above persist, crossed
+     *       or an ACTIVE ticket (hold band tracking) → newScore; otherwise →
+     *       null (sub-persist reset).</li>
+     *   <li>{@code storeRow = newScore >= persistThreshold || raise || release}.</li>
+     * </ol>
+     *
+     * @param prevColumnValue health_snapshots.calving_risk_score before this
+     *                        evaluation, null = never scored or released
+     * @param hasActiveAlert  whether an ACTIVE CALVING_WARNING ticket exists
+     *                        for the head (the caller's guarded lookup result)
+     */
+    public AlertTransition transition(Integer prevColumnValue, int newScore, boolean hasActiveAlert,
+                                      CalvingPredictionProperties p) {
+        boolean crossed = crossedAlert(prevColumnValue, newScore, p);
+        boolean alertActive = (crossed || prevColumnValue != null) && hasActiveAlert;
+        boolean raise = crossed && !alertActive;
+        boolean release = alertActive && newScore < p.getReleaseThreshold();
+
+        Integer newColumnValue;
+        if (release) {
+            newColumnValue = null;
+        } else if (newScore >= p.getPersistThreshold() || crossed || alertActive) {
+            newColumnValue = newScore;
+        } else {
+            // Below persist without a ticket: reset a stale prev, else stay silent.
+            newColumnValue = null;
+        }
+        boolean storeRow = newScore >= p.getPersistThreshold() || raise || release;
+        return new AlertTransition(newColumnValue, raise, release, storeRow);
     }
 
     // ------------------------------------------------------------ drinking exclusion

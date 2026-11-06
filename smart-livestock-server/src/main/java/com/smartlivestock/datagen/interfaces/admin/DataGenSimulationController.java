@@ -1,10 +1,13 @@
 package com.smartlivestock.datagen.interfaces.admin;
 
+import com.smartlivestock.datagen.application.CalvingSimulationEvaluationService;
 import com.smartlivestock.datagen.application.DatagenFarmAccessService;
 import com.smartlivestock.datagen.application.DatagenOperatorContext;
 import com.smartlivestock.datagen.application.DatagenOperatorContextResolver;
 import com.smartlivestock.datagen.application.SimulationEvaluationService;
 import com.smartlivestock.datagen.application.SimulationHerdGenerationService;
+import com.smartlivestock.datagen.application.dto.SimulationDtos.CalvingEvaluationReport;
+import com.smartlivestock.datagen.application.dto.SimulationDtos.CalvingEvaluationRequest;
 import com.smartlivestock.datagen.application.dto.SimulationDtos.SimulationEvaluationReport;
 import com.smartlivestock.datagen.application.dto.SimulationDtos.SimulationEvaluationRequest;
 import com.smartlivestock.datagen.application.dto.SimulationDtos.SimulationHerdGenerateRequest;
@@ -41,6 +44,7 @@ public class DataGenSimulationController {
 
     private final SimulationHerdGenerationService generationService;
     private final SimulationEvaluationService evaluationService;
+    private final CalvingSimulationEvaluationService calvingEvaluationService;
     private final DatagenOperatorContextResolver operatorContextResolver;
     private final DatagenFarmAccessService farmAccessService;
 
@@ -73,6 +77,27 @@ public class DataGenSimulationController {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.datagen.simulationRunRequired");
         }
         SimulationEvaluationReport report = evaluationService.evaluate(request.runId());
+        return ResponseEntity.ok(ApiResponse.ok(report));
+    }
+
+    /**
+     * POST /calving-evaluation — calving-detection evaluation of one
+     * simulation run (NIX-381 Task 4): replay each head through the
+     * production calving kernel + shared alert state machine and align the
+     * episodes against the PREPARTUM ground truth. {@code withBreedingPrior}
+     * selects the scenario (A: no breeding record / B: record synthesized
+     * from the ground-truth calving — a "record available" measurement, never
+     * a prediction ability). Read-only, same semantics as POST /evaluation;
+     * the report's note states the simulated-data boundary by contract.
+     */
+    @PostMapping("/calving-evaluation")
+    public ResponseEntity<ApiResponse<CalvingEvaluationReport>> evaluateCalving(
+            @RequestBody CalvingEvaluationRequest request) {
+        if (request == null || request.runId() == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.datagen.simulationRunRequired");
+        }
+        boolean withBreedingPrior = request.withBreedingPrior() != null && request.withBreedingPrior();
+        CalvingEvaluationReport report = calvingEvaluationService.evaluate(request.runId(), withBreedingPrior);
         return ResponseEntity.ok(ApiResponse.ok(report));
     }
 
