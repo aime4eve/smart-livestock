@@ -122,6 +122,7 @@ public class DashboardController {
         summary.put("DIGESTIVE_ABNORMAL", 0);
         summary.put("ESTRUS", 0);
         summary.put("EPIDEMIC", 0);
+        summary.put("CALVING_WARNING", 0);
         for (AlertDto alert : alerts) {
             if (!"ACTIVE".equals(alert.status())) continue;
             if (summary.containsKey(alert.type())) {

@@ -402,6 +402,7 @@ public class RanchOverviewApplicationService {
         if ("CRITICAL".equals(health.tempStatus()) || "FEVER".equals(health.tempStatus())) return "FEVER";
         if ("ABNORMAL".equals(health.motilityStatus())) return "DIGESTIVE";
         if (health.estrusScore() >= 70) return "ESTRUS";
+        if (health.calvingRiskScore() != null && health.calvingRiskScore() >= CALVING_WARNING_SCORE) return "CALVING";
         return "";
     }
 
@@ -409,6 +410,7 @@ public class RanchOverviewApplicationService {
         if ("CRITICAL".equals(health.tempStatus()) || "FEVER".equals(health.tempStatus())) return "发热预警";
         if ("ABNORMAL".equals(health.motilityStatus())) return "消化异常";
         if (health.estrusScore() >= 70) return "发情高分";
+        if (health.calvingRiskScore() != null && health.calvingRiskScore() >= CALVING_WARNING_SCORE) return "临产预警";
         return "异常";
     }
 
@@ -416,6 +418,7 @@ public class RanchOverviewApplicationService {
         if ("CRITICAL".equals(health.tempStatus()) || "FEVER".equals(health.tempStatus())) return "体温异常需关注";
         if ("ABNORMAL".equals(health.motilityStatus())) return "蠕动异常需观察";
         if (health.estrusScore() >= 70) return "发情评分 " + health.estrusScore();
+        if (health.calvingRiskScore() != null && health.calvingRiskScore() >= CALVING_WARNING_SCORE) return "临产风险 " + health.calvingRiskScore();
         return "";
     }
 
@@ -423,6 +426,8 @@ public class RanchOverviewApplicationService {
         if ("CRITICAL".equals(health.tempStatus()) || "FEVER".equals(health.tempStatus())) return "/twin/fever/" + livestockId;
         if ("ABNORMAL".equals(health.motilityStatus())) return "/twin/digestive/" + livestockId;
         if (health.estrusScore() >= 70) return "/twin/estrus/" + livestockId;
+        // No dedicated calving detail page yet: same empty route as the fallback below.
+        if (health.calvingRiskScore() != null && health.calvingRiskScore() >= CALVING_WARNING_SCORE) return "";
         return "";
     }
 }

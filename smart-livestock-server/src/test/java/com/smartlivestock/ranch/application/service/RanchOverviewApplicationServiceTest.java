@@ -273,10 +273,15 @@ class RanchOverviewApplicationServiceTest {
         assertThat(response.livestockMarkers()).isEmpty();
     }
 
-    // ── Calving map linkage (NIX-381) ───────────────────────────
+    // ── Calving map linkage + pending task (NIX-381) ────────────
 
     /** One tracked livestock with a GPS fix, NORMAL on every other rule. */
     private RanchOverviewResponse overviewWithCalvingScore(Integer calvingRiskScore, List<Alert> alerts) {
+        return overviewWithScores(0, calvingRiskScore, alerts);
+    }
+
+    /** Same fixture with an explicit estrus score, for sibling-precedence checks. */
+    private RanchOverviewResponse overviewWithScores(int estrusScore, Integer calvingRiskScore, List<Alert> alerts) {
         setupDefaultMocks();
         Livestock l1 = new Livestock(1L, "SL-001", "Holstein", "F", null, null);
         l1.setId(1L);
@@ -287,20 +292,26 @@ class RanchOverviewApplicationServiceTest {
         when(livestockRepository.findByFarmId(1L)).thenReturn(List.of(l1));
         when(alertRepository.findByFarmId(1L)).thenReturn(alerts);
         when(healthQueryPort.findHealthByFarmId(1L)).thenReturn(List.of(
-                new LivestockHealthState(1L, "NORMAL", "NORMAL", 0, null, null, "NORMAL", calvingRiskScore)
+                new LivestockHealthState(1L, "NORMAL", "NORMAL", estrusScore, null, null, "NORMAL", calvingRiskScore)
         ));
         return service.getOverview(1L, 1L, 1L);
     }
 
     @Test
-    @DisplayName("calving risk at the alert threshold turns the marker WARNING")
+    @DisplayName("calving risk at the alert threshold turns the marker WARNING with a calving task")
     void calvingRiskAtThreshold_markerWarning() {
         RanchOverviewResponse response = overviewWithCalvingScore(70, Collections.emptyList());
 
         assertThat(response.livestockMarkers()).hasSize(1);
         assertThat(response.livestockMarkers().get(0).healthStatus()).isEqualTo("WARNING");
+        assertThat(response.livestockMarkers().get(0).primaryAlert()).isEqualTo("CALVING");
         assertThat(response.pendingTasks()).hasSize(1);
-        assertThat(response.pendingTasks().get(0).severity()).isEqualTo("WARNING");
+        var task = response.pendingTasks().get(0);
+        assertThat(task.severity()).isEqualTo("WARNING");
+        assertThat(task.title()).isEqualTo("SL-001 临产预警");
+        assertThat(task.subtitle()).isEqualTo("临产风险 70");
+        // No dedicated calving detail page yet.
+        assertThat(task.routePath()).isEmpty();
     }
 
     @Test
@@ -308,11 +319,27 @@ class RanchOverviewApplicationServiceTest {
     void calvingRiskNullOrBelowThreshold_markerNormal() {
         RanchOverviewResponse unscored = overviewWithCalvingScore(null, Collections.emptyList());
         assertThat(unscored.livestockMarkers().get(0).healthStatus()).isEqualTo("NORMAL");
+        assertThat(unscored.livestockMarkers().get(0).primaryAlert()).isEmpty();
         assertThat(unscored.pendingTasks()).isEmpty();
 
         RanchOverviewResponse holdBand = overviewWithCalvingScore(60, Collections.emptyList());
         assertThat(holdBand.livestockMarkers().get(0).healthStatus()).isEqualTo("NORMAL");
+        assertThat(holdBand.livestockMarkers().get(0).primaryAlert()).isEmpty();
         assertThat(holdBand.pendingTasks()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("estrus keeps precedence over a concurrent calving risk")
+    void estrusAndCalving_estrusTakesPrecedence() {
+        RanchOverviewResponse response = overviewWithScores(85, 90, Collections.emptyList());
+
+        assertThat(response.livestockMarkers().get(0).healthStatus()).isEqualTo("WARNING");
+        assertThat(response.livestockMarkers().get(0).primaryAlert()).isEqualTo("ESTRUS");
+        assertThat(response.pendingTasks()).hasSize(1);
+        var task = response.pendingTasks().get(0);
+        assertThat(task.title()).isEqualTo("SL-001 发情高分");
+        assertThat(task.subtitle()).isEqualTo("发情评分 85");
+        assertThat(task.routePath()).isEqualTo("/twin/estrus/1");
     }
 
     @Test
