@@ -24,9 +24,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Unit tests for the calving-risk kernel (NIX-381 Task 2). Pure construction,
  * no mocks, no Spring context.
  *
- * <p>Hand-computed expectations use the default properties: temperature
+ * <p>Hand-computed expectations use the working point of {@link #pinned()} (6h
+ * temperature window, weights 0.45 / 0.35 / 0.20, rebound on), decoupled from
+ * the calibrated defaults, plus these property defaults: temperature
  * ladder 0.30 / 0.20 / 0.12 °C → 100 / 70 / 45, activity ladder
- * 1.5 / 1.3 / 1.15 → 100 / 70 / 45, weights 0.45 / 0.35 / 0.20, prior bands
+ * 1.5 / 1.3 / 1.15 → 100 / 70 / 45, prior bands
  * [270, 293] normal and &lt; 250 suppressed (×0.5), rebound bonus +10,
  * no-temperature cap 60, onset window {@code [onset + 2h, onset + 30h]}.
  * Series are 30-minute grids anchored on a fixed {@code NOW}. Onset cases
@@ -48,7 +50,7 @@ class CalvingPredictionServiceTest {
 
     @Test
     void tempDropScore_mapsFourRungsAtExactBoundaries() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         assertThat(SERVICE.tempDropScore(bd("0.30"), p)).isEqualTo(100);
         assertThat(SERVICE.tempDropScore(bd("1.50"), p)).isEqualTo(100);
         assertThat(SERVICE.tempDropScore(bd("0.29"), p)).isEqualTo(70);
@@ -61,14 +63,14 @@ class CalvingPredictionServiceTest {
 
     @Test
     void tempDropScore_negativeDropFromReboundClampsToZero() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         assertThat(SERVICE.tempDropScore(bd("-0.05"), p)).isZero();
         assertThat(SERVICE.tempDropScore(bd("-2.00"), p)).isZero();
     }
 
     @Test
     void score_nullTempDropIsUnavailable_whileNegativeTempDropKeepsItsWeight() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         // null: temperature drops out, activity 1.15 -> 45 carries alone -> 45 (below the
         // no-temperature cap 60; a kept weight would give 45*0.35 / 0.80 = 19.7 -> 20)
         assertThat(SERVICE.score(null, bd("1.15"), null, false, p)).isEqualTo(45);
@@ -99,7 +101,7 @@ class CalvingPredictionServiceTest {
 
         // equal weight per window: (38.80 + 38.60) / 2 = 38.70 -> 38.70 - 38.50 = 0.20
         // (pooling the 16 raw reference samples would give 38.75 -> 0.25)
-        BigDecimal drop = SERVICE.computeTempDrop(samples, NOW, defaults());
+        BigDecimal drop = SERVICE.computeTempDrop(samples, NOW, pinned());
         assertThat(drop).isEqualByComparingTo("0.20");
         assertThat(drop.scale()).isEqualTo(2);
     }
@@ -113,7 +115,7 @@ class CalvingPredictionServiceTest {
 
         // current = (11 * 38.50 + 38.44) / 12 = 461.94 / 12 = 38.495; ref = 38.80
         // drop = 0.305 -> HALF_UP 0.31 (HALF_EVEN would give 0.30)
-        assertThat(SERVICE.computeTempDrop(samples, NOW, defaults())).isEqualByComparingTo("0.31");
+        assertThat(SERVICE.computeTempDrop(samples, NOW, pinned())).isEqualByComparingTo("0.31");
     }
 
     @Test
@@ -125,7 +127,7 @@ class CalvingPredictionServiceTest {
                 tempSeries(54, 3, "30.00"));
 
         // ref = 38.80 (24h window only) -> 38.80 - 38.50 = 0.30
-        assertThat(SERVICE.computeTempDrop(samples, NOW, defaults())).isEqualByComparingTo("0.30");
+        assertThat(SERVICE.computeTempDrop(samples, NOW, pinned())).isEqualByComparingTo("0.30");
     }
 
     @Test
@@ -135,7 +137,7 @@ class CalvingPredictionServiceTest {
                 tempSeries(30, 3, "38.80"),
                 tempSeries(54, 3, "38.80"));
 
-        assertThat(SERVICE.computeTempDrop(samples, NOW, defaults())).isNull();
+        assertThat(SERVICE.computeTempDrop(samples, NOW, pinned())).isNull();
     }
 
     @Test
@@ -143,14 +145,14 @@ class CalvingPredictionServiceTest {
         List<TempSample> refs = concat(tempSeries(30, 12, "38.80"), tempSeries(54, 12, "38.80"));
 
         // 7 samples [now-3.5h, now) -> unavailable
-        assertThat(SERVICE.computeTempDrop(concat(tempSeries(3.5, 7, "38.50"), refs), NOW, defaults()))
+        assertThat(SERVICE.computeTempDrop(concat(tempSeries(3.5, 7, "38.50"), refs), NOW, pinned()))
                 .isNull();
         // 8 samples [now-4h, now) -> 38.80 - 38.50 = 0.30
-        assertThat(SERVICE.computeTempDrop(concat(tempSeries(4, 8, "38.50"), refs), NOW, defaults()))
+        assertThat(SERVICE.computeTempDrop(concat(tempSeries(4, 8, "38.50"), refs), NOW, pinned()))
                 .isEqualByComparingTo("0.30");
         // no samples at all -> unavailable
-        assertThat(SERVICE.computeTempDrop(List.of(), NOW, defaults())).isNull();
-        assertThat(SERVICE.computeTempDrop(null, NOW, defaults())).isNull();
+        assertThat(SERVICE.computeTempDrop(List.of(), NOW, pinned())).isNull();
+        assertThat(SERVICE.computeTempDrop(null, NOW, pinned())).isNull();
     }
 
     // ------------------------------------------------------------ stale-window selection (review 2d)
@@ -172,7 +174,7 @@ class CalvingPredictionServiceTest {
 
         // t0-anchored: ref = (38.90 + 38.70) / 2 = 38.80 -> 38.80 - 38.50 = 0.30
         // (now-anchored references would pool the 38.00 decoys -> -0.50)
-        assertThat(SERVICE.computeTempDrop(samples, NOW, defaults())).isEqualByComparingTo("0.30");
+        assertThat(SERVICE.computeTempDrop(samples, NOW, pinned())).isEqualByComparingTo("0.30");
     }
 
     @Test
@@ -189,12 +191,12 @@ class CalvingPredictionServiceTest {
         // References 24h / 48h before the OBSERVATION window sample the same phase:
         // ref - current = 0.00 exactly (window [now-16h, now-10h): 4 high + 8 low slots,
         // so are both references). Anchored at now they would read 12 high slots -> 0.27.
-        assertThat(SERVICE.computeTempDrop(samples, NOW, defaults())).isEqualByComparingTo("0.00");
+        assertThat(SERVICE.computeTempDrop(samples, NOW, pinned())).isEqualByComparingTo("0.00");
     }
 
     @Test
     void computeTempDrop_staleLagBoundary_inclusiveAtLimitNullBeyond() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         // Newest clean candidate exactly at the lag limit: t0 = now-24h (lag 24 <= 24).
         // Its window [now-30h, now-24h) holds 11 samples (the one at t0 is the open end).
         List<TempSample> atLimit = concat(
@@ -226,7 +228,7 @@ class CalvingPredictionServiceTest {
 
         // ref = (40 + 48) / 2 = 44 -> 60 / 44 = 1.3636 -> 1.36
         // (pooling the 20 raw reference samples would give 41.6 -> 1.44)
-        BigDecimal ratio = SERVICE.computeActivityRatio(samples, NOW, defaults());
+        BigDecimal ratio = SERVICE.computeActivityRatio(samples, NOW, pinned());
         assertThat(ratio).isEqualByComparingTo("1.36");
         assertThat(ratio.scale()).isEqualTo(2);
     }
@@ -246,13 +248,13 @@ class CalvingPredictionServiceTest {
         }
 
         // nulls neither count toward the guard nor drag the mean: 60 / 40 = 1.50
-        assertThat(SERVICE.computeActivityRatio(fourValid, NOW, defaults())).isEqualByComparingTo("1.50");
-        assertThat(SERVICE.computeActivityRatio(threeValid, NOW, defaults())).isNull();
+        assertThat(SERVICE.computeActivityRatio(fourValid, NOW, pinned())).isEqualByComparingTo("1.50");
+        assertThat(SERVICE.computeActivityRatio(threeValid, NOW, pinned())).isNull();
     }
 
     @Test
     void computeActivityRatio_insufficientOrZeroReference_isUnavailable() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         // current window holds 3 < 4 samples
         assertThat(SERVICE.computeActivityRatio(
                 concat(actSeries(8, 3, "60"), actSeries(32, 16, "40"), actSeries(56, 16, "40")), NOW, p))
@@ -269,7 +271,7 @@ class CalvingPredictionServiceTest {
 
     @Test
     void activityRatioScore_mapsThreeRungsAtExactBoundaries() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         assertThat(SERVICE.activityRatioScore(bd("1.50"), p)).isEqualTo(100);
         assertThat(SERVICE.activityRatioScore(bd("2.40"), p)).isEqualTo(100);
         assertThat(SERVICE.activityRatioScore(bd("1.49"), p)).isEqualTo(70);
@@ -282,7 +284,7 @@ class CalvingPredictionServiceTest {
 
     @Test
     void score_nullActivityRatioIsUnavailable() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         // null: temperature 0.30 -> 100 carries alone -> 100
         assertThat(SERVICE.score(bd("0.30"), null, null, false, p)).isEqualTo(100);
         // ratio 1.00 is available and scores 0: (100*0.45 + 0*0.35) / 0.80 = 56.25 -> 56
@@ -293,7 +295,7 @@ class CalvingPredictionServiceTest {
 
     @Test
     void classifyPrior_bandBoundaries() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         assertThat(SERVICE.classifyPrior(270, p)).isEqualTo(PriorState.NORMAL);
         assertThat(SERVICE.classifyPrior(283, p)).isEqualTo(PriorState.NORMAL);
         assertThat(SERVICE.classifyPrior(293, p)).isEqualTo(PriorState.NORMAL);
@@ -309,18 +311,18 @@ class CalvingPredictionServiceTest {
     void score_priorNormal_handComputedFullWeightOracle() {
         // tempDrop 0.25 -> 70, activityRatio 1.4 -> 70, gestation 275 -> 100
         // (70*0.45 + 70*0.35 + 100*0.20) / 1.00 = 31.5 + 24.5 + 20 = 76
-        assertThat(SERVICE.score(bd("0.25"), bd("1.4"), 275, false, defaults())).isEqualTo(76);
+        assertThat(SERVICE.score(bd("0.25"), bd("1.4"), 275, false, pinned())).isEqualTo(76);
     }
 
     @Test
     void score_priorSuppressed_scoresZeroAndHalvesTheComposite() {
         // gestation 240 < 250: prior available at 0 -> (31.5 + 24.5 + 0) / 1.00 = 56 -> x0.5 = 28
-        assertThat(SERVICE.score(bd("0.25"), bd("1.4"), 240, false, defaults())).isEqualTo(28);
+        assertThat(SERVICE.score(bd("0.25"), bd("1.4"), 240, false, pinned())).isEqualTo(28);
     }
 
     @Test
     void score_priorNeutral_renormalizesTempAndActivityWeights() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         // tempDrop 0.30 -> 100, activityRatio 1.15 -> 45; prior drops out:
         // 0.45/0.80 = 0.5625, 0.35/0.80 = 0.4375 -> 100*0.5625 + 45*0.4375 = 75.9375 -> 76
         assertThat(SERVICE.score(bd("0.30"), bd("1.15"), null, false, p)).isEqualTo(76);  // no BREEDING event
@@ -332,7 +334,7 @@ class CalvingPredictionServiceTest {
 
     @Test
     void score_priorSwitchedOff_ignoresGestationEntirely() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         p.setUseBreedingPrior(false);
         assertThat(SERVICE.classifyPrior(275, p)).isEqualTo(PriorState.NEUTRAL);
         assertThat(SERVICE.classifyPrior(240, p)).isEqualTo(PriorState.NEUTRAL);
@@ -345,7 +347,7 @@ class CalvingPredictionServiceTest {
 
     @Test
     void score_noTemperature_activityOnlyIsCappedAtPromptLevel() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         assertThat(p.getSingleChannelCapNoTemp()).isEqualTo(60);
         // activity 1.5 -> 100 alone -> capped to 60 (prompt level, below the 70 alert line)
         assertThat(SERVICE.score(null, bd("1.5"), null, false, p)).isEqualTo(60);
@@ -360,7 +362,7 @@ class CalvingPredictionServiceTest {
 
     @Test
     void score_temperatureAvailable_twoChannelScoresAreNotCapped() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         // temperature + NORMAL prior, activity unavailable: (100*0.45 + 100*0.20) / 0.65 = 100
         assertThat(SERVICE.score(bd("0.30"), null, 280, false, p)).isEqualTo(100);
         // a zero drop is available evidence, not a missing channel:
@@ -370,7 +372,7 @@ class CalvingPredictionServiceTest {
 
     @Test
     void score_noTemperatureWithSuppressedPrior_suppressionThenCap() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         // activity 1.5 -> 100, prior SUPPRESSED (g = 240) counted at 0:
         // (100*0.35 + 0*0.20) / 0.55 = 63.64 -> x0.5 = 31.82 -> 32; min(32, 60) never raises a score
         assertThat(SERVICE.score(null, bd("1.5"), 240, false, p)).isEqualTo(32);
@@ -385,7 +387,7 @@ class CalvingPredictionServiceTest {
 
     @Test
     void score_reboundAddsFixedBonusOnlyWhileTheSwitchIsOn() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         assertThat(CalvingPredictionService.REBOUND_BONUS).isEqualTo(10);
         // 76 + 10 = 86
         assertThat(SERVICE.score(bd("0.25"), bd("1.4"), 275, true, p)).isEqualTo(86);
@@ -399,12 +401,12 @@ class CalvingPredictionServiceTest {
     @Test
     void score_allChannelsMaxedPlusRebound_clampsAt100() {
         // (100*0.45 + 100*0.35 + 100*0.20) / 1.00 = 100, + 10 = 110 -> 100
-        assertThat(SERVICE.score(bd("0.50"), bd("2.00"), 280, true, defaults())).isEqualTo(100);
+        assertThat(SERVICE.score(bd("0.50"), bd("2.00"), 280, true, pinned())).isEqualTo(100);
     }
 
     @Test
     void score_allChannelsZero_isZero() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         assertThat(SERVICE.score(bd("0.00"), bd("1.00"), 260, false, p)).isZero();
         assertThat(SERVICE.score(bd("-1.00"), bd("0.50"), null, false, p)).isZero();
     }
@@ -415,13 +417,13 @@ class CalvingPredictionServiceTest {
     void isReboundDetected_dropThenRiseAcrossBlocks_detected() {
         // blocks of 3h: first 38.80, 38.70, lowest 38.55, latest 38.70
         // drop = 38.80 - 38.55 = 0.25 >= 0.2; rise = 38.70 - 38.55 = 0.15 >= 0.12
-        assertThat(SERVICE.isReboundDetected(reboundSeries("38.80", "38.70", "38.55", "38.70"), NOW, defaults()))
+        assertThat(SERVICE.isReboundDetected(reboundSeries("38.80", "38.70", "38.55", "38.70"), NOW, pinned()))
                 .isTrue();
     }
 
     @Test
     void isReboundDetected_switchOff_alwaysFalse() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         p.setReboundDetectionEnabled(false);
         assertThat(SERVICE.isReboundDetected(reboundSeries("38.80", "38.70", "38.55", "38.70"), NOW, p))
                 .isFalse();
@@ -429,7 +431,7 @@ class CalvingPredictionServiceTest {
 
     @Test
     void isReboundDetected_riseBelowThreshold_false() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         // rise 38.67 - 38.55 = 0.12: inclusive threshold -> detected
         assertThat(SERVICE.isReboundDetected(reboundSeries("38.80", "38.70", "38.55", "38.67"), NOW, p))
                 .isTrue();
@@ -446,7 +448,7 @@ class CalvingPredictionServiceTest {
 
     @Test
     void isReboundDetected_insufficientSamples_false() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         // latest block holds 3 < 4 samples
         List<TempSample> shortLatest = concat(
                 tempSeries(12, 6, "38.80"), tempSeries(9, 6, "38.70"),
@@ -490,6 +492,43 @@ class CalvingPredictionServiceTest {
                 .containsExactly(hoursAgo(5), hoursAgo(3), hoursAgo(2.5), hoursAgo(2), hoursAgo(1.5), hoursAgo(0.5));
     }
 
+    // ------------------------------------------------------------ physiological gate
+
+    @Test
+    void filterPlausible_boundsInclusive_outsideAndNullRemoved() {
+        List<TempSample> samples = new ArrayList<>(List.of(
+                new TempSample(hoursAgo(7), bd("34.99")),
+                new TempSample(hoursAgo(6), bd("35.0")),
+                new TempSample(hoursAgo(5), bd("35.00")),   // same value at another scale
+                new TempSample(hoursAgo(4), bd("38.50")),
+                new TempSample(hoursAgo(3), bd("43.0")),
+                new TempSample(hoursAgo(2), bd("43.01")),
+                new TempSample(hoursAgo(1), null)));
+        samples.add(null);
+
+        assertThat(CalvingPredictionService.filterPlausible(samples, plausibleBand("35.0", "43.0")))
+                .extracting(TempSample::at)
+                .containsExactly(hoursAgo(6), hoursAgo(5), hoursAgo(4), hoursAgo(3));
+    }
+
+    @Test
+    void filterPlausible_boundsComeFromTheConfiguredBand() {
+        List<TempSample> samples = List.of(
+                new TempSample(hoursAgo(3), bd("36.99")),
+                new TempSample(hoursAgo(2), bd("37.00")),
+                new TempSample(hoursAgo(1), bd("39.01")));
+
+        assertThat(CalvingPredictionService.filterPlausible(samples, plausibleBand("37.0", "39.0")))
+                .extracting(TempSample::at)
+                .containsExactly(hoursAgo(2));
+    }
+
+    @Test
+    void filterPlausible_emptyAndNullInput() {
+        assertThat(CalvingPredictionService.filterPlausible(List.of(), pinned())).isEmpty();
+        assertThat(CalvingPredictionService.filterPlausible(null, pinned())).isNull();
+    }
+
     // ------------------------------------------------------------ onset (level-based)
 
     @Test
@@ -504,11 +543,11 @@ class CalvingPredictionServiceTest {
         // + 3.25h window centroid). Every adjacent step is 0.004 °C, so the removed
         // adjacent-pair rule could never fire on this shape.
         List<TempSample> decline = declineGrid();
-        assertThat(SERVICE.detectOnset(decline, NOW, defaults())).contains(hoursAgo(2));
+        assertThat(SERVICE.detectOnset(decline, NOW, pinned())).contains(hoursAgo(2));
 
         List<TempSample> shuffled = new ArrayList<>(decline);
         Collections.shuffle(shuffled, new Random(20261106L));
-        assertThat(SERVICE.detectOnset(shuffled, NOW, defaults())).contains(hoursAgo(2));
+        assertThat(SERVICE.detectOnset(shuffled, NOW, pinned())).contains(hoursAgo(2));
     }
 
     @Test
@@ -520,12 +559,12 @@ class CalvingPredictionServiceTest {
         // Contrast, raw series: a trailing mean does not reject the valley. Point
         // now-4.5h holds the -3 °C sample (3.0 / 12 = 0.25), point now-4h holds both
         // (4.0 / 12 = 0.33) -> a false onset at now-4.5h.
-        assertThat(SERVICE.detectOnset(raw, NOW, defaults())).contains(hoursAgo(4.5));
+        assertThat(SERVICE.detectOnset(raw, NOW, pinned())).contains(hoursAgo(4.5));
 
         // Caller contract: exclude the drinking window [now-5h, now-4h) first -> flat -> no onset.
         List<TempSample> excluded = CalvingPredictionService.excludeWindows(raw,
                 List.of(new ExclusionWindow(hoursAgo(5), hoursAgo(4))));
-        assertThat(SERVICE.detectOnset(excluded, NOW, defaults())).isEmpty();
+        assertThat(SERVICE.detectOnset(excluded, NOW, pinned())).isEmpty();
     }
 
     @Test
@@ -534,16 +573,16 @@ class CalvingPredictionServiceTest {
         // window holding the whole block reaches 0.16; one holding 11 of them gives
         // 11 × 0.16 / 12 = 0.147 (no).
         // k = 12 (j = 13..24): one qualifying point (now-6h) -> no onset.
-        assertThat(SERVICE.detectOnset(grid(j -> j >= 13 && j <= 24 ? LOW : BASE), NOW, defaults()))
+        assertThat(SERVICE.detectOnset(grid(j -> j >= 13 && j <= 24 ? LOW : BASE), NOW, pinned()))
                 .isEmpty();
         // k = 13 (j = 12..24): two qualifying points (now-6h, now-5.5h) -> onset at the first.
-        assertThat(SERVICE.detectOnset(grid(j -> j >= 12 && j <= 24 ? LOW : BASE), NOW, defaults()))
+        assertThat(SERVICE.detectOnset(grid(j -> j >= 12 && j <= 24 ? LOW : BASE), NOW, pinned()))
                 .contains(hoursAgo(6));
     }
 
     @Test
     void detectOnset_noiseAroundFlatLevel_doesNotTrigger() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         // Zero-mean period-3 pattern +0.20 / 0.00 / -0.20: two consecutive 0.20
         // adjacent drops every period (the removed pair rule would fire), but every
         // full 12-sample window holds four whole periods -> level = reference.
@@ -564,7 +603,7 @@ class CalvingPredictionServiceTest {
         // holds 13 samples, 11 of them low -> 11 × 0.16 / 13 = 0.135 (no).
         List<TempSample> duplicated = new ArrayList<>(grid(j -> j >= 13 && j <= 24 ? LOW : BASE));
         duplicated.add(new TempSample(hoursAgo(6), BASE));
-        assertThat(SERVICE.detectOnset(duplicated, NOW, defaults())).isEmpty();
+        assertThat(SERVICE.detectOnset(duplicated, NOW, pinned())).isEmpty();
     }
 
     @Test
@@ -575,7 +614,7 @@ class CalvingPredictionServiceTest {
         List<TempSample> samples = new ArrayList<>(grid(j -> j <= 13 ? LOW : BASE));
         samples.add(new TempSample(NOW, BASE));
         samples.add(new TempSample(hoursLater(0.5), LOW));
-        assertThat(SERVICE.detectOnset(samples, NOW, defaults())).isEmpty();
+        assertThat(SERVICE.detectOnset(samples, NOW, pinned())).isEmpty();
     }
 
     @Test
@@ -590,7 +629,7 @@ class CalvingPredictionServiceTest {
                 .stream()
                 .filter(s -> !(s.at().isAfter(hoursAgo(12)) && s.at().isBefore(hoursAgo(7))))
                 .toList();
-        assertThat(SERVICE.detectOnset(gapped, NOW, defaults())).contains(hoursAgo(12));
+        assertThat(SERVICE.detectOnset(gapped, NOW, pinned())).contains(hoursAgo(12));
     }
 
     @Test
@@ -602,12 +641,12 @@ class CalvingPredictionServiceTest {
         // inclusive; observed in the red run before the fix). Anchored per point, every
         // level is compared with its own phase -> 0.00 at full references; truncated
         // references at the series start leak at most (0.10 + 0.10/3) / 2 = 0.07.
-        assertThat(SERVICE.detectOnset(grid(j -> circadian(j * 0.5, "0.10")), NOW, defaults())).isEmpty();
+        assertThat(SERVICE.detectOnset(grid(j -> circadian(j * 0.5, "0.10")), NOW, pinned())).isEmpty();
     }
 
     @Test
     void detectOnset_referenceUnavailableOrNoInput_returnsEmpty() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         // The decline of the first onset case cut to the last 20h: no sample in either
         // same-phase reference window -> no reference level -> no onset.
         List<TempSample> recentOnly = declineGrid().stream()
@@ -622,7 +661,7 @@ class CalvingPredictionServiceTest {
 
     @Test
     void estimateWindow_onsetPath_offsetsFromOnsetAndWinsOverActivity() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         Optional<Instant> onset = Optional.of(hoursAgo(6));
 
         // [onset + 2h, onset + 30h] = [now - 4h, now + 24h], midpoint now + 10h
@@ -635,7 +674,7 @@ class CalvingPredictionServiceTest {
 
     @Test
     void estimateWindow_defaultOnsetWindowCoversCalvingOfSimulatedDecline() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         // declineGrid: decline from now-24h at 0.008 °C/h; a 36h simulated decline ends
         // at calving -> now + 12h. The onset is detected at now-2h (22h lag), so the
         // default window [onset + 2h, onset + 30h] = [now, now + 28h] covers the calving;
@@ -650,14 +689,14 @@ class CalvingPredictionServiceTest {
     @Test
     void estimateWindow_activityPath_whenNoOnset() {
         // [now + 2h, now + 16h], midpoint now + 9h
-        WindowEstimate w = SERVICE.estimateWindow(NOW, Optional.empty(), true, null, defaults());
+        WindowEstimate w = SERVICE.estimateWindow(NOW, Optional.empty(), true, null, pinned());
         assertWindow(w, hoursLater(2), hoursLater(16), false);
         assertThat(w.midpoint()).isEqualTo(hoursLater(9));
     }
 
     @Test
     void estimateWindow_noOnsetNoActivity_returnsEmptyWindow() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         WindowEstimate w = SERVICE.estimateWindow(NOW, Optional.empty(), false, null, p);
         assertWindow(w, null, null, false);
         assertThat(w.isEstimated()).isFalse();
@@ -668,7 +707,7 @@ class CalvingPredictionServiceTest {
 
     @Test
     void estimateWindow_priorWindowIntersectsSignsWindow() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         // prior window = [now + (283 - 3 - g) × 24h, now + (283 + 7 - g) × 24h]
         Optional<Instant> onset = Optional.of(hoursAgo(2)); // signs [now, now + 28h]
         // g = 280: prior [now, now + 240h] holds the signs window -> unchanged
@@ -682,7 +721,7 @@ class CalvingPredictionServiceTest {
                 NOW, hoursLater(20), false);
 
         // gestationWindowBeforeDays is consumed: 2 instead of 3 moves the g = 280 prior start to now + 24h
-        CalvingPredictionProperties narrower = defaults();
+        CalvingPredictionProperties narrower = pinned();
         narrower.setGestationWindowBeforeDays(2);
         assertWindow(SERVICE.estimateWindow(NOW, onset, false, 280, narrower),
                 hoursLater(24), hoursLater(28), false);
@@ -690,7 +729,7 @@ class CalvingPredictionServiceTest {
 
     @Test
     void estimateWindow_priorWindowBeforeSigns_keepsSignsWindowAndFlagsConflict() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         // g = 291: prior [now - 264h, now - 24h] ends before the activity signs window [now + 2h, now + 16h]
         assertWindow(SERVICE.estimateWindow(NOW, Optional.empty(), true, 291, p),
                 hoursLater(2), hoursLater(16), true);
@@ -701,7 +740,7 @@ class CalvingPredictionServiceTest {
 
     @Test
     void estimateWindow_priorWindowEntirelyLaterThanSigns_keepsSignsWindowAndFlagsConflict() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         // g = 250: due in 33 days -> prior [now + 720h, now + 960h], after any signs window
         assertWindow(SERVICE.estimateWindow(NOW, Optional.of(hoursAgo(6)), false, 250, p),
                 hoursAgo(4), hoursLater(24), true);
@@ -711,7 +750,7 @@ class CalvingPredictionServiceTest {
 
     @Test
     void estimateWindow_withoutGestationOrWithPriorOff_returnsSignsWindowUnclipped() {
-        CalvingPredictionProperties p = defaults();
+        CalvingPredictionProperties p = pinned();
         // no gestation: returned as is, even when it starts before now (no clip to now)
         assertWindow(SERVICE.estimateWindow(NOW, Optional.of(hoursAgo(30)), false, null, p),
                 hoursAgo(28), NOW, false);
@@ -723,8 +762,26 @@ class CalvingPredictionServiceTest {
 
     // ------------------------------------------------------------ helpers
 
-    private static CalvingPredictionProperties defaults() {
-        return new CalvingPredictionProperties();
+    /**
+     * The working point the oracles below were hand-computed on, pinned here so
+     * that recalibrating the property defaults (plan 7d) never forces them to be
+     * redone: 6h temperature window, weights 0.45 / 0.35 / 0.20, rebound on.
+     */
+    private static CalvingPredictionProperties pinned() {
+        CalvingPredictionProperties p = new CalvingPredictionProperties();
+        p.setCurrentTempWindowHours(6);
+        p.setWeightTempDrop(0.45);
+        p.setWeightActivity(0.35);
+        p.setWeightPrior(0.20);
+        p.setReboundDetectionEnabled(true);
+        return p;
+    }
+
+    private static CalvingPredictionProperties plausibleBand(String min, String max) {
+        CalvingPredictionProperties p = pinned();
+        p.setMinPlausibleTempCelsius(bd(min));
+        p.setMaxPlausibleTempCelsius(bd(max));
+        return p;
     }
 
     private static BigDecimal bd(String value) {

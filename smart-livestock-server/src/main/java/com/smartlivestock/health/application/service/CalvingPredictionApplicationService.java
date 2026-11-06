@@ -57,8 +57,8 @@ import java.util.Optional;
  *   <li><b>crossed</b>: the score has persisted at/above the alert threshold —
  *       {@code new >= alert} when alertPersistencePoints is 1, otherwise
  *       {@code prev >= alert && new >= alert} (review 2b: the first crossing
- *       only lands the score). The column holds one previous score, so any
- *       alertPersistencePoints above 2 behaves as 2.</li>
+ *       only lands the score). The column holds one previous score, so
+ *       alertPersistencePoints is limited to 1 or 2 by the properties validation.</li>
  *   <li><b>raise</b> = crossed and no ACTIVE CALVING_WARNING ticket.</li>
  *   <li><b>release</b> = an ACTIVE ticket and {@code new < release} — immediate.
  *       Between release and alert (hold band 55–70) an ACTIVE ticket stays.</li>
@@ -177,15 +177,17 @@ public class CalvingPredictionApplicationService {
         List<ExclusionWindow> drinking = drinkingExclusionWindows(livestockId, tempFrom, now, p);
         Integer gestationDays = gestationDays(livestockId, now, p);
 
-        // 3. Kernel. Drinking exclusion applies to the temperature channel only
-        //    (review 2b): activity stays raw.
+        // 3. Kernel. Temperature channel only (review 2b, activity stays raw):
+        //    physiological gate first, then the drinking exclusion — the same
+        //    order as CalvingSeriesReplayer.
         List<TempSample> rawTemps = temperatures.stream()
                 .map(t -> new TempSample(t.getRecordedAt(), t.getTemperature()))
                 .toList();
         List<ActivitySample> rawActivities = activities.stream()
                 .map(a -> new ActivitySample(a.getRecordedAt(), a.getActivityIndex()))
                 .toList();
-        List<TempSample> cleanTemps = CalvingPredictionService.excludeWindows(rawTemps, drinking);
+        List<TempSample> plausibleTemps = CalvingPredictionService.filterPlausible(rawTemps, p);
+        List<TempSample> cleanTemps = CalvingPredictionService.excludeWindows(plausibleTemps, drinking);
 
         BigDecimal tempDrop = calvingKernel.computeTempDrop(cleanTemps, now, p);
         BigDecimal activityRatio = calvingKernel.computeActivityRatio(rawActivities, now, p);
@@ -250,7 +252,7 @@ public class CalvingPredictionApplicationService {
     /**
      * Temperature read span covering every window the kernel may touch:
      * stale-window lag + oldest same-phase offset + window width (defaults
-     * 24 + 48 + 6 = 78h); the rebound lookback (12h) normally fits inside.
+     * 24 + 48 + 24 = 96h); the rebound lookback (12h) normally fits inside.
      */
     static long tempLookbackHours(CalvingPredictionProperties p) {
         long staleSpan = p.getStaleWindowMaxLagHours() + maxOffset(p.getRefWindowOffsetHours())

@@ -22,20 +22,34 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Hand-computed oracle tests for the calving series replayer (NIX-381 Task
  * 4): grid-point scores derived by hand from the documented kernel windows
  * (6h current / 24h+48h same-phase reference, ladders 0.30/0.20/0.12 and
- * 1.5/1.3/1.15, weights 0.45/0.35), the shared alert state machine over the
+ * 1.5/1.3/1.15, weights 0.45/0.35, rebound on — the working point pinned by
+ * {@link #oracleWorkingPoint()}, decoupled from the calibrated defaults of
+ * plan 7d), the shared alert state machine over the
  * hourly poll grid, drinking-exclusion buffering, episode raise→release
  * pairing, the cadence-difference lock (30-minute sample cadence fabricates a
- * persistence the hourly production grid correctly refuses) and the
- * no-look-ahead guard.
+ * persistence the hourly production grid correctly refuses), the
+ * no-look-ahead guard and the physiological gate (production-replay parity).
  */
 class CalvingSeriesReplayerTest {
 
     private static final Instant NOW = Instant.parse("2026-11-06T12:00:00Z");
     private static final Duration STEP = Duration.ofMinutes(30);
 
-    private final CalvingPredictionProperties properties = new CalvingPredictionProperties();
+    private final CalvingPredictionProperties properties = oracleWorkingPoint();
     private final CalvingSeriesReplayer replayer =
             new CalvingSeriesReplayer(new CalvingPredictionService(), properties);
+
+    /** The working point the grid oracles were hand-computed on: 6h window,
+     *  weights 0.45/0.35/0.20, rebound on. */
+    private static CalvingPredictionProperties oracleWorkingPoint() {
+        CalvingPredictionProperties p = new CalvingPredictionProperties();
+        p.setCurrentTempWindowHours(6);
+        p.setWeightTempDrop(0.45);
+        p.setWeightActivity(0.35);
+        p.setWeightPrior(0.20);
+        p.setReboundDetectionEnabled(true);
+        return p;
+    }
 
     // ------------------------------------------------------------------
     // Fixtures
@@ -144,16 +158,18 @@ class CalvingSeriesReplayerTest {
      * and let the samples through. With the row planted over
      * −13.5h/−13h/−12.5h the clipped exclusion removes three samples of the
      * T−8h current window (9 clean remain, mean 38.80, drop 0.00, rebound
-     * off → score 0); UNexcluded the three 20.00 samples sink that window's
-     * mean to 34.10 (drop 4.70 → temp 100) and flip the rebound component on
-     * (block spread) → score 66 — observably different, so the clip rule is
-     * pinned.
+     * off → score 0); the shock samples are 35.00 — INSIDE the physiological
+     * band, so only the exclusion can remove them — and UNexcluded they sink
+     * that window's mean to 37.85 (drop 0.95 → temp 100; activity 1.00 is
+     * available at 0 and keeps its weight → 56.25, +10 rebound → 66, the same
+     * score as the former out-of-band shock since the ladder saturates),
+     * observably different, so the clip rule is pinned.
      */
     @Test
     void drinkingExclusion_invertedRowClippedToStart() {
         List<TempSample> temps = oracleTemps();
         for (int k = 41; k <= 43; k++) { // T−13.5h .. T−12.5h
-            temps.set(k, temp(34 - 0.5 * k, "20.00"));
+            temps.set(k, temp(34 - 0.5 * k, "35.00"));
         }
         CalvingReplayResult clipped = replayer.replay(null, temps, oracleActs(),
                 List.of(VALLEY_EVENT, INVERTED_EVENT), null, NOW);
@@ -161,7 +177,7 @@ class CalvingSeriesReplayerTest {
 
         CalvingReplayResult unexcluded = replayer.replay(null, temps, oracleActs(),
                 List.of(), null, NOW);
-        assertPoint(unexcluded, 8, 66, "4.70", "1.00");
+        assertPoint(unexcluded, 8, 66, "0.95", "1.00");
         assertThat(unexcluded.points()).isNotEqualTo(clipped.points());
     }
 
@@ -281,6 +297,40 @@ class CalvingSeriesReplayerTest {
         assertThat(guarded.points()).isEqualTo(baseline.points());
         assertThat(guarded.episodes()).isEqualTo(baseline.episodes());
         assertThat(guarded.lastScore()).isEqualTo(baseline.lastScore());
+    }
+
+    // ------------------------------------------------------------------
+    // Physiological gate (production-replay parity)
+    // ------------------------------------------------------------------
+
+    /**
+     * Detached-sensor readings never enter the replayed temperature channel,
+     * exactly like production: 30.00 °C (and one 45.00 °C) samples planted
+     * between the oracle samples — at T−0.25h, T−3.25h, T−5.75h, T−9.25h and
+     * T−26.25h, outside both drinking windows so only the gate can drop them —
+     * replay to the baseline bit for bit. Ungated, the T−8h point alone would
+     * read a drop of 0.98 instead of 0.00 (its current window keeps 8 clean
+     * 38.80 samples plus the planted 30.00 → mean 37.82) and the score track
+     * would move.
+     */
+    @Test
+    void physiologicalGate_detachedSamplesNeverEnterTemperatureChannel() {
+        CalvingReplayResult baseline = replayer.replay(42L, oracleTemps(), oracleActs(),
+                List.of(VALLEY_EVENT, INVERTED_EVENT), null, NOW);
+
+        List<TempSample> withDetached = new ArrayList<>(oracleTemps());
+        withDetached.add(temp(0.25, "30.00"));
+        withDetached.add(temp(3.25, "45.00"));
+        withDetached.add(temp(5.75, "30.00"));
+        withDetached.add(temp(9.25, "30.00"));
+        withDetached.add(temp(26.25, "30.00"));
+        CalvingReplayResult gated = replayer.replay(42L, withDetached, oracleActs(),
+                List.of(VALLEY_EVENT, INVERTED_EVENT), null, NOW);
+
+        assertThat(gated.points()).isEqualTo(baseline.points());
+        assertThat(gated.episodes()).isEqualTo(baseline.episodes());
+        assertThat(gated.tempChannelAvailablePoints()).isEqualTo(baseline.tempChannelAvailablePoints());
+        assertPoint(gated, 0, 87, "0.30", "1.47");
     }
 
     /** An empty series replays to nothing: no points, no episodes, null tails. */

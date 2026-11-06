@@ -61,7 +61,11 @@ import static org.mockito.Mockito.when;
  * persist/alert/release state machine over health_snapshots.calving_risk_score,
  * baseline audit stamping and column-scale clamping. The real kernel and the
  * real alert bridge run over mocked ports, so score oracles are hand-computed
- * from the documented ladders (weights 0.45/0.35/0.20).
+ * from the documented ladders. setUp pins the working point the oracles were
+ * computed on (6h temperature window, weights 0.45/0.35/0.20, rebound on), so
+ * recalibrating the property defaults (plan 7d) leaves them intact; the pinned
+ * window also fixes the read span at 24 + 48 + 6 = 78h, which the drinking-event
+ * fetch stubs below depend on.
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -94,6 +98,12 @@ class CalvingPredictionApplicationServiceTest {
     @BeforeEach
     void setUp() {
         properties = new CalvingPredictionProperties();
+        // Oracle working point, decoupled from the calibrated defaults (see class javadoc).
+        properties.setCurrentTempWindowHours(6);
+        properties.setWeightTempDrop(0.45);
+        properties.setWeightActivity(0.35);
+        properties.setWeightPrior(0.20);
+        properties.setReboundDetectionEnabled(true);
         baselineProperties = new BaselineLearningProperties();
         HealthAlertBridgeService bridge = new HealthAlertBridgeService(
                 ranchQueryPort, ranchCommandPort, tenantZoneResolver, properties);
@@ -518,6 +528,35 @@ class CalvingPredictionApplicationServiceTest {
         service.evaluateHead(LIVESTOCK_ID);
 
         assertThat(createdAlert().source()).isEqualTo("DATAGEN");
+    }
+
+    // ── physiological gate ──────────────────────────────────────
+
+    /**
+     * Detached-sensor readings never enter the temperature channel: three
+     * 30.00 °C samples and one 45.00 °C sample planted between the current
+     * window's samples, plus a 30.00 °C sample in the 24h reference window,
+     * leave the evaluation identical to the clean series (tempDrop 0.30,
+     * score 87). Without the gate the current mean would sink to 37.31 and
+     * the 24h reference to 38.12 — drop 1.15, an observably different row.
+     */
+    @Test
+    void physiologicalGate_detachedSamplesNeverEnterTemperatureChannel() {
+        List<TemperatureLog> temps = new ArrayList<>(alertingTemps("THINGSBOARD"));
+        temps.addAll(tempSeries(5.75, 1, "30.00", "THINGSBOARD"));
+        temps.addAll(tempSeries(3.25, 1, "30.00", "THINGSBOARD"));
+        temps.addAll(tempSeries(0.25, 1, "30.00", "THINGSBOARD"));
+        temps.addAll(tempSeries(1.25, 1, "45.00", "THINGSBOARD"));
+        temps.addAll(tempSeries(27.25, 1, "30.00", "THINGSBOARD"));
+        stubReads(temps, alertingActivities("THINGSBOARD"));
+
+        service.evaluateHead(LIVESTOCK_ID);
+
+        CalvingPrediction row = savedRow();
+        assertThat(row.getTempDropCelsius()).isEqualByComparingTo("0.30");
+        assertThat(row.getActivityRatio()).isEqualByComparingTo("1.36");
+        assertThat(row.getRiskScore()).isEqualTo(87);
+        verify(snapshotRepo).updateCalvingRiskScore(LIVESTOCK_ID, 87);
     }
 
     @Test

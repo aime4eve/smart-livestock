@@ -39,9 +39,9 @@ import java.util.TreeSet;
  *       which pools the raw samples.</li>
  *   <li>Samples with a null timestamp or value (e.g. a null activityIndex)
  *       are skipped; input order is not trusted.</li>
- *   <li>Drinking valleys are not filtered here: callers pass temperature
- *       series with the drinking-event windows already removed
- *       ({@link #excludeWindows}); activity series stay raw.</li>
+ *   <li>Drinking valleys and implausible readings are not filtered here:
+ *       callers pass temperature series through {@link #filterPlausible} and
+ *       then {@link #excludeWindows}; activity series stay raw.</li>
  *   <li>Features are rounded to 2 decimals HALF_UP — the calving_predictions
  *       column scale — before scoring, so a persisted feature row reproduces
  *       its persisted score.</li>
@@ -172,7 +172,8 @@ public class CalvingPredictionService {
      * score at/above the threshold crosses; above 1 the PREVIOUS column value
      * must already sit at/above it ({@code prev >= alert && new >= alert} —
      * review 2b: the first crossing only lands the score). The column holds
-     * one previous score, so any alertPersistencePoints above 2 behaves as 2.
+     * one previous score, so alertPersistencePoints is limited to 1 or 2 by
+     * {@code CalvingPredictionProperties.validate()}.
      * Separated from {@link #transition} because the caller needs the verdict
      * before deciding whether an ACTIVE-ticket lookup can matter at all.
      */
@@ -251,15 +252,45 @@ public class CalvingPredictionService {
         return kept;
     }
 
+    // ------------------------------------------------------------ physiological gate
+
+    /**
+     * Physiological gate for the temperature channel: keeps the samples with
+     * {@code minPlausibleTempCelsius ≤ celsius ≤ maxPlausibleTempCelsius}
+     * (both inclusive; defaults 35.0 / 43.0, the same band as the baseline
+     * learner's {@code BaselineLearningCalculator} MIN/MAX_PLAUSIBLE_TEMP) and
+     * removes samples with a null celsius, in input order. Timestamps are not
+     * consulted. Null input stays null, like {@link #excludeWindows}.
+     *
+     * <p>Detached-sensor readings (an environmental 25–35 °C swing in the
+     * simulation) otherwise read as a huge false drop: 14 of the 46 false
+     * alarms at the balanced working point (plan 7d). Both the orchestration
+     * and the replayer call this BEFORE {@link #excludeWindows}, so production
+     * and replay admit the same samples. The activity series has no gate.</p>
+     */
+    public static List<TempSample> filterPlausible(List<TempSample> samples, CalvingPredictionProperties p) {
+        if (samples == null) {
+            return null;
+        }
+        List<TempSample> kept = new ArrayList<>();
+        for (TempSample sample : samples) {
+            if (sample != null && sample.celsius() != null
+                    && sample.celsius().compareTo(p.getMinPlausibleTempCelsius()) >= 0
+                    && sample.celsius().compareTo(p.getMaxPlausibleTempCelsius()) <= 0) {
+                kept.add(sample);
+            }
+        }
+        return kept;
+    }
+
     // ------------------------------------------------------------ channel features
 
     /**
      * Net temperature drop {@code refLevel − currentLevel} in °C (2 decimals
      * HALF_UP), read from the NEWEST CLEAN window (stale-window selection,
-     * NIX-381 review 2d). Drinking exclusion empties the trailing 6h window for
-     * most of the day while the prepartum decline lasts ≥ 24h, so a fixed
-     * {@code [now − 6h, now)} read would leave the channel usable only a few
-     * hours per night.
+     * NIX-381 review 2d). Drinking exclusion can empty the trailing window for
+     * much of the day while the prepartum decline lasts ≥ 24h, so a read fixed
+     * to end at {@code now} could leave the channel dark for hours.
      *
      * <ul>
      *   <li>Observation window: {@code [t0 − currentTempWindowHours, t0)} where
@@ -267,11 +298,11 @@ public class CalvingPredictionService {
      *       staleWindowMaxLagHours} whose window holds at least
      *       minCurrentTempSamples samples; candidates are {@code now} itself
      *       and every sample instant ≤ now. A fresh series therefore reads
-     *       exactly {@code [now − 6h, now)} (t0 = now), as before.</li>
+     *       exactly {@code [now − currentTempWindowHours, now)} (t0 = now).</li>
      *   <li>Reference: the same-phase level ANCHORED AT t0, i.e. the windows
-     *       {@code [t0 − offset − 6h, t0 − offset)} — the circadian envelope
-     *       only cancels when the reference sits exact 24h multiples before the
-     *       observation window, not before {@code now}.</li>
+     *       {@code [t0 − offset − currentTempWindowHours, t0 − offset)} — the
+     *       circadian envelope only cancels when the reference sits exact 24h
+     *       multiples before the observation window, not before {@code now}.</li>
      * </ul>
      *
      * <p>Positive = cooler than the animal's own same-phase reference
@@ -435,7 +466,8 @@ public class CalvingPredictionService {
      *       sum is divided by the weights of the available components only
      *       (NIX-380 normalization). A null tempDrop / activityRatio and a
      *       NEUTRAL prior drop their weight — with the prior neutral the
-     *       default 0.45 / 0.35 renormalize to 0.5625 / 0.4375. A negative
+     *       temperature and activity weights renormalize to sum to 1 (e.g.
+     *       0.35 / 0.45 become 0.4375 / 0.5625). A negative
      *       tempDrop is available and scores 0 (its weight stays).</li>
      *   <li>A SUPPRESSED prior is an available component scoring 0, and the
      *       weighted composite is then multiplied by priorSuppressionFactor.</li>
@@ -567,7 +599,8 @@ public class CalvingPredictionService {
      *       window holds fewer than minCurrentTempSamples samples is skipped:
      *       it neither counts toward nor breaks a run.</li>
      *   <li>Reference: per evaluation point, the same-phase level anchored on
-     *       that point — windows {@code [t − offset − 6h, t − offset)} (NIX-381
+     *       that point — windows
+     *       {@code [t − offset − currentTempWindowHours, t − offset)} (NIX-381
      *       review 2d; the anchoring helper is shared with
      *       {@link #computeTempDrop}). One now-anchored reference would compare
      *       night levels against day-phase windows across a 36h+ scan and
@@ -582,7 +615,8 @@ public class CalvingPredictionService {
      * <p>Detection lag: the onset marks when the trailing level has sunk
      * onsetDropCelsius below the reference, not when the decline starts —
      * roughly {@code onsetDropCelsius ÷ slope} plus half the trailing window
-     * later (simulated slope 0.3 °C / 36h: ~18h + ~3h).</p>
+     * later (noise-free, simulated slope 0.3 °C / 36h at the 24h window:
+     * ~18h + ~12h, about 6h before calving).</p>
      *
      * <p>Input: the caller's series with drinking-event windows already
      * excluded ({@link #excludeWindows}); a trailing mean does not reject a

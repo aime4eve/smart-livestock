@@ -64,6 +64,15 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@link SimulationEvaluationJourneyTest} precedent): the V38 migration seeds
  * a RUNNING synthesis scenario that would otherwise ingest telemetry between
  * fixture and evaluation.</p>
+ *
+ * <p>Working point pinned (Task 7d): the oracle above was hand-computed on the
+ * pre-calibration defaults — 6h temperature window (so the read span is
+ * 24 + 48 + 6 = 78h, matching the fixture) and weights 0.45 / 0.35 / 0.20.
+ * The same {@code @DynamicPropertySource} pins exactly those keys, because this
+ * journey verifies the pipeline, the alert state machine and the alert, not the
+ * calibrated values; the calibrated defaults (plan 7d: 24h window,
+ * 0.35 / 0.45 / 0.20, rebound off) would move the score and the onset. The
+ * rebound switch keeps its default: no fixture here ever rebounds.</p>
  */
 public class CalvingPredictionJourneyTest extends AbstractJourneyTest {
 
@@ -104,6 +113,14 @@ public class CalvingPredictionJourneyTest extends AbstractJourneyTest {
         // Kill the background synthesis tick (see class javadoc) — the calving
         // scheduler itself is a plain @Scheduled bean and stays active.
         registry.add("datagen.enabled", () -> "false");
+        // Oracle working point (see class javadoc): the pre-7d 6h window and
+        // 0.45/0.35/0.20 weights. The rebound switch is left at its default
+        // (irrelevant to every fixture here: a monotonic decline or a flat
+        // series never rebounds).
+        registry.add("smartlivestock.calving.current-temp-window-hours", () -> "6");
+        registry.add("smartlivestock.calving.weight-temp-drop", () -> "0.45");
+        registry.add("smartlivestock.calving.weight-activity", () -> "0.35");
+        registry.add("smartlivestock.calving.weight-prior", () -> "0.20");
     }
 
     @BeforeEach

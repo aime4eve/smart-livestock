@@ -12,9 +12,12 @@ import java.util.List;
 
 /**
  * Tunables for the calving-risk prediction pipeline (NIX-381, plan
- * 2026-11-06 "CalvingPredictionService"). Every ladder rung, weight and
- * window below is an initial draft to be settled by the simulation
- * regression; all are overridable via {@code smartlivestock.calving.*}.
+ * 2026-11-06 "CalvingPredictionService"); all are overridable via
+ * {@code smartlivestock.calving.*}. The default temperature window, composite
+ * weights and rebound switch were finalized by the 2026-11-06 dev simulation
+ * calibration (seed 20261105, run 31, plan 7d) — a simulated working point that
+ * trades detection without a breeding record for fewer false alarms, not a
+ * real-data result. The other ladders and windows remain the initial draft.
  *
  * <p>Consumers: the pure kernel {@code CalvingPredictionService} reads the
  * channel windows, ladders, breeding prior, weights, rebound and
@@ -41,13 +44,16 @@ public class CalvingPredictionProperties {
 
     // ------------------------------------------- temperature drop channel
 
-    /** Current temperature window length in hours: {@code [now - h, now)}. */
-    private long currentTempWindowHours = 6;
+    /** Current temperature window length in hours: {@code [t0 - h, t0)}. 24h (the Burfeind 2011
+     *  24h drop) because a 6h mean has an SNR of about 1 under the simulated noise. Finalized by
+     *  the 2026-11-06 dev simulation calibration (seed 20261105, run 31, plan 7d). */
+    private long currentTempWindowHours = 24;
     /** Same-phase reference window offsets in hours, measured back from the temperature
      *  observation window end (t0), so the circadian envelope cancels; each must be a
      *  positive multiple of 24. */
     private List<Long> refWindowOffsetHours = List.of(24L, 48L);
-    /** Samples required inside the current temperature window (8 of 12 at 30-minute granularity). */
+    /** Samples required inside the current temperature window (8 of 48 at the default
+     *  24h window and 30-minute granularity). */
     private int minCurrentTempSamples = 8;
     /** Samples required per reference temperature window for it to count; also guards each rebound block. */
     private int minRefTempSamples = 4;
@@ -55,6 +61,13 @@ public class CalvingPredictionProperties {
      *  clean temperature window: the prepartum decline lasts >= 24h, so the last clean
      *  (typically night) window stays readable through a drinking-excluded day. */
     private int staleWindowMaxLagHours = 24;
+    /** Physiological gate lower bound (inclusive), applied before the drinking exclusion. Same
+     *  value as {@code BaselineLearningCalculator.MIN_PLAUSIBLE_TEMP}; detached-sensor readings
+     *  (a 25–35 °C environmental swing in the simulation) fall below it. */
+    private BigDecimal minPlausibleTempCelsius = new BigDecimal("35.0");
+    /** Physiological gate upper bound (inclusive). Same value as
+     *  {@code BaselineLearningCalculator.MAX_PLAUSIBLE_TEMP}. */
+    private BigDecimal maxPlausibleTempCelsius = new BigDecimal("43.0");
 
     /** Temperature drop (°C) rung for the high score (Burfeind 2011 24h drop). */
     private BigDecimal tempDropHighCelsius = new BigDecimal("0.30");
@@ -111,11 +124,13 @@ public class CalvingPredictionProperties {
 
     // ------------------------------------------------- composite weights
 
-    /** Weight of the temperature drop component. */
-    private double weightTempDrop = 0.45;
-    /** Weight of the activity ratio component. */
-    private double weightActivity = 0.35;
-    /** Weight of the breeding prior component. */
+    /** Weight of the temperature drop component. The weights 0.35 / 0.45 / 0.20 were finalized by
+     *  the 2026-11-06 dev simulation calibration (seed 20261105, run 31, plan 7d): activity is the
+     *  higher-SNR channel and carries more of the alert evidence. */
+    private double weightTempDrop = 0.35;
+    /** Weight of the activity ratio component (see {@link #weightTempDrop}). */
+    private double weightActivity = 0.45;
+    /** Weight of the breeding prior component (see {@link #weightTempDrop}). */
     private double weightPrior = 0.20;
     /** Score cap applied when tempDrop is unavailable (null): temperature is the
      *  main evidence channel, so activity and/or prior alone stay at the prompt
@@ -124,10 +139,11 @@ public class CalvingPredictionProperties {
 
     // ------------------------------------------ terminal temperature rebound
 
-    /** Rebound bonus switch. The simulation pipeline never generates the
-     *  rebound shape (P11 models a linear decline only), so this component
-     *  cannot be validated by the current simulation (plan open question 5). */
-    private boolean reboundDetectionEnabled = true;
+    /** Rebound bonus switch, off by default (2026-11-06 dev simulation calibration, seed 20261105,
+     *  run 31, plan 7d): the simulation pipeline never generates the rebound shape (P11 models a
+     *  linear decline only), so it cannot back this component, and the run measured a 32.5% hit
+     *  rate on non-prepartum grid points (plan open question 5). */
+    private boolean reboundDetectionEnabled = false;
     /** Lookback span in hours, tiled into contiguous blocks of {@link #reboundWindowHours}. */
     private long reboundLookbackHours = 12;
     /** Minimum net drop (°C) from the first block mean to the lowest block mean. */
@@ -168,8 +184,10 @@ public class CalvingPredictionProperties {
      *  never fetches events: the caller applies the buffer — this field is the shared
      *  production/replay definition of the exclusion span. */
     private int drinkingExclusionBufferMinutes = 120;
-    /** Consecutive evaluations scoring >= alert-threshold before an alert is raised
-     *  (review 2c: the first crossing only lands the score). Release below
+    /** Consecutive evaluations scoring >= alert-threshold before an alert is raised: 1 or 2.
+     *  The only state is the single calving_risk_score column (one previous score), so 2 is the
+     *  semantic limit; validate() rejects more because larger values used to behave as 2 silently
+     *  (plan 7d). The first crossing only lands the score (review 2c); release below
      *  release-threshold stays immediate. */
     private int alertPersistencePoints = 2;
     /** Activity-path window start, in hours after now. */
@@ -194,6 +212,12 @@ public class CalvingPredictionProperties {
         requireSamePhaseOffsets("ref-window-offset-hours", refWindowOffsetHours);
         requirePositive("current-activity-window-hours", currentActivityWindowHours);
         requireSamePhaseOffsets("ref-activity-window-offset-hours", refActivityWindowOffsetHours);
+
+        // Physiological gate: a non-empty inclusive band.
+        if (minPlausibleTempCelsius.compareTo(maxPlausibleTempCelsius) >= 0) {
+            throw invalid("min-plausible-temp-celsius", "must be below max-plausible-temp-celsius",
+                    minPlausibleTempCelsius + "/" + maxPlausibleTempCelsius);
+        }
 
         // Ladders: strictly monotonic rungs. The low temperature rung must be
         // positive so a zero or negative drop never scores; the low activity
@@ -269,8 +293,11 @@ public class CalvingPredictionProperties {
         if (drinkingExclusionBufferMinutes < 0) {
             throw invalid("drinking-exclusion-buffer-minutes", "must be >= 0", drinkingExclusionBufferMinutes);
         }
-        if (alertPersistencePoints < 1) {
-            throw invalid("alert-persistence-points", "must be >= 1", alertPersistencePoints);
+        if (alertPersistencePoints < 1 || alertPersistencePoints > 2) {
+            throw invalid("alert-persistence-points",
+                    "must be 1 or 2 (the single calving_risk_score column holds one previous score, "
+                            + "so 2 is the semantic limit)",
+                    alertPersistencePoints);
         }
 
         // Onset and window estimate.

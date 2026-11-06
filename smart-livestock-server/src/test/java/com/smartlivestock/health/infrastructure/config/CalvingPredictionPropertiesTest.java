@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.within;
 class CalvingPredictionPropertiesTest {
 
     @Test
-    void defaults_matchPlanDraftAndPassValidation() {
+    void defaults_matchPlan7dWorkingPointAndPassValidation() {
         CalvingPredictionProperties p = new CalvingPredictionProperties();
         assertThatCode(p::validate).doesNotThrowAnyException();
 
@@ -33,8 +33,15 @@ class CalvingPredictionPropertiesTest {
         assertThat(p.getActivityRatioLow()).isEqualByComparingTo("1.15");
         assertThat(p.getWeightTempDrop() + p.getWeightActivity() + p.getWeightPrior())
                 .isCloseTo(1.0, within(1e-9));
-        // plan open question 5: the rebound component ships enabled
-        assertThat(p.isReboundDetectionEnabled()).isTrue();
+        // plan 7d working point (seed 20261105, run 31): 24h window, activity-heavier
+        // weights, rebound off (32.5% non-prepartum hit rate measured)
+        assertThat(p.getCurrentTempWindowHours()).isEqualTo(24L);
+        assertThat(p.getWeightTempDrop()).isEqualTo(0.35);
+        assertThat(p.getWeightActivity()).isEqualTo(0.45);
+        assertThat(p.getWeightPrior()).isEqualTo(0.20);
+        assertThat(p.isReboundDetectionEnabled()).isFalse();
+        assertThat(p.getMinPlausibleTempCelsius()).isEqualByComparingTo("35.0");
+        assertThat(p.getMaxPlausibleTempCelsius()).isEqualByComparingTo("43.0");
         assertThat(p.getPersistThreshold()).isEqualTo(50);
         assertThat(p.getAlertThreshold()).isEqualTo(70);
         assertThat(p.getReleaseThreshold()).isEqualTo(55);
@@ -102,6 +109,46 @@ class CalvingPredictionPropertiesTest {
         assertThatThrownBy(zeroPersistence::validate)
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("alert-persistence-points");
+    }
+
+    @Test
+    void validate_alertPersistencePointsLimitedToOneOrTwo() {
+        // >2 used to fall back to 2 silently (single-column prev state) — a
+        // configuration trap the plan 7d calibration run stepped into.
+        CalvingPredictionProperties three = new CalvingPredictionProperties();
+        three.setAlertPersistencePoints(3);
+        assertThatThrownBy(three::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("alert-persistence-points")
+                .hasMessageContaining("2 is the semantic limit");
+        CalvingPredictionProperties one = new CalvingPredictionProperties();
+        one.setAlertPersistencePoints(1);
+        assertThatCode(one::validate).doesNotThrowAnyException();
+        CalvingPredictionProperties two = new CalvingPredictionProperties();
+        two.setAlertPersistencePoints(2);
+        assertThatCode(two::validate).doesNotThrowAnyException();
+    }
+
+    @Test
+    void validate_rejectsEmptyOrInvertedPlausibilityBand() {
+        CalvingPredictionProperties inverted = new CalvingPredictionProperties();
+        inverted.setMinPlausibleTempCelsius(new BigDecimal("43.0"));
+        inverted.setMaxPlausibleTempCelsius(new BigDecimal("35.0"));
+        assertThatThrownBy(inverted::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("min-plausible-temp-celsius");
+
+        CalvingPredictionProperties equal = new CalvingPredictionProperties();
+        equal.setMinPlausibleTempCelsius(new BigDecimal("38.0"));
+        equal.setMaxPlausibleTempCelsius(new BigDecimal("38.0"));
+        assertThatThrownBy(equal::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("min-plausible-temp-celsius");
+
+        CalvingPredictionProperties narrow = new CalvingPredictionProperties();
+        narrow.setMinPlausibleTempCelsius(new BigDecimal("37.0"));
+        narrow.setMaxPlausibleTempCelsius(new BigDecimal("39.0"));
+        assertThatCode(narrow::validate).doesNotThrowAnyException();
     }
 
     @Test

@@ -46,13 +46,15 @@ import java.util.List;
  * samples at/after the evaluation instant anyway). Samples after {@code now}
  * therefore never influence any point.
  *
- * <h2>Drinking exclusion</h2>
+ * <h2>Physiological gate and drinking exclusion</h2>
+ * Both apply to the temperature channel only, in the production order: the
+ * visible samples pass {@link CalvingPredictionService#filterPlausible} first,
+ * then the exclusion; the activity series stays raw.
  * The caller passes RAW event windows {@code (eventStart, trough)}; the
  * replayer applies the production buffer rule itself (identical to
  * {@code CalvingPredictionService} orchestration):
  * {@code [eventStart, max(eventStart, trough) + drinkingExclusionBufferMinutes)} —
- * an inverted row (trough before start) is clipped to its start. Exclusion
- * applies to the temperature channel only; the activity series stays raw.
+ * an inverted row (trough before start) is clipped to its start.
  *
  * <p>{@code breedingAtOrNull} feeds the breeding prior exactly like the
  * production gestation read: per grid point {@code gestationDays =
@@ -175,9 +177,11 @@ public class CalvingSeriesReplayer {
                 List<ActivitySample> visibleActs = actsAsc.subList(0, actCursor);
                 List<ExclusionWindow> visibleWindows = windows.subList(0, winCursor);
 
-                // Drinking exclusion applies to the temperature channel only
-                // (production rule); activity stays raw.
-                List<TempSample> cleanTemps = CalvingPredictionService.excludeWindows(visibleTemps, visibleWindows);
+                // Temperature channel only (production rule, activity stays raw):
+                // physiological gate first, then the drinking exclusion — the same
+                // order as the orchestration.
+                List<TempSample> plausibleTemps = CalvingPredictionService.filterPlausible(visibleTemps, p);
+                List<TempSample> cleanTemps = CalvingPredictionService.excludeWindows(plausibleTemps, visibleWindows);
                 BigDecimal tempDrop = kernel.computeTempDrop(cleanTemps, t, p);
                 BigDecimal activityRatio = kernel.computeActivityRatio(visibleActs, t, p);
                 boolean rebound = kernel.isReboundDetected(cleanTemps, t, p);

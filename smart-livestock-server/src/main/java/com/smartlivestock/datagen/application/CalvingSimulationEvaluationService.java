@@ -66,7 +66,9 @@ import java.util.Objects;
  *   <li><b>Rebound hit rate</b>: rebound-flagged grid points over all grid
  *       points of non-PREPARTUM heads — the pipeline generates no rebound
  *       shape (open question 5), so this rate must stay near zero; a nonzero
- *       rate measures the false-positive side of the rebound component.</li>
+ *       rate measures the false-positive side of the rebound component. With
+ *       the rebound switch off (the default since plan 7d) the kernel flags
+ *       nothing and the rate reads 0 by construction.</li>
  * </ul>
  *
  * <p><b>Dual scenario</b> (Task 2c review): {@code withBreedingPrior=false}
