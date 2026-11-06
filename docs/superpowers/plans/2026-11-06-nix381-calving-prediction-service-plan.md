@@ -183,3 +183,7 @@ Task 2c 落地后（单通道封顶 60/onset 窗 [+2h,+30h]/活动不排除，56
 ## Task 4 交付与评审（2026-11-06，通过）
 
 交付 8ea84388（9 文件 +1590：状态机抽取/回放器/评估服务/端点/DTO/15 新测）。评审通过（独立复跑：`*Calving*` 104 例唯一失败=PhysiologyEventJourneyTest 本地无 Docker 环境债，方法名含 Calving 被过滤误命中；状态机 transition 函数逐行核对与 Task 3 语义一致）。关键设计落地：**状态机抽取为内核纯函数 `transition()`，生产编排与回放器共享同一实现**（回放-生产一致性由代码保证，评测口径即生产口径）；回放节奏=生产小时网格（专测锁死"30min 网格会假持续"）；TP 匹配取产犊时在效的 raise（最晚合格）。采纳偏离：回放器签名增 `breedingAtOrNull`（场景 B 必需）；FP 口径按 spec 字面（PREPARTUM 头自身早期 episode 不计 FP，javadoc 注明）。裁决遗留：回放器两个零消费 baseline 参数**删除**（并入 Task 5 步骤 0）；评估服务 IO 壳不测（Task 5 Journey + Task 7 dev 覆盖）。
+
+## Task 5 交付与评审（2026-11-06，通过）
+
+交付 3749d108（步骤 0 死参数清理 + `CalvingPredictionJourneyTest` 6 场景 592 行）。评审通过：**主智能体独立重跑远程通道 `./scripts/remote-integration-test.sh --with-journey --target CalvingPredictionJourneyTest` → 🟢 全绿（BUILD SUCCESSFUL 36s，tests=6 failures=0）**；`SimulationEvaluationJourneyTest` 回归绿。验收项 1（全新库 Flyway 含 V20261106100000 四节）与验收项 3（真库 Journey）闭环。Journey 设计要点：全部走生产调度入口；建单拆 poll1 落分/poll2 crossed→raise（persistence=2 生产语义成为被断言行为）；oracle 87 分手算锁（渐降窗级 0.27→temp70 + 活动×1.5→100 + 先验 281d→100）；source 透传 RULE/DATAGEN 成对断言；gate 锁定零写入（显式租户解析即被测点）。实证修正：36h 字面渐降在同相位窗级只余 0.16（参考窗自身在渐降段内），fixture 改 24h 渐降（Burfeind 口径）——该发现提示 Task 7 回归需盯仿真 36h 渐降的窗级实测降幅与 tempScore 分档落位。
