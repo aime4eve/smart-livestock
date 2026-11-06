@@ -93,6 +93,12 @@ public class HealthSnapshotJpaEntity {
     @Column(name = "baseline_algorithm_version", length = 16)
     private String baselineAlgorithmVersion;
 
+    // Calving risk score (V20261106100000). NULL = never assessed. Written
+    // only via the targeted updateCalvingRiskScore UPDATE, never whole-entity
+    // (concurrent writers on this row would be clobbered).
+    @Column(name = "calving_risk_score")
+    private Integer calvingRiskScore;
+
     @PrePersist
     protected void onCreate() { Instant now = Instant.now(); this.createdAt = now; this.updatedAt = now; }
 
@@ -159,4 +165,7 @@ public class HealthSnapshotJpaEntity {
     public void setBaselineBandHigh(BigDecimal baselineBandHigh) { this.baselineBandHigh = baselineBandHigh; }
     public String getBaselineAlgorithmVersion() { return baselineAlgorithmVersion; }
     public void setBaselineAlgorithmVersion(String baselineAlgorithmVersion) { this.baselineAlgorithmVersion = baselineAlgorithmVersion; }
+
+    public Integer getCalvingRiskScore() { return calvingRiskScore; }
+    public void setCalvingRiskScore(Integer calvingRiskScore) { this.calvingRiskScore = calvingRiskScore; }
 }
