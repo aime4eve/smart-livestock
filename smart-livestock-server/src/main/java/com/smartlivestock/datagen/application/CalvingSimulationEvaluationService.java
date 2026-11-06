@@ -144,7 +144,7 @@ public class CalvingSimulationEvaluationService {
             Instant breedingAt = syntheticBreedingAt(calvingAt, withBreedingPrior, properties);
 
             CalvingReplayResult replay = replayer.replay(truth.livestockId(), temps, acts, drinking,
-                    null, null, breedingAt, asOf);
+                    breedingAt, asOf);
             heads.add(new HeadOutcome(truth.livestockId(), truth.herdClass(), calvingAt, replay));
         }
 

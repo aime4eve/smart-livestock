@@ -54,10 +54,6 @@ import java.util.List;
  * an inverted row (trough before start) is clipped to its start. Exclusion
  * applies to the temperature channel only; the activity series stays raw.
  *
- * <p>{@code learnedBaselineOrNull}/{@code learnedBaselineSource} are audit
- * metadata only (what a row-writing consumer would stamp into the
- * calving_predictions audit columns); they cannot influence any score here.</p>
- *
  * <p>{@code breedingAtOrNull} feeds the breeding prior exactly like the
  * production gestation read: per grid point {@code gestationDays =
  * DAYS.between(breedingAt, t)}, null when {@code t} predates the breeding or
@@ -114,7 +110,6 @@ public class CalvingSeriesReplayer {
     public CalvingReplayResult replay(Long livestockId,
                                       List<TempSample> temps, List<ActivitySample> acts,
                                       List<ExclusionWindow> drinkingWindows,
-                                      BigDecimal learnedBaselineOrNull, String learnedBaselineSource,
                                       Instant breedingAtOrNull, Instant now) {
         List<TempSample> tempsAsc = temps == null ? List.of() : temps.stream()
                 .filter(s -> s != null && s.at() != null && s.celsius() != null)
@@ -226,10 +221,8 @@ public class CalvingSeriesReplayer {
     /** Anonymous variant of {@link #replay} (no livestock stamp). */
     public CalvingReplayResult replay(List<TempSample> temps, List<ActivitySample> acts,
                                       List<ExclusionWindow> drinkingWindows,
-                                      BigDecimal learnedBaselineOrNull, String learnedBaselineSource,
                                       Instant breedingAtOrNull, Instant now) {
-        return replay(null, temps, acts, drinkingWindows, learnedBaselineOrNull, learnedBaselineSource,
-                breedingAtOrNull, now);
+        return replay(null, temps, acts, drinkingWindows, breedingAtOrNull, now);
     }
 
     // ------------------------------------------------------------------

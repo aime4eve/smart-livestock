@@ -115,7 +115,7 @@ class CalvingSeriesReplayerTest {
     @Test
     void oracle_handComputedGridScores_episodeAndAvailability() {
         CalvingReplayResult result = replayer.replay(42L, oracleTemps(), oracleActs(),
-                List.of(VALLEY_EVENT, INVERTED_EVENT), null, null, null, NOW);
+                List.of(VALLEY_EVENT, INVERTED_EVENT), null, NOW);
 
         assertThat(result.totalPoints()).isEqualTo(35);
         assertThat(result.tempChannelAvailablePoints()).isEqualTo(9);
@@ -156,11 +156,11 @@ class CalvingSeriesReplayerTest {
             temps.set(k, temp(34 - 0.5 * k, "20.00"));
         }
         CalvingReplayResult clipped = replayer.replay(null, temps, oracleActs(),
-                List.of(VALLEY_EVENT, INVERTED_EVENT), null, null, null, NOW);
+                List.of(VALLEY_EVENT, INVERTED_EVENT), null, NOW);
         assertPoint(clipped, 8, 0, "0.00", "1.00");
 
         CalvingReplayResult unexcluded = replayer.replay(null, temps, oracleActs(),
-                List.of(), null, null, null, NOW);
+                List.of(), null, NOW);
         assertPoint(unexcluded, 8, 66, "4.70", "1.00");
         assertThat(unexcluded.points()).isNotEqualTo(clipped.points());
     }
@@ -194,7 +194,7 @@ class CalvingSeriesReplayerTest {
 
         // Production cadence (default pollMs 1h).
         CalvingReplayResult hourly = replayer.replay(null, temps, List.of(), List.of(),
-                null, null, null, NOW);
+                null, NOW);
         assertThat(hourly.totalPoints()).isEqualTo(37);
         assertPoint(hourly, 1, 45, "0.18", null);
         assertPoint(hourly, 0, 70, "0.23", null);
@@ -204,7 +204,7 @@ class CalvingSeriesReplayerTest {
         // Sample pacing: the same sequence on a 30-minute grid.
         properties.setPollMs(1_800_000L);
         CalvingReplayResult halfHour = replayer.replay(null, temps, List.of(), List.of(),
-                null, null, null, NOW);
+                null, NOW);
         assertThat(halfHour.totalPoints()).isEqualTo(73);
         assertPoint(halfHour, 1, 45, "0.18", null);
         assertPoint(halfHour, 0, 70, "0.23", null);
@@ -234,7 +234,7 @@ class CalvingSeriesReplayerTest {
             acts.add(act(hoursAgo, actIdx));
         }
 
-        CalvingReplayResult result = replayer.replay(7L, temps, acts, List.of(), null, null, null, NOW);
+        CalvingReplayResult result = replayer.replay(7L, temps, acts, List.of(), null, NOW);
         assertThat(result.totalPoints()).isEqualTo(37);
         assertThat(result.tempChannelAvailablePoints()).isEqualTo(11); // T−10h..T
 
@@ -266,7 +266,7 @@ class CalvingSeriesReplayerTest {
     @Test
     void noLookAhead_samplesAfterNowIgnored() {
         CalvingReplayResult baseline = replayer.replay(null, oracleTemps(), oracleActs(),
-                List.of(VALLEY_EVENT), null, null, null, NOW);
+                List.of(VALLEY_EVENT), null, NOW);
 
         List<TempSample> withFuture = new ArrayList<>(oracleTemps());
         for (int k = 1; k <= 4; k++) {
@@ -276,7 +276,7 @@ class CalvingSeriesReplayerTest {
         withFutureActs.add(act(-0.5, "9999"));
 
         CalvingReplayResult guarded = replayer.replay(null, withFuture, withFutureActs,
-                List.of(VALLEY_EVENT), null, null, null, NOW);
+                List.of(VALLEY_EVENT), null, NOW);
 
         assertThat(guarded.points()).isEqualTo(baseline.points());
         assertThat(guarded.episodes()).isEqualTo(baseline.episodes());
@@ -287,7 +287,7 @@ class CalvingSeriesReplayerTest {
     @Test
     void emptySeries_replaysToEmptyResult() {
         CalvingReplayResult result = replayer.replay(null, List.of(), List.of(), List.of(),
-                null, null, null, NOW);
+                null, NOW);
         assertThat(result.points()).isEmpty();
         assertThat(result.episodes()).isEmpty();
         assertThat(result.lastScore()).isNull();
@@ -314,7 +314,7 @@ class CalvingSeriesReplayerTest {
         Instant calving = NOW.plus(Duration.ofHours(6));
         Instant breeding = calving.minus(Duration.ofDays(283)); // 282d pregnant at T−2h
         CalvingReplayResult recordAvailable = replayer.replay(null, oracleTemps(), oracleActs(),
-                List.of(VALLEY_EVENT, INVERTED_EVENT), null, null, breeding, NOW);
+                List.of(VALLEY_EVENT, INVERTED_EVENT), breeding, NOW);
         assertPoint(recordAvailable, 8, 20, "0.00", "1.00");
         assertPoint(recordAvailable, 5, 36, "0.05", "1.16");
         assertPoint(recordAvailable, 3, 56, "0.15", "1.28");
@@ -326,7 +326,7 @@ class CalvingSeriesReplayerTest {
         // A fresh record 3h old: neutral before it, suppressed after.
         Instant freshBreeding = NOW.minus(Duration.ofHours(3));
         CalvingReplayResult suppressed = replayer.replay(null, oracleTemps(), oracleActs(),
-                List.of(VALLEY_EVENT, INVERTED_EVENT), null, null, freshBreeding, NOW);
+                List.of(VALLEY_EVENT, INVERTED_EVENT), freshBreeding, NOW);
         assertPoint(suppressed, 4, 20, "0.10", "1.22"); // t < breeding: neutral, base score
         assertPoint(suppressed, 3, 18, "0.15", "1.28"); // 0d pregnant: (20.25+15.75+0)/1.0 × 0.5 = 18
         assertPoint(suppressed, 2, 28, "0.20", "1.34"); // 56 × 0.5
@@ -334,7 +334,7 @@ class CalvingSeriesReplayerTest {
         assertThat(suppressed.episodes()).isEmpty();    // suppressed scores never cross 70
 
         CalvingReplayResult noPrior = replayer.replay(null, oracleTemps(), oracleActs(),
-                List.of(VALLEY_EVENT, INVERTED_EVENT), null, null, null, NOW);
+                List.of(VALLEY_EVENT, INVERTED_EVENT), null, NOW);
         assertPoint(noPrior, 2, 70, "0.20", "1.34");
         assertPoint(noPrior, 4, 20, "0.10", "1.22");
     }
