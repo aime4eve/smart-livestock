@@ -40,7 +40,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Calving-detection evaluation of one literature-parameterized simulation run
@@ -56,11 +55,18 @@ import java.util.Objects;
  * episodes against the ground truth:</p>
  * <ul>
  *   <li><b>Detection</b>: a PREPARTUM head is detected (TP) when an episode
- *       raised at/before the ground-truth calving instant (= the PREPARTUM
- *       label's {@code period_end}); lead = calving − raiseAt (the LATEST
- *       qualifying raise — the alert state at calving). Otherwise missed (FN).</li>
+ *       raised INSIDE its prepartum truth window {@code [period_start,
+ *       period_end]} (= the PREPARTUM label's window, period_end the calving
+ *       instant); lead = calving − raiseAt for the LATEST in-window raise.
+ *       An episode raised BEFORE the window — even one persisting through
+ *       calving — is an early false alarm ({@code prepartumEarlyFalseAlarms}),
+ *       not a detection; otherwise missed (FN). Without the lower bound the
+ *       lead distribution launders long-lived false alerts into detections
+ *       (dev observed "leads" of 61/91/209h that way).</li>
  *   <li><b>False alarms</b>: every episode of a non-PREPARTUM head
- *       (CLEAN/WATER/FEVER/ESTRUS/DETACHED), episode caliber.</li>
+ *       (CLEAN/WATER/FEVER/ESTRUS/DETACHED), episode caliber
+ *       ({@code falseAlarmEpisodes}); {@code totalFalseAlarms} adds the
+ *       prepartum early false alarms.</li>
  *   <li><b>Channel availability</b>: temperature-channel usable grid points
  *       per herd-class group (review 2b/2d: exclusion-dark days are structural,
  *       so the reports must carry availability per class).</li>
@@ -112,8 +118,18 @@ public class CalvingSimulationEvaluationService {
     private record TruthRow(Long livestockId, String herdClass) {
     }
 
-    /** One replayed head plus its ground-truth calving instant (null = none). */
-    public record HeadOutcome(Long livestockId, String herdClass, Instant calvingAt, CalvingReplayResult replay) {
+    /**
+     * PREPARTUM truth window of one head: the label's {@code [period_start,
+     * period_end]} — period_end IS the calving instant, period_start the
+     * detection-judgment lower bound (an alert raised before it is an early
+     * false alarm, not a detection).
+     */
+    public record TruthWindow(Instant start, Instant end) {
+    }
+
+    /** One replayed head plus its ground-truth window (nulls = none). */
+    public record HeadOutcome(Long livestockId, String herdClass, TruthWindow truthWindow,
+                              CalvingReplayResult replay) {
     }
 
     /**
@@ -131,7 +147,7 @@ public class CalvingSimulationEvaluationService {
 
         List<HeadOutcome> heads = new ArrayList<>(truths.size());
         for (TruthRow truth : truths) {
-            Instant calvingAt = loadPrepartumCalvingAt(truth.livestockId(), windowStart, asOf);
+            TruthWindow truthWindow = loadPrepartumTruthWindow(truth.livestockId(), windowStart, asOf);
             List<TempSample> temps = tempLogRepo.findWindowByLivestockId(truth.livestockId(), windowStart, asOf)
                     .stream().map(t -> new TempSample(t.getRecordedAt(), t.getTemperature()))
                     .toList();
@@ -148,11 +164,12 @@ public class CalvingSimulationEvaluationService {
                     .stream().map(event -> new ExclusionWindow(event.getEventStartAt(), event.getEventEndAt()))
                     .sorted(Comparator.comparing(ExclusionWindow::start))
                     .toList();
-            Instant breedingAt = syntheticBreedingAt(calvingAt, withBreedingPrior, properties);
+            Instant breedingAt = syntheticBreedingAt(truthWindow == null ? null : truthWindow.end(),
+                    withBreedingPrior, properties);
 
             CalvingReplayResult replay = replayer.replay(truth.livestockId(), temps, acts, drinking,
                     breedingAt, asOf);
-            heads.add(new HeadOutcome(truth.livestockId(), truth.herdClass(), calvingAt, replay));
+            heads.add(new HeadOutcome(truth.livestockId(), truth.herdClass(), truthWindow, replay));
         }
 
         return assembleReport(runId, evaluatedAt, withBreedingPrior, heads,
@@ -166,8 +183,9 @@ public class CalvingSimulationEvaluationService {
     /**
      * Pure alignment of replay outcomes against ground truth — no I/O, no
      * clock. Metric definitions are in the class javadoc; PREPARTUM heads
-     * without a known calving instant are unjudgeable (counted neither as
-     * detected nor missed, but surfaced via perHead with calvingAt null).
+     * without a truth window are unjudgeable (counted neither as detected nor
+     * missed, their episodes classified nowhere, surfaced via perHead with a
+     * null window).
      */
     static CalvingEvaluationReport assembleReport(long runId, Instant evaluatedAt, boolean withBreedingPrior,
                                                   List<HeadOutcome> heads, String note) {
@@ -175,6 +193,7 @@ public class CalvingSimulationEvaluationService {
         int missed = 0;
         List<Double> leads = new ArrayList<>();
         int falseAlarmEpisodes = 0;
+        int prepartumEarlyFalseAlarms = 0;
         int prepartumAvailable = 0;
         int prepartumTotal = 0;
         int nonPrepartumAvailable = 0;
@@ -185,6 +204,8 @@ public class CalvingSimulationEvaluationService {
         for (HeadOutcome head : heads) {
             boolean prepartum = HERD_CLASS_PREPARTUM.equals(head.herdClass());
             CalvingReplayResult replay = head.replay();
+            TruthWindow truth = head.truthWindow();
+            Instant calvingAt = truth == null ? null : truth.end();
 
             if (prepartum) {
                 prepartumAvailable += replay.tempChannelAvailablePoints();
@@ -197,30 +218,42 @@ public class CalvingSimulationEvaluationService {
                 falseAlarmEpisodes += replay.episodes().size();
             }
 
-            // Detection: the LATEST episode raise at/before the calving instant
-            // (the alert state at calving), not an earlier unrelated episode.
+            // Detection (window caliber): an episode raised INSIDE the prepartum
+            // truth window [period_start, period_end]; the matching raise is the
+            // LATEST in-window one (the alert state at calving). An episode
+            // raised BEFORE the window is an early false alarm even when it
+            // persists through calving — crediting it as a detection would
+            // launder long-lived false alerts into lead times (dev observed
+            // "leads" of 61/91/209h that way). A raise after the calving
+            // instant is neither (nothing to detect anymore, no window leak).
             Instant detectionRaise = null;
-            if (head.calvingAt() != null) {
+            int earlyFalseAlarms = 0;
+            if (prepartum && truth != null) {
                 for (AlertEpisode episode : replay.episodes()) {
-                    if (!episode.raiseAt().isAfter(head.calvingAt())
-                            && (detectionRaise == null || episode.raiseAt().isAfter(detectionRaise))) {
-                        detectionRaise = episode.raiseAt();
+                    if (!episode.raiseAt().isBefore(truth.start())) {
+                        if (!episode.raiseAt().isAfter(truth.end())
+                                && (detectionRaise == null || episode.raiseAt().isAfter(detectionRaise))) {
+                            detectionRaise = episode.raiseAt();
+                        }
+                    } else {
+                        earlyFalseAlarms++;
                     }
                 }
             }
             Double leadHours = detectionRaise == null ? null
-                    : hours(Duration.between(detectionRaise, head.calvingAt()));
-            if (prepartum && head.calvingAt() != null) {
+                    : hours(Duration.between(detectionRaise, calvingAt));
+            if (prepartum && truth != null) {
                 if (detectionRaise != null) {
                     detected++;
                     leads.add(leadHours);
                 } else {
                     missed++;
                 }
+                prepartumEarlyFalseAlarms += earlyFalseAlarms;
             }
 
             perHead.add(new PerHeadCalving(head.livestockId(), head.herdClass(), detectionRaise,
-                    head.calvingAt(), leadHours, replay.episodes().size(),
+                    calvingAt, leadHours, replay.episodes().size(), earlyFalseAlarms,
                     ratio(replay.tempChannelAvailablePoints(), replay.totalPoints())));
         }
 
@@ -230,6 +263,8 @@ public class CalvingSimulationEvaluationService {
                 leads.isEmpty() ? null : median(leads),
                 leads.isEmpty() ? null : Collections.max(leads),
                 falseAlarmEpisodes,
+                prepartumEarlyFalseAlarms,
+                falseAlarmEpisodes + prepartumEarlyFalseAlarms,
                 new ChannelAvailability(prepartumAvailable, prepartumTotal,
                         nonPrepartumAvailable, nonPrepartumTotal),
                 nonPrepartumTotal == 0 ? null : round4((double) reboundPointsNonPrepartum / nonPrepartumTotal),
@@ -323,19 +358,22 @@ public class CalvingSimulationEvaluationService {
     }
 
     /**
-     * Ground-truth calving instant of one head: the {@code period_end} of the
-     * PREPARTUM label overlapping the run window (the herd composer writes
-     * {@code [calving − 48h, calving]}). The window constraint mirrors
+     * Ground-truth prepartum window of one head: the {@code [period_start,
+     * period_end]} of the PREPARTUM label overlapping the run window (the
+     * herd composer writes {@code [calving − 48h, calving]} — the interval is
+     * read from the label, never hard-coded). The window constraint mirrors
      * {@code SimulationEvaluationService.loadEstrusLabels}: without it a
      * historical label from an earlier run would be misattributed. The latest
-     * matching label wins (one per head by construction).
+     * matching label wins (one per head by construction); a label without a
+     * period_start is skipped (incomplete truth — the head falls back to
+     * unjudgeable rather than silently widening the judgment window).
      */
-    private Instant loadPrepartumCalvingAt(Long livestockId, Instant from, Instant to) {
+    private TruthWindow loadPrepartumTruthWindow(Long livestockId, Instant from, Instant to) {
         return groundTruthLabelRepository.findByLivestockIdAndPeriodOverlap(livestockId, from, to).stream()
                 .filter(label -> label != null && label.getType() == ScenarioType.PREPARTUM)
-                .map(GroundTruthLabel::getPeriodEnd)
-                .filter(Objects::nonNull)
-                .max(Instant::compareTo)
+                .filter(label -> label.getPeriodStart() != null && label.getPeriodEnd() != null)
+                .max(Comparator.comparing(GroundTruthLabel::getPeriodEnd))
+                .map(label -> new TruthWindow(label.getPeriodStart(), label.getPeriodEnd()))
                 .orElse(null);
     }
 }
