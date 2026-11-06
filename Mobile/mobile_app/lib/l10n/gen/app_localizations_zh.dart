@@ -411,6 +411,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ranchAlertTypeEpidemic => '疫病';
 
   @override
+  String get ranchAlertTypeCalving => '临产';
+
+  @override
   String get ranchAlertTypeShortApproach => '接近';
 
   @override
@@ -2066,6 +2069,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get featEpidemicAlert => '疫情预警';
+
+  @override
+  String get featCalvingWarning => '分娩预警';
 
   @override
   String get analyticsTitle => '用量分析';
@@ -4274,6 +4280,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get alertTypeAiAnomaly => 'AI异常';
+
+  @override
+  String get alertTypeCalvingWarning => '分娩预警';
 
   @override
   String get alertTypeDeviceTamper => '设备拆卸';

@@ -22,6 +22,7 @@ String featureDisplayName(AppLocalizations l10n, String featureKey) {
     case 'health_score':          return l10n.featHealthScore;
     case 'estrus_detect':         return l10n.featEstrusDetect;
     case 'epidemic_alert':        return l10n.featEpidemicAlert;
+    case 'calving_warning':       return l10n.featCalvingWarning;
     default: return featureKey;
   }
 }

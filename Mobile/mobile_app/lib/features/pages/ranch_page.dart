@@ -1341,6 +1341,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
       'FEVER' => l10n.ranchAlertTypeFever,
       'DIGESTIVE_ABNORMAL' => l10n.ranchAlertTypeDigestive,
       'ESTRUS' => l10n.ranchAlertTypeEstrus,
+      'CALVING_WARNING' => l10n.ranchAlertTypeCalving,
       'EPIDEMIC' => l10n.ranchAlertTypeEpidemic,
       _ => null,
     };
@@ -1907,6 +1908,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
   }
 
   /// Fallback grouping of overview alerts while the summary endpoint loads.
+  /// The health set mirrors backend AlertApplicationService.GROUP_HEALTH.
   int _clientGroupCount(RanchOverview overview, String group) {
     const fenceTypes = {'FENCE_BREACH', 'FENCE_APPROACH', 'ZONE_APPROACH'};
     const deviceTypes = {'DEVICE_TAMPER', 'DEVICE_LOW_BATTERY'};
@@ -1919,6 +1921,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
         'ESTRUS',
         'EPIDEMIC',
         'AI_ANOMALY',
+        'CALVING_WARNING',
       },
     };
     final types = groups[group]!;

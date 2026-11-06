@@ -29,6 +29,14 @@ void main() {
       expect(livestockHealthColor('WARNING', 'ESTRUS'), AppColors.estrus);
     });
 
+    test('WATCH + CALVING_WARNING returns warning orange, not danger', () {
+      // Signal sync emits WATCH + raw alert type for WARNING-level tickets.
+      expect(
+        livestockHealthColor('WATCH', 'CALVING_WARNING'),
+        AppColors.warning,
+      );
+    });
+
     test('WARNING + EPIDEMIC returns info blue', () {
       expect(livestockHealthColor('WARNING', 'EPIDEMIC'), AppColors.info);
     });

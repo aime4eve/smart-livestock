@@ -376,6 +376,7 @@ public class RanchOverviewApplicationService {
         summary.put("DIGESTIVE_ABNORMAL", 0);
         summary.put("ESTRUS", 0);
         summary.put("EPIDEMIC", 0);
+        summary.put("CALVING_WARNING", 0);
         for (Alert alert : alerts) {
             if (alert.getStatus() != AlertStatus.ACTIVE) continue;
             String type = alert.getType().name();

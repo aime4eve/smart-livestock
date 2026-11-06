@@ -12,6 +12,9 @@ Color livestockHealthColor(String healthStatus, String primaryAlert) {
     'TEMPERATURE_ABNORMAL' => AppColors.danger,
     'DIGESTIVE' || 'DIGESTIVE_ABNORMAL' => AppColors.warning,
     'ESTRUS' => AppColors.estrus,
+    // WARNING-level health ticket: shares the health WARNING tone instead of
+    // falling through to the danger default (NIX-381).
+    'CALVING_WARNING' => AppColors.warning,
     'EPIDEMIC' => AppColors.info,
     _ => AppColors.danger,
   };
@@ -34,7 +37,8 @@ double livestockPositionOpacity(String freshness) {
 /// and fence status (border style) as two independent visual channels.
 ///
 /// Fill color encodes health type:
-///   NORMAL=green, FEVER=red, DIGESTIVE=orange, ESTRUS=pink, EPIDEMIC=blue
+///   NORMAL=green, FEVER=red, DIGESTIVE=orange, ESTRUS=pink, EPIDEMIC=blue,
+///   CALVING_WARNING=orange
 ///
 /// AI and return-home are small independent dots, not health fill colors.
 /// Border style encodes fence status:
@@ -54,7 +58,7 @@ class LivestockMapMarker extends StatefulWidget {
 
   final String livestockCode;
   final String healthStatus; // NORMAL / WARNING / CRITICAL
-  final String primaryAlert; // FEVER / DIGESTIVE / ESTRUS / EPIDEMIC / '' / ...
+  final String primaryAlert; // FEVER / DIGESTIVE / ESTRUS / EPIDEMIC / CALVING_WARNING / '' / ...
   final String fenceStatus; // SAFE / APPROACH / BREACH
   final String aiStatus; // NONE / OBSERVE / ALERT
   final String presenceStatus; // NORMAL / RETURN_HOME
