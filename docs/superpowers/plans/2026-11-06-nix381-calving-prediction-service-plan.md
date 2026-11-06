@@ -179,3 +179,7 @@ Task 2c 落地后（单通道封顶 60/onset 窗 [+2h,+30h]/活动不排除，56
 2. 采纳的实证偏离：先验取数改 `PhysiologyEventJpaRepository.findFirst...EventTypeIn[BREEDING,CALVING]...Source=MANUAL`（port.activeWindows 只产 ILLNESS 窗；BREEDING 外加 CALVING 里程碑/未来/超 400d 三守卫）；告警 source 从样本列判定（任一样本 DATAGEN 即整评 DATAGEN，防合成分冒充规则单）；读窗长度随配置动态计算（体温 78h/活动 56h）；**sub-persist 无单重置陈旧 prev 列**（防旧 prev≥70 与单次穿越拼假持续——子智能体超出字面 spec 的正确防御）。
 3. 子智能体自主加分点（采纳）：地图红点过滤集 +CALVING_WARNING（维持"地图与告警中心一致"不变量，有专测）；`prior_enabled` 列语义=本次评分有可用配种记录（支撑 Task 4 双场景）。
 4. 遗留：`usesLearnedBaseline` 统一抽取（后续单）；`buildHealthAlertSummary` 固定 4 键未加 CALVING（Task 6 前端时裁决）；告警 source 只认 MANUAL 配种事件（ALERT_CONFIRM 来源待后续）。
+
+## Task 4 交付与评审（2026-11-06，通过）
+
+交付 8ea84388（9 文件 +1590：状态机抽取/回放器/评估服务/端点/DTO/15 新测）。评审通过（独立复跑：`*Calving*` 104 例唯一失败=PhysiologyEventJourneyTest 本地无 Docker 环境债，方法名含 Calving 被过滤误命中；状态机 transition 函数逐行核对与 Task 3 语义一致）。关键设计落地：**状态机抽取为内核纯函数 `transition()`，生产编排与回放器共享同一实现**（回放-生产一致性由代码保证，评测口径即生产口径）；回放节奏=生产小时网格（专测锁死"30min 网格会假持续"）；TP 匹配取产犊时在效的 raise（最晚合格）。采纳偏离：回放器签名增 `breedingAtOrNull`（场景 B 必需）；FP 口径按 spec 字面（PREPARTUM 头自身早期 episode 不计 FP，javadoc 注明）。裁决遗留：回放器两个零消费 baseline 参数**删除**（并入 Task 5 步骤 0）；评估服务 IO 壳不测（Task 5 Journey + Task 7 dev 覆盖）。
