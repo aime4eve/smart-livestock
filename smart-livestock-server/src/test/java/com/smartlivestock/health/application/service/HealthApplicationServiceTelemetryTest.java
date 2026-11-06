@@ -68,10 +68,18 @@ class HealthApplicationServiceTelemetryTest {
                 feverService, digestiveService, estrusAnalysisService, epidemicService,
                 messageResolver,
                 org.mockito.Mockito.mock(ContactAnalysisService.class),
-                new com.smartlivestock.health.infrastructure.config.BaselineLearningProperties());
+                new com.smartlivestock.health.infrastructure.config.BaselineLearningProperties(),
+                legacyEstrusScoringProperties());
 
         // refreshSnapshot calls ensureSnapshotExists then findByLivestockId.
         doNothing().when(snapshotRepo).ensureSnapshotExists(anyLong(), anyLong());
+    }
+
+    /** LEGACY mode: these tests lock the pre-NIX-380 scoring behavior. */
+    private static com.smartlivestock.health.infrastructure.config.EstrusScoringProperties legacyEstrusScoringProperties() {
+        var props = new com.smartlivestock.health.infrastructure.config.EstrusScoringProperties();
+        props.setMode("LEGACY");
+        return props;
     }
 
     @Test

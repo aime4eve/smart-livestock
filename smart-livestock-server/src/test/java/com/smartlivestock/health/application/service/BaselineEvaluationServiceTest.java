@@ -84,6 +84,13 @@ class BaselineEvaluationServiceTest {
     private static final String NOTE_STUB = "note-stub";
 
     private final BaselineLearningProperties properties = new BaselineLearningProperties();
+    /**
+     * The A/B report numbers this suite asserts were produced by the LEGACY
+     * scoring path, so the replayer is pinned to LEGACY regardless of the
+     * configured default mode (NIX-380 Task 3 made the replayer dual-path).
+     */
+    private final com.smartlivestock.health.infrastructure.config.EstrusScoringProperties estrusScoringProperties =
+            legacyEstrusScoringProperties();
     private BaselineEvaluationService service;
 
     @BeforeEach
@@ -97,7 +104,7 @@ class BaselineEvaluationServiceTest {
                         org.mockito.ArgumentMatchers.any());
         service = new BaselineEvaluationService(properties, new BaselineLearningCalculator(),
                 assembler, snapshotRepo, tempLogRepo, activityLogRepo,
-                new EstrusSeriesReplayer(new EstrusAnalysisService()),
+                new EstrusSeriesReplayer(new EstrusAnalysisService(), estrusScoringProperties),
                 tenantZoneResolver, messageResolver);
 
         when(tenantZoneResolver.zoneForFarm(eq(FARM_ID), any())).thenReturn(ZoneOffset.UTC);
@@ -235,6 +242,12 @@ class BaselineEvaluationServiceTest {
     }
 
     // ── fixture helpers ──────────────────────────────────────────────
+
+    private static com.smartlivestock.health.infrastructure.config.EstrusScoringProperties legacyEstrusScoringProperties() {
+        var props = new com.smartlivestock.health.infrastructure.config.EstrusScoringProperties();
+        props.setMode("LEGACY");
+        return props;
+    }
 
     private HealthSnapshot snapshot(String source, String baselineTemp) {
         HealthSnapshot snapshot = new HealthSnapshot();
