@@ -91,7 +91,8 @@ public class CalvingPredictionProperties {
 
     /** Whether the last BREEDING event feeds the prior component and the window clip. */
     private boolean useBreedingPrior = true;
-    /** Nominal gestation length in days (Holstein 283d); must sit inside the normal prior band. */
+    /** Nominal gestation length in days (Holstein 283d): anchors the due date of the
+     *  prior window; must sit inside the normal prior band. */
     private int gestationDays = 283;
     /** Lower bound (inclusive) of the normal prior band in days pregnant. */
     private int priorNormalMinDays = 270;
@@ -137,9 +138,10 @@ public class CalvingPredictionProperties {
 
     // ------------------------------------- onset and window estimate
 
-    /** Minimum drop (°C) between adjacent samples for a pair to count toward the onset run. */
+    /** Minimum drop (°C) of the trailing temperature level below the same-phase
+     *  reference level for an evaluation point to count toward the onset run. */
     private BigDecimal onsetDropCelsius = new BigDecimal("0.15");
-    /** Consecutive qualifying adjacent pairs required to mark the onset. */
+    /** Consecutive qualifying evaluation points required to mark the onset. */
     private int onsetConsecutiveSamples = 2;
     /** Onset-path window start, in hours after the onset. */
     private long onsetWindowStartHours = 24;
@@ -149,10 +151,10 @@ public class CalvingPredictionProperties {
     private long activityWindowStartHours = 2;
     /** Activity-path window end, in hours after now. */
     private long activityWindowEndHours = 16;
-    /** Days before the due date covered by the prior window. Reserved: the
-     *  simplified clip (NIX-381 Task 2) consumes only {@link #gestationWindowAfterDays}. */
+    /** Prior window start: this many days before the due date
+     *  (due date = last BREEDING + {@link #gestationDays}). */
     private int gestationWindowBeforeDays = 3;
-    /** Prior clip horizon: a signs-based window is clipped to {@code [now, now + days × 24h]}. */
+    /** Prior window end: this many days after the due date. */
     private int gestationWindowAfterDays = 7;
 
     @PostConstruct

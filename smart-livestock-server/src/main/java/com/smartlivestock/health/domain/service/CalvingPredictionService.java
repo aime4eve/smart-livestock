@@ -9,9 +9,9 @@ import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.TreeSet;
 
 /**
  * Pure calving-risk kernel (NIX-381 Task 2, plan 2026-11-06 sections
@@ -34,6 +34,8 @@ import java.util.Optional;
  *       purpose from NIX-380, which pools the raw samples.</li>
  *   <li>Samples with a null timestamp or value (e.g. a null activityIndex)
  *       are skipped; input order is not trusted.</li>
+ *   <li>Drinking valleys are not filtered here: callers pass series with the
+ *       drinking-event windows already removed ({@link #excludeWindows}).</li>
  *   <li>Features are rounded to 2 decimals HALF_UP — the calving_predictions
  *       column scale — before scoring, so a persisted feature row reproduces
  *       its persisted score.</li>
@@ -78,9 +80,9 @@ public class CalvingPredictionService {
 
     /**
      * Expected calving window. Null bounds mean "cannot estimate".
-     * {@code priorConflict} is true when the prior clip found no overlap: the
-     * unclipped signs window is kept and callers should leave the window out
-     * of the alert text (prior and signs contradict).
+     * {@code priorConflict} is true when the signs window does not overlap the
+     * breeding-prior window: the signs window is kept unchanged and callers
+     * should leave the window out of the alert text (prior and signs contradict).
      */
     public record WindowEstimate(Instant start, Instant end, boolean priorConflict) {
 
@@ -103,8 +105,40 @@ public class CalvingPredictionService {
         }
     }
 
+    /**
+     * Half-open exclusion window {@code [start, end)}, e.g. a drinking event
+     * plus its recovery. A window with a null bound excludes nothing (there is
+     * no open-ended form, unlike {@code BaselineExclusionWindow}).
+     */
+    public record ExclusionWindow(Instant start, Instant end) {
+    }
+
     /** Normalized internal sample: non-null timestamp and value. */
     private record Point(Instant at, BigDecimal value) {
+    }
+
+    // ------------------------------------------------------------ drinking exclusion
+
+    /**
+     * Removes the samples whose timestamp falls inside any window
+     * {@code [start, end)}: a sample at {@code start} is removed, one at
+     * {@code end} is kept. Window order and overlaps do not matter; null
+     * windows and windows with a null bound are ignored; samples without a
+     * timestamp are kept (the kernel methods skip them anyway). Null or empty
+     * {@code windows} return {@code samples} itself (identity); otherwise a
+     * new list in input order.
+     */
+    public static List<TempSample> excludeWindows(List<TempSample> samples, List<ExclusionWindow> windows) {
+        if (samples == null || windows == null || windows.isEmpty()) {
+            return samples;
+        }
+        List<TempSample> kept = new ArrayList<>();
+        for (TempSample sample : samples) {
+            if (sample == null || sample.at() == null || !insideAny(sample.at(), windows)) {
+                kept.add(sample);
+            }
+        }
+        return kept;
     }
 
     // ------------------------------------------------------------ channel features
@@ -116,6 +150,10 @@ public class CalvingPredictionService {
      * equal-weight mean of the same-phase reference window means. Positive =
      * cooler than the animal's own same-phase reference (prepartum signal);
      * negative = warmer.
+     *
+     * <p>Input: the caller's series with drinking-event windows already
+     * excluded ({@link #excludeWindows}); the window means here do not reject
+     * drinking valleys.</p>
      *
      * @return the drop, or null (component unavailable) when the current
      *         window holds fewer than minCurrentTempSamples samples or no
@@ -141,6 +179,9 @@ public class CalvingPredictionService {
      * of {@code [now − currentActivityWindowHours, now)} against the
      * same-phase reference windows. Steps and distance do not participate
      * (derived from activity in the simulation, not independent signals).
+     *
+     * <p>Input: the caller's series with drinking-event windows already
+     * excluded (same contract as the temperature methods).</p>
      *
      * @return the ratio, or null when the current window holds fewer than
      *         minCurrentActivitySamples non-null samples, no reference window
@@ -310,6 +351,9 @@ public class CalvingPredictionService {
      * only pass when it lies strictly between the first and the latest block.
      * Under-sampled interior blocks are skipped; an under-sampled first or
      * latest block, an empty input or the switch off yields false.</p>
+     *
+     * <p>Input: the caller's series with drinking-event windows already
+     * excluded ({@link #excludeWindows}).</p>
      */
     public boolean isReboundDetected(List<TempSample> tempsAsc, Instant now, CalvingPredictionProperties p) {
         if (!p.isReboundDetectionEnabled()) {
@@ -349,13 +393,37 @@ public class CalvingPredictionService {
     }
 
     /**
-     * Onset of the temperature decline. Scans adjacent sample pairs from
-     * oldest to newest (sorted by time; samples at or after {@code now}
-     * ignored) and returns the timestamp of the EARLIER sample of the first
-     * pair of the first run of onsetConsecutiveSamples consecutive pairs that
-     * each drop by at least onsetDropCelsius ({@code previous − next ≥
-     * threshold}, inclusive). The scan covers whatever range the caller
-     * passes.
+     * Onset of the temperature decline, level-based (NIX-381 review A): the
+     * first sustained drop of the trailing temperature level below the
+     * same-phase reference level.
+     *
+     * <ul>
+     *   <li>Evaluation points: every distinct sample instant {@code t} before
+     *       {@code now}, scanned oldest first (duplicate timestamps form one
+     *       point; samples at or after {@code now} are ignored).</li>
+     *   <li>Level: the mean over {@code [t − currentTempWindowHours, t)} — the
+     *       sample at {@code t} is not part of its own window. A point whose
+     *       window holds fewer than minCurrentTempSamples samples is skipped:
+     *       it neither counts toward nor breaks a run.</li>
+     *   <li>Reference: the same-phase level of {@link #computeTempDrop},
+     *       anchored on {@code now} and fixed for the whole scan.</li>
+     *   <li>Onset: the instant {@code t} of the first point of the first run of
+     *       onsetConsecutiveSamples consecutive points that each satisfy
+     *       {@code refLevel − level(t) ≥ onsetDropCelsius} (inclusive); the
+     *       scan stops there.</li>
+     * </ul>
+     *
+     * <p>Detection lag: the onset marks when the trailing level has sunk
+     * onsetDropCelsius below the reference, not when the decline starts —
+     * roughly {@code onsetDropCelsius ÷ slope} plus half the trailing window
+     * later (simulated slope 0.3 °C / 36h: ~18h + ~3h).</p>
+     *
+     * <p>Input: the caller's series with drinking-event windows already
+     * excluded ({@link #excludeWindows}); a trailing mean does not reject a
+     * drinking valley (one −3 °C sample lowers a 12-sample level by 0.25 °C).</p>
+     *
+     * @return the onset, or empty when the reference level is unavailable or
+     *         no qualifying run exists
      */
     public Optional<Instant> detectOnset(List<TempSample> tempsAsc, Instant now, CalvingPredictionProperties p) {
         List<Point> points = new ArrayList<>();
@@ -364,17 +432,29 @@ public class CalvingPredictionService {
                 points.add(point);
             }
         }
-        points.sort(Comparator.comparing(Point::at));
+        Duration width = Duration.ofHours(p.getCurrentTempWindowHours());
+        BigDecimal refLevel = samePhaseReferenceLevel(points, now, width,
+                p.getRefWindowOffsetHours(), p.getMinRefTempSamples());
+        if (refLevel == null) {
+            return Optional.empty();
+        }
 
+        TreeSet<Instant> evaluationPoints = new TreeSet<>();
+        for (Point point : points) {
+            evaluationPoints.add(point.at());
+        }
         int required = p.getOnsetConsecutiveSamples();
         int run = 0;
         Instant runStart = null;
-        for (int i = 1; i < points.size(); i++) {
-            Point previous = points.get(i - 1);
-            BigDecimal drop = previous.value().subtract(points.get(i).value());
-            if (drop.compareTo(p.getOnsetDropCelsius()) >= 0) {
+        for (Instant t : evaluationPoints) {
+            BigDecimal level = windowMean(points, t.minus(width), t, p.getMinCurrentTempSamples());
+            if (level == null) {
+                // Under-sampled point: skipped, the run carries over.
+                continue;
+            }
+            if (refLevel.subtract(level).compareTo(p.getOnsetDropCelsius()) >= 0) {
                 if (run == 0) {
-                    runStart = previous.at();
+                    runStart = t;
                 }
                 run++;
                 if (run >= required) {
@@ -403,14 +483,22 @@ public class CalvingPredictionService {
      *   <li>else {@link WindowEstimate#none()}.</li>
      * </ol>
      *
-     * <p>Prior clip (simplified per the NIX-381 Task 2 brief): when the prior
-     * is on and gestationDays is known, the signs window is intersected with
-     * {@code [now, now + gestationWindowAfterDays × 24h]}. An empty
-     * intersection means prior and signs contradict: the unclipped signs
-     * window is returned with {@code priorConflict = true} and the caller
-     * leaves the window out of the alert text (plan: keep the signs window on
-     * an empty intersection). Only the presence of gestationDays is
-     * consulted, not its value.</p>
+     * <p>The onset offsets are measured from the detected onset, which lags
+     * the start of the decline (see {@link #detectOnset}); calibrate them in
+     * the simulation regression.</p>
+     *
+     * <p>Prior intersection (NIX-381 review C): when the prior is on and
+     * gestationDays {@code g} is known, the due date lies
+     * {@code gestationDays(config) − g} days after now and the prior window is
+     * {@code [now + (gestationDays − gestationWindowBeforeDays − g) × 24h,
+     * now + (gestationDays + gestationWindowAfterDays − g) × 24h]}; the signs
+     * window is intersected with it. An empty intersection — including a
+     * prior window lying entirely before or after the signs window — means
+     * prior and signs contradict: the signs window is returned unchanged with
+     * {@code priorConflict = true} and the caller leaves the window out of the
+     * alert text. Without a known {@code g} (or with the prior off) the signs
+     * window is returned as is. Nothing is clipped to {@code now}, so a window
+     * may start in the past.</p>
      *
      * @param gestationDays days pregnant as of now, null when unknown
      */
@@ -435,17 +523,30 @@ public class CalvingPredictionService {
         if (!p.isUseBreedingPrior() || gestationDays == null) {
             return signs;
         }
-        Instant horizon = now.plus(Duration.ofHours(24L * p.getGestationWindowAfterDays()));
-        Instant clippedStart = signs.start().isAfter(now) ? signs.start() : now;
-        Instant clippedEnd = signs.end().isBefore(horizon) ? signs.end() : horizon;
-        if (!clippedStart.isBefore(clippedEnd)) {
+        long daysToDue = (long) p.getGestationDays() - gestationDays;
+        Instant priorStart = now.plus(Duration.ofHours(24L * (daysToDue - p.getGestationWindowBeforeDays())));
+        Instant priorEnd = now.plus(Duration.ofHours(24L * (daysToDue + p.getGestationWindowAfterDays())));
+        Instant start = signs.start().isAfter(priorStart) ? signs.start() : priorStart;
+        Instant end = signs.end().isBefore(priorEnd) ? signs.end() : priorEnd;
+        if (!start.isBefore(end)) {
             // Prior and signs contradict: keep the signs window, flag it.
             return new WindowEstimate(signs.start(), signs.end(), true);
         }
-        return new WindowEstimate(clippedStart, clippedEnd, false);
+        return new WindowEstimate(start, end, false);
     }
 
     // ------------------------------------------------------------ internals
+
+    /** True when {@code at} lies inside some well-formed window {@code [start, end)}. */
+    private static boolean insideAny(Instant at, List<ExclusionWindow> windows) {
+        for (ExclusionWindow window : windows) {
+            if (window != null && window.start() != null && window.end() != null
+                    && !at.isBefore(window.start()) && at.isBefore(window.end())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     private static List<Point> tempPoints(List<TempSample> samples) {
         List<Point> points = new ArrayList<>();

@@ -1,6 +1,7 @@
 package com.smartlivestock.health.domain.service;
 
 import com.smartlivestock.health.domain.service.CalvingPredictionService.ActivitySample;
+import com.smartlivestock.health.domain.service.CalvingPredictionService.ExclusionWindow;
 import com.smartlivestock.health.domain.service.CalvingPredictionService.PriorState;
 import com.smartlivestock.health.domain.service.CalvingPredictionService.TempSample;
 import com.smartlivestock.health.domain.service.CalvingPredictionService.WindowEstimate;
@@ -15,6 +16,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.function.IntFunction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -26,13 +28,20 @@ import static org.assertj.core.api.Assertions.assertThat;
  * ladder 0.30 / 0.20 / 0.12 °C → 100 / 70 / 45, activity ladder
  * 1.5 / 1.3 / 1.15 → 100 / 70 / 45, weights 0.45 / 0.35 / 0.20, prior bands
  * [270, 293] normal and &lt; 250 suppressed (×0.5), rebound bonus +10.
- * Series are 30-minute grids anchored on a fixed {@code NOW}.</p>
+ * Series are 30-minute grids anchored on a fixed {@code NOW}. Onset cases
+ * (level-based, review 2b) run on a 60h grid over a flat 38.80 reference
+ * with the 0.15 °C threshold and 2 consecutive evaluation points; the prior
+ * window is {@code [283 − 3 − g, 283 + 7 − g]} days from now.</p>
  */
 class CalvingPredictionServiceTest {
 
     private static final CalvingPredictionService SERVICE = new CalvingPredictionService();
     private static final Instant NOW = Instant.parse("2026-11-06T12:00:00Z");
     private static final Duration STEP = Duration.ofMinutes(30);
+    /** Reference level of the onset grids. */
+    private static final BigDecimal BASE = new BigDecimal("38.80");
+    /** Onset block level: 0.16 below BASE, clear of the inclusive 0.15 onset threshold. */
+    private static final BigDecimal LOW = new BigDecimal("38.64");
 
     // ------------------------------------------------------------ temperature ladder
 
@@ -346,57 +355,154 @@ class CalvingPredictionServiceTest {
         assertThat(SERVICE.isReboundDetected(null, NOW, p)).isFalse();
     }
 
-    // ------------------------------------------------------------ onset
+    // ------------------------------------------------------------ drinking exclusion
 
     @Test
-    void detectOnset_twoConsecutiveDropPairs_returnsTimeOfFirstPair() {
-        // pairs: 0.00 x | 0.18 ok | 0.15 ok (inclusive) -> run of 2 starting at 4.5h ago.
-        // A later run (0.27, 0.20) exists; the first run wins. Were 0.15 exclusive,
-        // the first run would break and the answer would be 3.0h ago instead.
-        assertThat(SERVICE.detectOnset(onsetSeries(), NOW, defaults())).contains(hoursAgo(4.5));
+    void excludeWindows_removesSamplesInsideHalfOpenWindow() {
+        List<TempSample> samples = tempSeries(3, 6, "38.80"); // now-3h ... now-0.5h
+        // [now-2.5h, now-1.5h): the sample at start is removed, the one at end kept; order preserved
+        List<TempSample> kept = CalvingPredictionService.excludeWindows(samples,
+                List.of(new ExclusionWindow(hoursAgo(2.5), hoursAgo(1.5))));
+        assertThat(kept).extracting(TempSample::at)
+                .containsExactly(hoursAgo(3), hoursAgo(1.5), hoursAgo(1), hoursAgo(0.5));
     }
 
     @Test
-    void detectOnset_isolatedSingleDropPairs_doNotTrigger() {
-        List<TempSample> samples = List.of(
-                new TempSample(hoursAgo(5.0), bd("38.80")),
-                new TempSample(hoursAgo(4.5), bd("38.60")),   // 0.20 ok
-                new TempSample(hoursAgo(4.0), bd("38.58")),   // 0.02 breaks the run
-                new TempSample(hoursAgo(3.5), bd("38.58")),
-                new TempSample(hoursAgo(3.0), bd("38.40")),   // 0.18 ok
-                new TempSample(hoursAgo(2.5), bd("38.40")),   // 0.00 breaks the run
-                new TempSample(hoursAgo(2.0), bd("38.41")));
+    void excludeWindows_nullOrEmptyWindows_returnInputUnchanged() {
+        List<TempSample> samples = tempSeries(3, 6, "38.80");
+        assertThat(CalvingPredictionService.excludeWindows(samples, null)).isSameAs(samples);
+        assertThat(CalvingPredictionService.excludeWindows(samples, List.of())).isSameAs(samples);
+    }
+
+    @Test
+    void excludeWindows_unorderedAndOverlappingWindows_allApplied() {
+        List<TempSample> samples = tempSeries(5, 10, "38.80"); // now-5h ... now-0.5h
+        List<ExclusionWindow> windows = new ArrayList<>();
+        windows.add(new ExclusionWindow(hoursAgo(1), hoursAgo(0.5)));   // latest first
+        windows.add(new ExclusionWindow(hoursAgo(4), hoursAgo(3)));     // overlaps the next window
+        windows.add(new ExclusionWindow(hoursAgo(4.5), hoursAgo(3.5)));
+        windows.add(new ExclusionWindow(hoursAgo(2), hoursAgo(2)));     // empty: removes nothing
+        windows.add(new ExclusionWindow(null, hoursAgo(2.5)));          // malformed: ignored
+        windows.add(null);                                              // ignored
+        // removed: now-4.5h, now-4h, now-3.5h, now-1h
+        assertThat(CalvingPredictionService.excludeWindows(samples, windows)).extracting(TempSample::at)
+                .containsExactly(hoursAgo(5), hoursAgo(3), hoursAgo(2.5), hoursAgo(2), hoursAgo(1.5), hoursAgo(0.5));
+    }
+
+    // ------------------------------------------------------------ onset (level-based)
+
+    @Test
+    void detectOnset_gradualDecline_triggersWhenTrailingLevelCrossesThreshold() {
+        // Simulation P11 shape: linear decline of 0.004 °C per 30-min step (≈ 0.3 °C
+        // over 36h) from now-24h (j = 48); flat 38.80 before, so both same-phase
+        // reference windows sit on the flat part -> reference 38.80.
+        // Point j_t (t = now - j_t × 30min) averages samples j_t+1 ... j_t+12:
+        // drop = 0.004 × (41.5 - j_t) once its window lies inside the decline.
+        // j_t = 5 -> 0.146 (no); j_t = 4 -> 0.150 (inclusive: yes); j_t = 3 -> 0.154 (yes)
+        // -> onset now-2h, 22h after the decline start (0.15 / 0.008 per h = 18.75h
+        // + 3.25h window centroid). Every adjacent step is 0.004 °C, so the removed
+        // adjacent-pair rule could never fire on this shape.
+        List<TempSample> decline = declineGrid();
+        assertThat(SERVICE.detectOnset(decline, NOW, defaults())).contains(hoursAgo(2));
+
+        List<TempSample> shuffled = new ArrayList<>(decline);
+        Collections.shuffle(shuffled, new Random(20261106L));
+        assertThat(SERVICE.detectOnset(shuffled, NOW, defaults())).contains(hoursAgo(2));
+    }
+
+    @Test
+    void detectOnset_drinkingValley_noTriggerOnceTheDrinkingWindowIsExcluded() {
+        // Flat 38.80 with one drinking valley: -3 °C at now-5h, -1 °C at now-4.5h,
+        // back to flat at now-4h (down and up within 1h).
+        List<TempSample> raw = grid(j -> j == 10 ? bd("35.80") : j == 9 ? bd("37.80") : BASE);
+
+        // Contrast, raw series: a trailing mean does not reject the valley. Point
+        // now-4.5h holds the -3 °C sample (3.0 / 12 = 0.25), point now-4h holds both
+        // (4.0 / 12 = 0.33) -> a false onset at now-4.5h.
+        assertThat(SERVICE.detectOnset(raw, NOW, defaults())).contains(hoursAgo(4.5));
+
+        // Caller contract: exclude the drinking window [now-5h, now-4h) first -> flat -> no onset.
+        List<TempSample> excluded = CalvingPredictionService.excludeWindows(raw,
+                List.of(new ExclusionWindow(hoursAgo(5), hoursAgo(4))));
+        assertThat(SERVICE.detectOnset(excluded, NOW, defaults())).isEmpty();
+    }
+
+    @Test
+    void detectOnset_levelLowForFewerThanTwoEvaluationPoints_doesNotTrigger() {
+        // A block of k samples at 38.64 (0.16 below the 38.80 reference). Only a
+        // window holding the whole block reaches 0.16; one holding 11 of them gives
+        // 11 × 0.16 / 12 = 0.147 (no).
+        // k = 12 (j = 13..24): one qualifying point (now-6h) -> no onset.
+        assertThat(SERVICE.detectOnset(grid(j -> j >= 13 && j <= 24 ? LOW : BASE), NOW, defaults()))
+                .isEmpty();
+        // k = 13 (j = 12..24): two qualifying points (now-6h, now-5.5h) -> onset at the first.
+        assertThat(SERVICE.detectOnset(grid(j -> j >= 12 && j <= 24 ? LOW : BASE), NOW, defaults()))
+                .contains(hoursAgo(6));
+    }
+
+    @Test
+    void detectOnset_noiseAroundFlatLevel_doesNotTrigger() {
+        CalvingPredictionProperties p = defaults();
+        // Zero-mean period-3 pattern +0.20 / 0.00 / -0.20: two consecutive 0.20
+        // adjacent drops every period (the removed pair rule would fire), but every
+        // full 12-sample window holds four whole periods -> level = reference.
+        // Partial windows at the series start deviate by at most 0.025.
+        BigDecimal[] pattern = {bd("0.20"), bd("0.00"), bd("-0.20")};
+        assertThat(SERVICE.detectOnset(grid(j -> BASE.add(pattern[(120 - j) % 3])), NOW, p)).isEmpty();
+
+        // Seeded noise bounded to ±0.07: |reference - level| <= 0.14 < 0.15 by construction.
+        Random rng = new Random(20261106L);
+        assertThat(SERVICE.detectOnset(grid(j -> BASE.add(BigDecimal.valueOf(rng.nextInt(15) - 7L, 2))), NOW, p))
+                .isEmpty();
+    }
+
+    @Test
+    void detectOnset_duplicateTimestampsFormOneEvaluationPoint() {
+        // The k = 12 block (one qualifying point at now-6h) plus a second sample
+        // stamped now-6h: still one evaluation point; the next point (now-5.5h)
+        // holds 13 samples, 11 of them low -> 11 × 0.16 / 13 = 0.135 (no).
+        List<TempSample> duplicated = new ArrayList<>(grid(j -> j >= 13 && j <= 24 ? LOW : BASE));
+        duplicated.add(new TempSample(hoursAgo(6), BASE));
+        assertThat(SERVICE.detectOnset(duplicated, NOW, defaults())).isEmpty();
+    }
+
+    @Test
+    void detectOnset_ignoresSamplesAtOrAfterNow() {
+        // Low block j = 1..13 plus samples stamped now and now+0.5h. Point now-0.5h
+        // qualifies (window j = 2..13); the second full-block window belongs to the
+        // point at now itself, which is never evaluated -> one point, no onset.
+        List<TempSample> samples = new ArrayList<>(grid(j -> j <= 13 ? LOW : BASE));
+        samples.add(new TempSample(NOW, BASE));
+        samples.add(new TempSample(hoursLater(0.5), LOW));
         assertThat(SERVICE.detectOnset(samples, NOW, defaults())).isEmpty();
     }
 
     @Test
-    void detectOnset_noDecline_returnsEmpty() {
-        CalvingPredictionProperties p = defaults();
-        assertThat(SERVICE.detectOnset(tempSeries(5, 10, "38.60"), NOW, p)).isEmpty();
-        List<TempSample> rising = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            rising.add(new TempSample(hoursAgo(5).plus(STEP.multipliedBy(i)),
-                    bd("38.00").add(bd("0.20").multiply(BigDecimal.valueOf(i)))));
-        }
-        assertThat(SERVICE.detectOnset(rising, NOW, p)).isEmpty();
-        assertThat(SERVICE.detectOnset(List.of(), NOW, p)).isEmpty();
-        assertThat(SERVICE.detectOnset(null, NOW, p)).isEmpty();
+    void detectOnset_underSampledPointsAreSkipped_runCarriesOverAGap() {
+        // Low block j = 25..36 (38.64) gives exactly one qualifying point before a
+        // data gap: now-12h (window j = 25..36, 0.16). No samples strictly between
+        // now-12h and now-7h; afterwards 38.60 (0.20 below). Points now-7h ... now-3.5h
+        // hold 3 to 7 samples in their window -> skipped; now-3h is the next valid
+        // point (8 samples, 0.20). Skipped points neither count nor break the run
+        // -> onset now-12h (resetting on skipped points would report now-3h).
+        List<TempSample> gapped = grid(j -> j >= 37 ? BASE : j >= 25 ? LOW : j == 24 ? BASE : bd("38.60"))
+                .stream()
+                .filter(s -> !(s.at().isAfter(hoursAgo(12)) && s.at().isBefore(hoursAgo(7))))
+                .toList();
+        assertThat(SERVICE.detectOnset(gapped, NOW, defaults())).contains(hoursAgo(12));
     }
 
     @Test
-    void detectOnset_ignoresInputOrderAndSamplesAtOrAfterNow() {
+    void detectOnset_referenceUnavailableOrNoInput_returnsEmpty() {
         CalvingPredictionProperties p = defaults();
-        List<TempSample> shuffled = new ArrayList<>(onsetSeries());
-        Collections.shuffle(shuffled, new Random(20261106L));
-        assertThat(SERVICE.detectOnset(shuffled, NOW, p)).contains(hoursAgo(4.5));
-
-        // the only qualifying run needs the samples at now and after now -> no look-ahead
-        List<TempSample> future = List.of(
-                new TempSample(hoursAgo(1.0), bd("38.60")),
-                new TempSample(hoursAgo(0.5), bd("38.60")),
-                new TempSample(NOW, bd("38.40")),
-                new TempSample(hoursLater(0.5), bd("38.20")));
-        assertThat(SERVICE.detectOnset(future, NOW, p)).isEmpty();
+        // The decline of the first onset case cut to the last 20h: no sample in either
+        // same-phase reference window -> no reference level -> no onset.
+        List<TempSample> recentOnly = declineGrid().stream()
+                .filter(s -> s.at().isAfter(hoursAgo(20.5)))
+                .toList();
+        assertThat(SERVICE.detectOnset(recentOnly, NOW, p)).isEmpty();
+        assertThat(SERVICE.detectOnset(List.of(), NOW, p)).isEmpty();
+        assertThat(SERVICE.detectOnset(null, NOW, p)).isEmpty();
     }
 
     // ------------------------------------------------------------ window estimate
@@ -434,37 +540,58 @@ class CalvingPredictionServiceTest {
     }
 
     @Test
-    void estimateWindow_priorClipsSignsWindowToNowAndHorizon() {
+    void estimateWindow_priorWindowIntersectsSignsWindow() {
         CalvingPredictionProperties p = defaults();
-        // onset 30h ago -> signs [now - 6h, now + 18h]; prior known -> start clipped to now
-        Optional<Instant> onset = Optional.of(hoursAgo(30));
-        assertWindow(SERVICE.estimateWindow(NOW, onset, false, 280, p), NOW, hoursLater(18), false);
-        // no gestation -> unclipped signs window
-        assertWindow(SERVICE.estimateWindow(NOW, onset, false, null, p), hoursAgo(6), hoursLater(18), false);
-        // prior switched off -> unclipped as well
-        p.setUseBreedingPrior(false);
-        assertWindow(SERVICE.estimateWindow(NOW, onset, false, 280, p), hoursAgo(6), hoursLater(18), false);
+        // prior window = [now + (283 - 3 - g) × 24h, now + (283 + 7 - g) × 24h]
+        Optional<Instant> onset = Optional.of(hoursAgo(6)); // signs [now + 18h, now + 42h]
+        // g = 280: prior [now, now + 240h] holds the signs window -> unchanged
+        assertWindow(SERVICE.estimateWindow(NOW, onset, false, 280, p), hoursLater(18), hoursLater(42), false);
+        // g = 279: prior starts at now + 24h -> start clipped
+        assertWindow(SERVICE.estimateWindow(NOW, onset, false, 279, p), hoursLater(24), hoursLater(42), false);
+        // g = 289: prior [now - 216h, now + 24h] -> end clipped
+        assertWindow(SERVICE.estimateWindow(NOW, onset, false, 289, p), hoursLater(18), hoursLater(24), false);
+        // onset 30h ago -> signs [now - 6h, now + 18h]; g = 280 prior starts at now -> [now, now + 18h]
+        assertWindow(SERVICE.estimateWindow(NOW, Optional.of(hoursAgo(30)), false, 280, p),
+                NOW, hoursLater(18), false);
 
-        // horizon side: after-days 1 -> horizon now + 24h; onset 1h ago -> signs
-        // [now + 23h, now + 47h] -> clipped end -> [now + 23h, now + 24h]
-        CalvingPredictionProperties shortHorizon = defaults();
-        shortHorizon.setGestationWindowAfterDays(1);
-        assertWindow(SERVICE.estimateWindow(NOW, Optional.of(hoursAgo(1)), false, 280, shortHorizon),
-                hoursLater(23), hoursLater(24), false);
+        // gestationWindowBeforeDays is consumed: 2 instead of 3 moves the g = 280 prior start to now + 24h
+        CalvingPredictionProperties narrower = defaults();
+        narrower.setGestationWindowBeforeDays(2);
+        assertWindow(SERVICE.estimateWindow(NOW, onset, false, 280, narrower),
+                hoursLater(24), hoursLater(42), false);
     }
 
     @Test
-    void estimateWindow_priorContradiction_keepsSignsWindowAndFlagsConflict() {
-        // onset 50h ago -> signs [now - 26h, now - 2h]; clip [now, now - 2h] is empty
-        assertWindow(SERVICE.estimateWindow(NOW, Optional.of(hoursAgo(50)), false, 280, defaults()),
-                hoursAgo(26), hoursAgo(2), true);
-
-        // after-days 0 -> horizon = now; activity signs [now + 2h, now + 16h] lie
-        // entirely beyond it -> empty clip -> signs window kept and flagged
-        CalvingPredictionProperties zeroHorizon = defaults();
-        zeroHorizon.setGestationWindowAfterDays(0);
-        assertWindow(SERVICE.estimateWindow(NOW, Optional.empty(), true, 280, zeroHorizon),
+    void estimateWindow_priorWindowBeforeSigns_keepsSignsWindowAndFlagsConflict() {
+        CalvingPredictionProperties p = defaults();
+        // g = 291: prior [now - 264h, now - 24h] ends before the activity signs window [now + 2h, now + 16h]
+        assertWindow(SERVICE.estimateWindow(NOW, Optional.empty(), true, 291, p),
                 hoursLater(2), hoursLater(16), true);
+        // onset 50h ago -> signs [now - 26h, now - 2h] end before the g = 280 prior starts (now)
+        assertWindow(SERVICE.estimateWindow(NOW, Optional.of(hoursAgo(50)), false, 280, p),
+                hoursAgo(26), hoursAgo(2), true);
+    }
+
+    @Test
+    void estimateWindow_priorWindowEntirelyLaterThanSigns_keepsSignsWindowAndFlagsConflict() {
+        CalvingPredictionProperties p = defaults();
+        // g = 250: due in 33 days -> prior [now + 720h, now + 960h], after any signs window
+        assertWindow(SERVICE.estimateWindow(NOW, Optional.of(hoursAgo(6)), false, 250, p),
+                hoursLater(18), hoursLater(42), true);
+        assertWindow(SERVICE.estimateWindow(NOW, Optional.empty(), true, 250, p),
+                hoursLater(2), hoursLater(16), true);
+    }
+
+    @Test
+    void estimateWindow_withoutGestationOrWithPriorOff_returnsSignsWindowUnclipped() {
+        CalvingPredictionProperties p = defaults();
+        // no gestation: returned as is, even when it starts before now (no clip to now)
+        assertWindow(SERVICE.estimateWindow(NOW, Optional.of(hoursAgo(30)), false, null, p),
+                hoursAgo(6), hoursLater(18), false);
+        // prior off: g = 250 would conflict, but is ignored
+        p.setUseBreedingPrior(false);
+        assertWindow(SERVICE.estimateWindow(NOW, Optional.of(hoursAgo(6)), false, 250, p),
+                hoursLater(18), hoursLater(42), false);
     }
 
     // ------------------------------------------------------------ helpers
@@ -509,15 +636,18 @@ class CalvingPredictionServiceTest {
                 tempSeries(6, 6, third), tempSeries(3, 6, latest));
     }
 
-    private static List<TempSample> onsetSeries() {
-        return List.of(
-                new TempSample(hoursAgo(5.0), bd("38.80")),
-                new TempSample(hoursAgo(4.5), bd("38.80")),
-                new TempSample(hoursAgo(4.0), bd("38.62")),
-                new TempSample(hoursAgo(3.5), bd("38.47")),
-                new TempSample(hoursAgo(3.0), bd("38.47")),
-                new TempSample(hoursAgo(2.5), bd("38.20")),
-                new TempSample(hoursAgo(2.0), bd("38.00")));
+    /** One sample every 30 minutes over [now - 60h, now): grid index j = 120 ... 1, sample at now - j × 30min. */
+    private static List<TempSample> grid(IntFunction<BigDecimal> valueAt) {
+        List<TempSample> out = new ArrayList<>();
+        for (int j = 120; j >= 1; j--) {
+            out.add(new TempSample(NOW.minus(STEP.multipliedBy(j)), valueAt.apply(j)));
+        }
+        return out;
+    }
+
+    /** Flat BASE, then a linear decline of 0.004 °C per 30-min step from now - 24h (j = 48). */
+    private static List<TempSample> declineGrid() {
+        return grid(j -> j >= 48 ? BASE : BASE.subtract(bd("0.004").multiply(BigDecimal.valueOf(48 - j))));
     }
 
     @SafeVarargs
