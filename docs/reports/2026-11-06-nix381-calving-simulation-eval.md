@@ -71,4 +71,4 @@
 - 构建链：b846（集成首发）→ b847（标定定稿）→ b848（回放器排序修复）→ b849（口径修正 + 依据呈现）；每次部署四探针（jar 类签名/Flyway/前端 md5/登录 200）
 - 造态：100 头 CVSIM + 冒烟牛 CVSMOKE-001（配种 281d + TRACKER）已全部清理归零（livestock 83 / devices 137 = 基线）
 - 评估脚本与结果 JSON：/private/tmp/nix381-sim/（run_seed.py、sweep3-5、final/*.json）
-- 已知环境事实：dev tileserver 对部分区域瓦片 404（地图底图灰块，与本单无关，独立基建问题）
+- 已知环境事实（2026-11-07 更正）：东非牧场（国际化农场）地图底图灰块——farm 7 无 tile-source 配置（/tile-source 返回空），前端回落 OSM 公共瓦片源且本网络不可达；自建 tileserver 通路另有待查项（初版报告"tileserver 404"的诊断有误：一次探测用错瓦片坐标、一次误探到 123 主机 8080 端口的其他应用；mbtiles 实际覆盖范围未核实）。独立基建工单处理，与本单无关。地图牲畜标记的颜色与数据已由后端 marker 数据（healthStatus=WARNING/primaryAlert=CALVING）+ 前端纯函数单测锁色双层证实，视觉复核待底图修复后进行。
