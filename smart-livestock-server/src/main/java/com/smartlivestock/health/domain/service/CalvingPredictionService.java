@@ -34,8 +34,9 @@ import java.util.TreeSet;
  *       purpose from NIX-380, which pools the raw samples.</li>
  *   <li>Samples with a null timestamp or value (e.g. a null activityIndex)
  *       are skipped; input order is not trusted.</li>
- *   <li>Drinking valleys are not filtered here: callers pass series with the
- *       drinking-event windows already removed ({@link #excludeWindows}).</li>
+ *   <li>Drinking valleys are not filtered here: callers pass temperature
+ *       series with the drinking-event windows already removed
+ *       ({@link #excludeWindows}); activity series stay raw.</li>
  *   <li>Features are rounded to 2 decimals HALF_UP — the calving_predictions
  *       column scale — before scoring, so a persisted feature row reproduces
  *       its persisted score.</li>
@@ -180,8 +181,10 @@ public class CalvingPredictionService {
      * same-phase reference windows. Steps and distance do not participate
      * (derived from activity in the simulation, not independent signals).
      *
-     * <p>Input: the caller's series with drinking-event windows already
-     * excluded (same contract as the temperature methods).</p>
+     * <p>Input: the raw activity series. Drinking-window exclusion applies to
+     * the temperature channel only — drinking does not shape the simulated
+     * activity, and excluding it would remove most daytime activity samples,
+     * the main short-term signal.</p>
      *
      * @return the ratio, or null when the current window holds fewer than
      *         minCurrentActivitySamples non-null samples, no reference window
@@ -294,6 +297,12 @@ public class CalvingPredictionService {
      *       feature can never leak a bonus.</li>
      *   <li>Clamp to [0, 100] and round HALF_UP. No available component
      *       gives a composite of 0.</li>
+     *   <li>Single-channel cap (NIX-381 review 2c), the final clamp:
+     *       temperature is the main evidence channel, so when tempDrop is
+     *       null the score is {@code min(score, singleChannelCapNoTemp)} —
+     *       activity and/or prior alone reach the prompt level at most, never
+     *       the alert level. A zero or negative tempDrop is available evidence
+     *       and is not capped.</li>
      * </ol>
      *
      * @param tempDrop        output of {@link #computeTempDrop}, null if unavailable
@@ -331,7 +340,12 @@ public class CalvingPredictionService {
             total = total.add(BigDecimal.valueOf(REBOUND_BONUS));
         }
         total = total.max(BigDecimal.ZERO).min(MAX_SCORE);
-        return total.setScale(0, RoundingMode.HALF_UP).intValueExact();
+        int rounded = total.setScale(0, RoundingMode.HALF_UP).intValueExact();
+        if (tempDrop == null) {
+            // Main evidence (temperature) unavailable: prompt level at most.
+            rounded = Math.min(rounded, p.getSingleChannelCapNoTemp());
+        }
+        return rounded;
     }
 
     // ------------------------------------------------------------ rebound and onset
@@ -475,17 +489,19 @@ public class CalvingPredictionService {
      *
      * <ol>
      *   <li>onset present →
-     *       {@code [onset + onsetWindowStartHours, onset + onsetWindowEndHours]}
-     *       (Costa 2016 gradual-decline phase);</li>
+     *       {@code [onset + onsetWindowStartHours, onset + onsetWindowEndHours]},
+     *       default {@code [+2h, +30h]} (Burfeind 2011: once the decline is
+     *       detected, calving is expected within ~24h);</li>
      *   <li>else activity rise seen →
      *       {@code [now + activityWindowStartHours, now + activityWindowEndHours]}
      *       (~8h activity rise, widened against noise);</li>
      *   <li>else {@link WindowEstimate#none()}.</li>
      * </ol>
      *
-     * <p>The onset offsets are measured from the detected onset, which lags
-     * the start of the decline (see {@link #detectOnset}); calibrate them in
-     * the simulation regression.</p>
+     * <p>The detected onset lags the start of the decline (see
+     * {@link #detectOnset}), so the onset window counts from the detection
+     * instant, not from the decline start; final offsets pending the Task 4
+     * simulation calibration.</p>
      *
      * <p>Prior intersection (NIX-381 review C): when the prior is on and
      * gestationDays {@code g} is known, the due date lies

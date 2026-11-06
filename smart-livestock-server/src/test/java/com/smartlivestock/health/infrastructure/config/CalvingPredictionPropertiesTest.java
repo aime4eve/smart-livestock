@@ -38,6 +38,10 @@ class CalvingPredictionPropertiesTest {
         assertThat(p.getPersistThreshold()).isEqualTo(50);
         assertThat(p.getAlertThreshold()).isEqualTo(70);
         assertThat(p.getReleaseThreshold()).isEqualTo(55);
+        // review 2c: no-temperature cap below the alert line; onset window counted from detection
+        assertThat(p.getSingleChannelCapNoTemp()).isEqualTo(60);
+        assertThat(p.getOnsetWindowStartHours()).isEqualTo(2L);
+        assertThat(p.getOnsetWindowEndHours()).isEqualTo(30L);
     }
 
     @Test
@@ -65,6 +69,19 @@ class CalvingPredictionPropertiesTest {
     }
 
     @Test
+    void validate_rejectsSingleChannelCapAtOrAboveAlertThreshold() {
+        CalvingPredictionProperties atAlert = new CalvingPredictionProperties();
+        atAlert.setSingleChannelCapNoTemp(70);                 // == alert-threshold
+        assertThatThrownBy(atAlert::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("single-channel-cap-no-temp");
+
+        CalvingPredictionProperties justBelow = new CalvingPredictionProperties();
+        justBelow.setSingleChannelCapNoTemp(69);
+        assertThatCode(justBelow::validate).doesNotThrowAnyException();
+    }
+
+    @Test
     void validate_rejectsReleaseThresholdNotBelowAlertThreshold() {
         CalvingPredictionProperties p = new CalvingPredictionProperties();
         p.setReleaseThreshold(70);
@@ -76,7 +93,7 @@ class CalvingPredictionPropertiesTest {
     @Test
     void validate_rejectsInvertedOnsetAndActivityWindows() {
         CalvingPredictionProperties onset = new CalvingPredictionProperties();
-        onset.setOnsetWindowStartHours(48);                    // start == end
+        onset.setOnsetWindowStartHours(30);                    // start == end
         assertThatThrownBy(onset::validate)
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("onset window");

@@ -27,7 +27,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>Hand-computed expectations use the default properties: temperature
  * ladder 0.30 / 0.20 / 0.12 °C → 100 / 70 / 45, activity ladder
  * 1.5 / 1.3 / 1.15 → 100 / 70 / 45, weights 0.45 / 0.35 / 0.20, prior bands
- * [270, 293] normal and &lt; 250 suppressed (×0.5), rebound bonus +10.
+ * [270, 293] normal and &lt; 250 suppressed (×0.5), rebound bonus +10,
+ * no-temperature cap 60, onset window {@code [onset + 2h, onset + 30h]}.
  * Series are 30-minute grids anchored on a fixed {@code NOW}. Onset cases
  * (level-based, review 2b) run on a 60h grid over a flat 38.80 reference
  * with the 0.15 °C threshold and 2 consecutive evaluation points; the prior
@@ -68,8 +69,9 @@ class CalvingPredictionServiceTest {
     @Test
     void score_nullTempDropIsUnavailable_whileNegativeTempDropKeepsItsWeight() {
         CalvingPredictionProperties p = defaults();
-        // null: temperature drops out, activity 1.5 -> 100 carries alone -> 100
-        assertThat(SERVICE.score(null, bd("1.5"), null, false, p)).isEqualTo(100);
+        // null: temperature drops out, activity 1.15 -> 45 carries alone -> 45 (below the
+        // no-temperature cap 60; a kept weight would give 45*0.35 / 0.80 = 19.7 -> 20)
+        assertThat(SERVICE.score(null, bd("1.15"), null, false, p)).isEqualTo(45);
         // negative: available scoring 0 -> (0*0.45 + 100*0.35) / 0.80 = 43.75 -> 44
         assertThat(SERVICE.score(bd("-0.50"), bd("1.5"), null, false, p)).isEqualTo(44);
         // nothing available at all -> 0
@@ -278,6 +280,46 @@ class CalvingPredictionServiceTest {
         // neither the full score nor the suppression applies -> renormalized 76
         assertThat(SERVICE.score(bd("0.30"), bd("1.15"), 240, false, p)).isEqualTo(76);
         assertThat(SERVICE.score(bd("0.30"), bd("1.15"), 275, false, p)).isEqualTo(76);
+    }
+
+    // ------------------------------------------------------------ single-channel cap (no temperature)
+
+    @Test
+    void score_noTemperature_activityOnlyIsCappedAtPromptLevel() {
+        CalvingPredictionProperties p = defaults();
+        assertThat(p.getSingleChannelCapNoTemp()).isEqualTo(60);
+        // activity 1.5 -> 100 alone -> capped to 60 (prompt level, below the 70 alert line)
+        assertThat(SERVICE.score(null, bd("1.5"), null, false, p)).isEqualTo(60);
+        // activity + NORMAL prior: (100*0.35 + 100*0.20) / 0.55 = 100 -> 60
+        assertThat(SERVICE.score(null, bd("1.5"), 280, false, p)).isEqualTo(60);
+        // the cap is the final clamp: the rebound bonus cannot lift past it (110 -> 100 -> 60)
+        assertThat(SERVICE.score(null, bd("1.5"), 280, true, p)).isEqualTo(60);
+        // configured cap honored
+        p.setSingleChannelCapNoTemp(40);
+        assertThat(SERVICE.score(null, bd("1.5"), null, false, p)).isEqualTo(40);
+    }
+
+    @Test
+    void score_temperatureAvailable_twoChannelScoresAreNotCapped() {
+        CalvingPredictionProperties p = defaults();
+        // temperature + NORMAL prior, activity unavailable: (100*0.45 + 100*0.20) / 0.65 = 100
+        assertThat(SERVICE.score(bd("0.30"), null, 280, false, p)).isEqualTo(100);
+        // a zero drop is available evidence, not a missing channel:
+        // (0*0.45 + 100*0.35 + 100*0.20) / 1.00 = 55, + rebound 10 = 65 > 60 -> stays 65
+        assertThat(SERVICE.score(bd("0.00"), bd("1.5"), 280, true, p)).isEqualTo(65);
+    }
+
+    @Test
+    void score_noTemperatureWithSuppressedPrior_suppressionThenCap() {
+        CalvingPredictionProperties p = defaults();
+        // activity 1.5 -> 100, prior SUPPRESSED (g = 240) counted at 0:
+        // (100*0.35 + 0*0.20) / 0.55 = 63.64 -> x0.5 = 31.82 -> 32; min(32, 60) never raises a score
+        assertThat(SERVICE.score(null, bd("1.5"), 240, false, p)).isEqualTo(32);
+        // plus rebound: 31.82 + 10 = 41.82 -> 42, still under the cap
+        assertThat(SERVICE.score(null, bd("1.5"), 240, true, p)).isEqualTo(42);
+        // a no-op suppression factor 1.0 leaves 63.64 -> 64 -> the cap binds -> 60
+        p.setPriorSuppressionFactor(1.0);
+        assertThat(SERVICE.score(null, bd("1.5"), 240, false, p)).isEqualTo(60);
     }
 
     // ------------------------------------------------------------ rebound bonus and clamp
@@ -512,12 +554,26 @@ class CalvingPredictionServiceTest {
         CalvingPredictionProperties p = defaults();
         Optional<Instant> onset = Optional.of(hoursAgo(6));
 
-        // [onset + 24h, onset + 48h] = [now + 18h, now + 42h], midpoint now + 30h
+        // [onset + 2h, onset + 30h] = [now - 4h, now + 24h], midpoint now + 10h
         WindowEstimate w = SERVICE.estimateWindow(NOW, onset, false, null, p);
-        assertWindow(w, hoursLater(18), hoursLater(42), false);
-        assertThat(w.midpoint()).isEqualTo(hoursLater(30));
+        assertWindow(w, hoursAgo(4), hoursLater(24), false);
+        assertThat(w.midpoint()).isEqualTo(hoursLater(10));
         // an activity rise does not override the onset path
-        assertWindow(SERVICE.estimateWindow(NOW, onset, true, null, p), hoursLater(18), hoursLater(42), false);
+        assertWindow(SERVICE.estimateWindow(NOW, onset, true, null, p), hoursAgo(4), hoursLater(24), false);
+    }
+
+    @Test
+    void estimateWindow_defaultOnsetWindowCoversCalvingOfSimulatedDecline() {
+        CalvingPredictionProperties p = defaults();
+        // declineGrid: decline from now-24h at 0.008 °C/h; a 36h simulated decline ends
+        // at calving -> now + 12h. The onset is detected at now-2h (22h lag), so the
+        // default window [onset + 2h, onset + 30h] = [now, now + 28h] covers the calving;
+        // the former [+24h, +48h] default gave [now + 22h, now + 46h] and missed it.
+        Optional<Instant> onset = SERVICE.detectOnset(declineGrid(), NOW, p);
+        assertThat(onset).contains(hoursAgo(2));
+        WindowEstimate w = SERVICE.estimateWindow(NOW, onset, false, null, p);
+        assertWindow(w, NOW, hoursLater(28), false);
+        assertThat(hoursLater(12)).isBetween(w.start(), w.end());
     }
 
     @Test
@@ -543,22 +599,22 @@ class CalvingPredictionServiceTest {
     void estimateWindow_priorWindowIntersectsSignsWindow() {
         CalvingPredictionProperties p = defaults();
         // prior window = [now + (283 - 3 - g) × 24h, now + (283 + 7 - g) × 24h]
-        Optional<Instant> onset = Optional.of(hoursAgo(6)); // signs [now + 18h, now + 42h]
+        Optional<Instant> onset = Optional.of(hoursAgo(2)); // signs [now, now + 28h]
         // g = 280: prior [now, now + 240h] holds the signs window -> unchanged
-        assertWindow(SERVICE.estimateWindow(NOW, onset, false, 280, p), hoursLater(18), hoursLater(42), false);
+        assertWindow(SERVICE.estimateWindow(NOW, onset, false, 280, p), NOW, hoursLater(28), false);
         // g = 279: prior starts at now + 24h -> start clipped
-        assertWindow(SERVICE.estimateWindow(NOW, onset, false, 279, p), hoursLater(24), hoursLater(42), false);
+        assertWindow(SERVICE.estimateWindow(NOW, onset, false, 279, p), hoursLater(24), hoursLater(28), false);
         // g = 289: prior [now - 216h, now + 24h] -> end clipped
-        assertWindow(SERVICE.estimateWindow(NOW, onset, false, 289, p), hoursLater(18), hoursLater(24), false);
-        // onset 30h ago -> signs [now - 6h, now + 18h]; g = 280 prior starts at now -> [now, now + 18h]
-        assertWindow(SERVICE.estimateWindow(NOW, Optional.of(hoursAgo(30)), false, 280, p),
-                NOW, hoursLater(18), false);
+        assertWindow(SERVICE.estimateWindow(NOW, onset, false, 289, p), NOW, hoursLater(24), false);
+        // onset 10h ago -> signs [now - 8h, now + 20h]; g = 280 prior starts at now -> [now, now + 20h]
+        assertWindow(SERVICE.estimateWindow(NOW, Optional.of(hoursAgo(10)), false, 280, p),
+                NOW, hoursLater(20), false);
 
         // gestationWindowBeforeDays is consumed: 2 instead of 3 moves the g = 280 prior start to now + 24h
         CalvingPredictionProperties narrower = defaults();
         narrower.setGestationWindowBeforeDays(2);
         assertWindow(SERVICE.estimateWindow(NOW, onset, false, 280, narrower),
-                hoursLater(24), hoursLater(42), false);
+                hoursLater(24), hoursLater(28), false);
     }
 
     @Test
@@ -567,9 +623,9 @@ class CalvingPredictionServiceTest {
         // g = 291: prior [now - 264h, now - 24h] ends before the activity signs window [now + 2h, now + 16h]
         assertWindow(SERVICE.estimateWindow(NOW, Optional.empty(), true, 291, p),
                 hoursLater(2), hoursLater(16), true);
-        // onset 50h ago -> signs [now - 26h, now - 2h] end before the g = 280 prior starts (now)
+        // onset 50h ago -> signs [now - 48h, now - 20h] end before the g = 280 prior starts (now)
         assertWindow(SERVICE.estimateWindow(NOW, Optional.of(hoursAgo(50)), false, 280, p),
-                hoursAgo(26), hoursAgo(2), true);
+                hoursAgo(48), hoursAgo(20), true);
     }
 
     @Test
@@ -577,7 +633,7 @@ class CalvingPredictionServiceTest {
         CalvingPredictionProperties p = defaults();
         // g = 250: due in 33 days -> prior [now + 720h, now + 960h], after any signs window
         assertWindow(SERVICE.estimateWindow(NOW, Optional.of(hoursAgo(6)), false, 250, p),
-                hoursLater(18), hoursLater(42), true);
+                hoursAgo(4), hoursLater(24), true);
         assertWindow(SERVICE.estimateWindow(NOW, Optional.empty(), true, 250, p),
                 hoursLater(2), hoursLater(16), true);
     }
@@ -587,11 +643,11 @@ class CalvingPredictionServiceTest {
         CalvingPredictionProperties p = defaults();
         // no gestation: returned as is, even when it starts before now (no clip to now)
         assertWindow(SERVICE.estimateWindow(NOW, Optional.of(hoursAgo(30)), false, null, p),
-                hoursAgo(6), hoursLater(18), false);
+                hoursAgo(28), NOW, false);
         // prior off: g = 250 would conflict, but is ignored
         p.setUseBreedingPrior(false);
         assertWindow(SERVICE.estimateWindow(NOW, Optional.of(hoursAgo(6)), false, 250, p),
-                hoursLater(18), hoursLater(42), false);
+                hoursAgo(4), hoursLater(24), false);
     }
 
     // ------------------------------------------------------------ helpers

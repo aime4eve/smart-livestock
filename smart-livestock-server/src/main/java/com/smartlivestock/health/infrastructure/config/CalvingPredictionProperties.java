@@ -111,6 +111,10 @@ public class CalvingPredictionProperties {
     private double weightActivity = 0.35;
     /** Weight of the breeding prior component. */
     private double weightPrior = 0.20;
+    /** Score cap applied when tempDrop is unavailable (null): temperature is the
+     *  main evidence channel, so activity and/or prior alone stay at the prompt
+     *  level at most and never reach the alert level. Must be below alert-threshold. */
+    private int singleChannelCapNoTemp = 60;
 
     // ------------------------------------------ terminal temperature rebound
 
@@ -143,10 +147,14 @@ public class CalvingPredictionProperties {
     private BigDecimal onsetDropCelsius = new BigDecimal("0.15");
     /** Consecutive qualifying evaluation points required to mark the onset. */
     private int onsetConsecutiveSamples = 2;
-    /** Onset-path window start, in hours after the onset. */
-    private long onsetWindowStartHours = 24;
-    /** Onset-path window end, in hours after the onset. */
-    private long onsetWindowEndHours = 48;
+    /** Onset-path window start, in hours after the detected onset. Detection lags
+     *  the start of the decline (drop threshold ÷ slope plus half the trailing
+     *  window), so the window counts from the detection instant — Burfeind 2011:
+     *  calving expected within ~24h of a detected decline. Final values pending
+     *  the Task 4 simulation calibration. */
+    private long onsetWindowStartHours = 2;
+    /** Onset-path window end, in hours after the detected onset (see {@link #onsetWindowStartHours}). */
+    private long onsetWindowEndHours = 30;
     /** Activity-path window start, in hours after now. */
     private long activityWindowStartHours = 2;
     /** Activity-path window end, in hours after now. */
@@ -229,6 +237,12 @@ public class CalvingPredictionProperties {
         if (releaseThreshold >= alertThreshold) {
             throw invalid("release-threshold", "must be below alert-threshold " + alertThreshold,
                     releaseThreshold);
+        }
+        // Without temperature evidence a score must never reach the alert level.
+        requireScore("single-channel-cap-no-temp", singleChannelCapNoTemp);
+        if (singleChannelCapNoTemp >= alertThreshold) {
+            throw invalid("single-channel-cap-no-temp", "must be below alert-threshold " + alertThreshold,
+                    singleChannelCapNoTemp);
         }
 
         // Onset and window estimate.
