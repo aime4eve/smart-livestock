@@ -32,11 +32,37 @@ public final class RanchOverviewDto {
     public record SceneSummaryEstrus(int highScoreCount) {}
     public record SceneSummaryEpidemic(double abnormalRate) {}
 
+    /**
+     * Calving scene counts (NIX-389): heads whose current snapshot
+     * {@code calving_risk_score} sits in the alert band (>= 70) and the watch
+     * band (50-69). Livestock without a snapshot row are never counted.
+     */
+    public record SceneSummaryCalving(int highRiskCount, int watchCount) {}
+
+    /**
+     * Subscription-gating state of the six health tiles (NIX-389): the server
+     * is the single source of truth and ships one of three values per scene —
+     * "OPEN" (gate unlocked), "LOCKED" (gate locked, platform policy
+     * SHOW_LOCKED) or "HIDDEN" (gate locked, platform policy HIDE).
+     */
+    public record SceneSummaryGating(
+            String fever,
+            String digestive,
+            String estrus,
+            String epidemic,
+            String ai,
+            String calving
+    ) {}
+
     public record SceneSummary(
             SceneSummaryFever fever,
             SceneSummaryDigestive digestive,
             SceneSummaryEstrus estrus,
-            SceneSummaryEpidemic epidemic
+            SceneSummaryEpidemic epidemic,
+            // NIX-389 additive fields — appended so existing positional
+            // consumers keep deserializing the original four scenes.
+            SceneSummaryCalving calving,
+            SceneSummaryGating gating
     ) {}
 
     public record PendingTask(

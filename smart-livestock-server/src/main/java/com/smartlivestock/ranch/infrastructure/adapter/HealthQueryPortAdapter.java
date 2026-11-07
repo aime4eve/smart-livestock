@@ -103,6 +103,20 @@ public class HealthQueryPortAdapter implements HealthQueryPort {
                .filter(s -> s.getEstrusScore() != null && s.getEstrusScore() >= 70)
                .count();
 
+       // NIX-389 calving scene bands over the current snapshot score:
+       // >= 70 alert level, 50-69 watch level. A null score (never assessed
+       // or released) and livestock without a snapshot row count nowhere.
+       List<HealthSnapshot> activeSnapshotRows = snapshots.stream()
+               .filter(s -> activeLivestockIds.contains(s.getLivestockId()))
+               .toList();
+       int calvingHighRisk = (int) activeSnapshotRows.stream()
+               .filter(s -> s.getCalvingRiskScore() != null && s.getCalvingRiskScore() >= 70)
+               .count();
+       int calvingWatch = (int) activeSnapshotRows.stream()
+               .filter(s -> s.getCalvingRiskScore() != null && s.getCalvingRiskScore() >= 50
+                       && s.getCalvingRiskScore() < 70)
+               .count();
+
        double epidemicAbnormalRate = total > 0
                ? (double) snapshots.stream()
                         .filter(s -> activeLivestockIds.contains(s.getLivestockId()))
@@ -117,7 +131,8 @@ public class HealthQueryPortAdapter implements HealthQueryPort {
                 feverAbnormal, feverCritical,
                 digestiveAbnormal, digestiveWatch,
                 estrusHighScore,
-                Math.round(epidemicAbnormalRate * 1000.0) / 1000.0
+                Math.round(epidemicAbnormalRate * 1000.0) / 1000.0,
+                calvingHighRisk, calvingWatch
         );
     }
 

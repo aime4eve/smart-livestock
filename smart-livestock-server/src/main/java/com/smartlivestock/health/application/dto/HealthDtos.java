@@ -137,6 +137,33 @@ public final class HealthDtos {
             List<EstrusListItem> items
     ) {}
 
+    // ── Calving predictions (subscription-gated, NIX-389) ───────
+
+    /**
+     * One row of the calving prediction list: the latest calving_predictions
+     * row per livestock, joined with the livestock code. Baseline audit
+     * columns (baseline_used / source / computed_at / algorithm_version) are
+     * deliberately withheld — internal provenance, not user-facing data.
+     * {@code riskScore} itself distinguishes the alert band (>= 70) from the
+     * watch band (50-69); the list only contains heads whose current snapshot
+     * score is >= 50.
+     */
+    public record CalvingPredictionItem(
+            String livestockId,
+            String livestockCode,
+            int riskScore,
+            Instant predictedAt,
+            Instant expectedWindowStart,
+            Instant expectedWindowEnd,
+            BigDecimal tempDropCelsius,
+            BigDecimal activityRatio,
+            Boolean priorEnabled
+    ) {}
+
+    public record CalvingPredictionListResponse(
+            List<CalvingPredictionItem> items
+    ) {}
+
     // ── Epidemic ────────────────────────────────────────────────
 
     public record HerdHealthMetrics(

@@ -32,4 +32,10 @@ public class CalvingPredictionRepositoryImpl implements CalvingPredictionReposit
         return jpaRepo.findByLivestockIdOrderByPredictedAtDesc(livestockId).stream()
                 .limit(limit).map(HealthMapper::toDomain).toList();
     }
+
+    @Override
+    public List<CalvingPrediction> findLatestPerLivestockByFarm(Long farmId, int limit) {
+        return jpaRepo.findLatestPerLivestockByFarm(farmId, limit).stream()
+                .map(HealthMapper::toDomain).toList();
+    }
 }
