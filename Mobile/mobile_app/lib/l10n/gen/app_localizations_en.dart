@@ -7938,4 +7938,44 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get subscriptionHealthSettingsLoadFailed =>
       'Failed to load thresholds';
+
+  @override
+  String get ranchSceneCalvingMgmt => 'Calving Alerts';
+
+  @override
+  String pillCalvingHigh(int n) {
+    return '$n calving risk';
+  }
+
+  @override
+  String get sceneCalvingCalm => 'No calving-risk animals';
+
+  @override
+  String sceneCalvingFoot(int n) {
+    return '$n calving-risk animals, prep for assistance';
+  }
+
+  @override
+  String get sceneTileLocked => 'Locked';
+
+  @override
+  String get sceneTileLockedFoot => 'Upgrade to unlock';
+
+  @override
+  String get sceneLockedTitle => 'Unlock Feature';
+
+  @override
+  String get calvingPredictionTitle => 'Calving Predictions';
+
+  @override
+  String get calvingNoData => 'No calving predictions yet';
+
+  @override
+  String get calvingRiskScore => 'Risk score';
+
+  @override
+  String get calvingWindow => 'Calving window';
+
+  @override
+  String get calvingPredictedAt => 'Assessed';
 }

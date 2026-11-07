@@ -7741,4 +7741,44 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get subscriptionHealthSettingsLoadFailed => '阈值加载失败';
+
+  @override
+  String get ranchSceneCalvingMgmt => '分娩预警';
+
+  @override
+  String pillCalvingHigh(int n) {
+    return '$n 只临产';
+  }
+
+  @override
+  String get sceneCalvingCalm => '暂无临产风险个体';
+
+  @override
+  String sceneCalvingFoot(int n) {
+    return '$n 只临产风险，留意助产准备';
+  }
+
+  @override
+  String get sceneTileLocked => '锁定';
+
+  @override
+  String get sceneTileLockedFoot => '升级订阅后解锁';
+
+  @override
+  String get sceneLockedTitle => '功能解锁';
+
+  @override
+  String get calvingPredictionTitle => '分娩预测';
+
+  @override
+  String get calvingNoData => '暂无临产预测数据';
+
+  @override
+  String get calvingRiskScore => '风险分';
+
+  @override
+  String get calvingWindow => '预计分娩窗口';
+
+  @override
+  String get calvingPredictedAt => '评估时间';
 }

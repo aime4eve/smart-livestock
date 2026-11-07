@@ -43,6 +43,91 @@ class RanchOverviewStats {
 
 // ── Scene Summary ──────────────────────────────────────────
 
+/// NIX-389 three-state gating of a health scene tile. The server is the
+/// single source of truth (ranch-overview sceneSummary.gating); the client
+/// never derives gating from tier or feature flags.
+enum SceneGatingState { open, locked, hidden }
+
+/// Loose parse of one gating value: unknown or non-string values fall back
+/// to locked so an unrecognized server state never leaks gated content.
+SceneGatingState sceneGatingStateFromRaw(String? raw) {
+  switch (raw) {
+    case 'OPEN':
+      return SceneGatingState.open;
+    case 'HIDDEN':
+      return SceneGatingState.hidden;
+    case 'LOCKED':
+      return SceneGatingState.locked;
+    default:
+      return SceneGatingState.locked;
+  }
+}
+
+/// Calving scene counts (NIX-389): heads in the alert band (>= 70) and the
+/// watch band (50-69) of the current calving risk snapshot.
+class RanchSceneSummaryCalving {
+  const RanchSceneSummaryCalving({
+    required this.highRiskCount,
+    required this.watchCount,
+  });
+  final int highRiskCount;
+  final int watchCount;
+
+  static const zero = RanchSceneSummaryCalving(highRiskCount: 0, watchCount: 0);
+
+  factory RanchSceneSummaryCalving.fromJson(Map<String, dynamic>? m) {
+    return RanchSceneSummaryCalving(
+      highRiskCount: m?['highRiskCount'] as int? ?? 0,
+      watchCount: m?['watchCount'] as int? ?? 0,
+    );
+  }
+}
+
+/// Gating states of the six health tiles in the fixed
+/// fever/digestive/estrus/epidemic/ai/calving order of the backend.
+class RanchSceneGating {
+  const RanchSceneGating({
+    required this.fever,
+    required this.digestive,
+    required this.estrus,
+    required this.epidemic,
+    required this.ai,
+    required this.calving,
+  });
+
+  final SceneGatingState fever;
+  final SceneGatingState digestive;
+  final SceneGatingState estrus;
+  final SceneGatingState epidemic;
+  final SceneGatingState ai;
+  final SceneGatingState calving;
+
+  /// Legacy payloads without the gating object mean no gating contract —
+  /// every tile renders as before.
+  const RanchSceneGating.allOpen()
+      : fever = SceneGatingState.open,
+        digestive = SceneGatingState.open,
+        estrus = SceneGatingState.open,
+        epidemic = SceneGatingState.open,
+        ai = SceneGatingState.open,
+        calving = SceneGatingState.open;
+
+  factory RanchSceneGating.fromJson(Map<String, dynamic>? m) {
+    if (m == null) return const RanchSceneGating.allOpen();
+    // Loose read: values arrive as strings from the server, but a malformed
+    // payload (wrong JSON type) must fall back to locked, never throw.
+    String? raw(Object? v) => v?.toString();
+    return RanchSceneGating(
+      fever: sceneGatingStateFromRaw(raw(m['fever'])),
+      digestive: sceneGatingStateFromRaw(raw(m['digestive'])),
+      estrus: sceneGatingStateFromRaw(raw(m['estrus'])),
+      epidemic: sceneGatingStateFromRaw(raw(m['epidemic'])),
+      ai: sceneGatingStateFromRaw(raw(m['ai'])),
+      calving: sceneGatingStateFromRaw(raw(m['calving'])),
+    );
+  }
+}
+
 class RanchSceneSummaryFever {
   const RanchSceneSummaryFever({required this.abnormalCount, required this.criticalCount});
   final int abnormalCount;
@@ -97,6 +182,8 @@ class RanchSceneSummary {
     required this.digestive,
     required this.estrus,
     required this.epidemic,
+    this.calving = RanchSceneSummaryCalving.zero,
+    this.gating = const RanchSceneGating.allOpen(),
   });
 
   final RanchSceneSummaryFever fever;
@@ -104,12 +191,21 @@ class RanchSceneSummary {
   final RanchSceneSummaryEstrus estrus;
   final RanchSceneSummaryEpidemic epidemic;
 
+  /// NIX-389 calving tile counts (ranch-overview only).
+  final RanchSceneSummaryCalving calving;
+
+  /// NIX-389 server-driven three-state gating of the six health tiles
+  /// (ranch-overview only; legacy payloads default to all open).
+  final RanchSceneGating gating;
+
   factory RanchSceneSummary.fromJson(Map<String, dynamic>? m) {
     return RanchSceneSummary(
       fever: RanchSceneSummaryFever.fromJson(m?['fever'] != null ? Map<String, dynamic>.from(m?['fever'] as Map) : null),
       digestive: RanchSceneSummaryDigestive.fromJson(m?['digestive'] != null ? Map<String, dynamic>.from(m?['digestive'] as Map) : null),
       estrus: RanchSceneSummaryEstrus.fromJson(m?['estrus'] != null ? Map<String, dynamic>.from(m?['estrus'] as Map) : null),
       epidemic: RanchSceneSummaryEpidemic.fromJson(m?['epidemic'] != null ? Map<String, dynamic>.from(m?['epidemic'] as Map) : null),
+      calving: RanchSceneSummaryCalving.fromJson(m?['calving'] != null ? Map<String, dynamic>.from(m?['calving'] as Map) : null),
+      gating: RanchSceneGating.fromJson(m?['gating'] != null ? Map<String, dynamic>.from(m?['gating'] as Map) : null),
     );
   }
 }

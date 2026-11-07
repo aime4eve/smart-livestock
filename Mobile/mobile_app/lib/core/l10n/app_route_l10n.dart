@@ -25,6 +25,8 @@ extension AppRouteL10n on AppRoute {
       case AppRoute.twinFeverDetail:
       case AppRoute.twinDigestiveDetail:
       case AppRoute.twinEstrusDetail:
+      case AppRoute.calvingPredictions:
+      case AppRoute.sceneLocked:
         return l10n.navTwin;
       case AppRoute.alerts:
         return l10n.navAlerts;

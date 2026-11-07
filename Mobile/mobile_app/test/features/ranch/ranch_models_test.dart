@@ -170,4 +170,57 @@ void main() {
       expect(updated.alerts[0].read, true);
     });
   });
+
+  group('RanchSceneSummary calving/gating (NIX-389)', () {
+    test('parses calving counts and three-state gating', () {
+      final scene = RanchSceneSummary.fromJson({
+        'calving': {'highRiskCount': 3, 'watchCount': 5},
+        'gating': {
+          'fever': 'OPEN',
+          'digestive': 'LOCKED',
+          'estrus': 'HIDDEN',
+          'epidemic': 'OPEN',
+          'ai': 'LOCKED',
+          'calving': 'OPEN',
+        },
+      });
+      expect(scene.calving.highRiskCount, 3);
+      expect(scene.calving.watchCount, 5);
+      expect(scene.gating.fever, SceneGatingState.open);
+      expect(scene.gating.digestive, SceneGatingState.locked);
+      expect(scene.gating.estrus, SceneGatingState.hidden);
+      expect(scene.gating.epidemic, SceneGatingState.open);
+      expect(scene.gating.ai, SceneGatingState.locked);
+      expect(scene.gating.calving, SceneGatingState.open);
+    });
+
+    test('unknown gating value falls back to locked (fail closed)', () {
+      final scene = RanchSceneSummary.fromJson({
+        'gating': {'calving': 'MAYBE', 'fever': 42},
+      });
+      expect(scene.gating.calving, SceneGatingState.locked);
+      expect(scene.gating.fever, SceneGatingState.locked);
+    });
+
+    test('missing gating object means all open (legacy payload)', () {
+      final scene = RanchSceneSummary.fromJson({});
+      expect(scene.gating.fever, SceneGatingState.open);
+      expect(scene.gating.digestive, SceneGatingState.open);
+      expect(scene.gating.estrus, SceneGatingState.open);
+      expect(scene.gating.epidemic, SceneGatingState.open);
+      expect(scene.gating.ai, SceneGatingState.open);
+      expect(scene.gating.calving, SceneGatingState.open);
+      expect(scene.calving.highRiskCount, 0);
+      expect(scene.calving.watchCount, 0);
+    });
+
+    test('missing gating field inside the object locks that scene', () {
+      final scene = RanchSceneSummary.fromJson({
+        'gating': {'fever': 'OPEN'},
+      });
+      expect(scene.gating.fever, SceneGatingState.open);
+      expect(scene.gating.estrus, SceneGatingState.locked);
+      expect(scene.gating.calving, SceneGatingState.locked);
+    });
+  });
 }

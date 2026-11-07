@@ -32,6 +32,8 @@ import 'package:hkt_livestock_agentic/features/pages/digestive_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/epidemic_workbench_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/estrus_detail_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/estrus_page.dart';
+import 'package:hkt_livestock_agentic/features/pages/calving_page.dart';
+import 'package:hkt_livestock_agentic/features/subscription/presentation/scene_locked_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/fence_form_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/fence_page.dart';
 import 'package:hkt_livestock_agentic/features/pages/fever_detail_page.dart';
@@ -275,6 +277,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     },
                   ),
                 ],
+              ),
+              GoRoute(
+                path: 'calving-predictions',
+                name: AppRoute.calvingPredictions.routeName,
+                builder: (context, state) => const CalvingPage(),
+              ),
+              GoRoute(
+                path: 'scene-locked',
+                name: AppRoute.sceneLocked.routeName,
+                builder: (context, state) {
+                  final scene = state.uri.queryParameters['scene'] ?? '';
+                  return SceneLockedPage(scene: scene);
+                },
               ),
             ],
           ),
