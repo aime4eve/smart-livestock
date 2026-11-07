@@ -49,7 +49,12 @@ public interface HealthQueryPort {
             int digestiveAbnormalCount,
             int digestiveWatchCount,
             int estrusHighScoreCount,
-            double epidemicAbnormalRate
+            double epidemicAbnormalRate,
+            // NIX-389 calving scene counts, additive at the end: alert band
+            // (calving_risk_score >= 70) and watch band (50-69). Livestock
+            // without a snapshot row are not counted.
+            int calvingHighRiskCount,
+            int calvingWatchCount
     ) {}
 
     Optional<LivestockHealthState> findHealthByLivestockId(Long livestockId);

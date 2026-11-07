@@ -3754,6 +3754,36 @@ abstract class AppLocalizations {
   /// **'天'**
   String get featureGateUnitDay;
 
+  /// No description provided for @platformLockedTilePolicy.
+  ///
+  /// In zh, this message translates to:
+  /// **'锁定瓷片显示策略'**
+  String get platformLockedTilePolicy;
+
+  /// No description provided for @platformLockedTilePolicyShow.
+  ///
+  /// In zh, this message translates to:
+  /// **'显示锁定瓷片'**
+  String get platformLockedTilePolicyShow;
+
+  /// No description provided for @platformLockedTilePolicyHide.
+  ///
+  /// In zh, this message translates to:
+  /// **'隐藏锁定瓷片'**
+  String get platformLockedTilePolicyHide;
+
+  /// No description provided for @platformLockedTilePolicySaved.
+  ///
+  /// In zh, this message translates to:
+  /// **'锁定瓷片显示策略已更新'**
+  String get platformLockedTilePolicySaved;
+
+  /// No description provided for @platformLockedTilePolicySaveFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存失败'**
+  String get platformLockedTilePolicySaveFailed;
+
   /// No description provided for @gateTypeNone.
   ///
   /// In zh, this message translates to:
@@ -14246,6 +14276,78 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'阈值加载失败'**
   String get subscriptionHealthSettingsLoadFailed;
+
+  /// No description provided for @ranchSceneCalvingMgmt.
+  ///
+  /// In zh, this message translates to:
+  /// **'分娩预警'**
+  String get ranchSceneCalvingMgmt;
+
+  /// No description provided for @pillCalvingHigh.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 只临产'**
+  String pillCalvingHigh(int n);
+
+  /// No description provided for @sceneCalvingCalm.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无临产风险个体'**
+  String get sceneCalvingCalm;
+
+  /// No description provided for @sceneCalvingFoot.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 只临产风险，留意助产准备'**
+  String sceneCalvingFoot(int n);
+
+  /// No description provided for @sceneTileLocked.
+  ///
+  /// In zh, this message translates to:
+  /// **'锁定'**
+  String get sceneTileLocked;
+
+  /// No description provided for @sceneTileLockedFoot.
+  ///
+  /// In zh, this message translates to:
+  /// **'升级订阅后解锁'**
+  String get sceneTileLockedFoot;
+
+  /// No description provided for @sceneLockedTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'功能解锁'**
+  String get sceneLockedTitle;
+
+  /// No description provided for @calvingPredictionTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'分娩预测'**
+  String get calvingPredictionTitle;
+
+  /// No description provided for @calvingNoData.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无临产预测数据'**
+  String get calvingNoData;
+
+  /// No description provided for @calvingRiskScore.
+  ///
+  /// In zh, this message translates to:
+  /// **'风险分'**
+  String get calvingRiskScore;
+
+  /// No description provided for @calvingWindow.
+  ///
+  /// In zh, this message translates to:
+  /// **'预计分娩窗口'**
+  String get calvingWindow;
+
+  /// No description provided for @calvingPredictedAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'评估时间'**
+  String get calvingPredictedAt;
 }
 
 class _AppLocalizationsDelegate

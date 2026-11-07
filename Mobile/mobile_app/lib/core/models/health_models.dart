@@ -307,6 +307,60 @@ class EstrusListItem {
   }
 }
 
+/// One row of the calving prediction list (NIX-389): the latest
+/// calving_predictions row per livestock, joined with the livestock code.
+/// The list only contains heads whose current snapshot score is >= 50;
+/// riskScore >= 70 is the alert band, 50-69 the watch band.
+class CalvingPredictionItem {
+  const CalvingPredictionItem({
+    required this.livestockId,
+    required this.livestockCode,
+    required this.riskScore,
+    this.predictedAt,
+    this.expectedWindowStart,
+    this.expectedWindowEnd,
+    this.tempDropCelsius,
+    this.activityRatio,
+    this.priorEnabled,
+  });
+
+  final String livestockId;
+  final String livestockCode;
+  final int riskScore;
+
+  /// When the prediction was computed.
+  final DateTime? predictedAt;
+
+  /// Predicted calving window (both ends may be absent independently).
+  final DateTime? expectedWindowStart;
+  final DateTime? expectedWindowEnd;
+  final double? tempDropCelsius;
+  final double? activityRatio;
+
+  /// Whether the prior-based model was enabled for this row.
+  final bool? priorEnabled;
+
+  factory CalvingPredictionItem.fromJson(Map<String, dynamic> m) {
+    return CalvingPredictionItem(
+      livestockId: (m['livestockId'] ?? '').toString(),
+      livestockCode: (m['livestockCode'] ?? '') as String,
+      riskScore: m['riskScore'] as int? ?? 0,
+      predictedAt: m['predictedAt'] != null
+          ? DateTime.tryParse(m['predictedAt'] as String)
+          : null,
+      expectedWindowStart: m['expectedWindowStart'] != null
+          ? DateTime.tryParse(m['expectedWindowStart'] as String)
+          : null,
+      expectedWindowEnd: m['expectedWindowEnd'] != null
+          ? DateTime.tryParse(m['expectedWindowEnd'] as String)
+          : null,
+      tempDropCelsius: (m['tempDropCelsius'] as num?)?.toDouble(),
+      activityRatio: (m['activityRatio'] as num?)?.toDouble(),
+      priorEnabled: m['priorEnabled'] as bool?,
+    );
+  }
+}
+
 class EstrusDetailData {
   const EstrusDetailData({
     required this.livestockId,

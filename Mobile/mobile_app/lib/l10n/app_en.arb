@@ -1729,6 +1729,16 @@
   "@featureGateUnitPerson": {},
   "featureGateUnitDay": "day(s)",
   "@featureGateUnitDay": {},
+  "platformLockedTilePolicy": "Locked tile policy",
+  "@platformLockedTilePolicy": {},
+  "platformLockedTilePolicyShow": "Show locked tiles",
+  "@platformLockedTilePolicyShow": {},
+  "platformLockedTilePolicyHide": "Hide locked tiles",
+  "@platformLockedTilePolicyHide": {},
+  "platformLockedTilePolicySaved": "Locked tile policy updated",
+  "@platformLockedTilePolicySaved": {},
+  "platformLockedTilePolicySaveFailed": "Save failed",
+  "@platformLockedTilePolicySaveFailed": {},
   "gateTypeNone": "Unlimited",
   "@gateTypeNone": {},
   "gateTypeLimit": "Quota",
@@ -6353,5 +6363,32 @@
   "subscriptionHealthSettingsSaved": "Thresholds updated — verdicts take effect immediately",
   "subscriptionHealthSettingsSaveFailed": "Save failed",
   "subscriptionHealthSettingsInvalidOrder": "All three tiers must be positive and strictly decreasing (warn > caution > final)",
-  "subscriptionHealthSettingsLoadFailed": "Failed to load thresholds"
+  "subscriptionHealthSettingsLoadFailed": "Failed to load thresholds",
+  "ranchSceneCalvingMgmt": "Calving Alerts",
+  "@ranchSceneCalvingMgmt": {},
+  "pillCalvingHigh": "{n} calving risk",
+  "@pillCalvingHigh": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "sceneCalvingCalm": "No calving-risk animals",
+  "sceneCalvingFoot": "{n} calving-risk animals, prep for assistance",
+  "@sceneCalvingFoot": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "sceneTileLocked": "Locked",
+  "sceneTileLockedFoot": "Upgrade to unlock",
+  "sceneLockedTitle": "Unlock Feature",
+  "calvingPredictionTitle": "Calving Predictions",
+  "calvingNoData": "No calving predictions yet",
+  "calvingRiskScore": "Risk score",
+  "calvingWindow": "Calving window",
+  "calvingPredictedAt": "Assessed"
 }

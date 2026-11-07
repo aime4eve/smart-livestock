@@ -1726,6 +1726,16 @@
   "@featureGateUnitPerson": {},
   "featureGateUnitDay": "天",
   "@featureGateUnitDay": {},
+  "platformLockedTilePolicy": "锁定瓷片显示策略",
+  "@platformLockedTilePolicy": {},
+  "platformLockedTilePolicyShow": "显示锁定瓷片",
+  "@platformLockedTilePolicyShow": {},
+  "platformLockedTilePolicyHide": "隐藏锁定瓷片",
+  "@platformLockedTilePolicyHide": {},
+  "platformLockedTilePolicySaved": "锁定瓷片显示策略已更新",
+  "@platformLockedTilePolicySaved": {},
+  "platformLockedTilePolicySaveFailed": "保存失败",
+  "@platformLockedTilePolicySaveFailed": {},
   "gateTypeNone": "无限制",
   "@gateTypeNone": {},
   "gateTypeLimit": "配额",
@@ -6349,5 +6359,32 @@
   "subscriptionHealthSettingsSaved": "阈值已更新，判定即时生效",
   "subscriptionHealthSettingsSaveFailed": "保存失败",
   "subscriptionHealthSettingsInvalidOrder": "三档必须为正数且依次递减（预警 > 中档 > 最后档）",
-  "subscriptionHealthSettingsLoadFailed": "阈值加载失败"
+  "subscriptionHealthSettingsLoadFailed": "阈值加载失败",
+  "ranchSceneCalvingMgmt": "分娩预警",
+  "@ranchSceneCalvingMgmt": {},
+  "pillCalvingHigh": "{n} 只临产",
+  "@pillCalvingHigh": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "sceneCalvingCalm": "暂无临产风险个体",
+  "sceneCalvingFoot": "{n} 只临产风险，留意助产准备",
+  "@sceneCalvingFoot": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "sceneTileLocked": "锁定",
+  "sceneTileLockedFoot": "升级订阅后解锁",
+  "sceneLockedTitle": "功能解锁",
+  "calvingPredictionTitle": "分娩预测",
+  "calvingNoData": "暂无临产预测数据",
+  "calvingRiskScore": "风险分",
+  "calvingWindow": "预计分娩窗口",
+  "calvingPredictedAt": "评估时间"
 }

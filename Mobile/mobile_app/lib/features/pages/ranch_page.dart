@@ -43,6 +43,7 @@ import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/ranch_
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/livestock_detail_sheet.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/fence_buffer_layer.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/ranch_summary_tile.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/health_scene_tile.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class RanchPage extends ConsumerStatefulWidget {
@@ -619,9 +620,18 @@ class _RanchPageState extends ConsumerState<RanchPage>
             scene: scene,
           ),
           if (scene != null) ...[
-            _buildSceneSection(context, scene, feverOver6h: feverOver6h),
+            _buildSceneSection(
+              context,
+              scene,
+              // NIX-389: server-driven three-state gating + calving counts
+              // come from the ranch-overview sceneSummary (Task 1), while the
+              // four-scene counts above keep coming from /health/overview.
+              gating: overview.sceneSummary.gating,
+              calving: overview.sceneSummary.calving,
+              feverOver6h: feverOver6h,
+            ),
             const SizedBox(height: AppSpacing.sm),
-            _buildAiCard(context, scene.ai),
+            ?buildHealthAiTile(context, scene.ai, overview.sceneSummary.gating.ai),
           ],
         ],
       ),
@@ -1527,116 +1537,17 @@ class _RanchPageState extends ConsumerState<RanchPage>
     );
   }
 
-  /// 健康管理段：2×2 场景卡（状态胶囊 + 人话副标）。
+  /// 健康管理段：2×2 场景卡（状态胶囊 + 人话副标）。NIX-389 起六场景
+  /// （含分娩）按服务端 gating 三态渲染，HIDDEN 场景不占位。
   Widget _buildSceneSection(
     BuildContext context,
     dynamic scene, {
+    required RanchSceneGating gating,
+    required RanchSceneSummaryCalving calving,
     required int feverOver6h,
   }) {
     final l10n = AppLocalizations.of(context)!;
-
-    Widget pill(Color color, String text) => Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 8.5,
-          fontWeight: FontWeight.w700,
-          color: color,
-        ),
-      ),
-    );
-
-    Widget card({
-      required IconData icon,
-      required Color color,
-      required String name,
-      required Widget statusPill,
-      required String foot,
-      TextSpan? footBold,
-      required VoidCallback onTap,
-    }) {
-      return InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            border: Border.all(color: AppColors.border),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 26,
-                    height: 26,
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(icon, size: 14, color: color),
-                  ),
-                  const SizedBox(width: 7),
-                  Expanded(
-                    child: Text(
-                      name,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  statusPill,
-                ],
-              ),
-              const SizedBox(height: 6),
-              if (footBold != null)
-                Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: foot,
-                        style: const TextStyle(
-                          fontSize: 9,
-                          height: 1.3,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      footBold,
-                    ],
-                  ),
-                )
-              else
-                Text(
-                  foot,
-                  style: const TextStyle(
-                    fontSize: 9,
-                    height: 1.3,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final feverN = scene.fever.abnormalCount - scene.fever.elevatedCount;
-    final lowN = scene.fever.elevatedCount;
-    final epiRate = (scene.epidemic.abnormalRate * 100).toStringAsFixed(1);
-    final epiOver = scene.epidemic.abnormalRate >= 0.10;
-
-    // Content-driven card height: a fixed childAspectRatio ties height to card
-    // width, so on phone widths (~51dp) the inner column (~60dp) overflows and
-    // the foot text paints past the card border in release builds.
+    const open = SceneGatingState.open;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1681,189 +1592,31 @@ class _RanchPageState extends ConsumerState<RanchPage>
           // (user report 2026-10-06). 66 also fits the two-line footBold
           // worst case that the 2026-09-28 overflow fix targeted.
           mainAxisExtent: 66,
-          children: [
-            card(
-              icon: Icons.thermostat,
-              color: const Color(0xFFD97B29),
-              name: l10n.ranchSceneFeverMgmt,
-              statusPill: scene.fever.abnormalCount == 0
-                  ? pill(AppColors.success, l10n.pillSteady)
-                  : pill(
-                      scene.fever.criticalCount > 0
-                          ? AppColors.danger
-                          : AppColors.warning,
-                      l10n.pillAbnormal(scene.fever.abnormalCount),
-                    ),
-              foot: scene.fever.abnormalCount == 0
-                  ? l10n.sceneFeverCalm
-                  : l10n.sceneFeverFoot(feverN, lowN),
-              footBold: scene.fever.abnormalCount > 0 && feverOver6h > 0
-                  ? TextSpan(
-                      text: l10n.sceneFeverFootOver(feverOver6h),
-                      style: const TextStyle(
-                        fontSize: 9,
-                        height: 1.3,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.danger,
-                      ),
-                    )
-                  : null,
-              onTap: () => context.push(AppRoute.twinFever.path),
-            ),
-            card(
-              icon: Icons.grain,
-              color: const Color(0xFF8D6E4F),
-              name: l10n.ranchSceneDigestiveMgmt,
-              statusPill: scene.digestive.abnormalCount == 0
-                  ? pill(AppColors.success, l10n.pillSteady)
-                  : pill(
-                      AppColors.warning,
-                      l10n.pillAbnormal(scene.digestive.abnormalCount),
-                    ),
-              foot: scene.digestive.abnormalCount == 0
-                  ? l10n.sceneDigestiveCalm
-                  : l10n.sceneDigestiveFoot(scene.digestive.abnormalCount),
-              onTap: () => context.push(AppRoute.twinDigestive.path),
-            ),
-            card(
-              icon: Icons.favorite,
-              color: AppColors.estrus,
-              name: l10n.ranchSceneEstrusMgmt,
-              statusPill: scene.estrus.highScoreCount == 0
-                  ? pill(AppColors.success, l10n.pillSteady)
-                  : pill(
-                      AppColors.estrus,
-                      l10n.pillHigh(scene.estrus.highScoreCount),
-                    ),
-              foot: scene.estrus.highScoreCount == 0
-                  ? l10n.sceneEstrusCalm
-                  : l10n.sceneEstrusFoot(scene.estrus.highScoreCount),
-              onTap: () => context.push(AppRoute.twinEstrus.path),
-            ),
-            card(
-              icon: Icons.shield,
-              color: const Color(0xFF2E7D74),
-              name: l10n.ranchSceneEpidemic,
-              statusPill: epiOver
-                  ? pill(AppColors.danger, l10n.pillRate(epiRate))
-                  : scene.epidemic.abnormalRate > 0
-                  ? pill(AppColors.warning, l10n.pillRate(epiRate))
-                  : pill(AppColors.success, l10n.pillSteady),
-              foot: epiOver
-                  ? (scene.epidemic.hasMarkedSource
-                      ? l10n.sceneEpidemicFootAbove(epiRate)
-                      : l10n.sceneEpidemicFootNoSource(epiRate))
-                  : l10n.sceneEpidemicFootBelow(epiRate),
-            // P7: epiOver with no marked source appends a danger bold tail
-            // segment via the same two-span foot the fever card uses.
-            footBold: epiOver && !scene.epidemic.hasMarkedSource
-                ? TextSpan(
-                    text: l10n.sceneEpidemicFootNoSourceTag,
-                    style: const TextStyle(
-                      fontSize: 9,
-                      height: 1.3,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.danger,
-                    ),
-                  )
-                : null,
-              onTap: () => context.push(AppRoute.twinEpidemic.path),
-            ),
-          ],
+          children: buildHealthSceneTiles(
+            context,
+            scene: scene,
+            gating: gating,
+            calving: calving,
+            feverOver6h: feverOver6h,
+          ),
         ),
-        // 对账提示：仅场景异常数 ≠ 活跃单数时出现（裁决 23）
+        // 对账提示：仅场景异常数 ≠ 活跃单数时出现（裁决 23）。
+        // NIX-389：锁定/隐藏场景的活跃单对用户不可见，双方都只累计
+        // gating==OPEN 的场景，避免误报不一致。
         _buildReconcileLine(
           context,
-          scene.fever.abnormalCount +
-              scene.digestive.abnormalCount +
-              scene.estrus.highScoreCount,
-          scene.fever.activeAlertCount +
-              scene.digestive.activeAlertCount +
-              scene.estrus.activeAlertCount +
-              scene.epidemic.activeAlertCount +
-              (scene.ai?.activeAlertCount ?? 0),
+          (gating.fever == open ? scene.fever.abnormalCount : 0) +
+              (gating.digestive == open ? scene.digestive.abnormalCount : 0) +
+              (gating.estrus == open ? scene.estrus.highScoreCount : 0),
+          (gating.fever == open ? scene.fever.activeAlertCount : 0) +
+              (gating.digestive == open
+                  ? scene.digestive.activeAlertCount
+                  : 0) +
+              (gating.estrus == open ? scene.estrus.activeAlertCount : 0) +
+              (gating.epidemic == open ? scene.epidemic.activeAlertCount : 0) +
+              (gating.ai == open ? (scene.ai?.activeAlertCount ?? 0) : 0),
         ),
       ],
-    );
-  }
-
-  /// AI 观察卡（方案 D：标题 + 摘要句 + 档位胶囊；排行入口 Phase 4 接 S5）。
-  Widget _buildAiCard(BuildContext context, dynamic ai) {
-    final l10n = AppLocalizations.of(context)!;
-    final empty = ai == null || ai.anomalyCount == 0;
-    final color = empty
-        ? AppColors.textSecondary
-        : ai.avgScore >= 0.7
-        ? AppColors.danger
-        : ai.avgScore >= 0.3
-        ? AppColors.warning
-        : AppColors.success;
-    final band = ai.avgScore >= 0.7
-        ? l10n.aiBandAlarm
-        : ai.avgScore >= 0.3
-        ? l10n.aiBandWatch
-        : l10n.aiBandCalm;
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border.all(color: AppColors.border),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: AppColors.info.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.smart_toy, size: 15, color: AppColors.info),
-          ),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.aiObserveTitle,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  empty
-                      ? l10n.aiNotReady
-                      : l10n.aiSummaryWatching(ai.anomalyCount),
-                  style: const TextStyle(
-                    fontSize: 9,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (!empty)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                band,
-                style: TextStyle(
-                  fontSize: 8.5,
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                ),
-              ),
-            ),
-        ],
-      ),
     );
   }
 

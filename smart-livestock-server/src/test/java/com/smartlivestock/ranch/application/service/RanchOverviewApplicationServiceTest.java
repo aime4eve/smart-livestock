@@ -7,6 +7,8 @@ import com.smartlivestock.ranch.domain.model.*;
 import com.smartlivestock.ranch.domain.port.HealthQueryPort;
 import com.smartlivestock.ranch.domain.port.IdentityQueryPort;
 import com.smartlivestock.ranch.domain.port.IoTQueryPort;
+import com.smartlivestock.ranch.domain.port.LockedTilePolicyPort;
+import com.smartlivestock.ranch.domain.port.SceneGatePort;
 import com.smartlivestock.ranch.domain.port.HealthQueryPort.LivestockHealthState;
 import com.smartlivestock.ranch.domain.port.HealthQueryPort.HealthOverview;
 import com.smartlivestock.ranch.domain.port.dto.FarmInfo;
@@ -46,6 +48,8 @@ class RanchOverviewApplicationServiceTest {
     @Mock private SpringDataAlertReadStatusRepository readStatusRepository;
     @Mock private FenceZoneRepository fenceZoneRepository;
     @Mock private AlertMessageLocalizer alertMessageLocalizer;
+    @Mock private SceneGatePort sceneGatePort;
+    @Mock private LockedTilePolicyPort lockedTilePolicyPort;
 
     private RanchOverviewApplicationService service;
 
@@ -56,7 +60,8 @@ class RanchOverviewApplicationServiceTest {
         service = new RanchOverviewApplicationService(
                 fenceRepository, livestockRepository, alertRepository, healthQueryPort,
                 ioTQueryPort, identityQueryPort, readStatusRepository, fenceZoneRepository,
-                new FenceLivestockCounter(), null, null, alertMessageLocalizer);
+                new FenceLivestockCounter(), null, null, alertMessageLocalizer,
+                sceneGatePort, lockedTilePolicyPort);
     }
 
     private void setupDefaultMocks() {
@@ -83,7 +88,7 @@ class RanchOverviewApplicationServiceTest {
         when(alertRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
         when(healthQueryPort.findHealthByFarmId(1L)).thenReturn(Collections.emptyList());
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
-                new HealthOverview(0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0.0));
+                new HealthOverview(0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0, 0));
         return service.getOverview(1L, 1L, 1L);
     }
 
@@ -117,7 +122,7 @@ class RanchOverviewApplicationServiceTest {
         when(alertRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
         when(healthQueryPort.findHealthByFarmId(1L)).thenReturn(Collections.emptyList());
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
-                new HealthOverview(0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0.0));
+                new HealthOverview(0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0, 0));
 
         RanchOverviewResponse response = service.getOverview(1L, 1L, 1L);
 
@@ -191,7 +196,7 @@ class RanchOverviewApplicationServiceTest {
                 new LivestockHealthState(1L, "FEVER", "NORMAL", 0, null, null, "NORMAL", null)
         ));
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
-                new HealthOverview(1, 0.0, 0, 0, 1, 0, 0, 0, 0, 0.0));
+                new HealthOverview(1, 0.0, 0, 0, 1, 0, 0, 0, 0, 0.0, 0, 0));
 
         RanchOverviewResponse response = service.getOverview(1L, 1L, 1L);
 
@@ -216,7 +221,7 @@ class RanchOverviewApplicationServiceTest {
                 new LivestockHealthState(1L, "CRITICAL", "NORMAL", 0, null, null, "NORMAL", null)
         ));
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
-                new HealthOverview(1, 0.0, 0, 1, 1, 1, 0, 0, 0, 1.0));
+                new HealthOverview(1, 0.0, 0, 1, 1, 1, 0, 0, 0, 1.0, 0, 0));
 
         RanchOverviewResponse response = service.getOverview(1L, 1L, 1L);
 
@@ -242,7 +247,7 @@ class RanchOverviewApplicationServiceTest {
         when(alertRepository.findByFarmId(1L)).thenReturn(List.of(pending, archived));
         when(healthQueryPort.findHealthByFarmId(1L)).thenReturn(Collections.emptyList());
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
-                new HealthOverview(0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0.0));
+                new HealthOverview(0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0, 0));
 
         RanchOverviewResponse response = service.getOverview(1L, 1L, 1L);
 
@@ -266,7 +271,7 @@ class RanchOverviewApplicationServiceTest {
                 new LivestockHealthState(1L, "NORMAL", "NORMAL", 0, null, null, "NORMAL", null)
         ));
         when(healthQueryPort.getHealthOverview(1L)).thenReturn(
-                new HealthOverview(1, 1.0, 0, 0, 0, 0, 0, 0, 0, 0.0));
+                new HealthOverview(1, 1.0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0, 0));
 
         RanchOverviewResponse response = service.getOverview(1L, 1L, 1L);
 
@@ -352,5 +357,122 @@ class RanchOverviewApplicationServiceTest {
 
         assertThat(response.livestockMarkers().get(0).hasHealthTicket()).isTrue();
         assertThat(response.livestockMarkers().get(0).healthStatus()).isEqualTo("WARNING");
+    }
+
+    // ── NIX-389: calving tile counts + three-state scene gating ──
+
+    /**
+     * Empty single-livestock overview with the given snapshot calving risk
+     * score (no gates stubbed — every scene OPEN by default).
+     */
+    private RanchOverviewResponse overviewWithHealthState(Integer calvingRiskScore) {
+        setupDefaultMocks();
+        Livestock l1 = new Livestock(1L, "SL-001", "Holstein", "F", null, null);
+        l1.setId(1L);
+        l1.updatePosition(new BigDecimal("28.246"), new BigDecimal("112.852"));
+        when(fenceRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
+        when(fenceZoneRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
+        when(livestockRepository.findByFarmId(1L)).thenReturn(List.of(l1));
+        when(alertRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
+        when(healthQueryPort.findHealthByFarmId(1L)).thenReturn(List.of(
+                new LivestockHealthState(1L, "NORMAL", "NORMAL", 0, null, null, "NORMAL", calvingRiskScore)
+        ));
+        return service.getOverview(1L, 1L, 1L);
+    }
+
+    @Test
+    @DisplayName("calving tile counts: >=70 high risk, 50-69 watch, null/absent snapshot not counted")
+    void calvingTileCount_bands() {
+        setupDefaultMocks();
+        Livestock high = new Livestock(1L, "SL-001", "Holstein", "F", null, null);
+        high.setId(1L);
+        Livestock watch = new Livestock(1L, "SL-002", "Holstein", "F", null, null);
+        watch.setId(2L);
+        Livestock unscored = new Livestock(1L, "SL-003", "Holstein", "F", null, null);
+        unscored.setId(3L);
+        Livestock noSnapshot = new Livestock(1L, "SL-004", "Holstein", "F", null, null);
+        noSnapshot.setId(4L);
+
+        when(fenceRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
+        when(fenceZoneRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
+        when(livestockRepository.findByFarmId(1L)).thenReturn(List.of(high, watch, unscored, noSnapshot));
+        when(alertRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
+        when(healthQueryPort.findHealthByFarmId(1L)).thenReturn(List.of(
+                new LivestockHealthState(1L, "NORMAL", "NORMAL", 0, null, null, "NORMAL", 70),
+                new LivestockHealthState(2L, "NORMAL", "NORMAL", 0, null, null, "NORMAL", 60),
+                new LivestockHealthState(3L, "NORMAL", "NORMAL", 0, null, null, "NORMAL", null)
+        ));
+
+        RanchOverviewResponse response = service.getOverview(1L, 1L, 1L);
+
+        assertThat(response.sceneSummary().calving().highRiskCount()).isEqualTo(1);
+        assertThat(response.sceneSummary().calving().watchCount()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("calving tile watch band is inclusive at 50 and exclusive below 70")
+    void calvingTileCount_bandEdges() {
+        RanchOverviewResponse at50 = overviewWithHealthState(50);
+        assertThat(at50.sceneSummary().calving().highRiskCount()).isZero();
+        assertThat(at50.sceneSummary().calving().watchCount()).isEqualTo(1);
+
+        RanchOverviewResponse at49 = overviewWithHealthState(49);
+        assertThat(at49.sceneSummary().calving().highRiskCount()).isZero();
+        assertThat(at49.sceneSummary().calving().watchCount()).isZero();
+    }
+
+    @Test
+    @DisplayName("unlocked gate ships OPEN even when the platform policy would hide locked tiles")
+    void gating_gateOpen_OPEN() {
+        when(sceneGatePort.isLocked("temperature_monitor")).thenReturn(false);
+        when(lockedTilePolicyPort.getLockedTilePolicy()).thenReturn("HIDE");
+
+        RanchOverviewResponse response = overviewWithHealthState(null);
+
+        assertThat(response.sceneSummary().gating().fever()).isEqualTo("OPEN");
+    }
+
+    @Test
+    @DisplayName("locked gate + SHOW_LOCKED policy ships LOCKED")
+    void gating_lockedGateShowLocked_LOCKED() {
+        when(sceneGatePort.isLocked("calving_warning")).thenReturn(true);
+        when(lockedTilePolicyPort.getLockedTilePolicy()).thenReturn("SHOW_LOCKED");
+
+        RanchOverviewResponse response = overviewWithHealthState(null);
+
+        assertThat(response.sceneSummary().gating().calving()).isEqualTo("LOCKED");
+    }
+
+    @Test
+    @DisplayName("locked gate + HIDE policy ships HIDDEN")
+    void gating_lockedGateHide_HIDDEN() {
+        when(sceneGatePort.isLocked("calving_warning")).thenReturn(true);
+        when(lockedTilePolicyPort.getLockedTilePolicy()).thenReturn("HIDE");
+
+        RanchOverviewResponse response = overviewWithHealthState(null);
+
+        assertThat(response.sceneSummary().gating().calving()).isEqualTo("HIDDEN");
+    }
+
+    @Test
+    @DisplayName("all six tiles walk the gate keys to their own state field")
+    void gating_allSixScenes_keyMapping() {
+        // estrus + calving locked, everything else open; SHOW_LOCKED policy.
+        when(lockedTilePolicyPort.getLockedTilePolicy()).thenReturn("SHOW_LOCKED");
+        when(sceneGatePort.isLocked(org.mockito.ArgumentMatchers.anyString()))
+                .thenAnswer(inv -> {
+                    String key = inv.getArgument(0, String.class);
+                    return "estrus_detect".equals(key) || "calving_warning".equals(key);
+                });
+
+        RanchOverviewResponse response = overviewWithHealthState(null);
+
+        var gating = response.sceneSummary().gating();
+        assertThat(gating.fever()).isEqualTo("OPEN");
+        assertThat(gating.digestive()).isEqualTo("OPEN");
+        assertThat(gating.estrus()).isEqualTo("LOCKED");
+        assertThat(gating.epidemic()).isEqualTo("OPEN");
+        assertThat(gating.ai()).isEqualTo("OPEN");
+        assertThat(gating.calving()).isEqualTo("LOCKED");
     }
 }

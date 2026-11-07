@@ -13,6 +13,8 @@ import com.smartlivestock.ranch.domain.port.HealthQueryPort;
 import com.smartlivestock.ranch.domain.port.HealthQueryPort.LivestockHealthState;
 import com.smartlivestock.ranch.domain.port.HealthQueryPort.HealthOverview;
 import com.smartlivestock.ranch.domain.port.IdentityQueryPort;
+import com.smartlivestock.ranch.domain.port.LockedTilePolicyPort;
+import com.smartlivestock.ranch.domain.port.SceneGatePort;
 import com.smartlivestock.ranch.domain.port.IoTQueryPort;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.domain.repository.FenceRepository;
@@ -44,6 +46,16 @@ public class RanchOverviewApplicationService {
      * health configuration.
      */
     private static final int CALVING_WARNING_SCORE = 70;
+    /** NIX-389 calving tile: watch band lower bound (alert band starts at {@link #CALVING_WARNING_SCORE}). */
+    private static final int CALVING_WATCH_SCORE = 50;
+
+    /**
+     * NIX-389 gating: feature_gates key per health scene tile, in the fixed
+     * fever/digestive/estrus/epidemic/ai/calving order of the tiles.
+     */
+    private static final List<String> SCENE_GATE_KEYS = List.of(
+            "temperature_monitor", "peristaltic_monitor", "estrus_detect",
+            "epidemic_alert", "health_score", "calving_warning");
 
     private final FenceRepository fenceRepository;
     private final LivestockRepository livestockRepository;
@@ -57,6 +69,8 @@ public class RanchOverviewApplicationService {
     private final RedisCacheService redisCacheService;
     private final ObjectMapper objectMapper;
     private final AlertMessageLocalizer alertMessageLocalizer;
+    private final SceneGatePort sceneGatePort;
+    private final LockedTilePolicyPort lockedTilePolicyPort;
 
 
     @Transactional(readOnly = true)
@@ -218,7 +232,11 @@ public class RanchOverviewApplicationService {
                         healthOverview.digestiveAbnormalCount(),
                         healthOverview.digestiveWatchCount()),
                 new SceneSummaryEstrus(healthOverview.estrusHighScoreCount()),
-                new SceneSummaryEpidemic(healthOverview.epidemicAbnormalRate())
+                new SceneSummaryEpidemic(healthOverview.epidemicAbnormalRate()),
+                new SceneSummaryCalving(
+                        healthOverview.calvingHighRiskCount(),
+                        healthOverview.calvingWatchCount()),
+                buildSceneGating()
         );
 
         // 7. Pending tasks derived from critical/warning livestock
@@ -336,6 +354,19 @@ public class RanchOverviewApplicationService {
         int estrusHighScore = (int) active.stream()
                 .filter(h -> h.estrusScore() >= 70)
                 .count();
+        // NIX-389 calving scene bands over the current snapshot score
+        // (mirrors HealthQueryPortAdapter.getHealthOverview): >= 70 alert
+        // level, 50-69 watch level. A null score (never assessed / released)
+        // counts nowhere — a livestock without a snapshot row never enters
+        // the health states list in the first place.
+        int calvingHighRisk = (int) active.stream()
+                .filter(h -> h.calvingRiskScore() != null && h.calvingRiskScore() >= CALVING_WARNING_SCORE)
+                .count();
+        int calvingWatch = (int) active.stream()
+                .filter(h -> h.calvingRiskScore() != null
+                        && h.calvingRiskScore() >= CALVING_WATCH_SCORE
+                        && h.calvingRiskScore() < CALVING_WARNING_SCORE)
+                .count();
         double epidemicAbnormalRate = total > 0
                 ? (double) active.stream()
                         .filter(h -> !"NORMAL".equals(h.tempStatus())
@@ -351,8 +382,46 @@ public class RanchOverviewApplicationService {
                 feverAbnormal, criticalCount,
                 digestiveAbnormal, digestiveWatch,
                 estrusHighScore,
-                Math.round(epidemicAbnormalRate * 1000.0) / 1000.0
+                Math.round(epidemicAbnormalRate * 1000.0) / 1000.0,
+                calvingHighRisk, calvingWatch
         );
+    }
+
+    /**
+     * NIX-389 three-state gating for the six health tiles, in the fixed
+     * fever/digestive/estrus/epidemic/ai/calving order:
+     * <ul>
+     *   <li>OPEN — the tenant's feature gate for the scene is unlocked;</li>
+     *   <li>LOCKED — gate locked and the platform policy is SHOW_LOCKED
+     *       (client renders the tile with a lock affordance);</li>
+     *   <li>HIDDEN — gate locked and the platform policy is HIDE (client
+     *       drops the tile).</li>
+     * </ul>
+     *
+     * <p>Scene counts are shipped for every state, HIDDEN included. The
+     * overview numbers are farm-level aggregates only — no per-animal
+     * identity, detail or position reaches the client here, so hiding the
+     * tile costs nothing in confidentiality while keeping the payload shape
+     * stable for the client to toggle.</p>
+     */
+    private SceneSummaryGating buildSceneGating() {
+        String policy = lockedTilePolicyPort.getLockedTilePolicy();
+        boolean hideLocked = "HIDE".equals(policy);
+        String fever = gateState(SCENE_GATE_KEYS.get(0), hideLocked);
+        String digestive = gateState(SCENE_GATE_KEYS.get(1), hideLocked);
+        String estrus = gateState(SCENE_GATE_KEYS.get(2), hideLocked);
+        String epidemic = gateState(SCENE_GATE_KEYS.get(3), hideLocked);
+        String ai = gateState(SCENE_GATE_KEYS.get(4), hideLocked);
+        String calving = gateState(SCENE_GATE_KEYS.get(5), hideLocked);
+        return new SceneSummaryGating(fever, digestive, estrus, epidemic, ai, calving);
+    }
+
+    /** Three-state verdict for one scene (see {@link #buildSceneGating()}). */
+    private String gateState(String featureKey, boolean hideLocked) {
+        if (!sceneGatePort.isLocked(featureKey)) {
+            return "OPEN";
+        }
+        return hideLocked ? "HIDDEN" : "LOCKED";
     }
 
     private Map<String, Integer> buildFenceAlertSummary(List<Alert> alerts) {
