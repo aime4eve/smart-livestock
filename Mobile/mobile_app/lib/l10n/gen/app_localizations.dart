@@ -3754,6 +3754,36 @@ abstract class AppLocalizations {
   /// **'天'**
   String get featureGateUnitDay;
 
+  /// No description provided for @platformLockedTilePolicy.
+  ///
+  /// In zh, this message translates to:
+  /// **'锁定瓷片显示策略'**
+  String get platformLockedTilePolicy;
+
+  /// No description provided for @platformLockedTilePolicyShow.
+  ///
+  /// In zh, this message translates to:
+  /// **'显示锁定瓷片'**
+  String get platformLockedTilePolicyShow;
+
+  /// No description provided for @platformLockedTilePolicyHide.
+  ///
+  /// In zh, this message translates to:
+  /// **'隐藏锁定瓷片'**
+  String get platformLockedTilePolicyHide;
+
+  /// No description provided for @platformLockedTilePolicySaved.
+  ///
+  /// In zh, this message translates to:
+  /// **'锁定瓷片显示策略已更新'**
+  String get platformLockedTilePolicySaved;
+
+  /// No description provided for @platformLockedTilePolicySaveFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存失败'**
+  String get platformLockedTilePolicySaveFailed;
+
   /// No description provided for @gateTypeNone.
   ///
   /// In zh, this message translates to:

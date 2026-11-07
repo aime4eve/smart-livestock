@@ -2063,6 +2063,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get featureGateUnitDay => 'day(s)';
 
   @override
+  String get platformLockedTilePolicy => 'Locked tile policy';
+
+  @override
+  String get platformLockedTilePolicyShow => 'Show locked tiles';
+
+  @override
+  String get platformLockedTilePolicyHide => 'Hide locked tiles';
+
+  @override
+  String get platformLockedTilePolicySaved => 'Locked tile policy updated';
+
+  @override
+  String get platformLockedTilePolicySaveFailed => 'Save failed';
+
+  @override
   String get gateTypeNone => 'Unlimited';
 
   @override

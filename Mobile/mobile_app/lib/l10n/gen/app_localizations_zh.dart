@@ -2020,6 +2020,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get featureGateUnitDay => '天';
 
   @override
+  String get platformLockedTilePolicy => '锁定瓷片显示策略';
+
+  @override
+  String get platformLockedTilePolicyShow => '显示锁定瓷片';
+
+  @override
+  String get platformLockedTilePolicyHide => '隐藏锁定瓷片';
+
+  @override
+  String get platformLockedTilePolicySaved => '锁定瓷片显示策略已更新';
+
+  @override
+  String get platformLockedTilePolicySaveFailed => '保存失败';
+
+  @override
   String get gateTypeNone => '无限制';
 
   @override

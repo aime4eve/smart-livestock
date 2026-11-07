@@ -5,6 +5,7 @@ import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/admin/feature_gate/domain/feature_gate_models.dart';
 import 'package:hkt_livestock_agentic/features/admin/feature_gate/presentation/feature_gate_card.dart';
 import 'package:hkt_livestock_agentic/features/admin/feature_gate/presentation/feature_gate_controller.dart';
+import 'package:hkt_livestock_agentic/features/admin/feature_gate/presentation/locked_tile_policy_card.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 class FeatureGatePage extends ConsumerWidget {
@@ -20,7 +21,12 @@ class FeatureGatePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.featureGateTitle)),
-      body: asyncGates.when(
+      // The locked-tile policy card sits above the tier tabs and loads its
+      // own endpoint, so it stays usable even when the gates list fails.
+      body: Column(
+        children: [
+          const LockedTilePolicyCard(),
+          Expanded(child: asyncGates.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
           child: Column(
@@ -50,7 +56,10 @@ class FeatureGatePage extends ConsumerWidget {
             child: Column(
               children: [
                 TabBar(
-                  tabAlignment: TabAlignment.start,
+                  // tabAlignment: TabAlignment.start was dropped: it is
+                  // only valid for scrollable tab bars and the debug
+                  // assertion fired in widget tests (release silently
+                  // ignored it, so the fill layout is unchanged).
                   isScrollable: false,
                   labelColor: AppColors.primary,
                   unselectedLabelColor: AppColors.textSecondary,
@@ -80,6 +89,8 @@ class FeatureGatePage extends ConsumerWidget {
             ),
           );
         },
+        )),
+        ],
       ),
     );
   }
