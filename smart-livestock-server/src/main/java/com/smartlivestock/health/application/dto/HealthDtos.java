@@ -130,7 +130,32 @@ public final class HealthDtos {
            // Null on legacy rows written before learning existed.
            BigDecimal baselineUsed,
            String baselineSource,
-           AiAnomalySummary aiAnomaly
+           AiAnomalySummary aiAnomaly,
+           // ── Score explanation (NIX-390 Task 2), all nullable so old
+           // clients ignore them and unexplainable rows degrade to the plain
+           // score card. Flat style matches the rest of this file. scoredAt is
+           // already exposed as `timestamp` above (same column), not repeated.
+           Instant baselineComputedAt,
+           // Which formula produced the row: LEGACY | NORMALIZED-V2; null when
+           // no row exists at all.
+           String featureVersion,
+           // Display-only level ratios of the NORMALIZED path; null on LEGACY
+           // rows (their step column is a short-window increase percent).
+           BigDecimal activityRatio,
+           BigDecimal distanceRatio,
+           // Component breakdown behind the score (0-100 per feature + the
+           // weight each actually carried). Null when featureVersion is
+           // missing/unknown — the frontend then degrades to static help.
+           Double activityScore,
+           Double temperatureScore,
+           Double distanceScore,
+           Double weightActivity,
+           Double weightTemperature,
+           Double weightDistance,
+           // Whether the channel actually fed the weighted sum (null = row not
+           // explainable; false = e.g. CAPSULE-only fixture without distance).
+           Boolean distanceParticipated,
+           Boolean temperatureParticipated
    ) {}
 
     public record EstrusListResponse(

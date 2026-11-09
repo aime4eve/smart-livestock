@@ -69,6 +69,7 @@ class HealthApplicationServiceMarkDiseasedTest {
 
     @BeforeEach
     void setUp() {
+        var estrusProps = legacyEstrusScoringProperties();
         service = new HealthApplicationService(
                 org.mockito.Mockito.mock(com.smartlivestock.identity.application.TenantZoneResolver.class),
                 snapshotRepo,
@@ -91,7 +92,9 @@ class HealthApplicationServiceMarkDiseasedTest {
                 mock(MessageResolver.class),
                 contactAnalysisService,
                 new com.smartlivestock.health.infrastructure.config.BaselineLearningProperties(),
-                legacyEstrusScoringProperties());
+                estrusProps,
+                // Real explainer (pure calc, NIX-390 Task 2): constructor wiring only.
+                new EstrusScoreExplainer(new EstrusAnalysisService(), estrusProps));
         ReflectionTestUtils.setField(service, "analysisWindowHours", 72);
         stubWorkbenchDependencies();
     }

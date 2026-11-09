@@ -55,6 +55,7 @@ class HealthApplicationServiceTelemetryTest {
 
     @BeforeEach
     void setUp() {
+        var estrusProps = legacyEstrusScoringProperties();
         service = new HealthApplicationService(
                 org.mockito.Mockito.mock(com.smartlivestock.identity.application.TenantZoneResolver.class),
                 snapshotRepo, tempLogRepo, motilityLogRepo, activityLogRepo,
@@ -69,7 +70,9 @@ class HealthApplicationServiceTelemetryTest {
                 messageResolver,
                 org.mockito.Mockito.mock(ContactAnalysisService.class),
                 new com.smartlivestock.health.infrastructure.config.BaselineLearningProperties(),
-                legacyEstrusScoringProperties());
+                estrusProps,
+                // Real explainer (pure calc, NIX-390 Task 2): constructor wiring only.
+                new EstrusScoreExplainer(new EstrusAnalysisService(), estrusProps));
 
         // refreshSnapshot calls ensureSnapshotExists then findByLivestockId.
         doNothing().when(snapshotRepo).ensureSnapshotExists(anyLong(), anyLong());

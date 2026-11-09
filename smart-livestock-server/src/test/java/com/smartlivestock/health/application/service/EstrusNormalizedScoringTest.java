@@ -108,7 +108,9 @@ class EstrusNormalizedScoringTest {
                 messageResolver,
                 mock(ContactAnalysisService.class),
                 new BaselineLearningProperties(),
-                estrusProps);
+                estrusProps,
+                // Real explainer over the same props (NIX-390 Task 2 wiring).
+                new EstrusScoreExplainer(new EstrusAnalysisService(), estrusProps));
 
         when(tenantZoneResolver.zoneForFarm(anyLong(), any())).thenReturn(java.time.ZoneOffset.UTC);
         doNothing().when(snapshotRepo).ensureSnapshotExists(anyLong(), anyLong());

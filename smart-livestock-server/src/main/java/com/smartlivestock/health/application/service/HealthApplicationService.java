@@ -61,6 +61,8 @@ public class HealthApplicationService {
     private final BaselineLearningProperties baselineLearningProperties;
     /** Window/ratio tunables and the LEGACY/NORMALIZED scoring path selector (NIX-380 Task 2). */
     private final EstrusScoringProperties estrusScoringProperties;
+    /** Pure recomputation of a stored row's component breakdown (NIX-390). */
+    private final EstrusScoreExplainer estrusScoreExplainer;
 
     /**
      * Default window of the instant (mark-diseased) analysis track; mirrors
@@ -1217,8 +1219,22 @@ public class HealthApplicationService {
            return new EstrusDetail(
                    String.valueOf(livestockId), code, 0, null, null, null,
                    null, localizeEstrusAdvice(estrusAnalysisService.generateAdvice(0)), trend7d,
-                   null, null, null);
+                   null, null, null,
+                   // No score row: the whole explanation block stays null so the
+                   // client degrades to the static help card (existing empty
+                   // semantics unchanged): baselineComputedAt, featureVersion,
+                   // activityRatio, distanceRatio, 3 component scores, 3 weights,
+                   // 2 participation flags.
+                   null, null, null, null, null, null, null, null, null, null, null, null);
        }
+
+        // Score explanation (NIX-390): recompute the breakdown of the newest
+        // row from its persisted feature columns. Unknown/missing
+        // featureVersion yields a null explanation — every field below then
+        // serializes as null instead of a made-up breakdown.
+        EstrusScoreExplainer.EstrusScoreExplanation explanation = estrusScoreExplainer.explain(latest);
+        EstrusAnalysisService.ComponentBreakdown breakdown = explanation == null
+                ? null : explanation.breakdown();
 
        return new EstrusDetail(
                String.valueOf(livestockId), code,
@@ -1227,7 +1243,19 @@ public class HealthApplicationService {
                latest.getScoredAt(), localizeEstrusAdvice(latest.getAdvice()),
                trend7d,
                latest.getBaselineUsed(), latest.getBaselineSource(),
-               healthAnomalyService.getLatestSummary(farmId, livestockId).orElse(null));
+               healthAnomalyService.getLatestSummary(farmId, livestockId).orElse(null),
+               latest.getBaselineComputedAt(),
+               latest.getFeatureVersion(),
+               explanation == null ? null : explanation.activityRatio(),
+               explanation == null ? null : explanation.distanceRatio(),
+               breakdown == null ? null : breakdown.activityScore(),
+               breakdown == null ? null : breakdown.temperatureScore(),
+               breakdown == null ? null : breakdown.distanceScore(),
+               breakdown == null ? null : breakdown.weightActivity(),
+               breakdown == null ? null : breakdown.weightTemperature(),
+               breakdown == null ? null : breakdown.weightDistance(),
+               explanation == null ? null : explanation.distanceParticipated(),
+               explanation == null ? null : explanation.temperatureParticipated());
    }
 
     // ── Health Detail Charts (subscription-gated) ───────────────
