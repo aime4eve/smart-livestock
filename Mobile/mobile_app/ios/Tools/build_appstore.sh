@@ -23,6 +23,14 @@
 #                 (destination=upload; lands in TestFlight, takes minutes to
 #                 half an hour to process)
 #     -s          skip flutter build + archive, reuse build/ios/archive
+#
+# Optional ASC API key auth (--upload): set ASC_KEY_ID (+ optionally
+# ASC_KEY_PATH / ASC_KEY_ISSUER) and export/upload authenticate via the
+# App Store Connect API key instead of the Xcode GUI session. The GUI
+# session expires every few days/weeks and blocked uploads three times
+# (b763/b766/b767); the API key never expires. ASC_KEY_PATH defaults to
+# ~/.private_keys/AuthKey_${ASC_KEY_ID}.p8 (the standard location both
+# xcodebuild and altool read). Key access role: App Manager or Admin.
 set -euo pipefail
 cd "$(dirname "$0")/../.."   # mobile_app root
 
@@ -44,6 +52,21 @@ for arg in "$@"; do
 done
 
 say() { printf '\n==> %s\n' "$*"; }
+
+# Optional ASC API key auth args (empty unless ASC_KEY_ID is set). Kept as a
+# shell array so the upload xcodebuild call works with or without them.
+# Note: macOS bash 3.2 + set -u needs the "${arr[@]+...}" idiom for empty
+# arrays. -authenticationKeyIssuerID (with the ID suffix) is this repo's
+# Xcode spelling (-authenticationKeyIssuer without the suffix is rejected).
+AUTH_ARGS=()
+if [[ -n "${ASC_KEY_ID:-}" ]]; then
+  ASC_KEY_PATH="${ASC_KEY_PATH:-$HOME/.private_keys/AuthKey_${ASC_KEY_ID}.p8}"
+  [[ -n "${ASC_KEY_ISSUER:-}" && -f "$ASC_KEY_PATH" ]] || {
+    echo "ERROR: ASC_KEY_ID is set but ASC_KEY_ISSUER is missing or key file not found: $ASC_KEY_PATH" >&2
+    exit 1
+  }
+  AUTH_ARGS=(-authenticationKeyPath "$ASC_KEY_PATH" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_KEY_ISSUER")
+fi
 
 # --- version: release.number + majorVersion -> SHORT_VERSION / BUILD_NUMBER ---
 RELEASE_NUMBER_FILE="${SERVER_DIR}/release.number"
@@ -143,12 +166,14 @@ if [[ "$DO_UPLOAD" -eq 1 ]]; then
 </dict>
 </plist>
 EOF
+  [[ -n "${ASC_KEY_ID:-}" ]] && say "upload auth: ASC API key ${ASC_KEY_ID}"
   if ! xcodebuild -exportArchive \
         -archivePath "$ARCHIVE_PATH" \
         -exportPath "build/ios/appstore-upload" \
         -exportOptionsPlist "$UPLOAD_PLIST" \
+        ${AUTH_ARGS[@]+"${AUTH_ARGS[@]}"} \
         -allowProvisioningUpdates 2>&1 | tee -a "$LOG"; then
-    echo "Upload failed (common cause: no ASC App record for $BUNDLE_ID), log: $LOG" >&2
+    echo "Upload failed (common causes: no ASC App record for $BUNDLE_ID; Xcode GUI session expired — set ASC_KEY_ID/ASC_KEY_ISSUER or re-login in Xcode), log: $LOG" >&2
     exit 1
   fi
   say "Submitted to App Store Connect. Processing takes minutes to half an hour;"
