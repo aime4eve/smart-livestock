@@ -236,6 +236,10 @@ class EstrusNormalizedScoringTest {
         int expectedScore = new EstrusAnalysisService()
                 .calculateScore(100, new BigDecimal("1.40"), new BigDecimal("300.0"));
         assertEquals(expectedScore, saved.getScore());
+        // NIX-390 provenance: legacy formula stamped; the normalized-only
+        // distance ratio column stays null on legacy rows.
+        assertEquals("LEGACY", saved.getFeatureVersion());
+        assertNull(saved.getDistanceRatio());
         // The legacy path must never touch the NIX-380 window read / anchor read.
         verify(activityLogRepo, never())
                 .findWindowByLivestockId(anyLong(), any(), any(), anyInt());
@@ -357,6 +361,85 @@ class EstrusNormalizedScoringTest {
         assertEquals(75, saved.getScore());
         assertTrue(saved.getScore() >= 70);
         assertEquals("High estrus score. Breeding recommended within 12 hours.", saved.getAdvice());
+        // NIX-390 provenance: normalized formula stamped; distance did not
+        // participate, so the ratio column stays null alongside distanceDelta.
+        assertEquals("NORMALIZED-V2", saved.getFeatureVersion());
+        assertNull(saved.getDistanceRatio());
+    }
+
+    // ── 2b. NIX-390: featureVersion + distanceRatio persisted on NORMALIZED rows ──
+
+    @Test
+    void normalized_crossingWithDistance_persistsFeatureVersionAndConstructedRatio() {
+        stubTemperatureChain();
+        // Activity 60 → 180 (ratio 3.0) and distance 100.0 → 300.0 meters
+        // (ratio 3.0): both components participate.
+        List<ActivityLog> logs = baselineWindows("60", null, "100.0");
+        logs.addAll(series(CURRENT_START, ANCHOR, "180", null, "300.0"));
+        stubWindowLogs(logs);
+
+        processAnchorTelemetry();
+
+        EstrusScore saved = captureSavedScore();
+        // 100×0.4 + 42×0.3 + 100×0.3 = 82.6 → 83 ≥ 70.
+        assertEquals(83, saved.getScore());
+        assertEquals("NORMALIZED-V2", saved.getFeatureVersion());
+        assertBigDecimalEquals("3.000", saved.getDistanceRatio()); // 300.0 / 100.0
+        assertBigDecimalEquals("200.00", saved.getDistanceDelta()); // 300.0 − 100.0 meters
+        assertExplanationReproducesScore(saved);
+    }
+
+    @Test
+    void normalized_distanceRatioBeyondColumn_clampedToDecimal6_3Bound() {
+        // Lesson #13 lock: a near-zero distance baseline (1.0 m) against a
+        // 2000 m current mean gives ratio 2000 — past DECIMAL(6,3)'s 999.999,
+        // which would raise numeric field overflow and roll back the whole
+        // telemetry transaction. The persisted ratio is clamped; the score is
+        // unaffected (anything ≥ 3.0 already sits on the top rung).
+        stubTemperatureChain();
+        List<ActivityLog> logs = baselineWindows("60", null, "1.0");
+        logs.addAll(series(CURRENT_START, ANCHOR, "180", null, "2000.0"));
+        stubWindowLogs(logs);
+
+        processAnchorTelemetry();
+
+        EstrusScore saved = captureSavedScore();
+        assertEquals(83, saved.getScore()); // 40 + 12.6 + 30 = 82.6 → 83
+        assertBigDecimalEquals("999.999", saved.getDistanceRatio());
+        assertExplanationReproducesScore(saved);
+    }
+
+    @Test
+    void normalized_distanceRatioJustBelowRung_flooredNotRoundedOntoRung() {
+        // Distance 10000.0 → 19996.0 m gives ratio 1.9996: the kernel scores
+        // the mid rung (45). HALF_UP persistence would store 2.000 and the
+        // explanation would jump onto the 2.0 rung (100 → recomputed 83 vs the
+        // real 66); FLOOR stores 1.999, preserving the rung the score used.
+        stubTemperatureChain();
+        List<ActivityLog> logs = baselineWindows("60", null, "10000.0");
+        logs.addAll(series(CURRENT_START, ANCHOR, "180", null, "19996.0"));
+        stubWindowLogs(logs);
+
+        processAnchorTelemetry();
+
+        EstrusScore saved = captureSavedScore();
+        // 100×0.4 + 42×0.3 + 45×0.3 = 40 + 12.6 + 13.5 = 66.1 → 66.
+        assertEquals(66, saved.getScore());
+        assertBigDecimalEquals("1.999", saved.getDistanceRatio());
+        assertExplanationReproducesScore(saved);
+    }
+
+    /** End-to-end exactness: the explainer, fed only the persisted row,
+     *  reproduces the score the scoring path stored. */
+    private void assertExplanationReproducesScore(EstrusScore saved) {
+        EstrusScoreExplainer explainer = new EstrusScoreExplainer(new EstrusAnalysisService(), estrusProps);
+        EstrusScoreExplainer.EstrusScoreExplanation explanation = explainer.explain(saved);
+        assertNotNull(explanation);
+        EstrusAnalysisService.ComponentBreakdown b = explanation.breakdown();
+        double raw = b.activityScore() * b.weightActivity()
+                + b.temperatureScore() * b.weightTemperature()
+                + b.distanceScore() * b.weightDistance();
+        assertEquals((long) saved.getScore(), Math.round(Math.max(0, Math.min(100, raw))));
     }
 
     @Test
@@ -399,6 +482,8 @@ class EstrusNormalizedScoringTest {
         assertNull(saved.getDistanceDelta());
         // round((95×0.4 + 42.0×0.3) / 0.7) = 75 — CAPSULE-only scoring is not diluted.
         assertEquals(75, saved.getScore());
+        assertEquals("NORMALIZED-V2", saved.getFeatureVersion());
+        assertNull(saved.getDistanceRatio());
     }
 
     // ── 4. Ear-tag fallback: activityIndex all null → stepCount channel ──

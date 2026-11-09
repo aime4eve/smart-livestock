@@ -79,9 +79,15 @@ public class HealthApplicationService {
     private static final BigDecimal MIN_PLAUSIBLE_TEMP = new BigDecimal("35.0");
     private static final BigDecimal MAX_PLAUSIBLE_TEMP = new BigDecimal("43.0");
 
-    /** Algorithm version stamped into NORMALIZED scoring logs (NIX-380; ruling:
-     *  kept in logs only, never persisted as a column). */
-    private static final String FEATURE_VERSION = "ESTRUS-FEATURE-V2";
+    /** Algorithm version stamped into NORMALIZED scoring logs and persisted as
+     *  estrus_scores.feature_version (NIX-390 renamed ESTRUS-FEATURE-V2 to
+     *  NORMALIZED-V2 so the log value and the column value are one and the
+     *  same; estrus_scores rows written before NIX-390 were backfilled to
+     *  LEGACY by the migration, matching how they were actually computed). */
+    private static final String FEATURE_VERSION = "NORMALIZED-V2";
+    /** feature_version value of the legacy short-window scoring path — also the
+     *  migration's backfill value for pre-NIX-390 rows. */
+    private static final String LEGACY_FEATURE_VERSION = "LEGACY";
     /** Scale for normalized level ratios (mean/mean divisions). */
     private static final int RATIO_SCALE = 6;
     /** Column bound of estrus_scores.distance_delta DECIMAL(10,2) — the meter
@@ -89,6 +95,10 @@ public class HealthApplicationService {
      *  overflow the column and roll back the whole telemetry transaction
      *  (lesson #13). */
     private static final BigDecimal MAX_DISTANCE_DELTA = new BigDecimal("99999999.99");
+    /** Column bound of estrus_scores.distance_ratio DECIMAL(6,3) (NIX-390) —
+     *  the persisted ratio is clamped to ±this for the same reason as
+     *  {@link #MAX_DISTANCE_DELTA} (lesson #13). */
+    private static final BigDecimal MAX_DISTANCE_RATIO = new BigDecimal("999.999");
 
     /**
      * Resolves the bucketing timezone for day/hour grouping. Priority
@@ -557,6 +567,9 @@ public class HealthApplicationService {
         estrusScore.setAdvice(estrusAnalysisService.generateAdvice(score));
         estrusScore.setScoredAt(Instant.now());
         estrusScore.setSource(source);
+        // Scoring provenance (NIX-390): the legacy formula produced this row;
+        // distanceRatio is a normalized-only column and stays null here.
+        estrusScore.setFeatureVersion(LEGACY_FEATURE_VERSION);
 
         // Baseline audit trail: what the scoring actually consumed and where
         // that baseline came from. DEFAULT rows carry null computedAt/version;
@@ -657,8 +670,10 @@ public class HealthApplicationService {
      * → 200 means a genuine 3× level rise) and {@code distanceDelta} stays an
      * absolute meter delta (distance currentMean − baselineLevel); only the
      * computation source moves from the 3-vs-4 short window to the
-     * cross-event-window levels. The raw level ratios themselves are recorded
-     * only in the FEATURE-V2 debug log. score / advice / the four baseline
+     * cross-event-window levels. Since NIX-390 the row also carries
+     * {@code featureVersion} = NORMALIZED-V2 and the raw
+     * {@code distanceRatio} (the activity ratio stays recoverable as
+     * {@code 1 + stepIncreasePercent/100}). score / advice / the four baseline
      * audit columns / scoredAt / source and the snapshot estrusScore update
      * are produced exactly as in the legacy path.</p>
      *
@@ -739,6 +754,12 @@ public class HealthApplicationService {
         estrusScore.setAdvice(estrusAnalysisService.generateAdvice(score));
         estrusScore.setScoredAt(Instant.now());
         estrusScore.setSource(source);
+        // Scoring provenance (NIX-390): which formula produced the row, plus the
+        // raw distance level ratio so the score can be recomputed exactly
+        // (activityRatio is recoverable from stepIncreasePercent as
+        // 1 + percent/100; distance has no recoverable raw form of its own).
+        estrusScore.setFeatureVersion(FEATURE_VERSION);
+        estrusScore.setDistanceRatio(distanceLevel == null ? null : toPersistedRatio(distanceLevel.ratio()));
 
         // Baseline audit trail: what the scoring actually consumed and where
         // that baseline came from — identical to the legacy path
@@ -869,6 +890,29 @@ public class HealthApplicationService {
                 .setScale(2, RoundingMode.HALF_UP);
         BigDecimal clamped = delta.min(MAX_DISTANCE_DELTA);
         return clamped.max(MAX_DISTANCE_DELTA.negate());
+    }
+
+    /** Persisted form of the normalized distance level ratio written to
+     *  estrus_scores.distance_ratio DECIMAL(6,3) on NORMALIZED rows (NIX-390):
+     *  scale 3 with FLOOR rounding, clamped to the column bounds both ways.
+     *  <ul>
+     *    <li>Clamp (lesson #13): a near-zero pooled baseline — a cow resting
+     *        through every baseline window — can drive the ratio far past
+     *        999.999, and an out-of-range value would raise numeric field
+     *        overflow and roll back the whole telemetry transaction. Any ratio
+     *        that large sits on the top ladder rung anyway, so the clamp never
+     *        changes an explanation.</li>
+     *    <li>FLOOR, not HALF_UP: for every ladder rung with at most three
+     *        decimals, {@code floor3(ratio) >= rung} holds exactly when
+     *        {@code ratio >= rung}, so recomputing the component from the
+     *        persisted value lands on the same rung the score used (HALF_UP
+     *        would lift e.g. 1.9996 onto the 2.0 rung). Inside the linear band
+     *        the truncation moves the component by at most 0.09 points.</li>
+     *  </ul>
+     *  Scoring itself keeps consuming the full-scale ratio. */
+    private static BigDecimal toPersistedRatio(BigDecimal ratio) {
+        BigDecimal scaled = ratio.setScale(3, RoundingMode.FLOOR);
+        return scaled.min(MAX_DISTANCE_RATIO).max(MAX_DISTANCE_RATIO.negate());
     }
 
     private ActivityStatus assessActivityStatus(BigDecimal activityIndex) {

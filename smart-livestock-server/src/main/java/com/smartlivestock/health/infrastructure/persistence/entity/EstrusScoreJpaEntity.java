@@ -56,6 +56,15 @@ public class EstrusScoreJpaEntity {
     @Column(name = "baseline_algorithm_version", length = 16)
     private String baselineAlgorithmVersion;
 
+    // Scoring provenance (V20261109100000): LEGACY or NORMALIZED-V2.
+    @Column(name = "feature_version", nullable = false, length = 16)
+    private String featureVersion;
+
+    // Normalized distance level ratio; null when distance did not participate
+    // or the row is LEGACY semantics.
+    @Column(name = "distance_ratio", precision = 6, scale = 3)
+    private BigDecimal distanceRatio;
+
     @PrePersist
     protected void onCreate() { this.createdAt = Instant.now(); }
 
@@ -90,4 +99,10 @@ public class EstrusScoreJpaEntity {
     public void setBaselineComputedAt(Instant baselineComputedAt) { this.baselineComputedAt = baselineComputedAt; }
     public String getBaselineAlgorithmVersion() { return baselineAlgorithmVersion; }
     public void setBaselineAlgorithmVersion(String baselineAlgorithmVersion) { this.baselineAlgorithmVersion = baselineAlgorithmVersion; }
+
+    public String getFeatureVersion() { return featureVersion; }
+    public void setFeatureVersion(String featureVersion) { this.featureVersion = featureVersion; }
+
+    public BigDecimal getDistanceRatio() { return distanceRatio; }
+    public void setDistanceRatio(BigDecimal distanceRatio) { this.distanceRatio = distanceRatio; }
 }
