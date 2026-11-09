@@ -6390,5 +6390,76 @@
   "calvingNoData": "No calving predictions yet",
   "calvingRiskScore": "Risk score",
   "calvingWindow": "Calving window",
-  "calvingPredictedAt": "Assessed"
+  "calvingPredictedAt": "Assessed",
+  "estrusExplanationSectionTitle": "Score Breakdown",
+  "@estrusExplanationSectionTitle": {},
+  "estrusExplanationScaleTitle": "Score Bands",
+  "@estrusExplanationScaleTitle": {},
+  "estrusExplanationChannelActivity": "Activity",
+  "@estrusExplanationChannelActivity": {},
+  "estrusExplanationChannelTemperature": "Temperature",
+  "@estrusExplanationChannelTemperature": {},
+  "estrusExplanationChannelDistance": "Distance",
+  "@estrusExplanationChannelDistance": {},
+  "estrusExplanationNotParticipated": "Not participating",
+  "@estrusExplanationNotParticipated": {},
+  "estrusExplanationActivityRatioSentence": "Activity over the past 6 hours was about {ratio}× this animal's own normal level",
+  "@estrusExplanationActivityRatioSentence": {
+    "placeholders": {
+      "ratio": {
+        "type": "String"
+      }
+    }
+  },
+  "estrusExplanationBaselineLearned": "Individual learned baseline {value}℃ (computed {date})",
+  "@estrusExplanationBaselineLearned": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "estrusExplanationBaselineLearnedNoDate": "Individual learned baseline {value}℃",
+  "@estrusExplanationBaselineLearnedNoDate": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "estrusExplanationBaselineDefault": "Default baseline {value}℃",
+  "@estrusExplanationBaselineDefault": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "estrusExplanationBandNone": "No estrus signs",
+  "@estrusExplanationBandNone": {},
+  "estrusExplanationBandWatch": "Keep watching",
+  "@estrusExplanationBandWatch": {},
+  "estrusExplanationBandAct": "Breed within 12 hours",
+  "@estrusExplanationBandAct": {},
+  "estrusExplanationLastAssessed": "Last assessed: {time}",
+  "@estrusExplanationLastAssessed": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "estrusExplanationHelpTitle": "How to Read This Score",
+  "@estrusExplanationHelpTitle": {},
+  "estrusExplanationHelpFactors": "The total score is a weighted blend of three factors: activity tracks the rise in movement over normal, temperature the rise over its baseline, and distance the change in traveled distance.",
+  "@estrusExplanationHelpFactors": {},
+  "estrusExplanationHelpBaseline": "The comparison baseline is this animal's own level over the previous 3 days at the same time of day — not the herd average.",
+  "@estrusExplanationHelpBaseline": {},
+  "estrusExplanationHelpBands": "0-50 no estrus signs, 50-70 keep watching, 70+ breed within 12 hours. A low score simply means no estrus signs right now — a normal negative result; the score updates as each telemetry frame arrives.",
+  "@estrusExplanationHelpBands": {},
+  "estrusExplanationCalibration": "Scoring parameters: simulation defaults",
+  "@estrusExplanationCalibration": {}
 }

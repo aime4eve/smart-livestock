@@ -14348,6 +14348,120 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'评估时间'**
   String get calvingPredictedAt;
+
+  /// No description provided for @estrusExplanationSectionTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'评分构成'**
+  String get estrusExplanationSectionTitle;
+
+  /// No description provided for @estrusExplanationScaleTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'评分分档'**
+  String get estrusExplanationScaleTitle;
+
+  /// No description provided for @estrusExplanationChannelActivity.
+  ///
+  /// In zh, this message translates to:
+  /// **'活动'**
+  String get estrusExplanationChannelActivity;
+
+  /// No description provided for @estrusExplanationChannelTemperature.
+  ///
+  /// In zh, this message translates to:
+  /// **'体温'**
+  String get estrusExplanationChannelTemperature;
+
+  /// No description provided for @estrusExplanationChannelDistance.
+  ///
+  /// In zh, this message translates to:
+  /// **'距离'**
+  String get estrusExplanationChannelDistance;
+
+  /// No description provided for @estrusExplanationNotParticipated.
+  ///
+  /// In zh, this message translates to:
+  /// **'未参与'**
+  String get estrusExplanationNotParticipated;
+
+  /// No description provided for @estrusExplanationActivityRatioSentence.
+  ///
+  /// In zh, this message translates to:
+  /// **'过去 6 小时活动约为自身平常水平的 {ratio} 倍'**
+  String estrusExplanationActivityRatioSentence(String ratio);
+
+  /// No description provided for @estrusExplanationBaselineLearned.
+  ///
+  /// In zh, this message translates to:
+  /// **'个体学习基线 {value}℃（{date} 计算）'**
+  String estrusExplanationBaselineLearned(String value, String date);
+
+  /// No description provided for @estrusExplanationBaselineLearnedNoDate.
+  ///
+  /// In zh, this message translates to:
+  /// **'个体学习基线 {value}℃'**
+  String estrusExplanationBaselineLearnedNoDate(String value);
+
+  /// No description provided for @estrusExplanationBaselineDefault.
+  ///
+  /// In zh, this message translates to:
+  /// **'默认基线 {value}℃'**
+  String estrusExplanationBaselineDefault(String value);
+
+  /// No description provided for @estrusExplanationBandNone.
+  ///
+  /// In zh, this message translates to:
+  /// **'无发情迹象'**
+  String get estrusExplanationBandNone;
+
+  /// No description provided for @estrusExplanationBandWatch.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续观察'**
+  String get estrusExplanationBandWatch;
+
+  /// No description provided for @estrusExplanationBandAct.
+  ///
+  /// In zh, this message translates to:
+  /// **'建议 12 小时内配种'**
+  String get estrusExplanationBandAct;
+
+  /// No description provided for @estrusExplanationLastAssessed.
+  ///
+  /// In zh, this message translates to:
+  /// **'最后评估：{time}'**
+  String estrusExplanationLastAssessed(String time);
+
+  /// No description provided for @estrusExplanationHelpTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'如何解读'**
+  String get estrusExplanationHelpTitle;
+
+  /// No description provided for @estrusExplanationHelpFactors.
+  ///
+  /// In zh, this message translates to:
+  /// **'总分由三个因子加权合成：活动看运动量相对平常的增幅，体温看相对基线的升温幅度，距离看游走距离的变化。'**
+  String get estrusExplanationHelpFactors;
+
+  /// No description provided for @estrusExplanationHelpBaseline.
+  ///
+  /// In zh, this message translates to:
+  /// **'对比基准是这头牛自身前 3 天同时段的水平，不是牛群平均。'**
+  String get estrusExplanationHelpBaseline;
+
+  /// No description provided for @estrusExplanationHelpBands.
+  ///
+  /// In zh, this message translates to:
+  /// **'0-50 无发情迹象，50-70 继续观察，70 以上建议 12 小时内配种。低分表示当前无发情迹象，属正常阴性判断；分数随每帧遥测滚动更新。'**
+  String get estrusExplanationHelpBands;
+
+  /// No description provided for @estrusExplanationCalibration.
+  ///
+  /// In zh, this message translates to:
+  /// **'评分参数：仿真默认'**
+  String get estrusExplanationCalibration;
 }
 
 class _AppLocalizationsDelegate

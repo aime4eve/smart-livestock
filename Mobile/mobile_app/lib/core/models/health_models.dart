@@ -373,6 +373,25 @@ class EstrusDetailData {
     this.advice,
     this.trend7d = const [],
     this.aiAnomaly,
+    // Baseline audit (NIX-390): what baseline the score was computed
+    // against and its provenance. Null on legacy rows written before
+    // baseline learning existed.
+    this.baselineUsed,
+    this.baselineSource,
+    // Score explanation (NIX-390 Task 3), all nullable: rows without a
+    // score row or without provenance degrade to the static help card.
+    this.featureVersion,
+    this.baselineComputedAt,
+    this.activityRatio,
+    this.distanceRatio,
+    this.activityScore,
+    this.temperatureScore,
+    this.distanceScore,
+    this.weightActivity,
+    this.weightTemperature,
+    this.weightDistance,
+    this.distanceParticipated,
+    this.temperatureParticipated,
   });
 
   final String livestockId;
@@ -385,6 +404,35 @@ class EstrusDetailData {
   final String? advice;
   final List<EstrusTrendPoint> trend7d;
   final AnomalyScoreData? aiAnomaly;
+
+  /// Which formula produced the row: LEGACY | NORMALIZED-V2; null when no
+  /// score row exists at all.
+  final String? featureVersion;
+  final DateTime? baselineComputedAt;
+
+  /// Display-only level ratios of the NORMALIZED path; null on LEGACY rows
+  /// (their step column is a short-window increase percent instead).
+  final double? activityRatio;
+  final double? distanceRatio;
+
+  /// Component breakdown behind the score (0-100 per feature + the weight
+  /// each actually carried). Null when the row is not explainable.
+  final double? activityScore;
+  final double? temperatureScore;
+  final double? distanceScore;
+  final double? weightActivity;
+  final double? weightTemperature;
+  final double? weightDistance;
+
+  /// Whether the channel actually fed the weighted sum (null = row not
+  /// explainable; false = e.g. capsule-only device without distance).
+  final bool? distanceParticipated;
+  final bool? temperatureParticipated;
+
+  /// Baseline the score was computed against (LEARNED | DEFAULT provenance
+  /// in [baselineSource]).
+  final double? baselineUsed;
+  final String? baselineSource;
 
   factory EstrusDetailData.fromJson(Map<String, dynamic> m) {
     return EstrusDetailData(
@@ -407,6 +455,22 @@ class EstrusDetailData {
       aiAnomaly: m['aiAnomaly'] != null
           ? AnomalyScoreData.fromJson(m['aiAnomaly'])
           : null,
+      baselineUsed: (m['baselineUsed'] as num?)?.toDouble(),
+      baselineSource: m['baselineSource'] as String?,
+      featureVersion: m['featureVersion'] as String?,
+      baselineComputedAt: m['baselineComputedAt'] != null
+          ? DateTime.parse(m['baselineComputedAt'] as String)
+          : null,
+      activityRatio: (m['activityRatio'] as num?)?.toDouble(),
+      distanceRatio: (m['distanceRatio'] as num?)?.toDouble(),
+      activityScore: (m['activityScore'] as num?)?.toDouble(),
+      temperatureScore: (m['temperatureScore'] as num?)?.toDouble(),
+      distanceScore: (m['distanceScore'] as num?)?.toDouble(),
+      weightActivity: (m['weightActivity'] as num?)?.toDouble(),
+      weightTemperature: (m['weightTemperature'] as num?)?.toDouble(),
+      weightDistance: (m['weightDistance'] as num?)?.toDouble(),
+      distanceParticipated: m['distanceParticipated'] as bool?,
+      temperatureParticipated: m['temperatureParticipated'] as bool?,
     );
   }
 }

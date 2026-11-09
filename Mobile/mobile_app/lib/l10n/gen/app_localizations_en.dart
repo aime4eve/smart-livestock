@@ -7993,4 +7993,75 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get calvingPredictedAt => 'Assessed';
+
+  @override
+  String get estrusExplanationSectionTitle => 'Score Breakdown';
+
+  @override
+  String get estrusExplanationScaleTitle => 'Score Bands';
+
+  @override
+  String get estrusExplanationChannelActivity => 'Activity';
+
+  @override
+  String get estrusExplanationChannelTemperature => 'Temperature';
+
+  @override
+  String get estrusExplanationChannelDistance => 'Distance';
+
+  @override
+  String get estrusExplanationNotParticipated => 'Not participating';
+
+  @override
+  String estrusExplanationActivityRatioSentence(String ratio) {
+    return 'Activity over the past 6 hours was about $ratio× this animal\'s own normal level';
+  }
+
+  @override
+  String estrusExplanationBaselineLearned(String value, String date) {
+    return 'Individual learned baseline $value℃ (computed $date)';
+  }
+
+  @override
+  String estrusExplanationBaselineLearnedNoDate(String value) {
+    return 'Individual learned baseline $value℃';
+  }
+
+  @override
+  String estrusExplanationBaselineDefault(String value) {
+    return 'Default baseline $value℃';
+  }
+
+  @override
+  String get estrusExplanationBandNone => 'No estrus signs';
+
+  @override
+  String get estrusExplanationBandWatch => 'Keep watching';
+
+  @override
+  String get estrusExplanationBandAct => 'Breed within 12 hours';
+
+  @override
+  String estrusExplanationLastAssessed(String time) {
+    return 'Last assessed: $time';
+  }
+
+  @override
+  String get estrusExplanationHelpTitle => 'How to Read This Score';
+
+  @override
+  String get estrusExplanationHelpFactors =>
+      'The total score is a weighted blend of three factors: activity tracks the rise in movement over normal, temperature the rise over its baseline, and distance the change in traveled distance.';
+
+  @override
+  String get estrusExplanationHelpBaseline =>
+      'The comparison baseline is this animal\'s own level over the previous 3 days at the same time of day — not the herd average.';
+
+  @override
+  String get estrusExplanationHelpBands =>
+      '0-50 no estrus signs, 50-70 keep watching, 70+ breed within 12 hours. A low score simply means no estrus signs right now — a normal negative result; the score updates as each telemetry frame arrives.';
+
+  @override
+  String get estrusExplanationCalibration =>
+      'Scoring parameters: simulation defaults';
 }
