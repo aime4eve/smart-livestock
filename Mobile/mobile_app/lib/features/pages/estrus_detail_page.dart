@@ -18,6 +18,9 @@ import 'package:hkt_livestock_agentic/features/ai_anomaly/presentation/widgets/a
 import 'package:hkt_livestock_agentic/features/ai_anomaly/presentation/widgets/anomaly_history_chart.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
+/// Estrus score bands on the 0-50-70-100 scale (NIX-390 explanation card).
+enum _EstrusBand { none, watch, act }
+
 class EstrusDetailPage extends ConsumerWidget {
   const EstrusDetailPage({super.key, required this.livestockId});
   final String livestockId;
@@ -597,11 +600,17 @@ class EstrusDetailPage extends ConsumerWidget {
     );
   }
 
-  /// 0-50-70-100 band scale with a pointer at the current score and the
-  /// three band labels (no signs / keep watching / breed within 12h).
+  /// 0-50-70-100 band scale with a score badge pointer at the current score
+  /// and the three band labels (no signs / keep watching / breed within 12h).
+  /// The band the score currently falls in is highlighted as a pill so the
+  /// reader never has to map pointer position to a band themselves
+  /// (integration-test feedback 2026-11-10: the old thin strip with a tiny
+  /// triangle pointer was illegible — the 0-50 segment used the near-white
+  /// border color and read as blank space).
   Widget _buildScoreScale(EstrusDetailData detail, AppLocalizations l10n) {
     final score = detail.score.clamp(0, 100).toDouble();
-    const pointerWidth = 18.0;
+    const badgeWidth = 32.0;
+    final activeBand = score >= 70 ? _EstrusBand.act : score >= 50 ? _EstrusBand.watch : _EstrusBand.none;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -613,57 +622,91 @@ class EstrusDetailPage extends ConsumerWidget {
         LayoutBuilder(
           builder: (context, constraints) {
             final trackWidth = constraints.maxWidth;
-            final pointerLeft =
-                (score / 100) * (trackWidth - pointerWidth);
+            // Badge CENTER sits at the score fraction, clamped so the badge
+            // never leaves the track (edge scores stay readable).
+            final badgeLeft = ((score / 100) * trackWidth - badgeWidth / 2)
+                .clamp(0.0, trackWidth - badgeWidth);
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  height: 26,
+                  height: 34,
                   width: double.infinity,
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
                       Positioned(
                         top: 0,
-                        left: pointerLeft,
-                        width: pointerWidth,
-                        child: const Icon(
-                          key: Key('estrus-scale-pointer'),
-                          Icons.arrow_drop_down,
-                          size: 18,
-                          color: AppColors.textPrimary,
+                        left: badgeLeft,
+                        width: badgeWidth,
+                        child: Column(
+                          children: [
+                            Container(
+                              key: const Key('estrus-scale-pointer'),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: AppColors.textPrimary,
+                                borderRadius: BorderRadius.circular(9),
+                              ),
+                              child: Text(
+                                score.round().toString(),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              width: 2,
+                              height: 5,
+                              color: AppColors.textPrimary,
+                            ),
+                          ],
                         ),
                       ),
                       const Positioned(
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        height: 8,
-                        child: SizedBox(
-                          key: Key('estrus-scale-track'),
-                          height: 8,
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 50,
-                                child: ColoredBox(
-                                  color: AppColors.border,
+                        height: 12,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.all(Radius.circular(6)),
+                          child: SizedBox(
+                            key: Key('estrus-scale-track'),
+                            height: 12,
+                            child: Row(
+                              children: [
+                                // SizedBox.expand is required: a childless
+                                // ColoredBox is zero-sized, so the Row's
+                                // cross extent collapses to 0 and NOTHING
+                                // paints (the original 8px strip was invisible
+                                // for exactly this reason, not just its pale
+                                // color).
+                                Expanded(
+                                  flex: 50,
+                                  child: ColoredBox(
+                                    color: AppColors.scaleNone,
+                                    child: const SizedBox.expand(),
+                                  ),
                                 ),
-                              ),
-                              Expanded(
-                                flex: 20,
-                                child: ColoredBox(
-                                  color: AppColors.warning,
+                                Expanded(
+                                  flex: 20,
+                                  child: ColoredBox(
+                                    color: AppColors.warning,
+                                    child: const SizedBox.expand(),
+                                  ),
                                 ),
-                              ),
-                              Expanded(
-                                flex: 30,
-                                child: ColoredBox(
-                                  color: AppColors.success,
+                                Expanded(
+                                  flex: 30,
+                                  child: ColoredBox(
+                                    color: AppColors.success,
+                                    child: const SizedBox.expand(),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -683,40 +726,38 @@ class EstrusDetailPage extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       flex: 50,
-                      child: Text(
+                      child: _bandLabel(
                         l10n.estrusExplanationBandNone,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: AppColors.textSecondary,
-                        ),
+                        _EstrusBand.none,
+                        activeBand,
+                        Alignment.centerLeft,
+                        const Key('estrus-scale-band-none'),
                       ),
                     ),
                     Expanded(
                       flex: 20,
-                      child: Text(
+                      child: _bandLabel(
                         l10n.estrusExplanationBandWatch,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: AppColors.warning,
-                        ),
+                        _EstrusBand.watch,
+                        activeBand,
+                        Alignment.center,
+                        const Key('estrus-scale-band-watch'),
                       ),
                     ),
                     Expanded(
                       flex: 30,
-                      child: Text(
+                      child: _bandLabel(
                         l10n.estrusExplanationBandAct,
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: AppColors.success,
-                        ),
+                        _EstrusBand.act,
+                        activeBand,
+                        Alignment.centerRight,
+                        const Key('estrus-scale-band-act'),
                       ),
                     ),
                   ],
@@ -726,6 +767,52 @@ class EstrusDetailPage extends ConsumerWidget {
           },
         ),
       ],
+    );
+  }
+
+  /// One band label: the ACTIVE band renders as a colored pill (soft
+  /// background + strong bold text, plus the estrus-scale-band-active key);
+  /// inactive bands stay as plain secondary small text.
+  Widget _bandLabel(String text, _EstrusBand band, _EstrusBand active,
+      Alignment alignment, Key key) {
+    final textAlign = alignment == Alignment.centerRight
+        ? TextAlign.right
+        : alignment == Alignment.center
+            ? TextAlign.center
+            : TextAlign.left;
+    if (band != active) {
+      return Text(
+        text,
+        key: key,
+        textAlign: textAlign,
+        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+      );
+    }
+    final (Color, Color) colors = switch (band) {
+      _EstrusBand.none => (AppColors.textSecondary, AppColors.surfaceMuted),
+      _EstrusBand.watch => (AppColors.warningStrong, AppColors.warningSoft),
+      _EstrusBand.act => (AppColors.successStrong, AppColors.successSoft),
+    };
+    return Align(
+      key: key,
+      alignment: alignment,
+      child: Container(
+        key: const Key('estrus-scale-band-active'),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: colors.$2,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          text,
+          textAlign: textAlign,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: colors.$1,
+          ),
+        ),
+      ),
     );
   }
 

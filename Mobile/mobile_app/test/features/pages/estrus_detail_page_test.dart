@@ -191,6 +191,25 @@ void main() {
     final fraction = (pointerRect.center.dx - trackRect.left) / trackRect.width;
     expect(fraction, closeTo(0.82, 0.03));
 
+    // Score badge carries the numeric score itself (2026-11-10 feedback fix:
+    // the pointer is a score-value chip, not a bare triangle).
+    expect(
+      find.descendant(
+          of: find.byKey(const Key('estrus-scale-pointer')),
+          matching: find.text('82')),
+      findsOneWidget,
+    );
+
+    // The band the score falls in is highlighted: act band (>=70) carries the
+    // active pill; the other two bands stay plain.
+    expect(find.byKey(const Key('estrus-scale-band-active')), findsOneWidget);
+    expect(
+      find.descendant(
+          of: find.byKey(const Key('estrus-scale-band-act')),
+          matching: find.byKey(const Key('estrus-scale-band-active'))),
+      findsOneWidget,
+    );
+
     // Calibration footnote (data-driven row exists).
     expect(find.text('评分参数：仿真默认'), findsOneWidget);
 
@@ -226,6 +245,14 @@ void main() {
     // DEFAULT baseline without a compute date.
     expect(find.textContaining('默认基线 38.5℃'), findsOneWidget);
     expect(find.textContaining('计算）'), findsNothing);
+
+    // Score 61 lands in the watch band: its label carries the active pill.
+    expect(
+      find.descendant(
+          of: find.byKey(const Key('estrus-scale-band-watch')),
+          matching: find.byKey(const Key('estrus-scale-band-active'))),
+      findsOneWidget,
+    );
   });
 
   testWidgets('explanation 全 null:构成/基线/倍数句/标尺隐藏,帮助仍在', (tester) async {
