@@ -65,6 +65,42 @@ class AlertDetail {
   final String? deviceCode;
 }
 
+/// Result of `POST /alerts/{alertId}/estrus-feedback` (NIX-286 T2 contract:
+/// FeedbackResult{alertId, verdict, physiologyEventId, labelId, idempotent}).
+class AlertFeedbackResult {
+  const AlertFeedbackResult({
+    required this.alertId,
+    required this.verdict,
+    this.physiologyEventId,
+    this.labelId,
+    this.idempotent = false,
+  });
+
+  final String alertId;
+
+  /// Server verdict: `CONFIRMED` (确认发情) or `REJECTED` (不是发情).
+  final String verdict;
+
+  /// Physiology event linked on confirm; null on reject. Kept as a string so
+  /// the frontend never cares whether the backend serializes an int or UUID.
+  final String? physiologyEventId;
+  final String? labelId;
+
+  /// True when the same verdict was already recorded — the UI shows the
+  /// "already submitted" copy instead of the success copy.
+  final bool idempotent;
+
+  factory AlertFeedbackResult.fromJson(Map<String, dynamic> json) {
+    return AlertFeedbackResult(
+      alertId: json['alertId']?.toString() ?? '',
+      verdict: json['verdict'] as String? ?? '',
+      physiologyEventId: json['physiologyEventId']?.toString(),
+      labelId: json['labelId']?.toString(),
+      idempotent: json['idempotent'] as bool? ?? false,
+    );
+  }
+}
+
 /// Metadata entry for the detail timeline.
 class AlertTimelineEntry {
   const AlertTimelineEntry({
@@ -102,4 +138,14 @@ abstract class AlertsRepository {
   Future<void> batchRead(List<String> alertIds);
 
   Future<void> batchDismiss(List<String> alertIds);
+
+  /// NIX-286: submit estrus confirm/reject feedback on an alert
+  /// (`POST /alerts/{alertId}/estrus-feedback`, body `{"confirmed": bool}`).
+  /// Throws [ApiException] subclasses on 400/403/404 so the caller can surface
+  /// the server-side i18n message.
+  Future<AlertFeedbackResult> submitEstrusFeedback(
+    String farmId,
+    String alertId, {
+    required bool confirmed,
+  });
 }

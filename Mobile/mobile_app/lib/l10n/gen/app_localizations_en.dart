@@ -8064,4 +8064,38 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get estrusExplanationCalibration =>
       'Scoring parameters: simulation defaults';
+
+  @override
+  String get alertEstrusFeedbackConfirmAction => 'Confirm estrus';
+
+  @override
+  String get alertEstrusFeedbackRejectAction => 'Not estrus';
+
+  @override
+  String get alertEstrusFeedbackConfirmTitle => 'Confirm estrus?';
+
+  @override
+  String get alertEstrusFeedbackConfirmBody =>
+      'This records estrus for this animal and supports breeding management and estrus-detection calibration.';
+
+  @override
+  String get alertEstrusFeedbackRejectTitle => 'Not estrus?';
+
+  @override
+  String get alertEstrusFeedbackRejectBody =>
+      'This marks the alert as a false positive and helps calibrate estrus-detection accuracy.';
+
+  @override
+  String get alertEstrusFeedbackDoneConfirmed => 'Estrus confirmed';
+
+  @override
+  String get alertEstrusFeedbackDoneRejected => 'Marked as not estrus';
+
+  @override
+  String get alertEstrusFeedbackDoneDuplicate =>
+      'An identical verdict was already submitted';
+
+  @override
+  String get alertEstrusFeedbackFailed =>
+      'Failed to submit feedback. Please try again later.';
 }

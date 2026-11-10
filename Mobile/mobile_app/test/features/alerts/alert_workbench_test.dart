@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/features/alerts/domain/alert_workbench.dart';
+import 'package:hkt_livestock_agentic/features/alerts/domain/alerts_repository.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_workbench_detail_sheet.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_workbench_view.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
@@ -9,6 +12,8 @@ WorkbenchItem _item({
   String bucket = 'immediate',
   String asset = 'fence',
   bool unread = true,
+  String reasonType = 'FENCE_BREACH',
+  String reasonAlertId = '101',
 }) {
   return WorkbenchItem(
     id: id,
@@ -27,9 +32,9 @@ WorkbenchItem _item({
     resolvedAt: null,
     resolvedType: null,
     reasons: [
-      const WorkbenchReason(
-        alertId: '101',
-        type: 'FENCE_BREACH',
+      WorkbenchReason(
+        alertId: reasonAlertId,
+        type: reasonType,
         severity: 'CRITICAL',
         message: 'SL-7 breached the fence',
         occurredAt: null,
@@ -145,5 +150,76 @@ void main() {
     expect(data.summary.unreadTotal, 5);
     expect(data.items.single.reasons.single.alertId, '101');
     expect(data.items.single.ai?.band, 'alarm');
+  });
+
+  // ── NIX-286: estrus confirm/reject actions in the detail sheet ──
+
+  Future<void> pumpDetailSheet(
+    WidgetTester tester,
+    WorkbenchItem item, {
+    Future<AlertFeedbackResult> Function(String alertId,
+            {required bool confirmed})?
+        onEstrusFeedback,
+  }) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: AlertWorkbenchDetailSheet(
+            item: item,
+            role: UserRole.owner,
+            onMarkRead: (_) async {},
+            onDismiss: (_) async {},
+            onNavigate: (_) {},
+            onTrajectory: (_) {},
+            onEstrusFeedback: onEstrusFeedback,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets(
+    'ESTRUS item shows confirm/reject actions wired to the underlying alertId',
+    (tester) async {
+      final submissions = <(String alertId, bool confirmed)>[];
+      await pumpDetailSheet(
+        tester,
+        _item(id: 'estrus-1', asset: 'livestock', reasonType: 'ESTRUS'),
+        onEstrusFeedback: (alertId, {required confirmed}) async {
+          submissions.add((alertId, confirmed));
+          return AlertFeedbackResult(
+            alertId: alertId,
+            verdict: 'CONFIRMED',
+          );
+        },
+      );
+
+      expect(find.text('确认发情'), findsOneWidget);
+      expect(find.text('不是发情'), findsOneWidget);
+
+      // Confirm flow reaches the callback with the ESTRUS reason's alertId.
+      await tester.tap(find.text('确认发情'));
+      await tester.pumpAndSettle();
+      expect(find.text('确认发情？'), findsOneWidget);
+      await tester.tap(find.text('确认'));
+      await tester.pumpAndSettle();
+
+      expect(submissions, hasLength(1));
+      expect(submissions.single.$1, '101');
+      expect(submissions.single.$2, isTrue);
+      expect(find.text('已确认发情'), findsOneWidget);
+    },
+  );
+
+  testWidgets('non-ESTRUS item shows no estrus confirm/reject actions', (
+    tester,
+  ) async {
+    await pumpDetailSheet(tester, _item());
+    expect(find.text('确认发情'), findsNothing);
+    expect(find.text('不是发情'), findsNothing);
   });
 }

@@ -25,6 +25,10 @@ class _FakeAlertsRepository implements AlertsRepository {
   String? lastSeverity;
   List<List<String>> batchDismisses = [];
 
+  /// NIX-286 estrus feedback calls captured for assertions.
+  final List<({String farmId, String alertId, bool confirmed})>
+      estrusFeedbackCalls = [];
+
   @override
   Future<AlertsListData> loadAlerts({
     int page = 1,
@@ -87,6 +91,19 @@ class _FakeAlertsRepository implements AlertsRepository {
   @override
   Future<void> batchDismiss(List<String> alertIds) async {
     batchDismisses.add(alertIds);
+  }
+
+  @override
+  Future<AlertFeedbackResult> submitEstrusFeedback(
+    String farmId,
+    String alertId, {
+    required bool confirmed,
+  }) async {
+    estrusFeedbackCalls.add((farmId: farmId, alertId: alertId, confirmed: confirmed));
+    return AlertFeedbackResult(
+      alertId: alertId,
+      verdict: confirmed ? 'CONFIRMED' : 'REJECTED',
+    );
   }
 }
 

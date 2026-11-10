@@ -4,6 +4,8 @@ import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/features/alerts/domain/alert_workbench.dart';
+import 'package:hkt_livestock_agentic/features/alerts/domain/alerts_repository.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/estrus_feedback_actions.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
 Future<void> showAlertWorkbenchDetailSheet(
@@ -15,6 +17,8 @@ Future<void> showAlertWorkbenchDetailSheet(
   required void Function(String route) onNavigate,
   required void Function(WorkbenchItem item) onTrajectory,
   void Function(WorkbenchItem item)? onMarkSource,
+  Future<AlertFeedbackResult> Function(String alertId,
+      {required bool confirmed})? onEstrusFeedback,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -28,6 +32,7 @@ Future<void> showAlertWorkbenchDetailSheet(
       onNavigate: onNavigate,
       onTrajectory: onTrajectory,
       onMarkSource: onMarkSource,
+      onEstrusFeedback: onEstrusFeedback,
     ),
   );
 }
@@ -42,6 +47,7 @@ class AlertWorkbenchDetailSheet extends StatelessWidget {
     required this.onNavigate,
     required this.onTrajectory,
     this.onMarkSource,
+    this.onEstrusFeedback,
   });
 
   final WorkbenchItem item;
@@ -54,6 +60,11 @@ class AlertWorkbenchDetailSheet extends StatelessWidget {
   /// "Mark as source" quick action for EPIDEMIC livestock items (epidemic
   /// spec §5.2 entry ③, prototype P5). Null hides the trigger.
   final void Function(WorkbenchItem item)? onMarkSource;
+
+  /// NIX-286: estrus confirm/reject submission for ESTRUS items. Null hides
+  /// the trigger (host resolves the farm id and data refresh).
+  final Future<AlertFeedbackResult> Function(String alertId,
+      {required bool confirmed})? onEstrusFeedback;
 
   @override
   Widget build(BuildContext context) {
@@ -141,6 +152,7 @@ class AlertWorkbenchDetailSheet extends StatelessWidget {
           _ActionBar(
             item: item,
             role: role,
+            onEstrusFeedback: onEstrusFeedback,
             onMarkRead: (target) async {
               await onMarkRead(item);
               if (context.mounted) Navigator.of(context).pop();
@@ -689,8 +701,13 @@ class _Lifecycle extends StatelessWidget {
     Color color, {
     bool currentStep = false,
   }) {
-    return Container(
-      margin: currentStep ? const EdgeInsets.only(left: -6) : EdgeInsets.zero,
+    // The current-step highlight used a negative left margin (-6) to overhang
+    // the timeline gutter — but Container asserts non-negative margins, which
+    // crashed every debug-mode open of this sheet (and every widget test that
+    // pumps it). A -6 Transform.translate on a zero-margin container keeps the
+    // dot/text geometry identical (box shifted 6 left, padding pushes content
+    // back); only the chip's right edge ends 6px short of the original.
+    final chip = Container(
       padding: EdgeInsets.symmetric(
         vertical: 5,
         horizontal: currentStep ? 6 : 0,
@@ -737,6 +754,9 @@ class _Lifecycle extends StatelessWidget {
         ],
       ),
     );
+    return currentStep
+        ? Transform.translate(offset: const Offset(-6, 0), child: chip)
+        : chip;
   }
 
   String _date(DateTime? value) {
@@ -756,6 +776,7 @@ class _ActionBar extends StatelessWidget {
     required this.onNavigate,
     required this.onTrajectory,
     this.onMarkSource,
+    this.onEstrusFeedback,
   });
 
   final WorkbenchItem item;
@@ -765,6 +786,8 @@ class _ActionBar extends StatelessWidget {
   final void Function(String route) onNavigate;
   final void Function(WorkbenchItem item) onTrajectory;
   final void Function(WorkbenchItem item)? onMarkSource;
+  final Future<AlertFeedbackResult> Function(String alertId,
+      {required bool confirmed})? onEstrusFeedback;
 
   @override
   Widget build(BuildContext context) {
@@ -772,6 +795,12 @@ class _ActionBar extends StatelessWidget {
     final canDismiss = RolePermission.canHandleAlert(role) && !item.isResolved;
     final (primaryLabel, primaryRoute) = _primaryAction(context);
     final showMarkSource = onMarkSource != null && item.canMarkDiseasedSource;
+    // Estrus confirm/reject (NIX-286): shown under the same visibility
+    // condition as the dismiss button (active items only), enabled under the
+    // same permission gate (canHandleAlert) that disables dismiss.
+    final estrusAlertId = item.estrusAlertId;
+    final showEstrusFeedback =
+        onEstrusFeedback != null && item.isEstrus && !item.isResolved;
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 7, 10, 10),
       decoration: const BoxDecoration(
@@ -781,6 +810,16 @@ class _ActionBar extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Estrus confirm/reject quick actions (NIX-286): full-width pair
+          // above the regular row, same slot as the mark-as-source trigger.
+          if (showEstrusFeedback && estrusAlertId != null) ...[
+            EstrusFeedbackActions(
+              alertId: estrusAlertId,
+              onSubmit: onEstrusFeedback!,
+              enabled: canDismiss,
+            ),
+            const SizedBox(height: 5),
+          ],
           // Mark-as-source quick action (prototype P5): full-width small
           // danger-solid button above the regular row. It pops this detail
           // sheet first so the mark sheet never stacks on another modal.

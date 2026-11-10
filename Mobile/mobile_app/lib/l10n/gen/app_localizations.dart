@@ -14462,6 +14462,66 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'评分参数：仿真默认'**
   String get estrusExplanationCalibration;
+
+  /// No description provided for @alertEstrusFeedbackConfirmAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认发情'**
+  String get alertEstrusFeedbackConfirmAction;
+
+  /// No description provided for @alertEstrusFeedbackRejectAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'不是发情'**
+  String get alertEstrusFeedbackRejectAction;
+
+  /// No description provided for @alertEstrusFeedbackConfirmTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认发情？'**
+  String get alertEstrusFeedbackConfirmTitle;
+
+  /// No description provided for @alertEstrusFeedbackConfirmBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'将记录这头牲畜本次发情，用于繁殖管理和发情识别校准。'**
+  String get alertEstrusFeedbackConfirmBody;
+
+  /// No description provided for @alertEstrusFeedbackRejectTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'不是发情？'**
+  String get alertEstrusFeedbackRejectTitle;
+
+  /// No description provided for @alertEstrusFeedbackRejectBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'将把该告警标记为误报，帮助校准发情识别准确度。'**
+  String get alertEstrusFeedbackRejectBody;
+
+  /// No description provided for @alertEstrusFeedbackDoneConfirmed.
+  ///
+  /// In zh, this message translates to:
+  /// **'已确认发情'**
+  String get alertEstrusFeedbackDoneConfirmed;
+
+  /// No description provided for @alertEstrusFeedbackDoneRejected.
+  ///
+  /// In zh, this message translates to:
+  /// **'已标记为不是发情'**
+  String get alertEstrusFeedbackDoneRejected;
+
+  /// No description provided for @alertEstrusFeedbackDoneDuplicate.
+  ///
+  /// In zh, this message translates to:
+  /// **'已提交过相同结论'**
+  String get alertEstrusFeedbackDoneDuplicate;
+
+  /// No description provided for @alertEstrusFeedbackFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'反馈提交失败，请稍后重试'**
+  String get alertEstrusFeedbackFailed;
 }
 
 class _AppLocalizationsDelegate
