@@ -45,6 +45,17 @@ public class PasswordChangeRequiredInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
                              Object handler) {
+        // API-key principals are NOT user ids: ApiKeyAuthFilter stamps
+        // ATTR_API_KEY and builds its Long principal from the api_keys.id
+        // sequence. Password rotation is a user-session concept — an API key
+        // has no initial password, so it must never be locked here. Without
+        // this guard, a key whose id collides with a must-change-password
+        // user id gets 403 PASSWORD_CHANGE_REQUIRED on every open endpoint
+        // (NIX-337). JWT user sessions are unaffected: they never set the
+        // attribute.
+        if (request.getAttribute(ApiKeyAuthFilter.ATTR_API_KEY) != null) {
+            return true;
+        }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !(authentication.getPrincipal() instanceof Long userId)) {
             return true; // anonymous — downstream auth rules apply
