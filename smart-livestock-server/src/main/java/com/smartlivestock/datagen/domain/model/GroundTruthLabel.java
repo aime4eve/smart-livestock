@@ -31,6 +31,9 @@ public class GroundTruthLabel extends Entity {
     private Long labeledBy;
     private Instant labeledAt;
     private String note;
+    /** Audit row timestamp (ground_truth_labels.created_at); carried so a
+     * repository UPDATE round-trip cannot null it out (NOT NULL column). */
+    private Instant createdAt;
 
     public GroundTruthLabel() {}
 
@@ -60,4 +63,6 @@ public class GroundTruthLabel extends Entity {
     public void setLabeledAt(Instant labeledAt) { this.labeledAt = labeledAt; }
     public String getNote() { return note; }
     public void setNote(String note) { this.note = note; }
+    public Instant getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

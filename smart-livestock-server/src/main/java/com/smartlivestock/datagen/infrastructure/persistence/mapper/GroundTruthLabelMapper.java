@@ -20,6 +20,7 @@ public class GroundTruthLabelMapper {
         l.setLabeledBy(e.getLabeledBy());
         l.setLabeledAt(e.getLabeledAt());
         l.setNote(e.getNote());
+        l.setCreatedAt(e.getCreatedAt());
         return l;
     }
 
@@ -37,6 +38,10 @@ public class GroundTruthLabelMapper {
         e.setLabeledBy(l.getLabeledBy());
         e.setLabeledAt(l.getLabeledAt());
         e.setNote(l.getNote());
+        // Round-trip the audit timestamp: on the UPDATE path (verdict flip)
+        // the rebuilt entity is merged over the managed one — a missing
+        // createdAt would overwrite the NOT NULL column with NULL.
+        e.setCreatedAt(l.getCreatedAt());
         return e;
     }
 }
