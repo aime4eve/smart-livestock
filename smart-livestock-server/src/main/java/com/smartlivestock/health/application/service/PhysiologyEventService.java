@@ -65,13 +65,22 @@ public class PhysiologyEventService {
      * Physiology card list: table rows (with ongoing-illness flag) merged
      * with active disposition projections, sorted occurred_at DESC, plus the
      * lactation/dry stage projection (null when no stage-defining event).
+     * ESTRUS_CONFIRM audit rows (NIX-286 ALERT_CONFIRM history) are never
+     * part of the result — the card shows manual milestones only.
      */
     @Transactional(readOnly = true)
     public PhysiologyEventListResponse listEvents(Long farmId, Long livestockId) {
         requireLivestockInFarm(farmId, livestockId);
         Set<Instant> closedOnsets = closedManualIllnessOnsets(livestockId);
         List<PhysiologyEventResponse> items = new ArrayList<>();
-        eventRepository.findByLivestockIdOrderByOccurredAtDesc(livestockId)
+        // The visible-only repository query already excludes ALERT_CONFIRM
+        // audit rows at the database level; this in-memory guard keeps the
+        // record-card contract (manual milestones only — NIX-286 contract v2
+        // §7) at the service boundary even if a future query forgets the
+        // ESTRUS_CONFIRM exclusion.
+        eventRepository.findVisibleByLivestockIdOrderByOccurredAtDesc(livestockId)
+                .stream()
+                .filter(entity -> entity.getEventType() != PhysiologyEventType.ESTRUS_CONFIRM)
                 .forEach(entity -> items.add(toResponse(entity, isOngoing(entity, closedOnsets))));
         dispositionRepository.findByLivestockId(livestockId).stream()
                 .filter(disposition -> disposition.getStatus() == EpidemicDispositionStatus.PENDING

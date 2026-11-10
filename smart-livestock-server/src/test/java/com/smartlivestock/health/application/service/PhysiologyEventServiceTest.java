@@ -1,5 +1,6 @@
 package com.smartlivestock.health.application.service;
 
+import com.smartlivestock.health.application.dto.PhysiologyDtos.PhysiologyEventListResponse;
 import com.smartlivestock.health.application.dto.PhysiologyDtos.PhysiologyEventRequest;
 import com.smartlivestock.health.application.dto.PhysiologyDtos.PhysiologyEventResponse;
 import com.smartlivestock.health.application.dto.PhysiologyDtos.PhysiologyEventUpdateRequest;
@@ -20,6 +21,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -202,5 +204,45 @@ class PhysiologyEventServiceTest {
         service.createEvent(1L, 5L, new PhysiologyEventRequest("CALVING", "2026-11-01", null), 9L);
 
         verify(estrusFeedbackService, never()).linkBreedingDerived(anyLong(), any(), anyLong());
+    }
+
+    // ── NIX-286 Task 2: record-card isolation from ALERT_CONFIRM audit rows ──
+
+    /** A physiology row of the given type, MANUAL unless it is the audit type. */
+    private PhysiologyEventJpaEntity eventRow(long id, PhysiologyEventType type, Instant occurredAt) {
+        PhysiologyEventJpaEntity entity = new PhysiologyEventJpaEntity();
+        entity.setId(id);
+        entity.setLivestockId(5L);
+        entity.setEventType(type);
+        entity.setSource(type == PhysiologyEventType.ESTRUS_CONFIRM
+                ? PhysiologySource.ALERT_CONFIRM
+                : PhysiologySource.MANUAL);
+        entity.setOccurredAt(occurredAt);
+        return entity;
+    }
+
+    /**
+     * listEvents hides ESTRUS_CONFIRM audit rows (NIX-286 contract v2 §7):
+     * even when the repository return carries one (query-exclusion regression
+     * or future call path), the merged card list must only show manual
+     * milestones — so the frontend `_unknown → illness` degradation never
+     * fires on an audit row.
+     */
+    @Test
+    void listEventsExcludesEstrusConfirmAuditRows() {
+        when(eventRepository.findVisibleByLivestockIdOrderByOccurredAtDesc(5L))
+                .thenReturn(List.of(
+                        eventRow(1L, PhysiologyEventType.ESTRUS_CONFIRM,
+                                Instant.parse("2026-11-01T09:00:00Z")),
+                        eventRow(2L, PhysiologyEventType.ILLNESS,
+                                Instant.parse("2026-11-02T09:00:00Z")),
+                        eventRow(3L, PhysiologyEventType.RECOVERY,
+                                Instant.parse("2026-11-03T09:00:00Z"))));
+
+        PhysiologyEventListResponse response = service.listEvents(1L, 5L);
+
+        assertThat(response.items())
+                .extracting(PhysiologyEventResponse::eventType)
+                .containsExactlyInAnyOrder("ILLNESS", "RECOVERY");
     }
 }
