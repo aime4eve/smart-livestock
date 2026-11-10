@@ -120,6 +120,8 @@ public final class HealthMapper {
         d.setBaselineSource(e.getBaselineSource());
         d.setBaselineComputedAt(e.getBaselineComputedAt());
         d.setBaselineAlgorithmVersion(e.getBaselineAlgorithmVersion());
+        d.setFeatureVersion(e.getFeatureVersion());
+        d.setDistanceRatio(e.getDistanceRatio());
         return d;
     }
 
@@ -141,6 +143,10 @@ public final class HealthMapper {
         e.setBaselineSource(d.getBaselineSource());
         e.setBaselineComputedAt(d.getBaselineComputedAt());
         e.setBaselineAlgorithmVersion(d.getBaselineAlgorithmVersion());
+        // Scoring provenance (NIX-390): LEGACY / NORMALIZED-V2 plus the
+        // normalized distance ratio (null when distance did not participate).
+        e.setFeatureVersion(d.getFeatureVersion());
+        e.setDistanceRatio(d.getDistanceRatio());
         return e;
     }
 

@@ -12,6 +12,10 @@ class AppColors {
   static const Color surfaceAlt = Color(0xFFFFFFFF);
   static const Color surfaceMuted = Color(0xFFF2F0EA);
   static const Color border = Color(0xFFD7D2C6);
+  /// Visible neutral band for the estrus 0-50 score segment (NIX-390): a
+  /// deepened khaki — `border` itself is near-white and reads as blank space
+  /// on the white card (integration-test feedback 2026-11-10).
+  static const Color scaleNone = Color(0xFFC9C1AC);
 
   static const Color textPrimary = Color(0xFF263126);
   static const Color textSecondary = Color(0xFF617061);

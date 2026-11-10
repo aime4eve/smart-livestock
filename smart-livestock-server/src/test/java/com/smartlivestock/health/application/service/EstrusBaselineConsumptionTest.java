@@ -104,7 +104,10 @@ class EstrusBaselineConsumptionTest {
                 messageResolver,
                 mock(ContactAnalysisService.class),
                 properties,
-                estrusScoringProperties);
+                estrusScoringProperties,
+                // Real explainer (pure calc, NIX-390 Task 2): not exercised by
+                // this suite's assertions, only satisfies the new constructor.
+                new EstrusScoreExplainer(new EstrusAnalysisService(), estrusScoringProperties));
 
         when(tenantZoneResolver.zoneForFarm(anyLong(), any())).thenReturn(ZoneOffset.UTC);
         doNothing().when(snapshotRepo).ensureSnapshotExists(anyLong(), anyLong());

@@ -25,6 +25,14 @@ public class EstrusScore {
     private Instant baselineComputedAt;
     private String baselineAlgorithmVersion;
 
+    // Scoring provenance (NIX-390): which formula produced the row. LEGACY =
+    // short-window relative ratios; NORMALIZED-V2 = cross-event-window level
+    // ratios. The NOT NULL DB column backfills existing rows to LEGACY.
+    private String featureVersion;
+    // Normalized distance level ratio (current mean / pooled baseline mean).
+    // Null means distance did not participate or the row is LEGACY semantics.
+    private BigDecimal distanceRatio;
+
     public EstrusScore() {}
 
     public Long getId() { return id; }
@@ -68,4 +76,10 @@ public class EstrusScore {
     public void setBaselineComputedAt(Instant baselineComputedAt) { this.baselineComputedAt = baselineComputedAt; }
     public String getBaselineAlgorithmVersion() { return baselineAlgorithmVersion; }
     public void setBaselineAlgorithmVersion(String baselineAlgorithmVersion) { this.baselineAlgorithmVersion = baselineAlgorithmVersion; }
+
+    public String getFeatureVersion() { return featureVersion; }
+    public void setFeatureVersion(String featureVersion) { this.featureVersion = featureVersion; }
+
+    public BigDecimal getDistanceRatio() { return distanceRatio; }
+    public void setDistanceRatio(BigDecimal distanceRatio) { this.distanceRatio = distanceRatio; }
 }

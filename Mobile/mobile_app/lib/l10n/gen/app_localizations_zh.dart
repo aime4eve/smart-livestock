@@ -7796,4 +7796,73 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get calvingPredictedAt => '评估时间';
+
+  @override
+  String get estrusExplanationSectionTitle => '评分构成';
+
+  @override
+  String get estrusExplanationScaleTitle => '评分分档';
+
+  @override
+  String get estrusExplanationChannelActivity => '活动';
+
+  @override
+  String get estrusExplanationChannelTemperature => '体温';
+
+  @override
+  String get estrusExplanationChannelDistance => '距离';
+
+  @override
+  String get estrusExplanationNotParticipated => '未参与';
+
+  @override
+  String estrusExplanationActivityRatioSentence(String ratio) {
+    return '过去 6 小时活动约为自身平常水平的 $ratio 倍';
+  }
+
+  @override
+  String estrusExplanationBaselineLearned(String value, String date) {
+    return '个体学习基线 $value℃（$date 计算）';
+  }
+
+  @override
+  String estrusExplanationBaselineLearnedNoDate(String value) {
+    return '个体学习基线 $value℃';
+  }
+
+  @override
+  String estrusExplanationBaselineDefault(String value) {
+    return '默认基线 $value℃';
+  }
+
+  @override
+  String get estrusExplanationBandNone => '无发情迹象';
+
+  @override
+  String get estrusExplanationBandWatch => '继续观察';
+
+  @override
+  String get estrusExplanationBandAct => '建议 12 小时内配种';
+
+  @override
+  String estrusExplanationLastAssessed(String time) {
+    return '最后评估：$time';
+  }
+
+  @override
+  String get estrusExplanationHelpTitle => '如何解读';
+
+  @override
+  String get estrusExplanationHelpFactors =>
+      '总分由三个因子加权合成：活动看运动量相对平常的增幅，体温看相对基线的升温幅度，距离看游走距离的变化。';
+
+  @override
+  String get estrusExplanationHelpBaseline => '对比基准是这头牛自身前 3 天同时段的水平，不是牛群平均。';
+
+  @override
+  String get estrusExplanationHelpBands =>
+      '0-50 无发情迹象，50-70 继续观察，70 以上建议 12 小时内配种。低分表示当前无发情迹象，属正常阴性判断；分数随每帧遥测滚动更新。';
+
+  @override
+  String get estrusExplanationCalibration => '评分参数：仿真默认';
 }

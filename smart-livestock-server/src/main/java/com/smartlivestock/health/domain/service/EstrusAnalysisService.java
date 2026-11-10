@@ -166,4 +166,86 @@ public class EstrusAnalysisService {
         if (ratio >= 1.0) return ladder.scoreMid() * (ratio - 1.0) / (ladder.ratioMid() - 1.0);
         return 0;
     }
+
+    // ---------------------------------------------------------------------------
+    // Score explanation breakdown (NIX-390 Task 1). Pure recomputation of the
+    // component scores / effective weights behind a stored estrus_scores row so
+    // the UI can show exactly why a row scored what it scored. Both scoring
+    // kernels above stay byte-for-byte untouched; the breakdowns reuse the same
+    // private curves so an explanation can never drift from the score.
+    // ---------------------------------------------------------------------------
+
+    /**
+     * Component view of one scored row: each feature's 0-100 component score
+     * plus the weight it actually carried in the weighted sum. Weight semantics
+     * differ per kernel: LEGACY keeps the fixed 0.4/0.3/0.3 regardless of null
+     * inputs (mirroring {@link #calculateScore}); NORMALIZED divides each weight
+     * by the sum of the participating weights (mirroring
+     * {@link #calculateScoreNormalized}), so an unavailable feature carries
+     * weight 0 and the others are scaled up.
+     */
+    public record ComponentBreakdown(
+            double activityScore, double temperatureScore, double distanceScore,
+            double weightActivity, double weightTemperature, double weightDistance) {
+    }
+
+    /**
+     * LEGACY breakdown: recomputes the components of
+     * {@link #calculateScore(int, BigDecimal, BigDecimal)} from the persisted
+     * feature columns. Null tempDelta/distanceDelta score 0 but keep their
+     * weight — exactly the calculateScore semantics — and a null
+     * stepIncreasePercent is treated as 0 (the legacy path always wrote a
+     * primitive int).
+     */
+    public ComponentBreakdown legacyBreakdown(Integer stepIncreasePercent, BigDecimal tempDelta,
+                                              BigDecimal distanceDeltaMeters) {
+        int step = stepIncreasePercent == null ? 0 : stepIncreasePercent;
+        return new ComponentBreakdown(
+                scoreStepIncrease(step),
+                scoreTempDelta(tempDelta),
+                scoreDistanceDelta(distanceDeltaMeters),
+                0.4, 0.3, 0.3);
+    }
+
+    /**
+     * NORMALIZED-V2 breakdown: recomputes the components of
+     * {@link #calculateScoreNormalized(BigDecimal, BigDecimal, BigDecimal,
+     * EstrusFeatureLadder, EstrusFeatureLadder)} from the persisted feature
+     * columns. {@code stepIncreasePercent} stores {@code (ratio − 1) × 100}, so
+     * the activity ratio is reconstructed as {@code 1 + percent / 100}; the
+     * temperature component reuses the legacy curve floored at 0 for negative
+     * deltas (0b74fab2 semantics). A null argument means the component did not
+     * participate: it scores 0 with weight 0, and the participating weights are
+     * normalized (each divided by their own sum). When nothing participates the
+     * breakdown is all zeros.
+     */
+    public ComponentBreakdown normalizedBreakdown(Integer stepIncreasePercent, BigDecimal tempDelta,
+                                                  BigDecimal distanceRatio,
+                                                  EstrusFeatureLadder activityLadder,
+                                                  EstrusFeatureLadder distanceLadder) {
+        EstrusFeatureLadder actLadder = activityLadder == null ? DEFAULT_LADDER : activityLadder;
+        EstrusFeatureLadder distLadder = distanceLadder == null ? DEFAULT_LADDER : distanceLadder;
+
+        boolean activityAvailable = stepIncreasePercent != null;
+        boolean tempAvailable = tempDelta != null;
+        boolean distanceAvailable = distanceRatio != null;
+
+        double activityScore = activityAvailable
+                ? ladderScore(1 + stepIncreasePercent / 100.0, actLadder) : 0;
+        double tempScore = tempAvailable ? Math.max(0, scoreTempDelta(tempDelta)) : 0;
+        double distanceScore = distanceAvailable
+                ? ladderScore(distanceRatio.doubleValue(), distLadder) : 0;
+
+        double weightSum = (activityAvailable ? 0.4 : 0)
+                + (tempAvailable ? 0.3 : 0)
+                + (distanceAvailable ? 0.3 : 0);
+        if (weightSum == 0) {
+            return new ComponentBreakdown(0, 0, 0, 0, 0, 0);
+        }
+        return new ComponentBreakdown(
+                activityScore, tempScore, distanceScore,
+                (activityAvailable ? 0.4 : 0) / weightSum,
+                (tempAvailable ? 0.3 : 0) / weightSum,
+                (distanceAvailable ? 0.3 : 0) / weightSum);
+    }
 }
