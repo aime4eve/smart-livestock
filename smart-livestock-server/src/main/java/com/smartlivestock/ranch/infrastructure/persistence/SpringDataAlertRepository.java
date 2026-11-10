@@ -15,6 +15,8 @@ public interface SpringDataAlertRepository extends JpaRepository<AlertJpaEntity,
     List<AlertJpaEntity> findByLivestockIdAndTypeAndStatus(Long livestockId, String type, String status);
     List<AlertJpaEntity> findByDeviceIdAndTypeAndStatus(Long deviceId, String type, String status);
     List<AlertJpaEntity> findByLivestockIdAndStatusAndSource(Long livestockId, String status, String source);
+    List<AlertJpaEntity> findByLivestockIdAndTypeAndCreatedAtBetween(
+            Long livestockId, String type, java.time.Instant from, java.time.Instant to);
     List<AlertJpaEntity> findByFarmIdAndTypeInAndStatus(Long farmId, Collection<String> types, String status);
     List<AlertJpaEntity> findByFarmIdAndTypeAndStatus(Long farmId, String type, String status);
     List<AlertJpaEntity> findByFarmIdAndStatus(Long farmId, String status);

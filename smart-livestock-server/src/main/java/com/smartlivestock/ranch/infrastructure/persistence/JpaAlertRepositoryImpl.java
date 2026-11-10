@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.time.Instant;
 import java.util.Optional;
 
 @Repository
@@ -124,6 +125,15 @@ public class JpaAlertRepositoryImpl implements AlertRepository {
     @Override
     public List<Alert> findByFarmIdAndTypeAndStatus(Long farmId, AlertType type, AlertStatus status) {
         return springDataRepo.findByFarmIdAndTypeAndStatus(farmId, type.name(), status.name()).stream()
+                .map(AlertMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Alert> findByLivestockIdAndTypeAndCreatedAtBetween(Long livestockId, AlertType type,
+                                                                   Instant from, Instant to) {
+        return springDataRepo.findByLivestockIdAndTypeAndCreatedAtBetween(livestockId, type.name(), from, to)
+                .stream()
                 .map(AlertMapper::toDomain)
                 .toList();
     }

@@ -17,8 +17,14 @@ public class GroundTruthLabelJpaEntity {
     private Instant periodStart;
     @Column(name = "period_end", nullable = false)
     private Instant periodEnd;
-    @Column(name = "source", nullable = false, length = 10)
+    @Column(name = "source", nullable = false, length = 24)
     private String source;
+    // NIX-286 contract v2: verdict lifecycle (CONFIRMED/REJECTED/SUPERSEDED),
+    // null for BREEDING_DERIVED rows and legacy rows.
+    @Column(name = "verdict", length = 16)
+    private String verdict;
+    @Column(name = "ref_alert_id")
+    private Long refAlertId;
     @Column(name = "severity", precision = 3, scale = 2)
     private BigDecimal severity;
     @Column(name = "labeled_by")
@@ -45,6 +51,10 @@ public class GroundTruthLabelJpaEntity {
     public void setPeriodEnd(Instant periodEnd) { this.periodEnd = periodEnd; }
     public String getSource() { return source; }
     public void setSource(String source) { this.source = source; }
+    public String getVerdict() { return verdict; }
+    public void setVerdict(String verdict) { this.verdict = verdict; }
+    public Long getRefAlertId() { return refAlertId; }
+    public void setRefAlertId(Long refAlertId) { this.refAlertId = refAlertId; }
     public BigDecimal getSeverity() { return severity; }
     public void setSeverity(BigDecimal severity) { this.severity = severity; }
     public Long getLabeledBy() { return labeledBy; }

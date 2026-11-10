@@ -34,6 +34,13 @@ public interface PhysiologyEventJpaRepository extends JpaRepository<PhysiologyEv
             Long livestockId, PhysiologyEventType eventType, Instant occurredAt, PhysiologySource source);
 
     /**
+     * ALERT_CONFIRM audit row referencing one alert (NIX-286) — at most one
+     * exists per (livestock, alert) by uq_physiology_alert_confirm.
+     */
+    Optional<PhysiologyEventJpaEntity> findByLivestockIdAndRefIdAndSource(
+            Long livestockId, Long refId, PhysiologySource source);
+
+    /**
      * Latest CALVING or DRY_OFF milestone for stage derivation, restricted
      * to the given source: only MANUAL milestones may drive the lactation/
      * dry stage (NIX-258 m-p) — ALERT_CONFIRM rows, once a write path

@@ -1,5 +1,6 @@
 package com.smartlivestock.health.application.service;
 
+import com.smartlivestock.health.application.dto.PhysiologyDtos.PhysiologyEventRequest;
 import com.smartlivestock.health.application.dto.PhysiologyDtos.PhysiologyEventResponse;
 import com.smartlivestock.health.application.dto.PhysiologyDtos.PhysiologyEventUpdateRequest;
 import com.smartlivestock.health.domain.model.PhysiologyEventType;
@@ -15,6 +16,8 @@ import com.smartlivestock.shared.common.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -22,7 +25,11 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -30,21 +37,28 @@ import static org.mockito.Mockito.when;
  * absent/null note key keeps the stored value, a present blank string
  * clears the column to NULL, a non-blank value replaces it — with a
  * mocked repository. The 500-char cap is asserted on the update path too.
+ * <p>
+ * Also locks the NIX-286 BREEDING → weak-evidence linking hook: deferred to
+ * afterCommit inside an active synchronization, run inline (its own
+ * REQUIRES_NEW tx) when no synchronization is active.
  */
 class PhysiologyEventServiceTest {
 
     private PhysiologyEventJpaRepository eventRepository;
+    private EstrusFeedbackService estrusFeedbackService;
     private PhysiologyEventService service;
 
     @BeforeEach
     void setUp() {
         eventRepository = mock(PhysiologyEventJpaRepository.class);
         RanchQueryPort ranchQueryPort = mock(RanchQueryPort.class);
+        estrusFeedbackService = mock(EstrusFeedbackService.class);
         service = new PhysiologyEventService(
                 eventRepository,
                 mock(EpidemicDispositionJpaRepository.class),
                 ranchQueryPort,
-                mock(PhysiologyQueryPort.class));
+                mock(PhysiologyQueryPort.class),
+                estrusFeedbackService);
         when(ranchQueryPort.findLivestockById(5L))
                 .thenReturn(Optional.of(new LivestockInfo(5L, 1L, "SL-5", "F", "西门塔尔")));
     }
@@ -133,5 +147,60 @@ class PhysiologyEventServiceTest {
                 .hasMessage("error.physiology.duplicateEvent")
                 .extracting("code")
                 .isEqualTo(ErrorCode.STATE_CONFLICT);
+    }
+
+    // ── NIX-286 BREEDING → weak-evidence linking hook ───────────
+
+    /** A fresh BREEDING event save echoing the entity back (id stamped). */
+    private void breedingSaveSucceeds() {
+        when(eventRepository.findByLivestockIdAndEventTypeAndOccurredAtAndSource(
+                eq(5L), eq(PhysiologyEventType.BREEDING), any(Instant.class), any()))
+                .thenReturn(Optional.empty());
+        when(eventRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    }
+
+    /**
+     * No active transaction synchronization (the default controller path):
+     * the linking runs inline right after the event row exists.
+     */
+    @Test
+    void breedingEventLinksEstrusAlertsInlineWithoutTransactionSync() {
+        breedingSaveSucceeds();
+
+        service.createEvent(1L, 5L, new PhysiologyEventRequest("BREEDING", "2026-11-01", null), 9L);
+
+        verify(estrusFeedbackService).linkBreedingDerived(eq(5L), any(Instant.class), eq(9L));
+    }
+
+    /**
+     * Inside an active synchronization the linking must observe the committed
+     * event row — it is registered for afterCommit, not run eagerly.
+     */
+    @Test
+    void breedingEventDefersLinkingUntilAfterCommit() {
+        breedingSaveSucceeds();
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            service.createEvent(1L, 5L, new PhysiologyEventRequest("BREEDING", "2026-11-01", null), 9L);
+            verify(estrusFeedbackService, never()).linkBreedingDerived(anyLong(), any(), anyLong());
+
+            for (TransactionSynchronization synchronization :
+                    TransactionSynchronizationManager.getSynchronizations()) {
+                synchronization.afterCommit();
+            }
+            verify(estrusFeedbackService).linkBreedingDerived(eq(5L), any(Instant.class), eq(9L));
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    /** Non-BREEDING events never trigger the linking hook. */
+    @Test
+    void nonBreedingEventDoesNotLinkEstrusAlerts() {
+        breedingSaveSucceeds();
+
+        service.createEvent(1L, 5L, new PhysiologyEventRequest("CALVING", "2026-11-01", null), 9L);
+
+        verify(estrusFeedbackService, never()).linkBreedingDerived(anyLong(), any(), anyLong());
     }
 }

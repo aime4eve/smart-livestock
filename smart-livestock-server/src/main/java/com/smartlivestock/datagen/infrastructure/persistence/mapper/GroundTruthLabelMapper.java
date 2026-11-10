@@ -14,6 +14,8 @@ public class GroundTruthLabelMapper {
         l.setPeriodStart(e.getPeriodStart());
         l.setPeriodEnd(e.getPeriodEnd());
         l.setSource(LabelSource.valueOf(e.getSource()));
+        l.setVerdict(e.getVerdict());
+        l.setRefAlertId(e.getRefAlertId());
         l.setSeverity(e.getSeverity() != null ? e.getSeverity().doubleValue() : 0.0);
         l.setLabeledBy(e.getLabeledBy());
         l.setLabeledAt(e.getLabeledAt());
@@ -29,6 +31,8 @@ public class GroundTruthLabelMapper {
         e.setPeriodStart(l.getPeriodStart());
         e.setPeriodEnd(l.getPeriodEnd());
         e.setSource(l.getSource().name());
+        e.setVerdict(l.getVerdict());
+        e.setRefAlertId(l.getRefAlertId());
         e.setSeverity(BigDecimal.valueOf(l.getSeverity()));
         e.setLabeledBy(l.getLabeledBy());
         e.setLabeledAt(l.getLabeledAt());
