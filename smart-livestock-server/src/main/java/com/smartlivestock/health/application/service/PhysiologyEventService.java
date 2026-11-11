@@ -18,9 +18,12 @@ import com.smartlivestock.health.infrastructure.persistence.jpa.PhysiologyEventJ
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -45,6 +48,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PhysiologyEventService {
 
     /** Entry dates are interpreted in the ranch's operating timezone. */
@@ -55,18 +59,28 @@ public class PhysiologyEventService {
     private final EpidemicDispositionJpaRepository dispositionRepository;
     private final RanchQueryPort ranchQueryPort;
     private final PhysiologyQueryPort physiologyQueryPort;
+    private final EstrusFeedbackService estrusFeedbackService;
 
     /**
      * Physiology card list: table rows (with ongoing-illness flag) merged
      * with active disposition projections, sorted occurred_at DESC, plus the
      * lactation/dry stage projection (null when no stage-defining event).
+     * ESTRUS_CONFIRM audit rows (NIX-286 ALERT_CONFIRM history) are never
+     * part of the result — the card shows manual milestones only.
      */
     @Transactional(readOnly = true)
     public PhysiologyEventListResponse listEvents(Long farmId, Long livestockId) {
         requireLivestockInFarm(farmId, livestockId);
         Set<Instant> closedOnsets = closedManualIllnessOnsets(livestockId);
         List<PhysiologyEventResponse> items = new ArrayList<>();
-        eventRepository.findByLivestockIdOrderByOccurredAtDesc(livestockId)
+        // The visible-only repository query already excludes ALERT_CONFIRM
+        // audit rows at the database level; this in-memory guard keeps the
+        // record-card contract (manual milestones only — NIX-286 contract v2
+        // §7) at the service boundary even if a future query forgets the
+        // ESTRUS_CONFIRM exclusion.
+        eventRepository.findVisibleByLivestockIdOrderByOccurredAtDesc(livestockId)
+                .stream()
+                .filter(entity -> entity.getEventType() != PhysiologyEventType.ESTRUS_CONFIRM)
                 .forEach(entity -> items.add(toResponse(entity, isOngoing(entity, closedOnsets))));
         dispositionRepository.findByLivestockId(livestockId).stream()
                 .filter(disposition -> disposition.getStatus() == EpidemicDispositionStatus.PENDING
@@ -115,6 +129,13 @@ public class PhysiologyEventService {
         event.setUpdatedBy(userId);
         try {
             PhysiologyEventJpaEntity saved = eventRepository.save(toJpa(event));
+            // NIX-286: a freshly created BREEDING event triggers the weak-evidence
+            // estrus-alert linking. Only the fresh-insert path hooks — the
+            // idempotent pre-check path and the race-recovered path reference an
+            // event whose creation already ran the linking.
+            if (eventType == PhysiologyEventType.BREEDING) {
+                notifyBreedingDerivedLinking(livestockId, saved.getOccurredAt(), userId);
+            }
             return toResponse(saved, isOngoing(saved, closedManualIllnessOnsets(livestockId)));
         } catch (DataIntegrityViolationException race) {
             // Lost a concurrent insert on uq_physiology_manual_dup: the winner
@@ -125,6 +146,38 @@ public class PhysiologyEventService {
                     .map(winner -> toResponse(winner, isOngoing(winner,
                             closedManualIllnessOnsets(livestockId))))
                     .orElseThrow(() -> race);
+        }
+    }
+
+    /**
+     * BREEDING → weak-evidence label linking (NIX-286 contract v2). The
+     * linking must observe the committed event row, so inside an active
+     * transaction it is deferred to afterCommit; without an active
+     * synchronization (the default controller path — createEvent itself is
+     * deliberately not transactional and save() owns its own tx) it runs
+     * inline, opening its own REQUIRES_NEW transaction in
+     * {@link EstrusFeedbackService#linkBreedingDerived}. A linking failure
+     * never fails the BREEDING event creation — the event row is the
+     * primary write, the derived labels are best-effort hints.
+     */
+    private void notifyBreedingDerivedLinking(Long livestockId, Instant occurredAt, Long userId) {
+        Runnable link = () -> {
+            try {
+                estrusFeedbackService.linkBreedingDerived(livestockId, occurredAt, userId);
+            } catch (Exception hookFailure) {
+                log.warn("BREEDING_DERIVED linking failed for livestock {} at {} "
+                        + "— the BREEDING event itself is unaffected", livestockId, occurredAt, hookFailure);
+            }
+        };
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    link.run();
+                }
+            });
+        } else {
+            link.run();
         }
     }
 

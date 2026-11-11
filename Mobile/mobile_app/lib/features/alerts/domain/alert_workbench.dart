@@ -149,6 +149,19 @@ class WorkbenchItem {
   /// alert type name ("EPIDEMIC", "FENCE_BREACH", ...).
   bool get isEpidemic => reasons.any((reason) => reason.type == 'EPIDEMIC');
 
+  /// True when any underlying alert is ESTRUS-typed (NIX-286 confirm/reject
+  /// feedback). Same grouping caveat as [isEpidemic].
+  bool get isEstrus => reasons.any((reason) => reason.type == 'ESTRUS');
+
+  /// The alertId of the first ESTRUS reason — the target of the
+  /// `/alerts/{alertId}/estrus-feedback` endpoint. Null on non-estrus items.
+  String? get estrusAlertId {
+    for (final reason in reasons) {
+      if (reason.type == 'ESTRUS') return reason.alertId;
+    }
+    return null;
+  }
+
   /// The "mark as source" quick action (epidemic spec §5.2 entry ③) only
   /// applies to EPIDEMIC items bound to a single livestock asset — herd /
   /// fence / device items have no livestock to prefill the mark sheet with.

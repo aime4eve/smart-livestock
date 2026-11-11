@@ -7865,4 +7865,34 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get estrusExplanationCalibration => '评分参数：仿真默认';
+
+  @override
+  String get alertEstrusFeedbackConfirmAction => '确认发情';
+
+  @override
+  String get alertEstrusFeedbackRejectAction => '不是发情';
+
+  @override
+  String get alertEstrusFeedbackConfirmTitle => '确认发情？';
+
+  @override
+  String get alertEstrusFeedbackConfirmBody => '将记录这头牲畜本次发情，用于繁殖管理和发情识别校准。';
+
+  @override
+  String get alertEstrusFeedbackRejectTitle => '不是发情？';
+
+  @override
+  String get alertEstrusFeedbackRejectBody => '将把该告警标记为误报，帮助校准发情识别准确度。';
+
+  @override
+  String get alertEstrusFeedbackDoneConfirmed => '已确认发情';
+
+  @override
+  String get alertEstrusFeedbackDoneRejected => '已标记为不是发情';
+
+  @override
+  String get alertEstrusFeedbackDoneDuplicate => '已提交过相同结论';
+
+  @override
+  String get alertEstrusFeedbackFailed => '反馈提交失败，请稍后重试';
 }

@@ -41,8 +41,22 @@ public class EvaluationService {
                 // modulation — they are not positives for this anomaly
                 // evaluation and must not leak into the health window.
                 if (!t.isSimulationOnly()) {
-                    if (t.getCategory() == ScenarioType.Category.HEALTH) healthLabels.add(l);
-                    else if (t == ScenarioType.FENCE_BREACH) breachLabels.add(l);
+                    if (t.getCategory() == ScenarioType.Category.HEALTH) {
+                        // NIX-286 verdict compatibility (label level, before
+                        // the per-livestock abnormal map): a REJECTED row is a
+                        // human-denied candidate false positive, not an
+                        // abnormal positive; a SUPERSEDED row is a spent
+                        // verdict replaced by a flip. CONFIRMED rows and
+                        // verdict-less rows (null = legacy SYNTHETIC /
+                        // BREEDING_DERIVED weak evidence) still participate.
+                        // Real-only evaluation (NIX-159) will consume labels
+                        // by verdict once live telemetry is assessable.
+                        if (GroundTruthLabel.VERDICT_REJECTED.equals(l.getVerdict())
+                                || GroundTruthLabel.VERDICT_SUPERSEDED.equals(l.getVerdict())) {
+                            continue;
+                        }
+                        healthLabels.add(l);
+                    } else if (t == ScenarioType.FENCE_BREACH) breachLabels.add(l);
                     else if (t == ScenarioType.FENCE_APPROACH) approachLabels.add(l);
                 }
             }

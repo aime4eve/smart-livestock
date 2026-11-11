@@ -76,6 +76,23 @@ class AlertsApiRepository implements AlertsRepository {
         .farmPost('/alerts/batch-dismiss', body: {'alertIds': alertIds});
   }
 
+  @override
+  Future<AlertFeedbackResult> submitEstrusFeedback(
+    String farmId,
+    String alertId, {
+    required bool confirmed,
+  }) async {
+    // Single-object endpoint: farmPost already unwraps the `data` envelope
+    // (_handleResponse returns the `data` map verbatim), so the result parses
+    // directly — the List-endpoint `value` wrapper does not apply here.
+    final data = await ApiClient.instance.farmPost(
+      '/alerts/$alertId/estrus-feedback',
+      body: {'confirmed': confirmed},
+      farmId: farmId,
+    );
+    return AlertFeedbackResult.fromJson(data);
+  }
+
   static AlertItem _alertItemFromMap(Map<String, dynamic> m) {
     final rawId = m['id'];
     final id = rawId is int ? rawId.toString() : (rawId as String? ?? '');

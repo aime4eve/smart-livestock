@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hkt_livestock_agentic/app/app_route.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/models/core_models.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
+import 'package:hkt_livestock_agentic/features/alerts/domain/alerts_repository.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/alerts_controller.dart';
+import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/estrus_feedback_actions.dart';
 import 'package:hkt_livestock_agentic/features/epidemic/presentation/widgets/mark_diseased_alert_entry.dart';
 import 'package:hkt_livestock_agentic/features/livestock/presentation/widgets/trajectory_sheet.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
@@ -385,95 +388,122 @@ class _AlertDetailSheetState extends ConsumerState<AlertDetailSheet> {
       decoration: const BoxDecoration(
         border: Border(top: BorderSide(color: AppColors.border)),
       ),
-      child: Wrap(
-        spacing: 5,
-        runSpacing: 5,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Locate (livestock alerts only — device alerts have no position)
-          if (!_alert.type.startsWith('DEVICE_'))
-            _ActionButton(
-              label: l10n.alertActionLocate,
-              icon: Icons.location_on,
-              bgColor: AppColors.info,
-              fgColor: Colors.white,
-              onTap: () {
-                Navigator.of(context).pop();
-                context.push(AppRoute.ranch.path);
-              },
+          // Estrus confirm/reject (NIX-286): shown under the exact same gate
+          // as the dismiss action below (active + canHandleAlert role).
+          if (_alert.type == 'ESTRUS' && isActive && canDismiss) ...[
+            EstrusFeedbackActions(
+              alertId: _alert.id,
+              onSubmit: _submitEstrusFeedback,
             ),
-          // Mark as source (EPIDEMIC alerts bound to a livestock, manager
-          // roles only — spec §5.2 entry ③ / §5.4; free tier forks to the
-          // upsell sheet inside the shared helper).
-          if (_alert.type == 'EPIDEMIC' &&
-              _alert.livestockId != null &&
-              isEpidemicManagerRole(widget.role))
-            _ActionButton(
-              key: Key('alert-mark-source-${_alert.id}'),
-              label: l10n.alertsMarkAsSource,
-              icon: Icons.coronavirus,
-              bgColor: AppColors.danger,
-              fgColor: Colors.white,
-              onTap: () {
-                Navigator.of(context).pop();
-                showMarkDiseasedFromAlarm(
-                  context,
-                  ref,
-                  livestockId: _alert.livestockId!,
-                  // The list/card layers use '-' / '' as the "no livestock"
-                  // sentinel; fall back to the raw id for the sheet header.
-                  livestockCode:
-                      _alert.livestockCode.isNotEmpty &&
-                          _alert.livestockCode != '-'
-                      ? _alert.livestockCode
-                      : _alert.livestockId!,
-                );
-              },
-            ),
-          // Trajectory
-          if (_alert.livestockId != null)
-            _ActionButton(
-              label: l10n.alertActionTrajectory,
-              icon: Icons.show_chart,
-              bgColor: AppColors.aiAnomaly.withValues(alpha: 0.1),
-              fgColor: AppColors.aiAnomaly,
-              onTap: () {
-                Navigator.of(context).pop();
-                showTrajectorySheet(
-                  context,
-                  _alert.livestockId!,
-                  livestockCode: _alert.livestockCode,
-                );
-              },
-            ),
-          // Mark read (only if active and unread)
-          if (isActive && !_alert.read)
-            _ActionButton(
-              label: l10n.alertActionMarkRead,
-              icon: Icons.check,
-              bgColor: AppColors.primarySoft,
-              fgColor: AppColors.primaryDark,
-              onTap: () {
-                ref.read(alertsControllerProvider.notifier).markRead(_alert.id);
-                Navigator.of(context).pop();
-              },
-            ),
-          // Dismiss (only active + owner/b2b_admin)
-          if (isActive && canDismiss)
-            _ActionButton(
-              label: l10n.alertActionDismiss,
-              icon: Icons.block,
-              bgColor: AppColors.danger.withValues(alpha: 0.1),
-              fgColor: AppColors.danger,
-              onTap: () {
-                ref
-                    .read(alertsControllerProvider.notifier)
-                    .dismiss(_alert.id);
-                Navigator.of(context).pop();
-              },
-            ),
+            const SizedBox(height: 8),
+          ],
+          Wrap(
+            spacing: 5,
+            runSpacing: 5,
+            children: [
+              // Locate (livestock alerts only — device alerts have no position)
+              if (!_alert.type.startsWith('DEVICE_'))
+                _ActionButton(
+                  label: l10n.alertActionLocate,
+                  icon: Icons.location_on,
+                  bgColor: AppColors.info,
+                  fgColor: Colors.white,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    context.push(AppRoute.ranch.path);
+                  },
+                ),
+              // Mark as source (EPIDEMIC alerts bound to a livestock, manager
+              // roles only — spec §5.2 entry ③ / §5.4; free tier forks to the
+              // upsell sheet inside the shared helper).
+              if (_alert.type == 'EPIDEMIC' &&
+                  _alert.livestockId != null &&
+                  isEpidemicManagerRole(widget.role))
+                _ActionButton(
+                  key: Key('alert-mark-source-${_alert.id}'),
+                  label: l10n.alertsMarkAsSource,
+                  icon: Icons.coronavirus,
+                  bgColor: AppColors.danger,
+                  fgColor: Colors.white,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    showMarkDiseasedFromAlarm(
+                      context,
+                      ref,
+                      livestockId: _alert.livestockId!,
+                      // The list/card layers use '-' / '' as the "no livestock"
+                      // sentinel; fall back to the raw id for the sheet header.
+                      livestockCode:
+                          _alert.livestockCode.isNotEmpty &&
+                              _alert.livestockCode != '-'
+                          ? _alert.livestockCode
+                          : _alert.livestockId!,
+                    );
+                  },
+                ),
+              // Trajectory
+              if (_alert.livestockId != null)
+                _ActionButton(
+                  label: l10n.alertActionTrajectory,
+                  icon: Icons.show_chart,
+                  bgColor: AppColors.aiAnomaly.withValues(alpha: 0.1),
+                  fgColor: AppColors.aiAnomaly,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    showTrajectorySheet(
+                      context,
+                      _alert.livestockId!,
+                      livestockCode: _alert.livestockCode,
+                    );
+                  },
+                ),
+              // Mark read (only if active and unread)
+              if (isActive && !_alert.read)
+                _ActionButton(
+                  label: l10n.alertActionMarkRead,
+                  icon: Icons.check,
+                  bgColor: AppColors.primarySoft,
+                  fgColor: AppColors.primaryDark,
+                  onTap: () {
+                    ref.read(alertsControllerProvider.notifier).markRead(_alert.id);
+                    Navigator.of(context).pop();
+                  },
+                ),
+              // Dismiss (only active + owner/b2b_admin)
+              if (isActive && canDismiss)
+                _ActionButton(
+                  label: l10n.alertActionDismiss,
+                  icon: Icons.block,
+                  bgColor: AppColors.danger.withValues(alpha: 0.1),
+                  fgColor: AppColors.danger,
+                  onTap: () {
+                    ref
+                        .read(alertsControllerProvider.notifier)
+                        .dismiss(_alert.id);
+                    Navigator.of(context).pop();
+                  },
+                ),
+            ],
+          ),
         ],
       ),
     );
+  }
+
+  /// NIX-286: estrus confirm/reject submission. The shared actions widget
+  /// surfaces server errors itself, so failures are rethrown here.
+  Future<AlertFeedbackResult> _submitEstrusFeedback(
+    String alertId, {
+    required bool confirmed,
+  }) {
+    final farmId = ref.read(sessionControllerProvider).activeFarmId;
+    if (farmId == null) throw StateError('No active farm');
+    return ref
+        .read(alertsRepositoryProvider)
+        .submitEstrusFeedback(farmId, alertId, confirmed: confirmed);
   }
 
   // ── Timeline entries ──

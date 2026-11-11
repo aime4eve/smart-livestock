@@ -5,6 +5,7 @@ import com.smartlivestock.ranch.domain.model.AlertStatus;
 import com.smartlivestock.ranch.domain.model.AlertType;
 import com.smartlivestock.ranch.domain.model.Severity;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +18,14 @@ public interface AlertRepository {
     List<Alert> findByDeviceIdAndTypeAndStatus(Long deviceId, AlertType type, AlertStatus status);
     List<Alert> findByLivestockIdAndStatusAndSource(Long livestockId, AlertStatus status, String source);
     List<Alert> findByFarmIdAndTypeAndStatus(Long farmId, AlertType type, AlertStatus status);
+
+    /**
+     * Alerts of one animal and type created in the inclusive window
+     * {@code [from, to]} — the BREEDING_DERIVED linking window of NIX-286
+     * (estrus alerts raised 48h before a breeding record).
+     */
+    List<Alert> findByLivestockIdAndTypeAndCreatedAtBetween(Long livestockId, AlertType type,
+                                                            Instant from, Instant to);
 
     /** One aggregated row per (status, severity, type) combination of the farm. */
     List<StatusSeverityTypeCount> countByFarmGrouped(Long farmId, Collection<String> types);
