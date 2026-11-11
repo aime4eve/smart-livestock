@@ -295,7 +295,9 @@ class _Hero extends StatelessWidget {
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    item.unread ? l10n.workbenchUnread : item.severity,
+                    item.unread
+                        ? l10n.workbenchUnread
+                        : _severityLabel(l10n, item.severity),
                     style: const TextStyle(
                       fontSize: 7.5,
                       color: AppColors.textSecondary,
@@ -530,7 +532,7 @@ class _Metrics extends StatelessWidget {
       ),
       (
         l10n.workbenchSeverity,
-        item.severity,
+        _severityLabel(l10n, item.severity),
         '',
         item.severity == 'CRITICAL'
             ? AppColors.danger
@@ -986,4 +988,17 @@ class _ActionBar extends StatelessWidget {
       ),
     };
   }
+}
+
+/// Localized severity name (NIX-400 follow-up: the workbench sheet leaked the
+/// raw backend enum — legacy alert_detail_sheet already had this mapping,
+/// mirror it here; unknown values fall back to the raw string). File-level so
+/// both the sheet class and _Hero can use it.
+String _severityLabel(AppLocalizations l10n, String severity) {
+  return switch (severity) {
+    'CRITICAL' => l10n.alertSeverityCritical,
+    'WARNING' => l10n.alertSeverityWarning,
+    'INFO' => l10n.alertSeverityInfo,
+    _ => severity,
+  };
 }

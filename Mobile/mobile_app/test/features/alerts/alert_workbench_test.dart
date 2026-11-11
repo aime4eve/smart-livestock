@@ -200,6 +200,11 @@ void main() {
 
       expect(find.text('确认发情'), findsOneWidget);
       expect(find.text('不是发情'), findsOneWidget);
+      // NIX-400 follow-up: the sheet localizes severity (previously the raw
+      // backend enum 'CRITICAL' leaked into the 关键指标 card). Fixture
+      // severity is CRITICAL → 严重, and no raw enum text survives.
+      expect(find.text('严重'), findsWidgets);
+      expect(find.text('CRITICAL'), findsNothing);
 
       // Confirm flow reaches the callback with the ESTRUS reason's alertId.
       await tester.tap(find.text('确认发情'));
