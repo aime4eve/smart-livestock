@@ -18,7 +18,7 @@ import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 /// envelope draft (dashed = unconfirmed) over semi-transparent track dots
 /// + amber roaming-trimmed points, dark stat strip, legend, source card,
 /// and the shared failure layout with the cleaning-detail strip.
-class TrackDraftPreview extends ConsumerWidget {
+class TrackDraftPreview extends ConsumerStatefulWidget {
   const TrackDraftPreview({
     super.key,
     this.isDesktop = false,
@@ -35,17 +35,82 @@ class TrackDraftPreview extends ConsumerWidget {
   /// Desktop-only「‹ 返回表单」floating button.
   final VoidCallback? onBack;
 
-  // Component-level visual constants (Task 0 token mapping §1.1/§1.3):
-  // dash [5,3] mobile / [8,4] web, opacities .35/.14/.8, amber stat value.
+  @override
+  ConsumerState<TrackDraftPreview> createState() => _TrackDraftPreviewState();
+
+  // Amber value on the dark stat strip (prototype .stat-cell .v.warn) —
+  // referenced by the stat strip cell builder below.
   static const _trimmedAmber = Color(0xFFF2C879);
+}
+
+class _TrackDraftPreviewState extends ConsumerState<TrackDraftPreview> {
+  final MapController _mapController = MapController();
+  TrackDraftState? _lastFitState;
+  TrackDraftState? _pendingFit;
+  bool _mapReady = false;
+
+  /// Runs the deferred camera fit once the FlutterMap has rendered at least
+  /// once (MapController throws before that — the fit must never run on an
+  /// unrendered map).
+  int _fitRetries = 0;
+
+  void _flushPendingFit() {
+    final pending = _pendingFit;
+    if (pending == null || !mounted) return;
+    final vertices = pending.preview?.envelope.vertices;
+    if (vertices == null || vertices.length < 3) {
+      _pendingFit = null;
+      return;
+    }
+    try {
+      _mapController.fitCamera(
+        CameraFit.bounds(
+          bounds: LatLngBounds.fromPoints(vertices),
+          padding: const EdgeInsets.all(48),
+        ),
+      );
+      // Success: clear the pending fit and reset the retry budget.
+      _pendingFit = null;
+      _fitRetries = 0;
+    } catch (_) {
+      // FlutterMap not rendered yet (MapController throws before the first
+      // draw even inside onMapReady under fake-async timing) — keep the
+      // pending fit and retry next frame, bounded so a never-rendered map
+      // cannot spin forever.
+      if (++_fitRetries < 30) {
+        WidgetsBinding.instance
+            .addPostFrameCallback((_) => _flushPendingFit());
+      } else {
+        _pendingFit = null;
+        _fitRetries = 0;
+      }
+    }
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final state = ref.watch(trackDraftControllerProvider);
+    // Re-fit the camera whenever a NEW preview arrives (regenerate after
+    // parameter changes / hull candidate switch). Fit target = the envelope
+    // outline only — including the raw track dots would blow the bounds out
+    // to the farthest stray GPS point and shrink the fence to a fraction of
+    // the viewport (integration-test feedback 2026-11-12 #4).
+    //
+    // The fit must wait for the FlutterMap to have rendered at least once
+    // (MapController throws before that) — hence the onMapReady gate + the
+    // pending-fit flush in _flushPendingFit.
+    if (!identical(state, _lastFitState) &&
+        state.phase == TrackDraftPhase.previewing &&
+        state.preview != null) {
+      _lastFitState = state;
+      _pendingFit = state;
+      if (_mapReady) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _flushPendingFit());
+      }
+    }
     final preview = state.preview;
-
     if (state.phase == TrackDraftPhase.failed) {
-      return _FailureView(isDesktop: isDesktop);
+      return _FailureView(isDesktop: widget.isDesktop);
     }
 
     if (preview == null || !preview.envelope.isSuccess) {
@@ -53,10 +118,10 @@ class TrackDraftPreview extends ConsumerWidget {
       if (state.phase == TrackDraftPhase.loading) {
         return const _GeneratingView();
       }
-      return _EmptyPreview(isDesktop: isDesktop);
+      return _EmptyPreview(isDesktop: widget.isDesktop);
     }
 
-    final content = isDesktop
+    final content = widget.isDesktop
         ? _desktopLayout(context, state)
         : _mobileLayout(context, state);
 
@@ -71,6 +136,10 @@ class TrackDraftPreview extends ConsumerWidget {
     }
     return content;
   }
+
+  // Component-level visual constants (Task 0 token mapping §1.1/§1.3):
+  // dash [5,3] mobile / [8,4] web, opacities .35/.14/.8 (amber: see
+  // TrackDraftPreview._trimmedAmber).
 
   // ── Mobile (wizard step 3) ─────────────────────────────────────────
 
@@ -155,6 +224,10 @@ class TrackDraftPreview extends ConsumerWidget {
             bounds: LatLngBounds.fromPoints(allPoints),
             padding: const EdgeInsets.all(48),
           ),
+          onMapReady: () {
+            _mapReady = true;
+            _flushPendingFit();
+          },
           interactionOptions:
               const InteractionOptions(flags: InteractiveFlag.all),
         ),
@@ -169,7 +242,7 @@ class TrackDraftPreview extends ConsumerWidget {
               for (final p in preview.trackDots)
                 CircleMarker(
                   point: p.toLatLng(),
-                  radius: isDesktop ? 3 : 2,
+                  radius: widget.isDesktop ? 3 : 2,
                   color: AppColors.info.withValues(alpha: 0.35),
                 ),
             ],
@@ -180,7 +253,7 @@ class TrackDraftPreview extends ConsumerWidget {
               for (final p in envelope.trimmedPoints)
                 CircleMarker(
                   point: p.toLatLng(),
-                  radius: isDesktop ? 4 : 2.5,
+                  radius: widget.isDesktop ? 4 : 2.5,
                   color: AppColors.warning.withValues(alpha: 0.8),
                 ),
             ],
@@ -192,9 +265,9 @@ class TrackDraftPreview extends ConsumerWidget {
                 points: envelope.vertices,
                 color: AppColors.success.withValues(alpha: 0.14),
                 borderColor: AppColors.primary,
-                borderStrokeWidth: isDesktop ? 2.5 : 2,
+                borderStrokeWidth: widget.isDesktop ? 2.5 : 2,
                 pattern: StrokePattern.dashed(
-                  segments: isDesktop ? const [8, 4] : const [5, 3],
+                  segments: widget.isDesktop ? const [8, 4] : const [5, 3],
                 ),
               ),
             ],
@@ -205,7 +278,7 @@ class TrackDraftPreview extends ConsumerWidget {
               for (final v in envelope.vertices)
                 CircleMarker(
                   point: v,
-                  radius: isDesktop ? 5 : 3,
+                  radius: widget.isDesktop ? 5 : 3,
                   color: AppColors.primary,
                 ),
             ],
@@ -226,17 +299,17 @@ class TrackDraftPreview extends ConsumerWidget {
             right: AppSpacing.sm,
             child: _StaleBadge(),
           ),
-        if (floating && onConfirm != null)
+        if (floating && widget.onConfirm != null)
           Positioned(
             top: AppSpacing.md,
             right: AppSpacing.md,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (onBack != null) ...[
+                if (widget.onBack != null) ...[
                   _WebButton.soft(
                     label: '‹ ${_l10n(context).commonBack}',
-                    onTap: onBack!,
+                    onTap: widget.onBack!,
                   ),
                   const SizedBox(width: AppSpacing.sm),
                 ],
@@ -245,7 +318,7 @@ class TrackDraftPreview extends ConsumerWidget {
                   label: '${_l10n(context).fenceTrackDraftConfirm} ✓',
                   // Stale previews must be regenerated before loading
                   // into the form (spec §5.4).
-                  onTap: state.previewStale ? null : onConfirm!,
+                  onTap: state.previewStale ? null : widget.onConfirm!,
                 ),
               ],
             ),
