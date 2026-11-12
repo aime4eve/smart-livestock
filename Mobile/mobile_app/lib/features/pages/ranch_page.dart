@@ -249,11 +249,18 @@ class _RanchPageState extends ConsumerState<RanchPage>
                   ],
                 ),
               ),
-            FenceBufferLayer(
-              fences: signalFences,
-              bufferDistance: 50,
-              shouldTransform: shouldTransform,
-            ),
+            // 缓冲带聚焦当前关注对象（2026-11-13 用户裁决）：只在选中某个
+            // 围栏时显示该围栏的 50m 预警缓冲带——多围栏缓冲带全部常显会
+            // 相互叠加成视觉噪声（凹角外扩近似翻进围栏内部更显眼）。
+            if (_selectedFenceId != null)
+              FenceBufferLayer(
+                fences: [
+                  for (final fence in signalFences)
+                    if (fence.id == _selectedFenceId) fence,
+                ],
+                bufferDistance: 50,
+                shouldTransform: shouldTransform,
+              ),
             MarkerLayer(
               markers: [
                 // Fence name labels
