@@ -143,10 +143,16 @@ class _RanchPageState extends ConsumerState<RanchPage>
     final signalState = ref.watch(signalSyncControllerProvider);
     final signalPositions = ref.watch(ranchMapPositionsProvider);
     final signalByLivestock = ref.watch(ranchMapSignalsProvider);
+    // Signal-geometry fences carry no generation provenance of their own;
+    // merge it from the overview payload by fence id so the detail card's
+    // "generation source" section can render (spec §4.3).
+    final metaById = {
+      for (final f in overview.fences) f.id: f.generationMetadata,
+    };
     final signalFences = ref
         .watch(ranchMapGeometryProvider)
         .values
-        .map(_signalFenceToRanchFence)
+        .map((s) => _signalFenceToRanchFence(s, metaById[s.fenceId]))
         .toList();
     // Transform decision follows the tiles actually serving the farm area:
     // 高德 online → GCJ-02, local offline/server OSM tiles → none.
@@ -1021,7 +1027,10 @@ class _RanchPageState extends ConsumerState<RanchPage>
         .toList();
   }
 
-  RanchFenceData _signalFenceToRanchFence(MapFenceSignal fence) {
+  RanchFenceData _signalFenceToRanchFence(
+    MapFenceSignal fence,
+    Map<String, dynamic>? generationMetadata,
+  ) {
     final rawColor = fence.color.replaceFirst('#', '');
     final normalizedColor = rawColor.length == 6 ? 'FF$rawColor' : rawColor;
     final colorValue = int.tryParse(normalizedColor, radix: 16) ?? 0xFF4C9A5F;
@@ -1038,6 +1047,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
       areaHectares: 0,
       livestockCount: fence.livestockCount,
       version: fence.version,
+      generationMetadata: generationMetadata,
     );
   }
 

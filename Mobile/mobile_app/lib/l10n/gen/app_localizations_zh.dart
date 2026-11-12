@@ -7895,4 +7895,246 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get alertEstrusFeedbackFailed => '反馈提交失败，请稍后重试';
+
+  @override
+  String get fenceTrackDraftWizardTitle => '从设备轨迹生成';
+
+  @override
+  String get fenceTrackDraftStepDevice => '选设备';
+
+  @override
+  String get fenceTrackDraftStepRange => '选时间';
+
+  @override
+  String get fenceTrackDraftStepPreview => '预览';
+
+  @override
+  String get fenceTrackDraftNextRange => '下一步：选时间';
+
+  @override
+  String get fenceTrackDraftPrevStep => '上一步';
+
+  @override
+  String fenceTrackDraftSelectedSummary(int n, String m) {
+    return '已选 $n 台 · 预估合并 $m 点';
+  }
+
+  @override
+  String fenceTrackDraftStaleFix(int n) {
+    return '⚠ $n 天前定位';
+  }
+
+  @override
+  String fenceTrackDraftFixMinutesAgo(int n) {
+    return '$n 分钟前定位';
+  }
+
+  @override
+  String fenceTrackDraftFixHoursAgo(int n) {
+    return '$n 小时前定位';
+  }
+
+  @override
+  String fenceTrackDraftFixDaysAgo(int n) {
+    return '$n 天前定位';
+  }
+
+  @override
+  String get fenceTrackDraftNeverLocated => '暂无定位记录';
+
+  @override
+  String get fenceTrackDraftEarTag => '耳标';
+
+  @override
+  String get fenceTrackDraftPoints30d => '30 天点数';
+
+  @override
+  String get fenceTrackDraftNoDevices => '本牧场暂无在用的追踪器设备';
+
+  @override
+  String get fenceTrackDraftSameLotHint => '建议选同一放牧场次的设备；跨场次合并会把两个区域包进同一个围栏。';
+
+  @override
+  String get fenceTrackDraftQuotaExceeded => '围栏数量已达套餐上限，请升级套餐或删除闲置围栏';
+
+  @override
+  String fenceTrackDraftRangeChipDays(int n) {
+    return '近 $n 天';
+  }
+
+  @override
+  String get fenceTrackDraftRangeStart => '开始';
+
+  @override
+  String get fenceTrackDraftRangeEnd => '结束';
+
+  @override
+  String get fenceTrackDraftRangeHint =>
+      '时间范围最长 30 天。时间越长活动范围越发散，建议用最近一次完整放牧周期。';
+
+  @override
+  String get fenceTrackDraftRangeTooLong => '范围超限，请缩短至 30 天内';
+
+  @override
+  String fenceTrackDraftSelectedDevicesTitle(int n) {
+    return '已选设备（$n）';
+  }
+
+  @override
+  String get fenceTrackDraftMetaDevices => '设备';
+
+  @override
+  String get fenceTrackDraftMetaEstimate => '预估';
+
+  @override
+  String get fenceTrackDraftMetaTimeRange => '时间段';
+
+  @override
+  String fenceTrackDraftEstimateDesc(int days, String points) {
+    return '$days 天约 $points 点，服务端抽稀到 ≤5,000 点传输';
+  }
+
+  @override
+  String get fenceTrackDraftGenerate => '生成预览';
+
+  @override
+  String get fenceTrackDraftGenerating => '正在生成预览…';
+
+  @override
+  String get fenceTrackDraftConfirm => '载入围栏表单';
+
+  @override
+  String get fenceTrackDraftAdjust => '调整条件';
+
+  @override
+  String get fenceTrackDraftBackToAdjust => '返回调整条件';
+
+  @override
+  String get fenceTrackDraftStaleNotice => '条件已变更，请重新生成';
+
+  @override
+  String get fenceTrackDraftStatValid => '有效点';
+
+  @override
+  String get fenceTrackDraftStatTrimmed => '剔除漫游';
+
+  @override
+  String get fenceTrackDraftStatVertices => '包络顶点';
+
+  @override
+  String get fenceTrackDraftStatArea => '面积(亩)';
+
+  @override
+  String get fenceTrackDraftStatHull => '生成方式';
+
+  @override
+  String get fenceTrackDraftStatRaw => '原始点';
+
+  @override
+  String get fenceTrackDraftStatAccuracyDropped => '精度超限剔除';
+
+  @override
+  String get fenceTrackDraftStatRoaming => '漫游剔除';
+
+  @override
+  String get fenceTrackDraftStatRemaining => '剩余有效';
+
+  @override
+  String get fenceTrackDraftHullConcave => '凹包';
+
+  @override
+  String get fenceTrackDraftHullConvex => '凸包';
+
+  @override
+  String get fenceTrackHullConcaveSimplified => '凹包·简化';
+
+  @override
+  String get fenceTrackHullConcave => '凹包·精细';
+
+  @override
+  String get fenceTrackHullConvex => '凸包';
+
+  @override
+  String fenceTrackDraftAreaSqmFallback(int n) {
+    return '约 $n ㎡';
+  }
+
+  @override
+  String get fenceTrackDraftLegendEnvelope => '包络草图（未确认）';
+
+  @override
+  String get fenceTrackDraftLegendTrackDots => '有效轨迹点';
+
+  @override
+  String fenceTrackDraftLegendTrimmed(int n) {
+    return '已剔除漫游点 ×$n';
+  }
+
+  @override
+  String get fenceTrackDraftPreviewSourceTitle => '生成来源（将随围栏保存）';
+
+  @override
+  String fenceTrackDraftSelectedOfTotal(int n, int total) {
+    return '已选 $n/$total';
+  }
+
+  @override
+  String get fenceTrackDraftFailNoData => '该时间段无轨迹数据';
+
+  @override
+  String get fenceTrackDraftFailNoDataDesc =>
+      '已选设备在该时间段内未上报轨迹点，可延长时间范围或增选设备后重试。';
+
+  @override
+  String get fenceTrackDraftFailTooFew => '有效轨迹点不足（需 ≥3 个且面积 ≥25㎡）';
+
+  @override
+  String get fenceTrackDraftFailTooFewDesc => '清洗后剩余有效点不足以围合出有效区域，无法生成围栏草图。';
+
+  @override
+  String get fenceTrackDraftFailDegenerate => '活动范围近似一条线，无法围合成围栏';
+
+  @override
+  String get fenceTrackDraftFailDegenerateDesc => '轨迹近似一条直线，围合面积过小，无法生成围栏草图。';
+
+  @override
+  String get fenceTrackDraftFailSuggests =>
+      '建议：① 延长时间范围 ② 增选同场次追踪器 ③ 检查设备是否长期离线';
+
+  @override
+  String get fenceTrackDraftEntryTitle => '从设备轨迹生成';
+
+  @override
+  String get fenceTrackDraftEntryDesc => '选追踪器 + 时间段，按动物实际活动范围自动画草图';
+
+  @override
+  String get fenceTrackDraftNewTag => 'NEW';
+
+  @override
+  String get fenceTrackDraftOffline => '当前离线，生成围栏草图需要网络连接';
+
+  @override
+  String fenceTrackDraftSuggestedName(String date) {
+    return '轨迹围栏 $date';
+  }
+
+  @override
+  String get fenceTrackDraftSourceCardTitle => '生成来源';
+
+  @override
+  String get fenceTrackDraftSourceMethod => '方式';
+
+  @override
+  String get fenceTrackDraftMethodDeviceTrack => '从设备轨迹生成';
+
+  @override
+  String fenceTrackDraftSourceDeviceCount(int n) {
+    return '$n 台设备';
+  }
+
+  @override
+  String get fenceTrackDraftSourceTimeRange => '时间范围';
+
+  @override
+  String get fenceTrackDraftSourceGeneratedAt => '生成时间';
 }

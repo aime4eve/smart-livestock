@@ -8098,4 +8098,258 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get alertEstrusFeedbackFailed =>
       'Failed to submit feedback. Please try again later.';
+
+  @override
+  String get fenceTrackDraftWizardTitle => 'Generate from Device Track';
+
+  @override
+  String get fenceTrackDraftStepDevice => 'Select devices';
+
+  @override
+  String get fenceTrackDraftStepRange => 'Time Range';
+
+  @override
+  String get fenceTrackDraftStepPreview => 'Preview';
+
+  @override
+  String get fenceTrackDraftNextRange => 'Next: Time Range';
+
+  @override
+  String get fenceTrackDraftPrevStep => 'Back';
+
+  @override
+  String fenceTrackDraftSelectedSummary(int n, String m) {
+    return '$n selected · est. $m merged points';
+  }
+
+  @override
+  String fenceTrackDraftStaleFix(int n) {
+    return '⚠ Last fix ${n}d ago';
+  }
+
+  @override
+  String fenceTrackDraftFixMinutesAgo(int n) {
+    return 'fix $n min ago';
+  }
+
+  @override
+  String fenceTrackDraftFixHoursAgo(int n) {
+    return 'fix $n h ago';
+  }
+
+  @override
+  String fenceTrackDraftFixDaysAgo(int n) {
+    return 'fix $n d ago';
+  }
+
+  @override
+  String get fenceTrackDraftNeverLocated => 'no fix recorded';
+
+  @override
+  String get fenceTrackDraftEarTag => 'Ear tag';
+
+  @override
+  String get fenceTrackDraftPoints30d => '30-day points';
+
+  @override
+  String get fenceTrackDraftNoDevices =>
+      'No active tracker devices in this farm';
+
+  @override
+  String get fenceTrackDraftSameLotHint =>
+      'Pick trackers from the same grazing session; merging sessions may wrap two separate areas into one fence.';
+
+  @override
+  String get fenceTrackDraftQuotaExceeded =>
+      'Fence quota reached. Upgrade the plan or remove idle fences.';
+
+  @override
+  String fenceTrackDraftRangeChipDays(int n) {
+    return 'Last $n days';
+  }
+
+  @override
+  String get fenceTrackDraftRangeStart => 'Start';
+
+  @override
+  String get fenceTrackDraftRangeEnd => 'End';
+
+  @override
+  String get fenceTrackDraftRangeHint =>
+      'Range is capped at 30 days. Longer ranges scatter the activity area — prefer the latest full grazing cycle.';
+
+  @override
+  String get fenceTrackDraftRangeTooLong =>
+      'Range too long — shorten it to within 30 days';
+
+  @override
+  String fenceTrackDraftSelectedDevicesTitle(int n) {
+    return 'Selected devices ($n)';
+  }
+
+  @override
+  String get fenceTrackDraftMetaDevices => 'Devices';
+
+  @override
+  String get fenceTrackDraftMetaEstimate => 'Estimate';
+
+  @override
+  String get fenceTrackDraftMetaTimeRange => 'Period';
+
+  @override
+  String fenceTrackDraftEstimateDesc(int days, String points) {
+    return '~$points points in $days days; server samples down to ≤5,000 for transfer';
+  }
+
+  @override
+  String get fenceTrackDraftGenerate => 'Generate Preview';
+
+  @override
+  String get fenceTrackDraftGenerating => 'Generating preview…';
+
+  @override
+  String get fenceTrackDraftConfirm => 'Load into Fence Form';
+
+  @override
+  String get fenceTrackDraftAdjust => 'Adjust conditions';
+
+  @override
+  String get fenceTrackDraftBackToAdjust => 'Back to Criteria';
+
+  @override
+  String get fenceTrackDraftStaleNotice =>
+      'Conditions changed — please regenerate';
+
+  @override
+  String get fenceTrackDraftStatValid => 'Valid points';
+
+  @override
+  String get fenceTrackDraftStatTrimmed => 'Roaming trimmed';
+
+  @override
+  String get fenceTrackDraftStatVertices => 'Vertices';
+
+  @override
+  String get fenceTrackDraftStatArea => 'Area (ha)';
+
+  @override
+  String get fenceTrackDraftStatHull => 'Hull method';
+
+  @override
+  String get fenceTrackDraftStatRaw => 'Raw points';
+
+  @override
+  String get fenceTrackDraftStatAccuracyDropped => 'Accuracy filtered';
+
+  @override
+  String get fenceTrackDraftStatRoaming => 'Roaming trimmed';
+
+  @override
+  String get fenceTrackDraftStatRemaining => 'Remaining valid';
+
+  @override
+  String get fenceTrackDraftHullConcave => 'Concave';
+
+  @override
+  String get fenceTrackDraftHullConvex => 'Convex';
+
+  @override
+  String get fenceTrackHullConcaveSimplified => 'Concise hull';
+
+  @override
+  String get fenceTrackHullConcave => 'Detailed hull';
+
+  @override
+  String get fenceTrackHullConvex => 'Convex hull';
+
+  @override
+  String fenceTrackDraftAreaSqmFallback(int n) {
+    return '~$n ㎡';
+  }
+
+  @override
+  String get fenceTrackDraftLegendEnvelope => 'Draft envelope (unconfirmed)';
+
+  @override
+  String get fenceTrackDraftLegendTrackDots => 'Valid track points';
+
+  @override
+  String fenceTrackDraftLegendTrimmed(int n) {
+    return 'Trimmed roaming points ×$n';
+  }
+
+  @override
+  String get fenceTrackDraftPreviewSourceTitle =>
+      'Source (saved with the fence)';
+
+  @override
+  String fenceTrackDraftSelectedOfTotal(int n, int total) {
+    return '$n/$total selected';
+  }
+
+  @override
+  String get fenceTrackDraftFailNoData => 'No track data in this period';
+
+  @override
+  String get fenceTrackDraftFailNoDataDesc =>
+      'The selected devices reported no track points in this period. Extend the range or add devices and retry.';
+
+  @override
+  String get fenceTrackDraftFailTooFew =>
+      'Too few valid track points (need ≥3 points and an area ≥25 ㎡)';
+
+  @override
+  String get fenceTrackDraftFailTooFewDesc =>
+      'Too few valid points remain after cleaning to enclose an area.';
+
+  @override
+  String get fenceTrackDraftFailDegenerate =>
+      'Activity area is nearly a line and cannot form a fence';
+
+  @override
+  String get fenceTrackDraftFailDegenerateDesc =>
+      'The track is nearly collinear and the enclosed area is too small.';
+
+  @override
+  String get fenceTrackDraftFailSuggests =>
+      'Suggestions: ① extend the time range ② add trackers from the same session ③ check for long-offline devices';
+
+  @override
+  String get fenceTrackDraftEntryTitle => 'From device tracks';
+
+  @override
+  String get fenceTrackDraftEntryDesc =>
+      'Pick trackers and a time range; the draft is drawn from the animals\' actual grazing range';
+
+  @override
+  String get fenceTrackDraftNewTag => 'NEW';
+
+  @override
+  String get fenceTrackDraftOffline =>
+      'You are offline. Generating a fence draft requires a network connection.';
+
+  @override
+  String fenceTrackDraftSuggestedName(String date) {
+    return 'Track fence $date';
+  }
+
+  @override
+  String get fenceTrackDraftSourceCardTitle => 'Generation source';
+
+  @override
+  String get fenceTrackDraftSourceMethod => 'Method';
+
+  @override
+  String get fenceTrackDraftMethodDeviceTrack => 'Generated from device tracks';
+
+  @override
+  String fenceTrackDraftSourceDeviceCount(int n) {
+    return '$n devices';
+  }
+
+  @override
+  String get fenceTrackDraftSourceTimeRange => 'Time range';
+
+  @override
+  String get fenceTrackDraftSourceGeneratedAt => 'Generated at';
 }

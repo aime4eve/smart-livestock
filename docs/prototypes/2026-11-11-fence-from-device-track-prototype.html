@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>从设备轨迹生成围栏草图 · 高保真原型（需求确认稿 v2）</title>
+<style>
+:root{
+  /* ── 全局令牌（继承 NIX-246 / 概览晨报语言，已锁定）── */
+  --primary:#2F6B3B;--primary-dark:#244F2D;--primary-soft:#E3F0E4;--accent:#8BA95A;
+  --surface:#F8F6F0;--surface-alt:#FFFFFF;--border:#D7D2C6;
+  --text-primary:#263126;--text-secondary:#617061;
+  --success:#4C9A5F;--warning:#D28A2D;--danger:#C2564B;--info:#4A7F9D;
+  --xs:4px;--sm:8px;--md:12px;--lg:16px;--xl:24px;
+  --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+  --shadow-card:0 1px 3px rgba(38,49,38,.06),0 1px 2px rgba(38,49,38,.04);
+  --shadow-elev:0 4px 16px rgba(38,49,38,.12);
+  --shadow-sheet:0 -4px 24px rgba(38,49,38,.15);
+  --hero-g1:#1C3F25;--hero-g2:#2F6B3B;--hero-g3:#3E7F4C;
+
+  /* ── 本功能新增令牌（待锁定）── */
+  --track-dot:#4A7F9D;              /* 轨迹点（半透明叠加） */
+  --track-dot-opacity:.35;
+  --envelope-fill:rgba(76,154,95,.14);   /* 包络多边形填充 */
+  --envelope-stroke:#2F6B3B;        /* 包络边线（与围栏本色一致） */
+  --envelope-stroke-dash:none;      /* 草图态虚线：确认载入后变实线 */
+  --chip-selected-bg:#2F6B3B;
+  --stat-strip-bg:#263126;          /* 预览统计条（暗色仪表语言，与详情卡一致） */
+  --step-indicator-inactive:#D7D2C6;
+  --wizard-panel-width:360px;       /* Web 宽屏左侧参数面板宽 */
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,"Noto Sans SC","PingFang SC","Segoe UI",Roboto,sans-serif;background:#E0DDD6;color:var(--text-primary);min-height:100vh;padding:24px}
+.flow-grid{display:flex;flex-wrap:wrap;gap:28px;justify-content:center;margin:24px auto 0;max-width:1700px}
+.screen-group{display:flex;flex-direction:column;align-items:center;gap:10px}
+.screen-label{font-size:13px;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:6px}
+.screen-label .num{width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.screen-sublabel{font-size:11px;color:var(--text-secondary);max-width:300px;text-align:center;line-height:1.5}
+
+/* ── 手机框 ── */
+.phone{width:280px;height:580px;background:var(--surface);border-radius:36px;overflow:hidden;box-shadow:0 0 0 8px #1a1a1a,0 0 0 9px #2a2a2a,0 20px 50px rgba(0,0,0,.25);position:relative;display:flex;flex-direction:column}
+.phone-status{height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:11px;font-weight:600;flex-shrink:0}
+.app-bar{display:flex;align-items:center;gap:8px;padding:6px 14px 10px;border-bottom:1px solid var(--border);background:var(--surface-alt);flex-shrink:0}
+.app-bar .back{width:24px;height:24px;border-radius:8px;background:rgba(97,112,97,.08);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-secondary)}
+.app-bar h1{font-size:15px;font-weight:800}
+.scroll{flex:1;overflow-y:auto;padding:12px 14px}
+.scroll::-webkit-scrollbar{width:0}
+
+/* ── 步骤指示器（向导通用）── */
+.steps{display:flex;align-items:center;gap:6px;padding:10px 14px 2px;flex-shrink:0}
+.step-dot{display:flex;align-items:center;gap:6px;font-size:9.5px;font-weight:700;color:var(--text-secondary)}
+.step-dot .c{width:18px;height:18px;border-radius:50%;background:var(--step-indicator-inactive);color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:800}
+.step-dot.on{color:var(--primary-dark)}
+.step-dot.on .c{background:var(--primary)}
+.step-dot.done .c{background:var(--success)}
+.step-line{flex:1;height:2px;background:var(--step-indicator-inactive);border-radius:1px}
+.step-line.done{background:var(--success)}
+
+/* ── 入口卡片（新增围栏页第 5 入口）── */
+.entry-card{background:var(--surface-alt);border:1.5px solid var(--primary);border-radius:var(--radius-md);padding:11px 12px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow-card)}
+.entry-card .ico{width:34px;height:34px;border-radius:10px;background:var(--primary-soft);color:var(--primary-dark);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.entry-card .tt{font-size:11.5px;font-weight:800}
+.entry-card .dd{font-size:9px;color:var(--text-secondary);margin-top:2px;line-height:1.4}
+.entry-card .chev{margin-left:auto;color:var(--text-secondary);font-size:13px}
+.entry-card .new-tag{background:var(--primary);color:#fff;font-size:8px;font-weight:800;padding:1px 5px;border-radius:4px;margin-left:5px;vertical-align:1px}
+
+/* ── 设备多选列表 ── */
+.device-row{background:var(--surface-alt);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:9px 10px;display:flex;align-items:center;gap:8px;margin-bottom:7px;box-shadow:var(--shadow-card)}
+.device-row.on{border-color:var(--primary);background:var(--primary-soft)}
+.device-row .chk{width:18px;height:18px;border-radius:6px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
+.device-row.on .chk{background:var(--chip-selected-bg);border-color:var(--chip-selected-bg)}
+.device-row .ico{font-size:14px}
+.device-row .nm{font-size:10.5px;font-weight:700}
+.device-row .sub{font-size:8.5px;color:var(--text-secondary);margin-top:1px}
+.device-row .stale{color:var(--warning);font-weight:700}
+.device-row .pts{margin-left:auto;text-align:right;flex-shrink:0}
+.device-row .pts b{font-size:11px;color:var(--primary-dark)}
+.device-row .pts span{display:block;font-size:8px;color:var(--text-secondary)}
+
+/* ── 时间选择 ── */
+.chip-row{display:flex;gap:6px;margin-bottom:10px}
+.chip{flex:1;text-align:center;padding:8px 0;border-radius:999px;border:1.5px solid var(--border);background:var(--surface-alt);font-size:10px;font-weight:700;color:var(--text-secondary)}
+.chip.on{background:var(--chip-selected-bg);border-color:var(--chip-selected-bg);color:#fff}
+.date-pair{display:flex;gap:8px}
+.date-box{flex:1;background:var(--surface-alt);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px}
+.date-box .lbl{font-size:8.5px;color:var(--text-secondary)}
+.date-box .val{font-size:11px;font-weight:700;margin-top:2px}
+.limit-hint{display:flex;gap:5px;align-items:flex-start;background:rgba(74,127,157,.08);border:1px solid rgba(74,127,157,.25);border-radius:var(--radius-sm);padding:7px 9px;font-size:9px;color:var(--info);line-height:1.5;margin-top:10px}
+.limit-hint.warn{background:rgba(210,138,45,.08);border-color:rgba(210,138,45,.3);color:var(--warning)}
+
+/* ── 地图占位 ── */
+.mapbox{position:relative;border-radius:var(--radius-md);overflow:hidden;background:#DCE8D5;border:1px solid var(--border)}
+.mapbox svg{display:block;width:100%;height:100%}
+.map-attrib{position:absolute;bottom:4px;right:6px;font-size:7.5px;color:rgba(38,49,38,.5)}
+.map-overlay-top{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:6px}
+
+/* ── 预览统计条 ── */
+.stat-strip{display:flex;background:var(--stat-strip-bg);border-radius:var(--radius-md);padding:8px 4px;box-shadow:var(--shadow-elev)}
+.stat-cell{flex:1;text-align:center;color:#fff;padding:0 4px;border-right:1px solid rgba(255,255,255,.12)}
+.stat-cell:last-child{border-right:none}
+.stat-cell .v{font-size:13px;font-weight:800;line-height:1.2}
+.stat-cell .v.warn{color:#F2C879}
+.stat-cell .k{font-size:8px;color:rgba(255,255,255,.65);margin-top:1px}
+
+/* ── 底部操作条 ── */
+.action-bar{display:flex;gap:8px;padding:10px 14px 14px;border-top:1px solid var(--border);background:var(--surface-alt);flex-shrink:0}
+.btn{flex:1;padding:10px 0;border-radius:var(--radius-sm);font-size:11px;font-weight:800;text-align:center}
+.btn.primary{background:var(--primary);color:#fff}
+.btn.soft{background:var(--primary-soft);color:var(--primary-dark)}
+.btn.disabled{background:var(--step-indicator-inactive);color:#fff}
+.selected-pill{font-size:9.5px;color:var(--text-secondary);text-align:center;padding-top:6px}
+.selected-pill b{color:var(--primary-dark)}
+
+/* ── 空态 / 失败态 ── */
+.empty-box{padding:26px 18px;text-align:center}
+.empty-box .e-ico{width:52px;height:52px;border-radius:16px;background:rgba(210,138,45,.1);color:var(--warning);font-size:24px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
+.empty-box .e-tt{font-size:12.5px;font-weight:800}
+.empty-box .e-dd{font-size:9.5px;color:var(--text-secondary);margin-top:5px;line-height:1.6}
+.empty-sugg{margin-top:12px;background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;text-align:left;font-size:9px;color:var(--text-secondary);line-height:1.7}
+.empty-sugg b{color:var(--text-primary)}
+
+/* ── 元数据卡（生成来源）── */
+.meta-card{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-md);padding:9px 11px;box-shadow:var(--shadow-card)}
+.meta-card .mc-tt{font-size:9px;font-weight:700;color:var(--text-secondary);letter-spacing:.3px;margin-bottom:5px;display:flex;align-items:center;gap:4px}
+.meta-card .mc-row{display:flex;font-size:9.5px;line-height:1.8}
+.meta-card .mc-row .k{color:var(--text-secondary);width:56px;flex-shrink:0}
+.meta-card .mc-row .v{font-weight:600}
+
+/* ── Web 桌面框 ── */
+.desktop{width:1120px;height:660px;background:var(--surface);border-radius:14px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.28);position:relative;display:flex;flex-direction:column;border:1px solid #b9b4a7}
+.desktop-topbar{height:44px;background:var(--surface-alt);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 18px;flex-shrink:0}
+.desktop-topbar .crumb{font-size:12px;font-weight:700}
+.desktop-topbar .crumb span{color:var(--text-secondary);font-weight:500}
+.desktop-body{flex:1;display:flex;min-height:0}
+.wizard-panel{width:var(--wizard-panel-width);background:var(--surface-alt);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.wizard-panel .wp-scroll{flex:1;overflow-y:auto;padding:14px 16px}
+.wizard-panel .wp-scroll::-webkit-scrollbar{width:0}
+.wp-sec{margin-bottom:16px}
+.wp-sec .sec-head{display:flex;align-items:center;gap:5px;margin-bottom:8px}
+.wp-sec .sec-head .dot{width:3px;height:11px;border-radius:2px;background:var(--primary)}
+.wp-sec .sec-head .t{font-size:11.5px;font-weight:800}
+.wp-sec .sec-head .sub{margin-left:auto;font-size:9.5px;color:var(--text-secondary)}
+.wp-sec .sec-head .sub b{color:var(--primary-dark)}
+.map-area{flex:1;position:relative;background:#DCE8D5;min-width:0}
+.map-area .stat-float{position:absolute;left:14px;bottom:14px;right:14px;display:flex;gap:10px;align-items:stretch}
+.web-action{position:absolute;top:12px;right:14px;display:flex;gap:8px}
+.web-btn{padding:8px 16px;border-radius:var(--radius-sm);font-size:12px;font-weight:800;box-shadow:var(--shadow-elev)}
+.web-btn.primary{background:var(--primary);color:#fff}
+.web-btn.soft{background:var(--surface-alt);color:var(--primary-dark);border:1px solid var(--border)}
+
+/* ── 图例 ── */
+.legend{display:flex;gap:12px;font-size:9px;color:var(--text-secondary);align-items:center;flex-wrap:wrap}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.legend .sw-poly{width:14px;height:9px;border:1.5px solid var(--envelope-stroke);background:var(--envelope-fill);border-radius:2px}
+
+/* ── 裁决表 ── */
+.decision-table{max-width:1200px;margin:36px auto 0;background:var(--surface-alt);border-radius:var(--radius-lg);padding:20px 24px;box-shadow:var(--shadow-card)}
+.decision-table h2{font-size:15px;font-weight:800;color:var(--primary-dark);margin-bottom:12px}
+.decision-table table{width:100%;border-collapse:collapse;font-size:12px;line-height:1.7}
+.decision-table th,.decision-table td{border:1px solid var(--border);padding:8px 12px;text-align:left;vertical-align:top}
+.decision-table th{background:var(--surface);font-weight:700;width:180px}
+.page-head{max-width:1200px;margin:0 auto;text-align:center}
+.page-head h1{font-size:22px;font-weight:800;color:var(--primary-dark)}
+.page-head p{font-size:12px;color:var(--text-secondary);margin-top:6px}
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <h1>从设备轨迹生成围栏草图 · 高保真原型</h1>
+  <p>需求确认稿 v2（2026-11-11）· 双端覆盖：移动端向导（屏 1–5）+ Flutter Web 宽屏布局（屏 6）· 全部令牌继承 NIX-246 已锁定基线，新增令牌见 :root 注释</p>
+</div>
+
+<div class="flow-grid">
+
+  <!-- ══════════ 屏 1：新增围栏页 · 第 5 入口 ══════════ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num">1</span>新增围栏页 · 新入口</div>
+    <div class="screen-sublabel">第 5 个生成方式，位于模板选择器之下；Web 端同样可见（与"实地采集"不同，不按 kIsWeb 隐藏）</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span><span>📶 🔋</span></div>
+      <div class="app-bar"><div class="back">‹</div><h1>新增围栏</h1></div>
+      <div class="scroll">
+        <div style="font-size:9.5px;font-weight:700;color:var(--text-secondary);margin-bottom:6px">快速开始</div>
+        <div style="display:flex;gap:6px;margin-bottom:10px">
+          <div class="chip">▭ 矩形</div><div class="chip">◯ 圆形</div>
+        </div>
+        <div class="entry-card" style="border-color:var(--border);margin-bottom:8px">
+          <div class="ico">🚶</div>
+          <div><div class="tt">实地轨迹采集</div><div class="dd">沿围栏走一圈，自动生成边界</div></div>
+          <div class="chev">›</div>
+        </div>
+        <!-- ★ 本需求新增入口 -->
+        <div class="entry-card">
+          <div class="ico">🐄</div>
+          <div>
+            <div class="tt">从设备轨迹生成<span class="new-tag">NEW</span></div>
+            <div class="dd">选追踪器 + 时间段，按动物实际活动范围自动画草图</div>
+          </div>
+          <div class="chev">›</div>
+        </div>
+        <div style="font-size:9.5px;font-weight:700;color:var(--text-secondary);margin:12px 0 6px">围栏信息</div>
+        <div style="background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 10px;font-size:10px;color:var(--text-secondary)">围栏名称</div>
+        <div style="background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 10px;font-size:10px;color:var(--text-secondary);margin-top:8px">类型：多边形</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 屏 2：向导第 1 步 · 选设备 ══════════ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num">2</span>向导 ① 选择追踪器</div>
+    <div class="screen-sublabel">多选；每行显示近 30 天轨迹点数预估 + 最近定位时间；超 24h 未定位的设备置灰警示（仍可选）</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span><span>📶 🔋</span></div>
+      <div class="app-bar"><div class="back">‹</div><h1>从设备轨迹生成</h1></div>
+      <div class="steps">
+        <div class="step-dot on"><span class="c">1</span>选设备</div><div class="step-line"></div>
+        <div class="step-dot"><span class="c">2</span>选时间</div><div class="step-line"></div>
+        <div class="step-dot"><span class="c">3</span>预览</div>
+      </div>
+      <div class="scroll" style="padding-top:8px">
+        <div class="device-row on">
+          <div class="chk">✓</div><div class="ico">📡</div>
+          <div><div class="nm">追踪器 A-012</div><div class="sub">耳标 N0342 · 2 分钟前定位</div></div>
+          <div class="pts"><b>7,986</b><span>30 天点数</span></div>
+        </div>
+        <div class="device-row on">
+          <div class="chk">✓</div><div class="ico">📡</div>
+          <div><div class="nm">追踪器 A-013</div><div class="sub">耳标 N0355 · 6 分钟前定位</div></div>
+          <div class="pts"><b>8,102</b><span>30 天点数</span></div>
+        </div>
+        <div class="device-row">
+          <div class="chk"></div><div class="ico">📡</div>
+          <div><div class="nm">追踪器 A-014</div><div class="sub">耳标 N0361 · 12 分钟前定位</div></div>
+          <div class="pts"><b>7,655</b><span>30 天点数</span></div>
+        </div>
+        <div class="device-row" style="opacity:.65">
+          <div class="chk"></div><div class="ico">📡</div>
+          <div><div class="nm">追踪器 A-015</div><div class="sub">耳标 N0370 · <span class="stale">⚠ 3 天前定位</span></div></div>
+          <div class="pts"><b>2,130</b><span>30 天点数</span></div>
+        </div>
+        <div class="limit-hint">💡 建议选同一放牧场次的设备；跨场次的设备合并会把两个区域包进同一个围栏。</div>
+      </div>
+      <div>
+        <div class="selected-pill">已选 <b>2</b> 台 · 预估合并 <b>16,088</b> 点</div>
+        <div class="action-bar"><div class="btn soft" style="flex:0 0 76px">取消</div><div class="btn primary">下一步：选时间</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 屏 3：向导第 2 步 · 选时间 ══════════ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num">3</span>向导 ② 选择时间范围</div>
+    <div class="screen-sublabel">快捷档 7/14/30 天 + 自定义起止；超过 30 天禁止生成并给出琥珀色提示</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span><span>📶 🔋</span></div>
+      <div class="app-bar"><div class="back">‹</div><h1>从设备轨迹生成</h1></div>
+      <div class="steps">
+        <div class="step-dot done"><span class="c">✓</span>选设备</div><div class="step-line done"></div>
+        <div class="step-dot on"><span class="c">2</span>选时间</div><div class="step-line"></div>
+        <div class="step-dot"><span class="c">3</span>预览</div>
+      </div>
+      <div class="scroll" style="padding-top:8px">
+        <div style="font-size:10px;font-weight:700;margin-bottom:7px">快捷选择</div>
+        <div class="chip-row">
+          <div class="chip">近 7 天</div><div class="chip on">近 14 天</div><div class="chip">近 30 天</div>
+        </div>
+        <div style="font-size:10px;font-weight:700;margin:10px 0 7px">自定义范围</div>
+        <div class="date-pair">
+          <div class="date-box"><div class="lbl">开始</div><div class="val">10-29 00:00 📅</div></div>
+          <div class="date-box"><div class="lbl">结束</div><div class="val">11-11 23:59 📅</div></div>
+        </div>
+        <div class="limit-hint">ℹ️ 时间范围最长 30 天。时间越长活动范围越发散，建议用最近一次完整放牧周期。</div>
+        <div class="limit-hint warn" style="margin-top:8px">⚠️ 自定义超过 30 天时：「开始/结束」红框 + 此提示替换为"范围超限，请缩短至 30 天内"，下一步按钮禁用。</div>
+        <div class="meta-card" style="margin-top:12px">
+          <div class="mc-tt">📡 已选设备（2）</div>
+          <div class="mc-row"><span class="k">设备</span><span class="v">A-012（N0342）、A-013（N0355）</span></div>
+          <div class="mc-row"><span class="k">预估</span><span class="v">14 天约 7,500 点，服务端抽稀到 ≤5,000 点传输</span></div>
+        </div>
+      </div>
+      <div class="action-bar"><div class="btn soft" style="flex:0 0 76px">上一步</div><div class="btn primary">生成预览</div></div>
+    </div>
+  </div>
+
+  <!-- ══════════ 屏 4：向导第 3 步 · 预览（成功） ══════════ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num">4</span>向导 ③ 预览 · 包络 + 轨迹叠加</div>
+    <div class="screen-sublabel">凹包草图（虚线边=未确认）+ 半透明轨迹点 + 暗色统计条；可返回调参重新生成，确认后载入围栏表单</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span><span>📶 🔋</span></div>
+      <div class="app-bar"><div class="back">‹</div><h1>从设备轨迹生成</h1></div>
+      <div class="steps">
+        <div class="step-dot done"><span class="c">✓</span>选设备</div><div class="step-line done"></div>
+        <div class="step-dot done"><span class="c">✓</span>选时间</div><div class="step-line done"></div>
+        <div class="step-dot on"><span class="c">3</span>预览</div>
+      </div>
+      <div style="padding:8px 14px 0;flex:1;display:flex;flex-direction:column;min-height:0">
+        <div class="mapbox" style="flex:1">
+          <svg viewBox="0 0 252 300">
+            <rect width="252" height="300" fill="#DCE8D5"/>
+            <path d="M0,80 C60,70 110,95 160,85 S 240,70 252,78" stroke="#c8d8c0" stroke-width="7" fill="none"/>
+            <path d="M30,0 C35,80 28,180 40,300" stroke="#c8d8c0" stroke-width="5" fill="none"/>
+            <!-- 轨迹点叠加（半透明 info 色） -->
+            <g fill="#4A7F9D" opacity=".35">
+              <circle cx="60" cy="90" r="2"/><circle cx="70" cy="100" r="2"/><circle cx="82" cy="95" r="2"/><circle cx="90" cy="110" r="2"/><circle cx="105" cy="105" r="2"/><circle cx="118" cy="120" r="2"/><circle cx="100" cy="130" r="2"/><circle cx="85" cy="125" r="2"/><circle cx="72" cy="118" r="2"/><circle cx="95" cy="88" r="2"/><circle cx="130" cy="100" r="2"/><circle cx="145" cy="112" r="2"/><circle cx="155" cy="130" r="2"/><circle cx="140" cy="145" r="2"/><circle cx="120" cy="140" r="2"/><circle cx="108" cy="155" r="2"/><circle cx="88" cy="148" r="2"/><circle cx="70" cy="138" r="2"/><circle cx="60" cy="160" r="2"/><circle cx="78" cy="172" r="2"/><circle cx="95" cy="180" r="2"/><circle cx="115" cy="175" r="2"/><circle cx="135" cy="168" r="2"/><circle cx="150" cy="155" r="2"/><circle cx="162" cy="140" r="2"/><circle cx="170" cy="120" r="2"/><circle cx="160" cy="100" r="2"/><circle cx="140" cy="90" r="2"/><circle cx="120" cy="88" r="2"/><circle cx="60" cy="110" r="2"/><circle cx="55" cy="130" r="2"/><circle cx="58" cy="148" r="2"/><circle cx="100" cy="118" r="2"/><circle cx="125" cy="128" r="2"/><circle cx="148" cy="122" r="2"/><circle cx="138" cy="158" r="2"/><circle cx="90" cy="162" r="2"/><circle cx="112" cy="148" r="2"/><circle cx="168" cy="132" r="2"/><circle cx="75" cy="152" r="2"/>
+            </g>
+            <!-- 被剔除漫游点（琥珀色，显示在包络外） -->
+            <g fill="#D28A2D" opacity=".8">
+              <circle cx="215" cy="45" r="2.5"/><circle cx="222" cy="52" r="2.5"/><circle cx="210" cy="60" r="2.5"/>
+            </g>
+            <!-- 包络草图（虚线） -->
+            <polygon points="50,85 100,80 145,88 175,115 172,145 150,172 110,185 70,178 50,150 45,115"
+              fill="rgba(76,154,95,.14)" stroke="#2F6B3B" stroke-width="2" stroke-dasharray="5,3"/>
+            <g fill="#2F6B3B"><circle cx="50" cy="85" r="3"/><circle cx="175" cy="115" r="3"/><circle cx="110" cy="185" r="3"/><circle cx="45" cy="115" r="3"/></g>
+          </svg>
+          <div class="map-attrib">© 天地图</div>
+        </div>
+        <div class="legend" style="padding:6px 2px 0">
+          <span><span class="sw-poly"></span>包络草图（未确认）</span>
+          <span><i style="background:var(--track-dot);opacity:.5"></i>有效轨迹点</span>
+          <span><i style="background:var(--warning)"></i>已剔除漫游点 ×3</span>
+        </div>
+        <div class="stat-strip" style="margin-top:6px;flex-shrink:0">
+          <div class="stat-cell"><div class="v">7,412</div><div class="k">有效点</div></div>
+          <div class="stat-cell"><div class="v warn">371</div><div class="k">剔除漫游 5%</div></div>
+          <div class="stat-cell"><div class="v">24</div><div class="k">包络顶点</div></div>
+          <div class="stat-cell"><div class="v">8.6</div><div class="k">面积(亩)</div></div>
+        </div>
+        <div class="meta-card" style="margin-top:6px;flex-shrink:0">
+          <div class="mc-tt">🧾 生成来源（将随围栏保存）</div>
+          <div class="mc-row"><span class="k">设备</span><span class="v">A-012、A-013</span></div>
+          <div class="mc-row"><span class="k">时间段</span><span class="v">2026-10-29 ~ 11-11</span></div>
+        </div>
+      </div>
+      <div class="action-bar"><div class="btn soft" style="flex:0 0 96px">‹ 调整条件</div><div class="btn primary">载入围栏表单 ✓</div></div>
+    </div>
+  </div>
+
+  <!-- ══════════ 屏 5：失败态 ══════════ -->
+  <div class="screen-group">
+    <div class="screen-label"><span class="num">5</span>失败态 · 数据不足</div>
+    <div class="screen-sublabel">三类失败共用此版式：无轨迹 / 有效点&lt;3 / 面积&lt;25㎡；给出可操作建议而非报错即止</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span><span>📶 🔋</span></div>
+      <div class="app-bar"><div class="back">‹</div><h1>从设备轨迹生成</h1></div>
+      <div class="steps">
+        <div class="step-dot done"><span class="c">✓</span>选设备</div><div class="step-line done"></div>
+        <div class="step-dot done"><span class="c">✓</span>选时间</div><div class="step-line done"></div>
+        <div class="step-dot on"><span class="c">3</span>预览</div>
+      </div>
+      <div class="scroll">
+        <div class="empty-box">
+          <div class="e-ico">🐾</div>
+          <div class="e-tt">有效轨迹点不足</div>
+          <div class="e-dd">已选设备在该时间段内经清洗后仅剩 <b>2</b> 个有效点（需 ≥3 个且围合面积 ≥25㎡），无法生成围栏草图。</div>
+          <div class="empty-sugg">
+            <b>建议：</b><br>
+            ① 延长时间范围（当前 2 天 → 试试近 14 天）<br>
+            ② 增选同场次的其他追踪器<br>
+            ③ 检查设备是否长期离线（A-015 已 3 天未定位）
+          </div>
+        </div>
+        <div class="stat-strip" style="margin-top:4px">
+          <div class="stat-cell"><div class="v">126</div><div class="k">原始点</div></div>
+          <div class="stat-cell"><div class="v warn">118</div><div class="k">精度超限剔除</div></div>
+          <div class="stat-cell"><div class="v warn">6</div><div class="k">漫游剔除</div></div>
+          <div class="stat-cell"><div class="v warn">2</div><div class="k">剩余有效</div></div>
+        </div>
+      </div>
+      <div class="action-bar"><div class="btn primary">‹ 返回调整条件</div></div>
+    </div>
+  </div>
+
+  <!-- ══════════ 屏 6：Web 宽屏布局 ══════════ -->
+  <div class="screen-group" style="width:100%">
+    <div class="screen-label"><span class="num">6</span>Flutter Web · PC 浏览器宽屏布局</div>
+    <div class="screen-sublabel" style="max-width:640px">左侧 360px 参数面板（设备+时间合并为一屏，免步骤切换）+ 右侧大地图实时预览 + 底部悬浮统计条；「载入围栏表单」后回到围栏表单页继续编辑</div>
+    <div class="desktop">
+      <div class="desktop-topbar">
+        <div class="crumb">围栏管理 <span>›</span> 新增围栏 <span>›</span> <b style="color:var(--primary-dark)">从设备轨迹生成</b></div>
+        <div style="margin-left:auto;font-size:11px;color:var(--text-secondary)">绿色牧场 ▾ · 王场主</div>
+      </div>
+      <div class="desktop-body">
+        <div class="wizard-panel">
+          <div class="wp-scroll">
+            <div class="wp-sec">
+              <div class="sec-head"><span class="dot"></span><span class="t">① 选择追踪器</span><span class="sub">已选 <b>2</b>/4</span></div>
+              <div class="device-row on"><div class="chk">✓</div><div class="ico">📡</div><div><div class="nm">追踪器 A-012</div><div class="sub">耳标 N0342 · 2 分钟前</div></div><div class="pts"><b>7,986</b><span>30 天点</span></div></div>
+              <div class="device-row on"><div class="chk">✓</div><div class="ico">📡</div><div><div class="nm">追踪器 A-013</div><div class="sub">耳标 N0355 · 6 分钟前</div></div><div class="pts"><b>8,102</b><span>30 天点</span></div></div>
+              <div class="device-row"><div class="chk"></div><div class="ico">📡</div><div><div class="nm">追踪器 A-014</div><div class="sub">耳标 N0361 · 12 分钟前</div></div><div class="pts"><b>7,655</b><span>30 天点</span></div></div>
+              <div class="device-row" style="opacity:.65"><div class="chk"></div><div class="ico">📡</div><div><div class="nm">追踪器 A-015</div><div class="sub">耳标 N0370 · <span class="stale">⚠ 3 天前</span></div></div><div class="pts"><b>2,130</b><span>30 天点</span></div></div>
+            </div>
+            <div class="wp-sec">
+              <div class="sec-head"><span class="dot"></span><span class="t">② 时间范围</span></div>
+              <div class="chip-row"><div class="chip">近 7 天</div><div class="chip on">近 14 天</div><div class="chip">近 30 天</div></div>
+              <div class="date-pair">
+                <div class="date-box"><div class="lbl">开始</div><div class="val">10-29 00:00</div></div>
+                <div class="date-box"><div class="lbl">结束</div><div class="val">11-11 23:59</div></div>
+              </div>
+              <div class="limit-hint" style="font-size:9.5px">ℹ️ 最长 30 天 · 预估 7,500 点，抽稀至 ≤5,000 点</div>
+            </div>
+            <div class="meta-card">
+              <div class="mc-tt">🧾 生成来源（将随围栏保存）</div>
+              <div class="mc-row"><span class="k">设备</span><span class="v">A-012、A-013</span></div>
+              <div class="mc-row"><span class="k">时间段</span><span class="v">10-29 ~ 11-11</span></div>
+            </div>
+          </div>
+          <div class="action-bar" style="padding:12px 16px 14px"><div class="btn primary" style="font-size:12px">⟳ 生成预览</div></div>
+        </div>
+        <div class="map-area">
+          <svg viewBox="0 0 760 560" style="width:100%;height:100%">
+            <rect width="760" height="560" fill="#DCE8D5"/>
+            <path d="M0,150 C180,130 330,170 480,150 S 700,120 760,140" stroke="#c8d8c0" stroke-width="14" fill="none"/>
+            <path d="M120,0 C135,190 115,380 150,560" stroke="#c8d8c0" stroke-width="10" fill="none"/>
+            <g fill="#4A7F9D" opacity=".35">
+              <circle cx="180" cy="170" r="3"/><circle cx="210" cy="190" r="3"/><circle cx="245" cy="180" r="3"/><circle cx="270" cy="210" r="3"/><circle cx="315" cy="200" r="3"/><circle cx="355" cy="230" r="3"/><circle cx="300" cy="250" r="3"/><circle cx="255" cy="240" r="3"/><circle cx="215" cy="228" r="3"/><circle cx="285" cy="168" r="3"/><circle cx="390" cy="190" r="3"/><circle cx="435" cy="215" r="3"/><circle cx="465" cy="250" r="3"/><circle cx="420" cy="280" r="3"/><circle cx="360" cy="270" r="3"/><circle cx="325" cy="300" r="3"/><circle cx="265" cy="290" r="3"/><circle cx="210" cy="268" r="3"/><circle cx="180" cy="310" r="3"/><circle cx="235" cy="330" r="3"/><circle cx="285" cy="350" r="3"/><circle cx="345" cy="340" r="3"/><circle cx="405" cy="325" r="3"/><circle cx="450" cy="300" r="3"/><circle cx="485" cy="270" r="3"/><circle cx="510" cy="230" r="3"/><circle cx="480" cy="195" r="3"/><circle cx="420" cy="172" r="3"/><circle cx="360" cy="168" r="3"/><circle cx="185" cy="212" r="3"/><circle cx="168" cy="252" r="3"/><circle cx="175" cy="288" r="3"/><circle cx="300" cy="228" r="3"/><circle cx="375" cy="250" r="3"/><circle cx="445" cy="235" r="3"/><circle cx="415" cy="305" r="3"/><circle cx="270" cy="315" r="3"/><circle cx="335" cy="290" r="3"/><circle cx="505" cy="255" r="3"/><circle cx="225" cy="295" r="3"/>
+            </g>
+            <g fill="#D28A2D" opacity=".8">
+              <circle cx="655" cy="85" r="4"/><circle cx="672" cy="98" r="4"/><circle cx="640" cy="110" r="4"/>
+            </g>
+            <polygon points="150,160 300,150 435,165 525,220 515,290 450,345 330,365 210,350 150,290 135,215"
+              fill="rgba(76,154,95,.14)" stroke="#2F6B3B" stroke-width="2.5" stroke-dasharray="8,4"/>
+            <g fill="#2F6B3B"><circle cx="150" cy="160" r="5"/><circle cx="525" cy="220" r="5"/><circle cx="330" cy="365" r="5"/><circle cx="135" cy="215" r="5"/></g>
+          </svg>
+          <div class="web-action">
+            <div class="web-btn soft">‹ 返回表单</div>
+            <div class="web-btn primary">载入围栏表单 ✓</div>
+          </div>
+          <div class="stat-float">
+            <div class="stat-strip" style="flex:1">
+              <div class="stat-cell"><div class="v">7,412</div><div class="k">有效点</div></div>
+              <div class="stat-cell"><div class="v warn">371</div><div class="k">剔除漫游 5%</div></div>
+              <div class="stat-cell"><div class="v">24</div><div class="k">包络顶点</div></div>
+              <div class="stat-cell"><div class="v">8.6</div><div class="k">面积(亩)</div></div>
+              <div class="stat-cell"><div class="v">凹包</div><div class="k">生成方式</div></div>
+            </div>
+            <div style="background:var(--surface-alt);border-radius:var(--radius-md);padding:8px 12px;box-shadow:var(--shadow-elev);display:flex;align-items:center">
+              <div class="legend" style="font-size:10px;gap:14px">
+                <span><span class="sw-poly"></span>包络草图</span>
+                <span><i style="background:var(--track-dot);opacity:.5"></i>有效轨迹点</span>
+                <span><i style="background:var(--warning)"></i>已剔除漫游点</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════ 设计裁决要点 ══════════ -->
+<div class="decision-table">
+  <h2>设计裁决要点（spec 阶段锁定依据）</h2>
+  <table>
+    <tr><th>入口</th><td>新增围栏页"快速开始"区第 5 个入口（移动端在实地采集之下，卡片式）；Web 端入口不隐藏——本功能数据全部来自服务端，天然双端可用，区别于依赖本机 GPS 的"实地采集"（kIsWeb 隐藏）。</td></tr>
+    <tr><th>向导结构</th><td>移动端三步向导（选设备 → 选时间 → 预览），复用 ImportWizardShell 外壳与步骤指示器语言；Web 宽屏合并为"左参数面板 + 右实时地图"单屏，参数改动后点「生成预览」刷新，免步骤切换。</td></tr>
+    <tr><th>设备列表</th><td>多选 checkbox 卡片：设备名、绑定耳标、最近定位时间（超 24h 琥珀警示但仍可选）、近 30 天轨迹点数预估。底部常驻"已选 N 台 · 预估 M 点"，防止合并点爆炸。</td></tr>
+    <tr><th>时间范围</th><td>快捷档（7/14/30 天）+ 自定义起止，硬上限 30 天：超限时输入框红框 + 提示 + 禁用下一步。提示文案引导用户选"最近一次完整放牧周期"。</td></tr>
+    <tr><th>预览</th><td>三要素：① 凹包草图（虚线边表示"未确认"，载入表单后变实线）；② 半透明轨迹点叠加（--track-dot，35% 透明）让用户验证包络是否贴合实际活动区；③ 被剔除漫游点用琥珀色单独显示，让"95% 截断"可解释、可信任。暗色统计条（有效点/剔除数/顶点数/面积）沿用详情卡仪表盘语言。</td></tr>
+    <tr><th>失败态</th><td>无轨迹 / 有效点&lt;3 / 面积&lt;25㎡ 共用同一空态版式：原因 + 清洗明细统计条 + 可操作建议（延长时间/增选设备/检查离线设备），操作按钮只有"返回调整条件"，不死胡同。</td></tr>
+    <tr><th>生成来源元数据</th><td>预览页与围栏详情页均展示"生成来源"卡（设备、时间段、生成时间），随 POST /fences 落库 generation_metadata jsonb，支撑日后追溯与"重新生成"扩展。</td></tr>
+    <tr><th>新增令牌</th><td>仅 7 个：--track-dot / --track-dot-opacity / --envelope-fill / --envelope-stroke / --envelope-stroke-dash / --chip-selected-bg / --stat-strip-bg / --step-indicator-inactive / --wizard-panel-width；其余全部继承 NIX-246 已锁定基线。</td></tr>
+  </table>
+</div>
+
+<div class="decision-table">
+  <h2>交互流与后端契约（供 spec 细化）</h2>
+  <table>
+    <tr><th>数据流</th><td>选设备+时间 → 后端按 deviceIds 并发拉 gps_logs（幂等键 device_id+recorded_at）→ 服务端抽稀 ≤5,000 点传输 → 客户端管线：95% 距离分位数截断 → 精度过滤（阈值放宽至 30–50m，真机校准）→ MAD 清洗 → 凹包/凸包 → DP 抽稀 ≤100 顶点 → 预览 → 载入表单 → POST /fences（顶点 + generation_metadata）。</td></tr>
+    <tr><th>围栏保存</th><td>完全复用现有 POST /fences：配额（FarmFenceUsageResolver）、乐观锁、告警判定零改动；仅请求体增加 generationMetadata 字段。</td></tr>
+    <tr><th>i18n</th><td>全部文案走 AppLocalizations 双语；原型中文案即中文稿，英文稿在 spec 中成表。</td></tr>
+    <tr><th>权限</th><td>与现有围栏创建一致（ranch owner/manager），canManage=false 时入口不显示。</td></tr>
+    <tr><th>性能约束</th><td>单设备 30 天 ≈ 8,600 点（5 分钟采样），多选 4 台 ≈ 3.4 万点原始、抽稀后 ≤5,000 点传输（沿用 NIX-213 MAX_TRANSPORT_POINTS）；目标：典型数据 10 秒内出预览。</td></tr>
+  </table>
+</div>
+
+</body>
+</html>

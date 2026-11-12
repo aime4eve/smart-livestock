@@ -251,6 +251,7 @@ class RanchFenceData {
     required this.areaHectares,
     required this.livestockCount,
     required this.version,
+    this.generationMetadata,
   });
 
   final String id;
@@ -262,6 +263,9 @@ class RanchFenceData {
   final double areaHectares;
   final int livestockCount;
   final int version;
+
+  /// Generation provenance (spec §4.3); null for manually drawn fences.
+  final Map<String, dynamic>? generationMetadata;
 
   factory RanchFenceData.fromJson(Map<String, dynamic> m) {
     final rawColor = m['color'] as String? ?? '#FF4C9A5F';
@@ -284,6 +288,10 @@ class RanchFenceData {
       areaHectares: (m['areaHectares'] as num?)?.toDouble() ?? 0.0,
       livestockCount: m['livestockCount'] as int? ?? 0,
       version: m['version'] as int? ?? 1,
+      // Keep the JSON object as-is; malformed shapes degrade to null.
+      generationMetadata: m['generationMetadata'] is Map
+          ? Map<String, dynamic>.from(m['generationMetadata'] as Map)
+          : null,
     );
   }
 }

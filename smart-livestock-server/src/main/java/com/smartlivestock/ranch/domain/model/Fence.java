@@ -17,6 +17,14 @@ public class Fence extends AggregateRoot {
     private int version = 1;
     private String fenceType = "sub";
 
+    /**
+     * Opaque JSON string describing how the fence geometry was generated
+     * (e.g. DEVICE_TRACK draft params). Written once at creation; NULL for
+     * all other creation paths. Kept as raw JSON so the domain layer stays
+     * agnostic of the payload shape.
+     */
+    private String generationMetadata;
+
     public Fence() {
         this.active = true;
         this.vertices = new ArrayList<>();
@@ -107,6 +115,9 @@ public class Fence extends AggregateRoot {
 
     public String getFenceType() { return fenceType; }
     public void setFenceType(String fenceType) { this.fenceType = fenceType; }
+
+    public String getGenerationMetadata() { return generationMetadata; }
+    public void setGenerationMetadata(String generationMetadata) { this.generationMetadata = generationMetadata; }
 
     // ── Buffer zone fields ──
 

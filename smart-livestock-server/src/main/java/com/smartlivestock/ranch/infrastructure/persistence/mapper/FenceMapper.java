@@ -30,6 +30,7 @@ public final class FenceMapper {
         jpa.setFenceType(fence.getFenceType());
         jpa.setBufferDistance(fence.getBufferDistance());
         jpa.setBufferPolygon(toVerticesJson(fence.getBufferPolygon()));
+        jpa.setGenerationMetadata(fence.getGenerationMetadata());
         return jpa;
     }
 
@@ -42,6 +43,8 @@ public final class FenceMapper {
         existing.setFenceType(fence.getFenceType());
         existing.setBufferDistance(fence.getBufferDistance());
         existing.setBufferPolygon(toVerticesJson(fence.getBufferPolygon()));
+        // Intentionally excluded: generation_metadata is written once at
+        // creation and must survive edits (whitelist update semantics).
     }
 
     public static Fence toDomain(FenceJpaEntity jpa) {
@@ -60,6 +63,7 @@ public final class FenceMapper {
             fence.setBufferDistance(jpa.getBufferDistance());
         }
         fence.setBufferPolygon(fromVerticesJson(jpa.getBufferPolygon()));
+        fence.setGenerationMetadata(jpa.getGenerationMetadata());
         return fence;
     }
 

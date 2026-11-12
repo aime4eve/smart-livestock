@@ -104,17 +104,7 @@ public class RanchOverviewApplicationService {
         // 2. Fences
         List<Fence> fences = fenceRepository.findByFarmId(farmId);
         List<FenceData> fenceDataList = fences.stream()
-                .map(f -> new FenceData(
-                        f.getId(),
-                        f.getName(),
-                        f.isActive(),
-                        "POLYGON",
-                        f.getColor(),
-                        f.getVertices(),
-                        0.0,
-                        fenceLivestockCounter.countInFence(trackedLivestock, f),
-                        f.getVersion()
-                ))
+                .map(f -> FenceData.from(f, fenceLivestockCounter.countInFence(trackedLivestock, f)))
                 .toList();
 
         List<LivestockHealthState> healthStates = healthQueryPort.findHealthByFarmId(farmId);

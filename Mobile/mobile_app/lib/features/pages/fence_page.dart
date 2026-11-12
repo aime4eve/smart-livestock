@@ -26,6 +26,7 @@ import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controll
 import 'package:hkt_livestock_agentic/features/fence/presentation/fence_hit_detection.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_candidate_sheet.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_delete_dialog.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_generation_source_card.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_edit_toolbar.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_mini_title_bar.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_unsaved_dialog.dart';
@@ -1235,6 +1236,13 @@ class _FenceCard extends StatelessWidget {
                         ),
                       ],
                     ),
+                    // Generation provenance (spec §4.3); hidden when null.
+                    if (fence.generationMetadata != null) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      FenceGenerationSourceCard(
+                        metadata: fence.generationMetadata!,
+                      ),
+                    ],
                   ],
                 ),
               ),

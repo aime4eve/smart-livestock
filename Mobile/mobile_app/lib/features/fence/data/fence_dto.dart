@@ -62,6 +62,11 @@ FenceItem fenceItemFromJson(
           : FenceItem.defaultColors[colorIndex % FenceItem.defaultColors.length];
   final version = raw['version'] as int? ?? 1;
   final fenceType = raw['fenceType'] as String? ?? 'sub';
+  // Generation provenance (spec §4.3): keep the JSON object as-is; any
+  // malformed shape (non-Map) degrades to null so the source card hides.
+  final rawMetadata = raw['generationMetadata'];
+  final generationMetadata =
+      rawMetadata is Map ? Map<String, dynamic>.from(rawMetadata) : null;
   return FenceItem(
     id: id,
     name: name,
@@ -74,6 +79,7 @@ FenceItem fenceItemFromJson(
     points: points,
     version: version,
     fenceType: fenceType,
+    generationMetadata: generationMetadata,
   );
 }
 
