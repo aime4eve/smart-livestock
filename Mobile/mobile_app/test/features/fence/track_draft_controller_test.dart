@@ -9,6 +9,7 @@ import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/features/fence/data/track_draft_repository.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/track_draft_params.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/track_point.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/track_to_envelope_converter.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/fence_analytics.dart';
@@ -131,6 +132,23 @@ List<TrackPoint> tinySquareWithInterior() {
     ..add(at(3.6, 1.2))
     ..add(at(3.6, 0.45));
   return pts;
+}
+
+/// Field-by-field bit comparison (TrackDraftParams has no operator==;
+/// the regression gate needs exact equality on every knob).
+void expectParamsBitMatch(TrackDraftParams p, TrackDraftParams baseline) {
+  expect(p.accuracyThresholdM, baseline.accuracyThresholdM);
+  expect(p.lMaxBaseM, baseline.lMaxBaseM);
+  expect(p.speedOutlierMps, baseline.speedOutlierMps);
+  expect(p.madMultiplier, baseline.madMultiplier);
+  expect(p.madFloorM, baseline.madFloorM);
+  expect(p.minAreaM2, baseline.minAreaM2);
+  expect(p.simplifyEpsilonM, baseline.simplifyEpsilonM);
+  expect(p.maxVertices, baseline.maxVertices);
+  expect(p.maxInsertions, baseline.maxInsertions);
+  expect(p.roamingQuantile, baseline.roamingQuantile);
+  expect(p.clusterCellM, baseline.clusterCellM);
+  expect(p.areaTrimPct, baseline.areaTrimPct);
 }
 
 void main() {
@@ -584,5 +602,102 @@ void main() {
     // Failure-strip diagnostics ride on the shared candidate result.
     expect(state.preview!.envelope.failure, EnvelopeFailure.degenerate);
     expect(state.preview!.envelope.rawCount, linePoints().length);
+  });
+
+  test('default params (sliders untouched) stay bit-identical to baseline',
+      () async {
+    final repo = FakeTrackDraftRepository(sourcePoints: squarePoints());
+    final container = await setup(repo);
+    addTearDown(container.dispose);
+
+    // Untouched state carries the animalTrack bundle field-by-field.
+    const baseline = TrackDraftParams.animalTrack();
+    expectParamsBitMatch(
+      container.read(trackDraftControllerProvider).params,
+      baseline,
+    );
+
+    await toPreviewing(container);
+
+    // Envelope output identical to a direct pipeline run with the const
+    // bundle — the parameterization must not shift default behavior.
+    final state = container.read(trackDraftControllerProvider);
+    final expected = TrackToEnvelopeConverter.buildTrackDraftCandidates(
+      squarePoints(),
+      params: baseline,
+    );
+    for (var i = 0; i < expected.length; i++) {
+      expect(
+        state.hullCandidates[i].result.vertices,
+        expected[i].result.vertices,
+      );
+    }
+    // Metadata records the slider display defaults.
+    final meta = container
+        .read(trackDraftControllerProvider.notifier)
+        .buildCompletion()!
+        .metadata;
+    expect(meta['roamingTrimPct'], 5);
+    expect(meta['clusterCellM'], 30);
+    expect(meta['areaTrimPct'], 0.5);
+  });
+
+  test('updateAdvancedParams maps sliders, marks stale, regenerate consumes',
+      () async {
+    final repo = FakeTrackDraftRepository(sourcePoints: squarePoints());
+    final container = await setup(repo);
+    addTearDown(container.dispose);
+    await toPreviewing(container);
+
+    final controller = container.read(trackDraftControllerProvider.notifier);
+    controller.updateAdvancedParams(
+      roamingTrimPct: 8,
+      clusterCellM: 50,
+      areaTrimPct: 1,
+    );
+
+    // Slider display values → internal semantics; existing preview stale.
+    var state = container.read(trackDraftControllerProvider);
+    expect(state.previewStale, isTrue);
+    expect(state.params.roamingQuantile, closeTo(0.92, 1e-9));
+    expect(state.params.clusterCellM, 50);
+    expect(state.params.areaTrimPct, closeTo(0.01, 1e-12));
+
+    // Regenerate clears the stale flag and consumes the new parameters —
+    // metadata carries the slider display values, not the conversions.
+    await controller.generate();
+    state = container.read(trackDraftControllerProvider);
+    expect(state.previewStale, isFalse);
+    final meta = controller.buildCompletion()!.metadata;
+    expect(meta['roamingTrimPct'], 8);
+    expect(meta['clusterCellM'], 50);
+    expect(meta['areaTrimPct'], 1.0);
+  });
+
+  test('restore defaults returns the params to the animalTrack bundle',
+      () async {
+    final repo = FakeTrackDraftRepository(sourcePoints: squarePoints());
+    final container = await setup(repo);
+    addTearDown(container.dispose);
+    await toPreviewing(container);
+
+    final controller = container.read(trackDraftControllerProvider.notifier);
+    controller.updateAdvancedParams(
+      roamingTrimPct: 10,
+      clusterCellM: 100,
+      areaTrimPct: 2,
+    );
+    expect(container.read(trackDraftControllerProvider).previewStale, isTrue);
+
+    // Same intent the widget's restore button invokes (spec §5.7).
+    controller.updateAdvancedParams(
+      roamingTrimPct: 5,
+      clusterCellM: 30,
+      areaTrimPct: 0.5,
+    );
+    expectParamsBitMatch(
+      container.read(trackDraftControllerProvider).params,
+      const TrackDraftParams.animalTrack(),
+    );
   });
 }

@@ -182,7 +182,9 @@ class TrackToEnvelopeConverter {
   static const double lMaxGrowth = 1.6;
   static const int maxInsertions = 600; // 收紧阶段插入上限（硬终止）
   /// 面积贡献精简容差（占初始环面积比例）：删除某顶点后环面积相对固定
-  /// 基准的变化 < 该比例时该顶点可删（concaveSimplified 候选专用）。
+  /// 基准的变化 < 该比例时该顶点可删（concaveSimplified 候选专用）。作为
+  /// [TrackDraftParams.areaTrimPct] 两参数组的默认值；实际消费的是参数
+  /// 字段，此处仅作单一事实源。
   static const double areaContributionTolPct = 0.005;
 
   static const double _mPerDegLat = 111320.0;
@@ -350,7 +352,7 @@ class TrackToEnvelopeConverter {
     final keptPositions = _simplifyRingIndices(baseCoords, p);
     var ring = [for (final pos in keptPositions) baseRing[pos]];
     if (areaSimplify) {
-      ring = simplifyByAreaContribution(ring, pts, areaContributionTolPct);
+      ring = simplifyByAreaContribution(ring, pts, p.areaTrimPct);
     }
     if (ring.length < 3 || _ringAreaOf(ring, pts) < p.minAreaM2) {
       return TrackEnvelopeCandidate(
