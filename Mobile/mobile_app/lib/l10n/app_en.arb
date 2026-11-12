@@ -6706,5 +6706,17 @@
   "fenceTrackDraftSourceTimeRange": "Time range",
   "@fenceTrackDraftSourceTimeRange": {},
   "fenceTrackDraftSourceGeneratedAt": "Generated at",
-  "@fenceTrackDraftSourceGeneratedAt": {}
+  "@fenceTrackDraftSourceGeneratedAt": {},
+  "fenceTrackAdvancedTitle": "Advanced parameters (usually no adjustment needed)",
+  "@fenceTrackAdvancedTitle": {},
+  "fenceTrackAdvRoaming": "Trim farthest points",
+  "@fenceTrackAdvRoaming": {},
+  "fenceTrackAdvCluster": "Point cluster merge",
+  "@fenceTrackAdvCluster": {},
+  "fenceTrackAdvArea": "Outline simplification",
+  "@fenceTrackAdvArea": {},
+  "fenceTrackAdvRestore": "Restore defaults",
+  "@fenceTrackAdvRestore": {},
+  "fenceTrackAdvNote": "These apply to concave candidates only; convex hull is unaffected",
+  "@fenceTrackAdvNote": {}
 }

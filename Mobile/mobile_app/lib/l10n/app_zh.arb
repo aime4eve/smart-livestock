@@ -6702,5 +6702,17 @@
   "fenceTrackDraftSourceTimeRange": "时间范围",
   "@fenceTrackDraftSourceTimeRange": {},
   "fenceTrackDraftSourceGeneratedAt": "生成时间",
-  "@fenceTrackDraftSourceGeneratedAt": {}
+  "@fenceTrackDraftSourceGeneratedAt": {},
+  "fenceTrackAdvancedTitle": "高级参数（一般无需调整）",
+  "@fenceTrackAdvancedTitle": {},
+  "fenceTrackAdvRoaming": "剔除最远点",
+  "@fenceTrackAdvRoaming": {},
+  "fenceTrackAdvCluster": "点群合并",
+  "@fenceTrackAdvCluster": {},
+  "fenceTrackAdvArea": "轮廓简化",
+  "@fenceTrackAdvArea": {},
+  "fenceTrackAdvRestore": "恢复默认",
+  "@fenceTrackAdvRestore": {},
+  "fenceTrackAdvNote": "以上参数作用于凹包类候选；凸包不受影响",
+  "@fenceTrackAdvNote": {}
 }

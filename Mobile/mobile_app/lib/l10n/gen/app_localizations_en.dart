@@ -8352,4 +8352,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fenceTrackDraftSourceGeneratedAt => 'Generated at';
+
+  @override
+  String get fenceTrackAdvancedTitle =>
+      'Advanced parameters (usually no adjustment needed)';
+
+  @override
+  String get fenceTrackAdvRoaming => 'Trim farthest points';
+
+  @override
+  String get fenceTrackAdvCluster => 'Point cluster merge';
+
+  @override
+  String get fenceTrackAdvArea => 'Outline simplification';
+
+  @override
+  String get fenceTrackAdvRestore => 'Restore defaults';
+
+  @override
+  String get fenceTrackAdvNote =>
+      'These apply to concave candidates only; convex hull is unaffected';
 }

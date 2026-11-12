@@ -8137,4 +8137,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get fenceTrackDraftSourceGeneratedAt => '生成时间';
+
+  @override
+  String get fenceTrackAdvancedTitle => '高级参数（一般无需调整）';
+
+  @override
+  String get fenceTrackAdvRoaming => '剔除最远点';
+
+  @override
+  String get fenceTrackAdvCluster => '点群合并';
+
+  @override
+  String get fenceTrackAdvArea => '轮廓简化';
+
+  @override
+  String get fenceTrackAdvRestore => '恢复默认';
+
+  @override
+  String get fenceTrackAdvNote => '以上参数作用于凹包类候选；凸包不受影响';
 }

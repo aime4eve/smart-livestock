@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/track_draft_controller.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/track_draft_advanced_params.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/track_draft_device_picker.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
@@ -92,6 +93,11 @@ class TrackDraftRangePicker extends ConsumerWidget {
           ),
         const SizedBox(height: AppSpacing.md),
         _SelectedDevicesCard(),
+        const SizedBox(height: AppSpacing.md),
+        // 高级参数折叠区 (spec §5.7)：移动向导第 2 步与桌面面板②节共用本
+        // 组件（桌面把本 picker 内嵌在 320px 盒里，挂这里两形态各得一份，
+        // 且不外推桌面面板 ListView 的「生成来源」卡）。
+        const TrackDraftAdvancedParams(),
       ],
     );
   }

@@ -73,6 +73,7 @@ class TrackDraftState {
     required this.previewStale,
     this.hullCandidates = const [],
     this.selectedHullMethod = HullMethod.concaveSimplified,
+    this.params = const TrackDraftParams.animalTrack(),
     this.failReason,
     this.failMessage,
   });
@@ -108,6 +109,12 @@ class TrackDraftState {
 
   /// Currently previewed hull algorithm; defaults to 凹包·简化.
   final HullMethod selectedHullMethod;
+
+  /// Advanced envelope-calibration bundle (spec §5.7): rancher-tunable via
+  /// [TrackDraftController.updateAdvancedParams], recorded with the fence
+  /// metadata — never persisted as a farm-level default. Session-scoped:
+  /// the provider rebuild resets it to the animalTrack bundle.
+  final TrackDraftParams params;
 
   final TrackDraftFailReason? failReason;
 
@@ -156,6 +163,7 @@ class TrackDraftState {
     bool? previewStale,
     List<TrackEnvelopeCandidate>? hullCandidates,
     HullMethod? selectedHullMethod,
+    TrackDraftParams? params,
     TrackDraftFailReason? Function()? failReason,
     String? Function()? failMessage,
   }) {
@@ -174,6 +182,7 @@ class TrackDraftState {
       previewStale: previewStale ?? this.previewStale,
       hullCandidates: hullCandidates ?? this.hullCandidates,
       selectedHullMethod: selectedHullMethod ?? this.selectedHullMethod,
+      params: params ?? this.params,
       failReason: failReason != null ? failReason() : this.failReason,
       failMessage: failMessage != null ? failMessage() : this.failMessage,
     );
@@ -248,13 +257,35 @@ class TrackDraftController extends FarmScopedNotifier<TrackDraftState> {
     int? Function()? quickDays,
     DateTime? Function()? startTime,
     DateTime? Function()? endTime,
+    TrackDraftParams? params,
   }) {
     state = state.copyWith(
       selectedDeviceIds: selectedDeviceIds,
       quickDays: quickDays,
       startTime: startTime,
       endTime: endTime,
+      params: params,
       previewStale: state.preview != null ? true : state.previewStale,
+    );
+  }
+
+  /// Advanced-params intent (spec §5.7): maps the three slider display
+  /// values to pipeline semantics — trim percent → roaming quantile
+  /// (5% → keep 95%), cluster meters and simplification percent pass
+  /// through as fractions. A criteria change like any other: rides the
+  /// shared [_applyParamChange] path so an existing preview is marked
+  /// stale.
+  void updateAdvancedParams({
+    required double roamingTrimPct,
+    required double clusterCellM,
+    required double areaTrimPct,
+  }) {
+    _applyParamChange(
+      params: const TrackDraftParams.animalTrack().copyWith(
+        roamingQuantile: 1 - roamingTrimPct / 100,
+        clusterCellM: clusterCellM,
+        areaTrimPct: areaTrimPct / 100,
+      ),
     );
   }
 
@@ -283,6 +314,9 @@ class TrackDraftController extends FarmScopedNotifier<TrackDraftState> {
     final deviceIds = List<int>.from(state.selectedDeviceIds);
     final start = state.startTime!;
     final end = state.endTime!;
+    // Snapshot like the other inputs: a slider change mid-flight must not
+    // bleed into the in-flight pipeline run.
+    final params = state.params;
     // Loading keeps the previous preview under the overlay (spec §5.4).
     state = state.copyWith(
       phase: TrackDraftPhase.loading,
@@ -306,7 +340,7 @@ class TrackDraftController extends FarmScopedNotifier<TrackDraftState> {
       }
       final hullCandidates = TrackToEnvelopeConverter.buildTrackDraftCandidates(
         source.points,
-        params: const TrackDraftParams.animalTrack(),
+        params: params,
       );
       // Default selection: first available candidate in the fixed priority
       // order concaveSimplified → concave → convex (spec 修订 v2.1).
@@ -476,6 +510,8 @@ class TrackDraftController extends FarmScopedNotifier<TrackDraftState> {
 
   /// Builds the wizard output for the fence form (Task 5 calls this after
   /// the user confirms); returns null when no successful preview exists.
+  /// The three advanced params are always appended in slider-display form
+  /// (human-readable, full traceability even at defaults).
   TrackDraftCompletion? buildCompletion() {
     final preview = state.preview;
     if (state.phase != TrackDraftPhase.previewing ||
@@ -483,6 +519,7 @@ class TrackDraftController extends FarmScopedNotifier<TrackDraftState> {
         !preview.envelope.isSuccess) {
       return null;
     }
+    final p = state.params;
     return (
       vertices: preview.envelope.vertices,
       metadata: <String, Object>{
@@ -494,6 +531,9 @@ class TrackDraftController extends FarmScopedNotifier<TrackDraftState> {
         'usedPoints': preview.envelope.remainingValid,
         'outlierTrimmed': preview.envelope.roamingTrimmed,
         'hullMethod': preview.envelope.method.metadataKey,
+        'roamingTrimPct': p.roamingTrimPctDisplay,
+        'clusterCellM': p.clusterCellMDisplay,
+        'areaTrimPct': p.areaTrimPctDisplay,
       },
     );
   }

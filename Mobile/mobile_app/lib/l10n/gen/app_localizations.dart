@@ -14948,6 +14948,42 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'生成时间'**
   String get fenceTrackDraftSourceGeneratedAt;
+
+  /// No description provided for @fenceTrackAdvancedTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'高级参数（一般无需调整）'**
+  String get fenceTrackAdvancedTitle;
+
+  /// No description provided for @fenceTrackAdvRoaming.
+  ///
+  /// In zh, this message translates to:
+  /// **'剔除最远点'**
+  String get fenceTrackAdvRoaming;
+
+  /// No description provided for @fenceTrackAdvCluster.
+  ///
+  /// In zh, this message translates to:
+  /// **'点群合并'**
+  String get fenceTrackAdvCluster;
+
+  /// No description provided for @fenceTrackAdvArea.
+  ///
+  /// In zh, this message translates to:
+  /// **'轮廓简化'**
+  String get fenceTrackAdvArea;
+
+  /// No description provided for @fenceTrackAdvRestore.
+  ///
+  /// In zh, this message translates to:
+  /// **'恢复默认'**
+  String get fenceTrackAdvRestore;
+
+  /// No description provided for @fenceTrackAdvNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'以上参数作用于凹包类候选；凸包不受影响'**
+  String get fenceTrackAdvNote;
 }
 
 class _AppLocalizationsDelegate

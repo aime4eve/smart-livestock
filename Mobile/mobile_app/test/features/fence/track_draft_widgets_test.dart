@@ -406,4 +406,100 @@ void main() {
     expect(chipBg('track-draft-hull-concave-simplified'), AppColors.primary);
     expect(chipBg('track-draft-hull-concave'), AppColors.border);
   });
+
+  testWidgets(
+      'advanced params section collapses by default and expands with three '
+      'sliders + restore (spec §5.7)', (tester) async {
+    await _pumpWizard(tester, FakeTrackDraftRepository());
+    await _selectDeviceAndAdvance(tester);
+
+    // Collapsed by default: only the header row exists.
+    expect(
+      find.byKey(const Key('track-draft-advanced-toggle')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('track-draft-slider-roaming')), findsNothing);
+    expect(find.byKey(const Key('track-draft-slider-cluster')), findsNothing);
+    expect(find.byKey(const Key('track-draft-slider-area')), findsNothing);
+    expect(find.byKey(const Key('track-draft-params-restore')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('track-draft-advanced-toggle')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('track-draft-slider-roaming')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('track-draft-slider-cluster')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('track-draft-slider-area')), findsOneWidget);
+    expect(
+      find.byKey(const Key('track-draft-params-restore')),
+      findsOneWidget,
+    );
+    // Defaults render as slider value labels; the note is present.
+    expect(find.text('5%'), findsOneWidget);
+    expect(find.text('30 米'), findsOneWidget);
+    expect(find.text('0.5%'), findsOneWidget);
+    expect(find.text('以上参数作用于凹包类候选；凸包不受影响'), findsOneWidget);
+
+    // Collapse again hides the sliders (local UI fold state only).
+    await tester.tap(find.byKey(const Key('track-draft-advanced-toggle')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('track-draft-slider-roaming')), findsNothing);
+  });
+
+  testWidgets(
+      'dragging a slider pushes params to the controller and marks the '
+      'preview stale; restore returns to the defaults', (tester) async {
+    final repo = FakeTrackDraftRepository(sourcePoints: squarePoints());
+    await _pumpWizard(tester, repo);
+    await _selectDeviceAndAdvance(tester);
+
+    // Produce a preview first, then return to editing so the advanced
+    // section can stale an existing preview (spec §5.4).
+    final element = tester.element(
+      find.byKey(const Key('track-draft-range-picker')),
+    );
+    final container = ProviderScope.containerOf(element);
+    final controller = container.read(trackDraftControllerProvider.notifier);
+    await controller.generate();
+    controller.backToEditing();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('track-draft-advanced-toggle')));
+    await tester.pumpAndSettle();
+
+    final quantileBefore =
+        container.read(trackDraftControllerProvider).params.roamingQuantile;
+    await tester.ensureVisible(
+      find.byKey(const Key('track-draft-slider-roaming')),
+    );
+    await tester.drag(
+      find.byKey(const Key('track-draft-slider-roaming')),
+      const Offset(180, 0),
+    );
+    await tester.pumpAndSettle();
+
+    final paramsAfter = container.read(trackDraftControllerProvider).params;
+    expect(paramsAfter.roamingQuantile, isNot(quantileBefore));
+    expect(container.read(trackDraftControllerProvider).previewStale, isTrue);
+    // The dragged-away default label is gone.
+    expect(find.text('5%'), findsNothing);
+
+    // Restore (same intent path as the controller test) rewrites the
+    // defaults and keeps the preview stale — a criteria change either way.
+    await tester.ensureVisible(
+      find.byKey(const Key('track-draft-params-restore')),
+    );
+    await tester.tap(find.byKey(const Key('track-draft-params-restore')));
+    await tester.pumpAndSettle();
+
+    final restored = container.read(trackDraftControllerProvider);
+    expect(restored.params.roamingQuantile, quantileBefore);
+    expect(restored.previewStale, isTrue);
+    expect(find.text('5%'), findsOneWidget);
+  });
 }
