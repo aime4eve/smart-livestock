@@ -11,7 +11,9 @@ import 'package:http/testing.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:hkt_livestock_agentic/app/session/app_session.dart';
+import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/fence_buffer_layer.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
 import 'package:hkt_livestock_agentic/core/sync/signal_models.dart';
@@ -274,5 +276,25 @@ void main() {
       find.byKey(const Key('fence-generation-source-card')),
       findsNothing,
     );
+  });
+  // 缓冲带聚焦（2026-11-13 用户裁决）：50m 橙色缓冲带只在选中某个围栏时
+  // 显示该围栏的；未选中任何围栏时整体隐藏（多围栏缓冲带常显=视觉噪声）。
+  // 断言锚点=FenceBufferLayer 是否出现在牧场页 widget 树。
+  testWidgets('buffer layer shows while a fence is selected (pumpRanchPage '
+      'opens the detail card by default)', (tester) async {
+    await pumpRanchPage(tester, withMetadata: true);
+    // pumpRanchPage 已选中围栏（打开详情卡是源卡断言前提）→ 缓冲带层出现。
+    expect(find.byType(FenceBufferLayer), findsOneWidget);
+  });
+
+  testWidgets('buffer layer hides after deselecting the fence', (tester) async {
+    await pumpRanchPage(tester, withMetadata: true);
+    expect(find.byType(FenceBufferLayer), findsOneWidget);
+    // 取消选中（点详情卡头部「收起」按钮）→ 缓冲带层随之隐藏。
+    await tester.tap(find.text('收起').first);
+    for (var i = 0; i < 4; i++) {
+      await tester.pump(const Duration(milliseconds: 120));
+    }
+    expect(find.byType(FenceBufferLayer), findsNothing);
   });
 }
