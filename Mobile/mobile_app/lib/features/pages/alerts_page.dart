@@ -6,8 +6,10 @@ import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/core/widgets/auto_refresh_listener.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/features/alerts/data/alerts_api_repository.dart';
 import 'package:hkt_livestock_agentic/features/alerts/domain/alert_workbench.dart';
+import 'package:hkt_livestock_agentic/features/alerts/domain/alerts_repository.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/alert_workbench_controller.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_batch_bar.dart';
 import 'package:hkt_livestock_agentic/features/alerts/presentation/widgets/alert_workbench_detail_sheet.dart';
@@ -331,6 +333,20 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
     );
   }
 
+  /// NIX-286: estrus confirm/reject submission for the detail sheet. The
+  /// sheet surfaces server errors itself, so failures are rethrown here.
+  /// Estrus feedback does not change alert status/buckets, so no list
+  /// refresh is triggered (no feedback read-back endpoint yet — NIX-156).
+  Future<AlertFeedbackResult> _submitEstrusFeedback(
+    String alertId, {
+    required bool confirmed,
+  }) {
+    final farmId = ref.read(sessionControllerProvider).activeFarmId;
+    if (farmId == null) throw StateError('No active farm');
+    return const AlertsApiRepository()
+        .submitEstrusFeedback(farmId, alertId, confirmed: confirmed);
+  }
+
   Future<void> _openDetail(BuildContext context, WorkbenchItem item) async {
     setState(() => _detailOpen = true);
     try {
@@ -352,6 +368,7 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
         onMarkSource: isEpidemicManagerRole(widget.role)
             ? _markDiseasedFromAlert
             : null,
+        onEstrusFeedback: _submitEstrusFeedback,
       );
     } finally {
       if (mounted) setState(() => _detailOpen = false);
