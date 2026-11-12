@@ -1830,8 +1830,10 @@ class _RanchPageState extends ConsumerState<RanchPage>
     return shouldTransform ? CoordTransform.wgs84ToGcj02(center) : center;
   }
 
-  /// 首次加载后把地图定位到当前牧场的实际位置：
-  /// 优先按围栏范围居中，牧场尚未画围栏时退回登记坐标，避免停在演示默认点。
+  /// 首次加载/切换牧场后把地图定位到当前牧场的实际范围：
+  /// 已画围栏→fitCamera 到全部围栏 bounds（缩放级别自动适配「正好看全」）；
+  /// 尚未画围栏→退回登记坐标+默认缩放，避免停在演示默认点。
+  /// （集成测试反馈 2026-11-12：固定 zoom 在大围栏牧场看不全、小围栏浪费视野。）
   void _centerOnFarmOnce(
     RanchOverview overview,
     String? farmId,
@@ -1842,19 +1844,36 @@ class _RanchPageState extends ConsumerState<RanchPage>
     if (_tileProvider == null) return;
 
     final farm = ref.read(farmSwitcherControllerProvider).activeFarm;
-    final center = resolveFarmMapCenter(
-      fenceRings: overview.fences.map((f) => f.points),
-      farmLatitude: farm?.latitude,
-      farmLongitude: farm?.longitude,
-      shouldTransform: shouldTransform,
-    );
-    if (center == null) return;
+    final fenceRings = overview.fences
+        .map((f) => f.points)
+        .where((ring) => ring.isNotEmpty)
+        .toList();
+    final allFencePoints = <LatLng>[
+      for (final ring in fenceRings)
+        ...(shouldTransform ? CoordTransform.wgs84ToGcj02All(ring) : ring),
+    ];
 
-    final resolved = center;
     _centeredFarmId = farmKey;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && _centeredFarmId == farmKey) {
-        _mapController.move(resolved, MapConstants.defaultZoom);
+      if (!mounted || _centeredFarmId != farmKey) return;
+      if (allFencePoints.length >= 3) {
+        _mapController.fitCamera(
+          CameraFit.bounds(
+            bounds: LatLngBounds.fromPoints(allFencePoints),
+            padding: const EdgeInsets.all(48),
+          ),
+        );
+        return;
+      }
+      // 无围栏：退回牧场登记坐标 + 默认缩放（原行为）。
+      final center = resolveFarmMapCenter(
+        fenceRings: fenceRings,
+        farmLatitude: farm?.latitude,
+        farmLongitude: farm?.longitude,
+        shouldTransform: shouldTransform,
+      );
+      if (center != null) {
+        _mapController.move(center, MapConstants.defaultZoom);
       }
     });
   }
