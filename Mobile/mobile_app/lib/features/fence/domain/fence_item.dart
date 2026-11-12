@@ -17,6 +17,7 @@ class FenceItem {
     required this.points,
     this.version = 1,
     this.fenceType = 'sub',
+    this.generationMetadata,
   });
 
   final String id;
@@ -30,6 +31,11 @@ class FenceItem {
   final List<LatLng> points;
   final int version;
   final String fenceType;
+
+  /// Generation provenance written at creation time (spec §4.3), e.g.
+  /// `{"method": "DEVICE_TRACK", ...}`; null for manually drawn fences.
+  /// Edits never touch it (backend keeps the column on PUT).
+  final Map<String, dynamic>? generationMetadata;
 
   static const defaultColors = [
     0xFF4C9A5F,
@@ -76,6 +82,7 @@ class FenceItem {
     List<LatLng>? points,
     int? version,
     String? fenceType,
+    Map<String, dynamic>? generationMetadata,
   }) {
     return FenceItem(
       id: id ?? this.id,
@@ -89,6 +96,7 @@ class FenceItem {
       points: points ?? this.points,
       version: version ?? this.version,
       fenceType: fenceType ?? this.fenceType,
+      generationMetadata: generationMetadata ?? this.generationMetadata,
     );
   }
 }

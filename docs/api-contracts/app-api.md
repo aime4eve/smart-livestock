@@ -488,6 +488,9 @@ Error 403:
 { "code": "QUOTA_EXCEEDED", "message": "围栏数量已达上限", "requestId": "req-022" }
 ```
 
+> 2026-11-11 增补：可选字段 `generationMetadata`（JSON 对象）——记录围栏的生成来源（如「从设备轨迹生成」的设备 ID 列表、时间范围、包络方式、点数统计），创建时写入、随详情/列表回显；PUT/force 编辑路径不解析该键，既有元数据在编辑后保留。非 Map 值被忽略（不报错）。示例：
+> `{ "method": "DEVICE_TRACK", "deviceIds": [11, 12], "startTime": "2026-10-28T00:00:00+08:00", "endTime": "2026-11-11T00:00:00+08:00", "rawPointCount": 7802, "usedPoints": 3705, "outlierTrimmed": 195, "hullMethod": "concave" }`
+
 #### GET /farms/{farmId}/fences/{fenceId}
 
 围栏详情（含坐标点）。
@@ -576,6 +579,51 @@ Response 200:
 ```
 
 > 权限: `OWNER` / `B2B_ADMIN`（与创建围栏一致）。`previewPoints` 为前 8 个点；`pointCount` 是清洗后总点数，而 `trackPoints` 超过 5000 时按均匀步进抽稀传输（首尾保留，围栏包络在 ≥25m 边界尺度下不受影响）。清洗后不足 2 点 → 400 `error.gpxNoTrack`；超 20000 点 → 400 `error.gpxTooManyPoints`；GPX 解析失败/XXE → 400 `error.gpxParseFailed`；XLSX 解析失败 → 400 `error.trackFileParseFailed`；XLSX 无坐标 → 400 `error.trackNoPoints`。相关防御：POST/PUT /fences 顶点 <3 → 400 `error.fenceTooFewVertices`；JTS 缓冲计算拓扑异常 → 400 `error.fenceInvalidGeometry`（原 500）。`metadataWarning` 为展示用文本，不参与落库。
+
+#### GET /farms/{farmId}/fences/track-draft/candidates
+
+「从设备轨迹生成」向导第 1 步的候选追踪器清单（2026-11-11 新增）。返回本牧场当前有活动安装（`removed_at IS NULL`）的追踪器设备，附近 `days` 天轨迹点数预估与最近定位时间，以及本牧场围栏配额（前端预检用，避免用户走完向导才在保存时 403）。
+
+```
+Request: GET /farms/1/fences/track-draft/candidates?days=30   （days 1–30，默认 30）
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-060",
+  "data": {
+    "devices": [
+      { "deviceId": 11, "name": "DEV-GPS-011", "earTag": "SL-2024-011",
+        "lastFixAt": "2026-11-11T12:01:06Z", "pointCount": 8509 }
+    ],
+    "fenceQuota": { "current": 3, "limit": 20 }
+  }
+}
+```
+
+> 权限: `OWNER` / `B2B_ADMIN`。列表按 `lastFixAt` 倒序；`fenceQuota.limit` 为 `null` 表示不限（enterprise/无 gate 配置）。`name` 取设备 `device_code`，`earTag` 取牲畜 `livestock_code`。
+
+#### POST /farms/{farmId}/fences/track-draft/source
+
+「从设备轨迹生成」向导第 3 步的轨迹来源拉取（2026-11-11 新增）。多设备历史轨迹合并 + 抽稀传输；**无状态、不落库、不做包络计算**——包络管线在客户端运行，围栏本体仍通过 POST /fences 创建（可携带 `generationMetadata`）。
+
+```
+Request:
+{ "deviceIds": [11, 12], "startTime": "2026-10-28T00:00:00+08:00", "endTime": "2026-11-11T00:00:00+08:00" }
+
+Response 200:
+{
+  "code": "OK", "message": "success", "requestId": "req-061",
+  "data": {
+    "points": [ { "lat": 28.2283681, "lng": 112.9380465, "accuracyM": null, "recordedAt": "2026-10-28T12:10:59Z" } ],
+    "totalRaw": 7802,
+    "perDevice": [ { "deviceId": 11, "raw": 3901 }, { "deviceId": 12, "raw": 3901 } ],
+    "truncated": true,
+    "sampledStride": 2
+  }
+}
+```
+
+> 权限: `OWNER` / `B2B_ADMIN`。校验（全部 400 `VALIDATION_ERROR`）：`deviceIds` 1–10 台（`error.trackDraftTooManyDevices`）；每台须归属本牧场且为 TRACKER 类型（`error.trackDraftDeviceNotFound`）；时间跨度 ≤30 天且起止有效（`error.trackDraftRangeTooLong`）。取数：先按设备 count 求 `totalRaw`，`stride = ceil(totalRaw/5000)`（≥1）后按 ROW_NUMBER 每 stride 取 1 采样，多设备合并按 `recordedAt` 升序；返回上限 5000 点。`accuracyM` 为 `null` 表示设备未上报精度（前端按可信处理）。`source` 不排除任何采集来源（与轨迹回放一致）。
 
 ### 3.3 告警 — 7 端点
 

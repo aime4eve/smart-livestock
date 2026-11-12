@@ -1,5 +1,7 @@
 package com.smartlivestock.ranch.application;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartlivestock.ranch.application.command.CreateFenceCommand;
 import com.smartlivestock.ranch.application.command.UpdateFenceCommand;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
@@ -17,6 +19,7 @@ import com.smartlivestock.ranch.domain.service.FenceLivestockCounter;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.TopologyException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
@@ -24,10 +27,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FenceApplicationService {
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final FenceRepository fenceRepository;
     private final AlertRepository alertRepository;
@@ -44,6 +51,7 @@ public class FenceApplicationService {
         if (command.fenceType() != null) {
             fence.setFenceType(command.fenceType());
         }
+        fence.setGenerationMetadata(serializeGenerationMetadata(command.generationMetadata()));
         computeBufferPolygon(fence);
         Fence saved = fenceRepository.save(fence);
         signalRevisionService.bumpStatus(
@@ -184,6 +192,22 @@ public class FenceApplicationService {
     private static void validateVertices(List<GpsCoordinate> vertices) {
         if (vertices == null || vertices.size() < 3) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.fenceTooFewVertices");
+        }
+    }
+
+    /**
+     * Serialize generation metadata for storage. A serialization failure
+     * must never fail fence creation: degrade to null and log a warning.
+     */
+    private static String serializeGenerationMetadata(Map<String, Object> metadata) {
+        if (metadata == null || metadata.isEmpty()) {
+            return null;
+        }
+        try {
+            return OBJECT_MAPPER.writeValueAsString(metadata);
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to serialize fence generation metadata, storing null: {}", e.getMessage());
+            return null;
         }
     }
 }

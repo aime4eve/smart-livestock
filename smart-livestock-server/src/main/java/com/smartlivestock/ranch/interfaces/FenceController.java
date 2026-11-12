@@ -1,11 +1,14 @@
 package com.smartlivestock.ranch.interfaces;
 
 import com.smartlivestock.ranch.application.FenceApplicationService;
+import com.smartlivestock.ranch.application.FenceTrackDraftService;
 import com.smartlivestock.ranch.application.FenceTrackParseService;
 import com.smartlivestock.ranch.application.command.CreateFenceCommand;
 import com.smartlivestock.ranch.application.command.UpdateFenceCommand;
 import com.smartlivestock.ranch.application.dto.FenceDto;
 import com.smartlivestock.ranch.application.dto.FenceTrackParseResultDto;
+import com.smartlivestock.ranch.application.dto.TrackDraftCandidatesDto;
+import com.smartlivestock.ranch.application.dto.TrackDraftSourceDto;
 import com.smartlivestock.ranch.domain.model.GpsCoordinate;
 import com.smartlivestock.platform.web.QuotaCheck;
 import com.smartlivestock.shared.common.ApiException;
@@ -14,6 +17,8 @@ import com.smartlivestock.shared.common.ErrorCode;
 import com.smartlivestock.ranch.domain.port.IdentityQueryPort;
 import com.smartlivestock.shared.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +27,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 
@@ -30,8 +38,11 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class FenceController {
 
+    private static final Logger log = LoggerFactory.getLogger(FenceController.class);
+
     private final FenceApplicationService fenceApplicationService;
     private final FenceTrackParseService fenceTrackParseService;
+    private final FenceTrackDraftService fenceTrackDraftService;
     private final IdentityQueryPort identityQueryPort;
 
     private void verifyFarmOwnership(Long farmId) {
@@ -71,7 +82,8 @@ public class FenceController {
                 (String) body.get("name"),
                 parseVertices(body.get("vertices")),
                 (String) body.get("color"),
-                (String) body.get("fenceType")
+                (String) body.get("fenceType"),
+                parseGenerationMetadata(body.get("generationMetadata"))
         );
         FenceDto fence = fenceApplicationService.createFence(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(fence));
@@ -89,6 +101,41 @@ public class FenceController {
             @RequestParam("file") MultipartFile file) {
         verifyFarmOwnership(farmId);
         return ResponseEntity.ok(ApiResponse.ok(fenceTrackParseService.parse(file)));
+    }
+
+    /**
+     * Fence track-draft source (spec §4.1): merged stride-sampled GPS points
+     * of the selected trackers. Stateless preview — the fence itself is still
+     * created via POST /fences. Validation failures surface as 400
+     * VALIDATION_ERROR with error.trackDraft* message keys.
+     */
+    @PostMapping("/track-draft/source")
+    @PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
+    public ResponseEntity<ApiResponse<TrackDraftSourceDto>> trackDraftSource(
+            @PathVariable Long farmId,
+            @RequestBody Map<String, Object> body) {
+        verifyFarmOwnership(farmId);
+        List<Long> deviceIds = parseDeviceIds(body.get("deviceIds"));
+        Instant from = parseTrackDraftInstant(body.get("startTime"));
+        Instant to = parseTrackDraftInstant(body.get("endTime"));
+        return ResponseEntity.ok(ApiResponse.ok(
+                fenceTrackDraftService.source(farmId, deviceIds, from, to)));
+    }
+
+    /**
+     * Fence track-draft candidates (spec §4.2): this farm's trackers with an
+     * active installation, plus the fence quota pre-check data.
+     */
+    @GetMapping("/track-draft/candidates")
+    @PreAuthorize("hasAnyRole('OWNER', 'B2B_ADMIN')")
+    public ResponseEntity<ApiResponse<TrackDraftCandidatesDto>> trackDraftCandidates(
+            @PathVariable Long farmId,
+            @RequestParam(name = "days", defaultValue = "30") int days) {
+        verifyFarmOwnership(farmId);
+        if (days < 1 || days > 30) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.trackDraftRangeTooLong");
+        }
+        return ResponseEntity.ok(ApiResponse.ok(fenceTrackDraftService.candidates(farmId, days)));
     }
 
     @GetMapping("/{fenceId}")
@@ -162,6 +209,63 @@ public class FenceController {
         verifyFarmOwnership(farmId);
         int deletedAlerts = fenceApplicationService.deleteFence(fenceId, deleteAlerts);
         return ResponseEntity.ok(ApiResponse.ok(Map.of("deletedAlerts", deletedAlerts)));
+    }
+
+    /**
+     * Optional creation-time metadata. Parsed leniently: a non-Map value is
+     * ignored (debug log) rather than rejected, keeping create tolerant.
+     * PUT /fences/{id} and /force deliberately do NOT parse this key so
+     * edits preserve the stored metadata.
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> parseGenerationMetadata(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Map) {
+            return (Map<String, Object>) value;
+        }
+        log.debug("Ignoring non-Map generationMetadata of type {}", value.getClass().getSimpleName());
+        return null;
+    }
+
+    /**
+     * Track-draft deviceIds: must be a JSON array of numbers; anything else
+     * (missing key, wrong shape, non-numeric entry) is a 400.
+     */
+    private List<Long> parseDeviceIds(Object value) {
+        if (!(value instanceof List<?> list)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.trackDraftTooManyDevices");
+        }
+        List<Long> ids = new java.util.ArrayList<>(list.size());
+        for (Object item : list) {
+            if (!(item instanceof Number n)) {
+                throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.trackDraftTooManyDevices");
+            }
+            ids.add(n.longValue());
+        }
+        return ids;
+    }
+
+    /**
+     * Track-draft timestamps arrive as ISO-8601 strings with offset
+     * (e.g. "2026-10-29T00:00:00+08:00"); a bare UTC "Z" form is accepted
+     * too. Unparseable input is a client error, not a 500.
+     */
+    private static Instant parseTrackDraftInstant(Object value) {
+        if (!(value instanceof String s) || s.isBlank()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.trackDraftRangeTooLong");
+        }
+        try {
+            return OffsetDateTime.parse(s.trim()).toInstant();
+        } catch (DateTimeParseException ignored) {
+            // fall through to the Instant form
+        }
+        try {
+            return Instant.parse(s.trim());
+        } catch (DateTimeParseException e) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.trackDraftRangeTooLong");
+        }
     }
 
     @SuppressWarnings("unchecked")

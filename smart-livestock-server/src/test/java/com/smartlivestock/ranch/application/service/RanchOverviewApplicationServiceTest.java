@@ -131,6 +131,44 @@ class RanchOverviewApplicationServiceTest {
     }
 
     @Test
+    @DisplayName("should echo generationMetadata on FenceData when present, null otherwise")
+    void fenceGenerationMetadataEcho() {
+        setupDefaultMocks();
+        Fence withMeta = new Fence(1L, "轨迹围栏", List.of(
+                new GpsCoordinate("28.246", "112.852"),
+                new GpsCoordinate("28.247", "112.853"),
+                new GpsCoordinate("28.245", "112.854")
+        ), "#FF4C9A5F");
+        withMeta.setId(10L);
+        withMeta.setGenerationMetadata(
+                "{\"method\":\"DEVICE_TRACK\",\"deviceIds\":[101,102],\"usedPoints\":7412}");
+        Fence withoutMeta = new Fence(1L, "手绘围栏", List.of(
+                new GpsCoordinate("28.256", "112.862"),
+                new GpsCoordinate("28.257", "112.863"),
+                new GpsCoordinate("28.255", "112.864")
+        ), "#FF4C9A5F");
+        withoutMeta.setId(11L);
+
+        when(fenceRepository.findByFarmId(1L)).thenReturn(List.of(withMeta, withoutMeta));
+        when(fenceZoneRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
+        when(livestockRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
+        when(alertRepository.findByFarmId(1L)).thenReturn(Collections.emptyList());
+        when(healthQueryPort.findHealthByFarmId(1L)).thenReturn(Collections.emptyList());
+        when(healthQueryPort.getHealthOverview(1L)).thenReturn(
+                new HealthOverview(0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0, 0));
+
+        RanchOverviewResponse response = service.getOverview(1L, 1L, 1L);
+
+        assertThat(response.fences()).hasSize(2);
+        var meta = response.fences().get(0).generationMetadata();
+        assertThat(meta).isNotNull();
+        assertThat(meta.get("method")).isEqualTo("DEVICE_TRACK");
+        assertThat(meta.get("deviceIds")).isEqualTo(List.of(101, 102));
+        assertThat(meta.get("usedPoints")).isEqualTo(7412);
+        assertThat(response.fences().get(1).generationMetadata()).isNull();
+    }
+
+    @Test
     @DisplayName("should count livestock whose current GPS position is inside each fence")
     void fenceLivestockCount() {
         setupDefaultMocks();

@@ -50,6 +50,12 @@ public class FenceJpaEntity {
     @ColumnTransformer(write = "?::jsonb")
     private String bufferPolygon;
 
+    // Generation metadata follows the same jsonb pattern as vertices
+    // (CI guard §5b.4: columnDefinition must stay "jsonb").
+    @Column(name = "generation_metadata", columnDefinition = "jsonb")
+    @ColumnTransformer(write = "?::jsonb")
+    private String generationMetadata;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -97,6 +103,9 @@ public class FenceJpaEntity {
 
     public String getBufferPolygon() { return bufferPolygon; }
     public void setBufferPolygon(String bufferPolygon) { this.bufferPolygon = bufferPolygon; }
+
+    public String getGenerationMetadata() { return generationMetadata; }
+    public void setGenerationMetadata(String generationMetadata) { this.generationMetadata = generationMetadata; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

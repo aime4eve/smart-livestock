@@ -6481,5 +6481,230 @@
   "alertEstrusFeedbackDoneDuplicate": "An identical verdict was already submitted",
   "@alertEstrusFeedbackDoneDuplicate": {},
   "alertEstrusFeedbackFailed": "Failed to submit feedback. Please try again later.",
-  "@alertEstrusFeedbackFailed": {}
+  "@alertEstrusFeedbackFailed": {},
+  "fenceTrackDraftWizardTitle": "Generate from Device Track",
+  "@fenceTrackDraftWizardTitle": {},
+  "fenceTrackDraftStepDevice": "Select devices",
+  "@fenceTrackDraftStepDevice": {},
+  "fenceTrackDraftStepRange": "Time Range",
+  "@fenceTrackDraftStepRange": {},
+  "fenceTrackDraftStepPreview": "Preview",
+  "@fenceTrackDraftStepPreview": {},
+  "fenceTrackDraftNextRange": "Next: Time Range",
+  "@fenceTrackDraftNextRange": {},
+  "fenceTrackDraftPrevStep": "Back",
+  "@fenceTrackDraftPrevStep": {},
+  "fenceTrackDraftSelectedSummary": "{n} selected · est. {m} merged points",
+  "@fenceTrackDraftSelectedSummary": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "m": {
+        "type": "String"
+      }
+    }
+  },
+  "fenceTrackDraftStaleFix": "⚠ Last fix {n}d ago",
+  "@fenceTrackDraftStaleFix": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTrackDraftFixMinutesAgo": "fix {n} min ago",
+  "@fenceTrackDraftFixMinutesAgo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTrackDraftFixHoursAgo": "fix {n} h ago",
+  "@fenceTrackDraftFixHoursAgo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTrackDraftFixDaysAgo": "fix {n} d ago",
+  "@fenceTrackDraftFixDaysAgo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTrackDraftNeverLocated": "no fix recorded",
+  "@fenceTrackDraftNeverLocated": {},
+  "fenceTrackDraftEarTag": "Ear tag",
+  "@fenceTrackDraftEarTag": {},
+  "fenceTrackDraftPoints30d": "30-day points",
+  "@fenceTrackDraftPoints30d": {},
+  "fenceTrackDraftNoDevices": "No active tracker devices in this farm",
+  "@fenceTrackDraftNoDevices": {},
+  "fenceTrackDraftSameLotHint": "Pick trackers from the same grazing session; merging sessions may wrap two separate areas into one fence.",
+  "@fenceTrackDraftSameLotHint": {},
+  "fenceTrackDraftQuotaExceeded": "Fence quota reached. Upgrade the plan or remove idle fences.",
+  "@fenceTrackDraftQuotaExceeded": {},
+  "fenceTrackDraftRangeChipDays": "Last {n} days",
+  "@fenceTrackDraftRangeChipDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTrackDraftRangeStart": "Start",
+  "@fenceTrackDraftRangeStart": {},
+  "fenceTrackDraftRangeEnd": "End",
+  "@fenceTrackDraftRangeEnd": {},
+  "fenceTrackDraftRangeHint": "Range is capped at 30 days. Longer ranges scatter the activity area — prefer the latest full grazing cycle.",
+  "@fenceTrackDraftRangeHint": {},
+  "fenceTrackDraftRangeTooLong": "Range too long — shorten it to within 30 days",
+  "@fenceTrackDraftRangeTooLong": {},
+  "fenceTrackDraftSelectedDevicesTitle": "Selected devices ({n})",
+  "@fenceTrackDraftSelectedDevicesTitle": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTrackDraftMetaDevices": "Devices",
+  "@fenceTrackDraftMetaDevices": {},
+  "fenceTrackDraftMetaEstimate": "Estimate",
+  "@fenceTrackDraftMetaEstimate": {},
+  "fenceTrackDraftMetaTimeRange": "Period",
+  "@fenceTrackDraftMetaTimeRange": {},
+  "fenceTrackDraftEstimateDesc": "~{points} points in {days} days; server samples down to ≤5,000 for transfer",
+  "@fenceTrackDraftEstimateDesc": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "points": {
+        "type": "String"
+      }
+    }
+  },
+  "fenceTrackDraftGenerate": "Generate Preview",
+  "@fenceTrackDraftGenerate": {},
+  "fenceTrackDraftGenerating": "Generating preview…",
+  "@fenceTrackDraftGenerating": {},
+  "fenceTrackDraftConfirm": "Load into Fence Form",
+  "@fenceTrackDraftConfirm": {},
+  "fenceTrackDraftAdjust": "Adjust conditions",
+  "@fenceTrackDraftAdjust": {},
+  "fenceTrackDraftBackToAdjust": "Back to Criteria",
+  "@fenceTrackDraftBackToAdjust": {},
+  "fenceTrackDraftStaleNotice": "Conditions changed — please regenerate",
+  "@fenceTrackDraftStaleNotice": {},
+  "fenceTrackDraftStatValid": "Valid points",
+  "@fenceTrackDraftStatValid": {},
+  "fenceTrackDraftStatTrimmed": "Roaming trimmed",
+  "@fenceTrackDraftStatTrimmed": {},
+  "fenceTrackDraftStatVertices": "Vertices",
+  "@fenceTrackDraftStatVertices": {},
+  "fenceTrackDraftStatArea": "Area (ha)",
+  "@fenceTrackDraftStatArea": {},
+  "fenceTrackDraftStatHull": "Hull method",
+  "@fenceTrackDraftStatHull": {},
+  "fenceTrackDraftStatRaw": "Raw points",
+  "@fenceTrackDraftStatRaw": {},
+  "fenceTrackDraftStatAccuracyDropped": "Accuracy filtered",
+  "@fenceTrackDraftStatAccuracyDropped": {},
+  "fenceTrackDraftStatRoaming": "Roaming trimmed",
+  "@fenceTrackDraftStatRoaming": {},
+  "fenceTrackDraftStatRemaining": "Remaining valid",
+  "@fenceTrackDraftStatRemaining": {},
+  "fenceTrackDraftHullConcave": "Concave",
+  "@fenceTrackDraftHullConcave": {},
+  "fenceTrackDraftHullConvex": "Convex",
+  "@fenceTrackDraftHullConvex": {},
+  "fenceTrackHullConcaveSimplified": "Concise hull",
+  "@fenceTrackHullConcaveSimplified": {},
+  "fenceTrackHullConcave": "Detailed hull",
+  "@fenceTrackHullConcave": {},
+  "fenceTrackHullConvex": "Convex hull",
+  "@fenceTrackHullConvex": {},
+  "fenceTrackDraftAreaSqmFallback": "~{n} ㎡",
+  "@fenceTrackDraftAreaSqmFallback": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTrackDraftLegendEnvelope": "Draft envelope (unconfirmed)",
+  "@fenceTrackDraftLegendEnvelope": {},
+  "fenceTrackDraftLegendTrackDots": "Valid track points",
+  "@fenceTrackDraftLegendTrackDots": {},
+  "fenceTrackDraftLegendTrimmed": "Trimmed roaming points ×{n}",
+  "@fenceTrackDraftLegendTrimmed": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTrackDraftPreviewSourceTitle": "Source (saved with the fence)",
+  "@fenceTrackDraftPreviewSourceTitle": {},
+  "fenceTrackDraftSelectedOfTotal": "{n}/{total} selected",
+  "@fenceTrackDraftSelectedOfTotal": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fenceTrackDraftFailNoData": "No track data in this period",
+  "@fenceTrackDraftFailNoData": {},
+  "fenceTrackDraftFailNoDataDesc": "The selected devices reported no track points in this period. Extend the range or add devices and retry.",
+  "@fenceTrackDraftFailNoDataDesc": {},
+  "fenceTrackDraftFailTooFew": "Too few valid track points (need ≥3 points and an area ≥25 ㎡)",
+  "@fenceTrackDraftFailTooFew": {},
+  "fenceTrackDraftFailTooFewDesc": "Too few valid points remain after cleaning to enclose an area.",
+  "@fenceTrackDraftFailTooFewDesc": {},
+  "fenceTrackDraftFailDegenerate": "Activity area is nearly a line and cannot form a fence",
+  "@fenceTrackDraftFailDegenerate": {},
+  "fenceTrackDraftFailDegenerateDesc": "The track is nearly collinear and the enclosed area is too small.",
+  "@fenceTrackDraftFailDegenerateDesc": {},
+  "fenceTrackDraftFailSuggests": "Suggestions: ① extend the time range ② add trackers from the same session ③ check for long-offline devices",
+  "@fenceTrackDraftFailSuggests": {},
+  "fenceTrackDraftEntryTitle": "From device tracks",
+  "@fenceTrackDraftEntryTitle": {},
+  "fenceTrackDraftEntryDesc": "Pick trackers and a time range; the draft is drawn from the animals' actual grazing range",
+  "@fenceTrackDraftEntryDesc": {},
+  "fenceTrackDraftNewTag": "NEW",
+  "@fenceTrackDraftNewTag": {},
+  "fenceTrackDraftOffline": "You are offline. Generating a fence draft requires a network connection.",
+  "@fenceTrackDraftOffline": {},
+  "fenceTrackDraftSuggestedName": "Track fence {date}",
+  "@fenceTrackDraftSuggestedName": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "fenceTrackDraftSourceCardTitle": "Generation source",
+  "@fenceTrackDraftSourceCardTitle": {},
+  "fenceTrackDraftSourceMethod": "Method",
+  "@fenceTrackDraftSourceMethod": {},
+  "fenceTrackDraftMethodDeviceTrack": "Generated from device tracks",
+  "@fenceTrackDraftMethodDeviceTrack": {},
+  "fenceTrackDraftSourceDeviceCount": "{n} devices",
+  "@fenceTrackDraftSourceDeviceCount": {
+    "placeholders": {
+      "n": {"type": "int"}
+    }
+  },
+  "fenceTrackDraftSourceTimeRange": "Time range",
+  "@fenceTrackDraftSourceTimeRange": {},
+  "fenceTrackDraftSourceGeneratedAt": "Generated at",
+  "@fenceTrackDraftSourceGeneratedAt": {}
 }

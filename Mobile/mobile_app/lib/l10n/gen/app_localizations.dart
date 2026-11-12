@@ -14522,6 +14522,432 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'反馈提交失败，请稍后重试'**
   String get alertEstrusFeedbackFailed;
+
+  /// No description provided for @fenceTrackDraftWizardTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'从设备轨迹生成'**
+  String get fenceTrackDraftWizardTitle;
+
+  /// No description provided for @fenceTrackDraftStepDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'选设备'**
+  String get fenceTrackDraftStepDevice;
+
+  /// No description provided for @fenceTrackDraftStepRange.
+  ///
+  /// In zh, this message translates to:
+  /// **'选时间'**
+  String get fenceTrackDraftStepRange;
+
+  /// No description provided for @fenceTrackDraftStepPreview.
+  ///
+  /// In zh, this message translates to:
+  /// **'预览'**
+  String get fenceTrackDraftStepPreview;
+
+  /// No description provided for @fenceTrackDraftNextRange.
+  ///
+  /// In zh, this message translates to:
+  /// **'下一步：选时间'**
+  String get fenceTrackDraftNextRange;
+
+  /// No description provided for @fenceTrackDraftPrevStep.
+  ///
+  /// In zh, this message translates to:
+  /// **'上一步'**
+  String get fenceTrackDraftPrevStep;
+
+  /// No description provided for @fenceTrackDraftSelectedSummary.
+  ///
+  /// In zh, this message translates to:
+  /// **'已选 {n} 台 · 预估合并 {m} 点'**
+  String fenceTrackDraftSelectedSummary(int n, String m);
+
+  /// No description provided for @fenceTrackDraftStaleFix.
+  ///
+  /// In zh, this message translates to:
+  /// **'⚠ {n} 天前定位'**
+  String fenceTrackDraftStaleFix(int n);
+
+  /// No description provided for @fenceTrackDraftFixMinutesAgo.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 分钟前定位'**
+  String fenceTrackDraftFixMinutesAgo(int n);
+
+  /// No description provided for @fenceTrackDraftFixHoursAgo.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 小时前定位'**
+  String fenceTrackDraftFixHoursAgo(int n);
+
+  /// No description provided for @fenceTrackDraftFixDaysAgo.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 天前定位'**
+  String fenceTrackDraftFixDaysAgo(int n);
+
+  /// No description provided for @fenceTrackDraftNeverLocated.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无定位记录'**
+  String get fenceTrackDraftNeverLocated;
+
+  /// No description provided for @fenceTrackDraftEarTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'耳标'**
+  String get fenceTrackDraftEarTag;
+
+  /// No description provided for @fenceTrackDraftPoints30d.
+  ///
+  /// In zh, this message translates to:
+  /// **'30 天点数'**
+  String get fenceTrackDraftPoints30d;
+
+  /// No description provided for @fenceTrackDraftNoDevices.
+  ///
+  /// In zh, this message translates to:
+  /// **'本牧场暂无在用的追踪器设备'**
+  String get fenceTrackDraftNoDevices;
+
+  /// No description provided for @fenceTrackDraftSameLotHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'建议选同一放牧场次的设备；跨场次合并会把两个区域包进同一个围栏。'**
+  String get fenceTrackDraftSameLotHint;
+
+  /// No description provided for @fenceTrackDraftQuotaExceeded.
+  ///
+  /// In zh, this message translates to:
+  /// **'围栏数量已达套餐上限，请升级套餐或删除闲置围栏'**
+  String get fenceTrackDraftQuotaExceeded;
+
+  /// No description provided for @fenceTrackDraftRangeChipDays.
+  ///
+  /// In zh, this message translates to:
+  /// **'近 {n} 天'**
+  String fenceTrackDraftRangeChipDays(int n);
+
+  /// No description provided for @fenceTrackDraftRangeStart.
+  ///
+  /// In zh, this message translates to:
+  /// **'开始'**
+  String get fenceTrackDraftRangeStart;
+
+  /// No description provided for @fenceTrackDraftRangeEnd.
+  ///
+  /// In zh, this message translates to:
+  /// **'结束'**
+  String get fenceTrackDraftRangeEnd;
+
+  /// No description provided for @fenceTrackDraftRangeHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'时间范围最长 30 天。时间越长活动范围越发散，建议用最近一次完整放牧周期。'**
+  String get fenceTrackDraftRangeHint;
+
+  /// No description provided for @fenceTrackDraftRangeTooLong.
+  ///
+  /// In zh, this message translates to:
+  /// **'范围超限，请缩短至 30 天内'**
+  String get fenceTrackDraftRangeTooLong;
+
+  /// No description provided for @fenceTrackDraftSelectedDevicesTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'已选设备（{n}）'**
+  String fenceTrackDraftSelectedDevicesTitle(int n);
+
+  /// No description provided for @fenceTrackDraftMetaDevices.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备'**
+  String get fenceTrackDraftMetaDevices;
+
+  /// No description provided for @fenceTrackDraftMetaEstimate.
+  ///
+  /// In zh, this message translates to:
+  /// **'预估'**
+  String get fenceTrackDraftMetaEstimate;
+
+  /// No description provided for @fenceTrackDraftMetaTimeRange.
+  ///
+  /// In zh, this message translates to:
+  /// **'时间段'**
+  String get fenceTrackDraftMetaTimeRange;
+
+  /// No description provided for @fenceTrackDraftEstimateDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'{days} 天约 {points} 点，服务端抽稀到 ≤5,000 点传输'**
+  String fenceTrackDraftEstimateDesc(int days, String points);
+
+  /// No description provided for @fenceTrackDraftGenerate.
+  ///
+  /// In zh, this message translates to:
+  /// **'生成预览'**
+  String get fenceTrackDraftGenerate;
+
+  /// No description provided for @fenceTrackDraftGenerating.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在生成预览…'**
+  String get fenceTrackDraftGenerating;
+
+  /// No description provided for @fenceTrackDraftConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'载入围栏表单'**
+  String get fenceTrackDraftConfirm;
+
+  /// No description provided for @fenceTrackDraftAdjust.
+  ///
+  /// In zh, this message translates to:
+  /// **'调整条件'**
+  String get fenceTrackDraftAdjust;
+
+  /// No description provided for @fenceTrackDraftBackToAdjust.
+  ///
+  /// In zh, this message translates to:
+  /// **'返回调整条件'**
+  String get fenceTrackDraftBackToAdjust;
+
+  /// No description provided for @fenceTrackDraftStaleNotice.
+  ///
+  /// In zh, this message translates to:
+  /// **'条件已变更，请重新生成'**
+  String get fenceTrackDraftStaleNotice;
+
+  /// No description provided for @fenceTrackDraftStatValid.
+  ///
+  /// In zh, this message translates to:
+  /// **'有效点'**
+  String get fenceTrackDraftStatValid;
+
+  /// No description provided for @fenceTrackDraftStatTrimmed.
+  ///
+  /// In zh, this message translates to:
+  /// **'剔除漫游'**
+  String get fenceTrackDraftStatTrimmed;
+
+  /// No description provided for @fenceTrackDraftStatVertices.
+  ///
+  /// In zh, this message translates to:
+  /// **'包络顶点'**
+  String get fenceTrackDraftStatVertices;
+
+  /// No description provided for @fenceTrackDraftStatArea.
+  ///
+  /// In zh, this message translates to:
+  /// **'面积(亩)'**
+  String get fenceTrackDraftStatArea;
+
+  /// No description provided for @fenceTrackDraftStatHull.
+  ///
+  /// In zh, this message translates to:
+  /// **'生成方式'**
+  String get fenceTrackDraftStatHull;
+
+  /// No description provided for @fenceTrackDraftStatRaw.
+  ///
+  /// In zh, this message translates to:
+  /// **'原始点'**
+  String get fenceTrackDraftStatRaw;
+
+  /// No description provided for @fenceTrackDraftStatAccuracyDropped.
+  ///
+  /// In zh, this message translates to:
+  /// **'精度超限剔除'**
+  String get fenceTrackDraftStatAccuracyDropped;
+
+  /// No description provided for @fenceTrackDraftStatRoaming.
+  ///
+  /// In zh, this message translates to:
+  /// **'漫游剔除'**
+  String get fenceTrackDraftStatRoaming;
+
+  /// No description provided for @fenceTrackDraftStatRemaining.
+  ///
+  /// In zh, this message translates to:
+  /// **'剩余有效'**
+  String get fenceTrackDraftStatRemaining;
+
+  /// No description provided for @fenceTrackDraftHullConcave.
+  ///
+  /// In zh, this message translates to:
+  /// **'凹包'**
+  String get fenceTrackDraftHullConcave;
+
+  /// No description provided for @fenceTrackDraftHullConvex.
+  ///
+  /// In zh, this message translates to:
+  /// **'凸包'**
+  String get fenceTrackDraftHullConvex;
+
+  /// No description provided for @fenceTrackHullConcaveSimplified.
+  ///
+  /// In zh, this message translates to:
+  /// **'凹包·简化'**
+  String get fenceTrackHullConcaveSimplified;
+
+  /// No description provided for @fenceTrackHullConcave.
+  ///
+  /// In zh, this message translates to:
+  /// **'凹包·精细'**
+  String get fenceTrackHullConcave;
+
+  /// No description provided for @fenceTrackHullConvex.
+  ///
+  /// In zh, this message translates to:
+  /// **'凸包'**
+  String get fenceTrackHullConvex;
+
+  /// No description provided for @fenceTrackDraftAreaSqmFallback.
+  ///
+  /// In zh, this message translates to:
+  /// **'约 {n} ㎡'**
+  String fenceTrackDraftAreaSqmFallback(int n);
+
+  /// No description provided for @fenceTrackDraftLegendEnvelope.
+  ///
+  /// In zh, this message translates to:
+  /// **'包络草图（未确认）'**
+  String get fenceTrackDraftLegendEnvelope;
+
+  /// No description provided for @fenceTrackDraftLegendTrackDots.
+  ///
+  /// In zh, this message translates to:
+  /// **'有效轨迹点'**
+  String get fenceTrackDraftLegendTrackDots;
+
+  /// No description provided for @fenceTrackDraftLegendTrimmed.
+  ///
+  /// In zh, this message translates to:
+  /// **'已剔除漫游点 ×{n}'**
+  String fenceTrackDraftLegendTrimmed(int n);
+
+  /// No description provided for @fenceTrackDraftPreviewSourceTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'生成来源（将随围栏保存）'**
+  String get fenceTrackDraftPreviewSourceTitle;
+
+  /// No description provided for @fenceTrackDraftSelectedOfTotal.
+  ///
+  /// In zh, this message translates to:
+  /// **'已选 {n}/{total}'**
+  String fenceTrackDraftSelectedOfTotal(int n, int total);
+
+  /// No description provided for @fenceTrackDraftFailNoData.
+  ///
+  /// In zh, this message translates to:
+  /// **'该时间段无轨迹数据'**
+  String get fenceTrackDraftFailNoData;
+
+  /// No description provided for @fenceTrackDraftFailNoDataDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'已选设备在该时间段内未上报轨迹点，可延长时间范围或增选设备后重试。'**
+  String get fenceTrackDraftFailNoDataDesc;
+
+  /// No description provided for @fenceTrackDraftFailTooFew.
+  ///
+  /// In zh, this message translates to:
+  /// **'有效轨迹点不足（需 ≥3 个且面积 ≥25㎡）'**
+  String get fenceTrackDraftFailTooFew;
+
+  /// No description provided for @fenceTrackDraftFailTooFewDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'清洗后剩余有效点不足以围合出有效区域，无法生成围栏草图。'**
+  String get fenceTrackDraftFailTooFewDesc;
+
+  /// No description provided for @fenceTrackDraftFailDegenerate.
+  ///
+  /// In zh, this message translates to:
+  /// **'活动范围近似一条线，无法围合成围栏'**
+  String get fenceTrackDraftFailDegenerate;
+
+  /// No description provided for @fenceTrackDraftFailDegenerateDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'轨迹近似一条直线，围合面积过小，无法生成围栏草图。'**
+  String get fenceTrackDraftFailDegenerateDesc;
+
+  /// No description provided for @fenceTrackDraftFailSuggests.
+  ///
+  /// In zh, this message translates to:
+  /// **'建议：① 延长时间范围 ② 增选同场次追踪器 ③ 检查设备是否长期离线'**
+  String get fenceTrackDraftFailSuggests;
+
+  /// No description provided for @fenceTrackDraftEntryTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'从设备轨迹生成'**
+  String get fenceTrackDraftEntryTitle;
+
+  /// No description provided for @fenceTrackDraftEntryDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'选追踪器 + 时间段，按动物实际活动范围自动画草图'**
+  String get fenceTrackDraftEntryDesc;
+
+  /// No description provided for @fenceTrackDraftNewTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'NEW'**
+  String get fenceTrackDraftNewTag;
+
+  /// No description provided for @fenceTrackDraftOffline.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前离线，生成围栏草图需要网络连接'**
+  String get fenceTrackDraftOffline;
+
+  /// No description provided for @fenceTrackDraftSuggestedName.
+  ///
+  /// In zh, this message translates to:
+  /// **'轨迹围栏 {date}'**
+  String fenceTrackDraftSuggestedName(String date);
+
+  /// No description provided for @fenceTrackDraftSourceCardTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'生成来源'**
+  String get fenceTrackDraftSourceCardTitle;
+
+  /// No description provided for @fenceTrackDraftSourceMethod.
+  ///
+  /// In zh, this message translates to:
+  /// **'方式'**
+  String get fenceTrackDraftSourceMethod;
+
+  /// No description provided for @fenceTrackDraftMethodDeviceTrack.
+  ///
+  /// In zh, this message translates to:
+  /// **'从设备轨迹生成'**
+  String get fenceTrackDraftMethodDeviceTrack;
+
+  /// No description provided for @fenceTrackDraftSourceDeviceCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'{n} 台设备'**
+  String fenceTrackDraftSourceDeviceCount(int n);
+
+  /// No description provided for @fenceTrackDraftSourceTimeRange.
+  ///
+  /// In zh, this message translates to:
+  /// **'时间范围'**
+  String get fenceTrackDraftSourceTimeRange;
+
+  /// No description provided for @fenceTrackDraftSourceGeneratedAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'生成时间'**
+  String get fenceTrackDraftSourceGeneratedAt;
 }
 
 class _AppLocalizationsDelegate

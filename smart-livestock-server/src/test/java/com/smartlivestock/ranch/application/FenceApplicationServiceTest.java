@@ -1,8 +1,11 @@
 package com.smartlivestock.ranch.application;
 
 import com.smartlivestock.ranch.domain.model.Fence;
+import com.smartlivestock.ranch.application.command.CreateFenceCommand;
+import com.smartlivestock.ranch.application.dto.FenceDto;
 import com.smartlivestock.ranch.application.signal.SignalEventType;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
+import com.smartlivestock.ranch.domain.model.GpsCoordinate;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.domain.repository.FenceRepository;
 import com.smartlivestock.ranch.domain.repository.FenceZoneRepository;
@@ -14,13 +17,19 @@ import com.smartlivestock.shared.common.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
@@ -97,5 +106,45 @@ class FenceApplicationServiceTest {
         assertEquals(ErrorCode.RESOURCE_NOT_FOUND, ex.getCode());
         verifyNoInteractions(alertRepository, fenceZoneRepository);
         verify(fenceRepository, never()).deleteById(anyLong());
+    }
+
+    private static final List<GpsCoordinate> TRIANGLE = List.of(
+            new GpsCoordinate(new BigDecimal("28.1"), new BigDecimal("112.9")),
+            new GpsCoordinate(new BigDecimal("28.2"), new BigDecimal("112.9")),
+            new GpsCoordinate(new BigDecimal("28.2"), new BigDecimal("113.0")));
+
+    @Test
+    void createFence_withGenerationMetadata_serializesJsonOntoFence() throws Exception {
+        when(fenceRepository.save(any(Fence.class))).thenAnswer(inv -> inv.getArgument(0));
+        Map<String, Object> metadata = Map.of(
+                "method", "DEVICE_TRACK",
+                "deviceIds", List.of(101, 102),
+                "usedPoints", 7412);
+
+        FenceDto dto = service.createFence(new CreateFenceCommand(
+                1L, "test", TRIANGLE, "#FF0000", null, metadata));
+
+        ArgumentCaptor<Fence> captor = ArgumentCaptor.forClass(Fence.class);
+        verify(fenceRepository).save(captor.capture());
+        // Map.of iteration order is unspecified, so compare after a
+        // JSON round-trip instead of asserting the raw string.
+        Map<?, ?> stored = new com.fasterxml.jackson.databind.ObjectMapper()
+                .readValue(captor.getValue().getGenerationMetadata(), Map.class);
+        assertEquals(metadata, stored);
+        // DTO echoes the metadata back as a Map.
+        assertEquals(metadata, dto.generationMetadata());
+    }
+
+    @Test
+    void createFence_withoutGenerationMetadata_staysNull() {
+        when(fenceRepository.save(any(Fence.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        FenceDto dto = service.createFence(new CreateFenceCommand(
+                1L, "test", TRIANGLE, "#FF0000", null, null));
+
+        ArgumentCaptor<Fence> captor = ArgumentCaptor.forClass(Fence.class);
+        verify(fenceRepository).save(captor.capture());
+        assertNull(captor.getValue().getGenerationMetadata());
+        assertNull(dto.generationMetadata());
     }
 }

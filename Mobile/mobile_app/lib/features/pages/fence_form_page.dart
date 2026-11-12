@@ -5,7 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:hkt_livestock_agentic/app/app_route.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
 import 'package:hkt_livestock_agentic/core/api/api_exception.dart';
 import 'package:hkt_livestock_agentic/core/map/map_constants.dart';
@@ -13,12 +17,17 @@ import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 import 'package:hkt_livestock_agentic/core/map/map_config.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_factory.dart';
+import 'package:hkt_livestock_agentic/core/permissions/role_permission.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/farm_switcher/farm_switcher_controller.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/fence_analytics.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/track_collect_page.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/track_draft_controller.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/track_draft_desktop_panel.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/track_draft_offline_probe.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_template_picker.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_track_import_dialog.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
@@ -45,13 +54,35 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
   bool _initialized = false;
   bool _tileProviderInitialized = false;
   bool _drawMode = false;
+
+  /// Vertex editing tool (integration-test feedback 2026-11-12 #3): touch
+  /// screens can't reliably disambiguate "tap = delete" from an attempted
+  /// pan, so deletion happens only in the explicit delete tool. Edge
+  /// midpoint insertion is tool-independent (fence_page editor pattern).
+  _VertexTool _vertexTool = _VertexTool.move;
   List<LatLng> _drawingPoints = [];
   LatLng? _dragStart;
   LatLng? _dragCurrent;
   LatLng? _cursorLatLng;
+
+  /// Index of the polygon vertex currently being dragged (integration-test
+  /// feedback 2026-11-12 #2: loaded vertices could be deleted but not
+  /// moved). Null when no drag is in progress; while set, map drag flags
+  /// are dropped so the marker wins the gesture arena (NIX-192 pattern).
+  int? _draggingVertexIndex;
+
+  /// RenderBox anchor for converting a drag's global position into the
+  /// map-local offset (same role as fence_page's _gestureKey).
+  final GlobalKey _mapListenerKey = GlobalKey();
   Offset? _polygonPointerDownLocal;
   Duration? _polygonPointerDownTime;
   Offset? _lastPolygonCursorLocal;
+
+  /// Track-draft wizard provenance (spec §4.3). Single immutable field —
+  /// the wizard state machine stays in trackDraftControllerProvider and is
+  /// never imported into this page's setState scope. Sent only on create;
+  /// edits must not carry it (backend keeps the column on PUT).
+  Map<String, dynamic>? _draftMetadata;
 
   bool get _isEdit => widget.fenceId != null;
 
@@ -77,6 +108,141 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
       onSourceChanged: () { if (mounted) setState(() {}); },
     );
     if (mounted) setState(() {});
+  }
+
+  /// Safe exit (integration-test feedback 2026-11-12 #2): after a browser
+  /// refresh / deep link the form sits at the bottom of the go_router stack,
+  /// and a bare `context.pop()` throws GoError ("There is nothing to pop")
+  /// which kills all further pointer handling on Web — the page freezes.
+  /// Fall back to navigating to the fence list instead.
+  void _exitForm(BuildContext context) {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(AppRoute.fence.path);
+    }
+  }
+
+  /// Remove a polygon vertex by tapping its numbered marker (integration-
+  /// test feedback 2026-11-12 #1: loaded track vertices could not be edited
+  /// or deleted in the form). Rectangle/circle anchors are structural (two
+  /// defining points) and stay non-deletable; polygon keeps >= 3 points.
+  /// Insert a new vertex at the midpoint of edge [edgeIndex] (tap the edge
+  /// midpoint dot — fence_page editor pattern, touch friendly).
+  void _insertVertexAtEdgeMid(int edgeIndex) {
+    if (!mounted || _type != FenceType.polygon) return;
+    final n = _drawingPoints.length;
+    if (n < 3) return;
+    if (edgeIndex < 0 || edgeIndex >= n) return;
+    final a = _drawingPoints[edgeIndex];
+    final b = _drawingPoints[(edgeIndex + 1) % n];
+    setState(() {
+      _drawingPoints.insert(
+        edgeIndex + 1,
+        LatLng(
+          (a.latitude + b.latitude) / 2,
+          (a.longitude + b.longitude) / 2,
+        ),
+      );
+    });
+  }
+
+  /// Edge midpoint markers for polygon vertex insertion (hidden while free
+  /// drawing — the whole map is an insertion surface there already).
+  List<Marker> _buildEdgeMidpointMarkers() {
+    final n = _drawingPoints.length;
+    return [
+      for (var i = 0; i < n; i++)
+        () {
+          final a = _drawingPoints[i];
+          final b = _drawingPoints[(i + 1) % n];
+          return Marker(
+            key: Key('fence-form-edge-mid-$i'),
+            point: LatLng(
+              (a.latitude + b.latitude) / 2,
+              (a.longitude + b.longitude) / 2,
+            ),
+            width: 28,
+            height: 28,
+            alignment: Alignment.center,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _insertVertexAtEdgeMid(i),
+              child: Center(
+                child: Container(
+                  width: 14,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 1.5),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }(),
+    ];
+  }
+
+  Widget _vertexToolButton({
+    required Key key,
+    required IconData icon,
+    required _VertexTool tool,
+  }) {
+    final selected = _vertexTool == tool;
+    return InkWell(
+      key: key,
+      onTap: () {
+        if (!mounted || _vertexTool == tool) return;
+        setState(() {
+          _vertexTool = tool;
+          _draggingVertexIndex = null;
+        });
+      },
+      borderRadius: BorderRadius.circular(AppSpacing.sm),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
+        ),
+        child: Icon(
+          icon,
+          size: 20,
+          color: selected ? AppColors.primary : AppColors.textSecondary,
+        ),
+      ),
+    );
+  }
+
+  void _removeVertexAt(int index) {
+    if (!mounted || _type != FenceType.polygon) return;
+    if (index < 0 || index >= _drawingPoints.length) return;
+    if (_drawingPoints.length <= 3) return;
+    setState(() {
+      _drawingPoints.removeAt(index);
+      _clearTransientGesture();
+    });
+  }
+
+  /// Move a polygon vertex by dragging its marker (integration-test
+  /// feedback 2026-11-12 #2 follow-up). Form state stores screen
+  /// coordinates (GCJ-02 under AMap tiles) and the marker renders them
+  /// directly, so the raw screen lat/lng from the drag is written back
+  /// verbatim — no coordinate transform here; the save path already
+  /// converts screen → WGS-84 as a whole.
+  void _handleFormVertexPanUpdate(int index, Offset globalPosition) {
+    final context = _mapListenerKey.currentContext;
+    if (context == null) return;
+    final renderBox = context.findRenderObject();
+    if (renderBox is! RenderBox) return;
+    final local = renderBox.globalToLocal(globalPosition);
+    final p = _latLngFromLocal(local);
+    if (p == null) return;
+    if (index < 0 || index >= _drawingPoints.length) return;
+    setState(() {
+      _drawingPoints[index] = p;
+    });
   }
 
   void _clearTransientGesture() {
@@ -378,105 +544,35 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
 
   Future<void> _showManualEntryDialog(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
-    final inputController = TextEditingController();
     final previewPoints = _getPreviewPoints();
-    if (previewPoints.isNotEmpty) {
-      inputController.text = previewPoints
-          .map((p) =>
-              '${p.latitude.toStringAsFixed(6)},${p.longitude.toStringAsFixed(6)}')
-          .join('\n');
-    }
-
-    String? errorText;
+    final initialText = previewPoints.isEmpty
+        ? ''
+        : previewPoints
+            .map((p) =>
+                '${p.latitude.toStringAsFixed(6)},${p.longitude.toStringAsFixed(6)}')
+            .join('\n');
 
     await showDialog<void>(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(l10n.fenceFormManualEntry),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                 _type == FenceType.rectangle
-                      ? l10n.fenceFormManualRectHint
-                      : _type == FenceType.circle
-                          ? l10n.fenceFormManualCircleHint
-                          : l10n.fenceFormManualPolyHint,
-                  style: Theme.of(ctx).textTheme.bodySmall,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                TextField(
-                  key: const Key('fence-form-manual-input'),
-                  controller: inputController,
-                  maxLines: 8,
-                  decoration: InputDecoration(
-                    border: const OutlineInputBorder(),
-                    hintText: '28.234000,112.940000\n28.230000,112.944000',
-                    errorText: errorText,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              key: const Key('fence-form-manual-cancel'),
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: Text(l10n.commonCancel),
-            ),
-            FilledButton(
-              key: const Key('fence-form-manual-apply'),
-              onPressed: () {
-                final lines = inputController.text.trim().split('\n');
-                final points = <LatLng>[];
-                for (final line in lines) {
-                  if (line.trim().isEmpty) continue;
-                  final parts = line.trim().split(RegExp(r'[,，\s]+'));
-                  if (parts.length >= 2) {
-                    final lat = double.tryParse(parts[0].trim());
-                    final lng = double.tryParse(parts[1].trim());
-                    if (lat != null && lng != null) {
-                      points.add(LatLng(lat, lng));
-                    }
-                  }
-                }
-                final minRequired = switch (_type) {
-                  FenceType.rectangle => 2,
-                  FenceType.circle => 2,
-                  FenceType.polygon => 3,
-                };
-                if (points.length < minRequired) {
-                 setDialogState(
-                      () => errorText = l10n.fenceFormManualMinPoints('$minRequired'));
-                  return;
-                }
-                final usedPoints = switch (_type) {
-                  FenceType.rectangle => points.take(2).toList(),
-                  FenceType.circle => points.take(2).toList(),
-                  FenceType.polygon => points,
-                };
-                setState(() {
-                  _selectedTemplate = null;
-                  _drawingPoints = usedPoints;
-                  _drawMode = false;
-                  _clearTransientGesture();
-                });
-                Navigator.of(ctx).pop();
-                if (usedPoints.isNotEmpty) {
-                  _formMapController.move(usedPoints.first, 15.0);
-                }
-              },
-              child: Text(l10n.fenceFormApply),
-            ),
-          ],
-        ),
+      builder: (ctx) => _ManualEntryDialog(
+        fenceType: _type,
+        initialText: initialText,
+        // Invoked after the dialog has fully closed (controller lifetime is
+        // owned by the dialog State), so this runs post-pop safely.
+        onApply: (usedPoints) {
+          setState(() {
+            _selectedTemplate = null;
+            _drawingPoints = usedPoints;
+            _drawMode = false;
+            _clearTransientGesture();
+          });
+          if (usedPoints.isNotEmpty) {
+            _formMapController.move(usedPoints.first, 15.0);
+          }
+        },
+        l10n: l10n,
       ),
     );
-    inputController.dispose();
   }
 
   /// 轨迹采集 / GPX 导入的顶点回传（NIX-213）。
@@ -494,6 +590,9 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
       _selectedTemplate = null;
       _type = FenceType.polygon;
       _drawingPoints = screen;
+      // Loaded tracks start in the (touch-safe) move tool; free drawing is
+      // hidden for this scenario and deletion requires the delete tool.
+      _vertexTool = _VertexTool.move;
       _drawMode = false;
       _clearTransientGesture();
     });
@@ -512,6 +611,177 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
     if (result != null) {
       _applyCollectedVertices(result.vertices);
     }
+  }
+
+  /// Entry → track-draft wizard (spec §3.1). Not gated on kIsWeb: the flow
+  /// adapts internally at the 900px breakpoint (mobile wizard / desktop
+  /// panel share trackDraftControllerProvider).
+  Future<void> _openTrackDraft() async {
+    final l10n = AppLocalizations.of(context)!;
+    ref
+        .read(fenceAnalyticsSinkProvider)
+        .emitEvent(FenceAnalyticsEvent.trackDraftWizardEnter());
+    // Offline pre-flight: the project has no connectivity_plus infra, so we
+    // probe the candidates endpoint (1-day window, tiny payload) and treat
+    // a transport-level failure as offline. Server-side errors still let
+    // the wizard open — it has its own failure branch with retry.
+    try {
+      await ApiClient.instance
+          .farmGet('/fences/track-draft/candidates?days=1');
+    } on http.ClientException {
+      _showOfflineHint(l10n);
+      return;
+    } catch (e) {
+      // Mobile transport failures throw SocketException (dart:io), which
+      // http.ClientException does not cover (review 中1); other errors keep
+      // propagating as before.
+      if (!isOfflineTransportFailure(e)) rethrow;
+      _showOfflineHint(l10n);
+      return;
+    }
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (routeContext) => TrackDraftFlow(
+          onBack: () => Navigator.of(routeContext).pop(),
+          onConfirmed: (completion) {
+            _handleTrackDraftConfirmed(completion);
+            Navigator.of(routeContext).pop();
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Shared offline branch of the pre-flight probe (spec §8 hint copy).
+  void _showOfflineHint(AppLocalizations l10n) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.fenceTrackDraftOffline)),
+    );
+  }
+
+  /// Wizard confirm: stash the provenance (sent with the create body) and
+  /// load the envelope vertices onto the form map.
+  void _handleTrackDraftConfirmed(TrackDraftCompletion completion) {
+    final metadata = <String, dynamic>{
+      ...completion.metadata,
+      // Stamped at confirmation time; the wizard payload (spec §4.3) has
+      // no generatedAt and the detail source card displays it.
+      'generatedAt': DateTime.now().toUtc().toIso8601String(),
+    };
+    _draftMetadata = metadata;
+    final sink = ref.read(fenceAnalyticsSinkProvider);
+    final l10n = AppLocalizations.of(context)!;
+    _applyCollectedVertices(
+      completion.vertices,
+      defaultName: l10n.fenceTrackDraftSuggestedName(
+        DateFormat('MM-dd').format(DateTime.now()),
+      ),
+    );
+    // Generate-success is emitted where it happens — in the wizard
+    // controller when the preview lands (review 低2); confirmation only
+    // reports the form load.
+    sink.emitEvent(
+      FenceAnalyticsEvent.trackDraftLoadedIntoForm(
+        completion.vertices.length,
+      ),
+    );
+  }
+
+  /// Fifth entry card (spec §3.1, prototype .entry-card): 34×34 primary-soft
+  /// icon + 11.5/800 title + NEW pill + 2-line subtitle + chevron.
+  Widget _buildTrackDraftEntryCard(AppLocalizations l10n) {
+    return Material(
+      color: AppColors.surfaceAlt,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: AppColors.primary, width: 1.5),
+      ),
+      child: InkWell(
+        key: const Key('fence-form-track-draft-entry'),
+        borderRadius: BorderRadius.circular(12),
+        onTap: _openTrackDraft,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+          child: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.route,
+                  size: 17,
+                  color: AppColors.primaryDark,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            l10n.fenceTrackDraftEntryTitle,
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            l10n.fenceTrackDraftNewTag,
+                            style: const TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.fenceTrackDraftEntryDesc,
+                      maxLines: 2,
+                      style: const TextStyle(
+                        fontSize: 9,
+                        height: 1.4,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: AppColors.textSecondary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _openGpxImport() async {
@@ -549,6 +819,10 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
       };
       if (_isEdit) {
         body['status'] = _active ? 'active' : 'inactive';
+      } else if (_draftMetadata != null) {
+        // Create-only provenance (spec §4.3); the edit branch never sends
+        // it so a normal rename/vertex tweak keeps the stored metadata.
+        body['generationMetadata'] = _draftMetadata;
       }
       try {
         if (_isEdit) {
@@ -587,6 +861,16 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
             return;
           }
         }
+      } on QuotaExceededException {
+        // Save-time quota race (spec §5.5 兜底): the fence quota was
+        // consumed between the wizard pre-check and the POST.
+        if (mounted) {
+          setState(() => _saving = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.fenceTrackDraftQuotaExceeded)),
+          );
+        }
+        return;
       } catch (e) {
         if (mounted) {
           setState(() => _saving = false);
@@ -599,7 +883,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
       controller.reloadFromRepository();
       if (mounted) {
         setState(() => _saving = false);
-        context.pop(true);
+        _exitForm(context);
       }
       return;
     }
@@ -621,6 +905,9 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     _initForEdit();
+    // Track-draft entry is owner-only (spec §4.1, RolePermission.canEditFence).
+    final role = ref.watch(sessionControllerProvider).role;
+    final canManage = role != null && RolePermission.canEditFence(role);
     if (!_tileProviderInitialized) {
       _tileProviderInitialized = true;
       _initTileProvider();
@@ -643,7 +930,8 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
           // (drag start flips this via setState); otherwise keep the map
           // pannable/zoomable. Polygon taps are disambiguated from pan by the
           // pointer-up distance/time thresholds in _handleMapPointerUp.
-          flags: (_drawMode && _type != FenceType.polygon && _dragStart != null)
+          flags: (_drawMode && _type != FenceType.polygon && _dragStart != null) ||
+                  _draggingVertexIndex != null
               ? InteractiveFlag.none
               : InteractiveFlag.all,
         ),
@@ -692,29 +980,82 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
               ),
             ],
           ),
+        // Edge midpoint dots: tap to insert a vertex on that edge (hidden
+        // while free drawing — the whole map inserts there already).
+        if (_type == FenceType.polygon &&
+            _drawingPoints.length >= 3 &&
+            !_drawMode)
+          MarkerLayer(markers: _buildEdgeMidpointMarkers()),
         MarkerLayer(
           markers: [
             for (var i = 0; i < markerPts.length; i++)
               Marker(
                 key: Key('fence-form-map-point-$i'),
                 point: markerPts[i],
-                width: 28,
-                height: 28,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: i == 0
-                        ? AppColors.primary
-                        : AppColors.primary.withValues(alpha: 0.7),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
+                // 56px hit area so a finger can grab and drag the vertex;
+                // the visual dot stays 28px (fence_page editor pattern).
+                width: 56,
+                height: 56,
+                alignment: Alignment.center,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  // Delete only in the explicit delete tool — a bare tap on
+                  // the move tool (the default) must never destroy a vertex
+                  // (touch-screen safety, integration-test feedback #3).
+                  onTap: _vertexTool == _VertexTool.delete
+                      ? () => _removeVertexAt(i)
+                      : null,
+                  // Drag-to-move, move tool + polygon vertices only
+                  // (rect/circle anchors are structural two-point
+                  // definitions).
+                  onPanStart: _type == FenceType.polygon &&
+                          _vertexTool == _VertexTool.move
+                      ? (_) {
+                          if (!mounted) return;
+                          setState(() => _draggingVertexIndex = i);
+                        }
+                      : null,
+                  onPanUpdate: _type == FenceType.polygon &&
+                          _vertexTool == _VertexTool.move
+                      ? (details) {
+                          if (_draggingVertexIndex != i) return;
+                          _handleFormVertexPanUpdate(i, details.globalPosition);
+                        }
+                      : null,
+                  onPanEnd: _type == FenceType.polygon &&
+                          _vertexTool == _VertexTool.move
+                      ? (_) {
+                          if (!mounted) return;
+                          setState(() => _draggingVertexIndex = null);
+                        }
+                      : null,
+                  onPanCancel: _type == FenceType.polygon &&
+                          _vertexTool == _VertexTool.move
+                      ? () {
+                          if (!mounted) return;
+                          setState(() => _draggingVertexIndex = null);
+                        }
+                      : null,
                   child: Center(
-                    child: Text(
-                      '${i + 1}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: i == 0
+                            ? AppColors.primary
+                            : AppColors.primary.withValues(alpha: 0.7),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${i + 1}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -726,6 +1067,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
     );
 
     final mapWrapped = Listener(
+      key: _mapListenerKey,
       behavior: HitTestBehavior.translucent,
       onPointerDown: _handleMapPointerDown,
       onPointerMove: _handleMapPointerMove,
@@ -739,7 +1081,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
         title: Text(_isEdit ? l10n.fenceFormEditTitle : l10n.fenceFormNewTitle),
         leading: IconButton(
           key: const Key('fence-form-back'),
-          onPressed: () => context.pop(),
+          onPressed: () => _exitForm(context),
           icon: const Icon(Icons.arrow_back),
         ),
       ),
@@ -793,6 +1135,10 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                       ],
                     ),
                   ),
+                ],
+                if (canManage) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  _buildTrackDraftEntryCard(l10n),
                 ],
                 const SizedBox(height: AppSpacing.lg),
               ],
@@ -907,6 +1253,37 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                             ),
                           ),
                         ),
+                      // Vertex tools (move/delete), polygon with vertices
+                      // only; hidden while free drawing. Touch safety:
+                      // deletion requires switching to the delete tool.
+                      if (_type == FenceType.polygon &&
+                          _drawingPoints.length >= 3 &&
+                          !_drawMode)
+                        Positioned(
+                          top: 8,
+                          left: 8,
+                          child: Material(
+                            elevation: 2,
+                            borderRadius: BorderRadius.circular(AppSpacing.sm),
+                            color: Theme.of(context).colorScheme.surface,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _vertexToolButton(
+                                  key: const Key('fence-form-tool-move'),
+                                  icon: Icons.open_with,
+                                  tool: _VertexTool.move,
+                                ),
+                                _vertexToolButton(
+                                  key: const Key('fence-form-tool-delete'),
+                                  icon: Icons.delete_outline,
+                                  tool: _VertexTool.delete,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      if (_draftMetadata == null)
                       Positioned(
                         top: 8,
                         right: 8,
@@ -1009,7 +1386,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
                   Expanded(
                     child: OutlinedButton(
                       key: const Key('fence-form-cancel'),
-                      onPressed: () => context.pop(),
+                      onPressed: () => _exitForm(context),
                       child: Text(l10n.commonCancel),
                     ),
                   ),
@@ -1033,6 +1410,130 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Vertex editing tool for the polygon form (touch-safe: delete is an
+/// explicit mode, never a bare tap).
+enum _VertexTool { move, delete }
+
+/// Manual coordinate-entry dialog (extracted from a StatefulBuilder +
+/// outer-scope controller: the controller was disposed right after
+/// `showDialog` resolved, while the exit transition was still building the
+/// TextField — "used after being disposed". The controller now lives in a
+/// State and is released when the dialog tree is truly unmounted.)
+class _ManualEntryDialog extends StatefulWidget {
+  const _ManualEntryDialog({
+    required this.fenceType,
+    required this.initialText,
+    required this.onApply,
+    required this.l10n,
+  });
+
+  final FenceType fenceType;
+  final String initialText;
+  final ValueChanged<List<LatLng>> onApply;
+  final AppLocalizations l10n;
+
+  @override
+  State<_ManualEntryDialog> createState() => _ManualEntryDialogState();
+}
+
+class _ManualEntryDialogState extends State<_ManualEntryDialog> {
+  final TextEditingController _inputController = TextEditingController();
+  String? _errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    _inputController.text = widget.initialText;
+  }
+
+  @override
+  void dispose() {
+    _inputController.dispose();
+    super.dispose();
+  }
+
+  void _apply() {
+    final lines = _inputController.text.trim().split('\n');
+    final points = <LatLng>[];
+    for (final line in lines) {
+      if (line.trim().isEmpty) continue;
+      final parts = line.trim().split(RegExp(r'[,，\s]+'));
+      if (parts.length >= 2) {
+        final lat = double.tryParse(parts[0].trim());
+        final lng = double.tryParse(parts[1].trim());
+        if (lat != null && lng != null) {
+          points.add(LatLng(lat, lng));
+        }
+      }
+    }
+    final minRequired = switch (widget.fenceType) {
+      FenceType.rectangle => 2,
+      FenceType.circle => 2,
+      FenceType.polygon => 3,
+    };
+    if (points.length < minRequired) {
+      setState(() =>
+          _errorText = widget.l10n.fenceFormManualMinPoints('$minRequired'));
+      return;
+    }
+    final usedPoints = switch (widget.fenceType) {
+      FenceType.rectangle => points.take(2).toList(),
+      FenceType.circle => points.take(2).toList(),
+      FenceType.polygon => points,
+    };
+    Navigator.of(context).pop();
+    widget.onApply(usedPoints);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = widget.l10n;
+    return AlertDialog(
+      title: Text(l10n.fenceFormManualEntry),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.fenceType == FenceType.rectangle
+                  ? l10n.fenceFormManualRectHint
+                  : widget.fenceType == FenceType.circle
+                      ? l10n.fenceFormManualCircleHint
+                      : l10n.fenceFormManualPolyHint,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              key: const Key('fence-form-manual-input'),
+              controller: _inputController,
+              maxLines: 8,
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                hintText: '28.234000,112.940000\n28.230000,112.944000',
+                errorText: _errorText,
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          key: const Key('fence-form-manual-cancel'),
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.commonCancel),
+        ),
+        FilledButton(
+          key: const Key('fence-form-manual-apply'),
+          onPressed: _apply,
+          child: Text(l10n.fenceFormApply),
+        ),
+      ],
     );
   }
 }

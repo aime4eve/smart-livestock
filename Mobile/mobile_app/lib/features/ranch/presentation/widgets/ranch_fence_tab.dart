@@ -9,6 +9,7 @@ import 'package:hkt_livestock_agentic/core/theme/app_colors.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_spacing.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/fence_controller.dart';
 import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_delete_dialog.dart';
+import 'package:hkt_livestock_agentic/features/fence/presentation/widgets/fence_generation_source_card.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/fence_polygon_contains.dart';
 import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/ranch_controller.dart';
@@ -1112,6 +1113,13 @@ class _FenceDetailCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                  // Generation provenance (spec §4.3); hidden when null.
+                  if (fence.generationMetadata != null) ...[
+                    const SizedBox(height: 8),
+                    FenceGenerationSourceCard(
+                      metadata: fence.generationMetadata!,
+                    ),
+                  ],
                   if (canManage) ...[
                     const SizedBox(height: 8),
                     // Action buttons

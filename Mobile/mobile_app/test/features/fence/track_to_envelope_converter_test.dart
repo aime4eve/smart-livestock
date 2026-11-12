@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/track_point.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/track_draft_params.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/track_to_envelope_converter.dart';
 
 /// 包络管线单测（NIX-213）：矩形走位收敛、L 形保凹角、顺序打乱不变、
@@ -175,5 +176,77 @@ void main() {
     expect(result.isSuccess, isTrue, reason: '${result.failure}');
     expect(result.vertexCount, lessThanOrEqualTo(100));
     expect(areaM2(result.vertices), closeTo(pi * 300 * 300, pi * 300 * 300 * 0.25));
+  });
+
+  test('animal-track params keep 30m accuracy points dropped by defaults',
+      () {
+    // Same walked outline, but every fix reports 30m accuracy.
+    final pts = walkPolygon([(-100, -80), (100, -80), (100, 80), (-100, 80)])
+        .map((p) =>
+            TrackPoint(lat: p.lat, lng: p.lng, accuracyMeters: 30))
+        .toList();
+
+    final rtk = TrackToEnvelopeConverter.convert(pts);
+    final animal = TrackToEnvelopeConverter.convert(pts,
+        params: const TrackDraftParams.animalTrack());
+
+    // RTK group: 30m > 20m threshold → all filtered → tooFewPoints.
+    expect(rtk.failure, EnvelopeFailure.tooFewPoints);
+    // Animal group: 30m ≤ 40m threshold → kept; envelope still fits the walk
+    // (the 95% roaming trim only drops a few boundary points).
+    expect(animal.isSuccess, isTrue, reason: '${animal.failure}');
+    expect(
+        areaM2(animal.vertices), closeTo(200 * 160, 200 * 160 * 0.25));
+  });
+
+  test('animal-track params report roaming trim count and trimmed points',
+      () {
+    // 57 points on a 50m ring + 3 far-roaming points at ~800m → 60 points.
+    // floor(60 × 0.95) = 57 kept, exactly the 3 far points trimmed.
+    final cluster = <TrackPoint>[
+      for (var i = 0; i < 57; i++) m(50 * cos(2 * pi * i / 57), 50 * sin(2 * pi * i / 57)),
+    ];
+    final roaming = [m(800, 0), m(0, 800), m(-800, -800)];
+    final pts = [...cluster, ...roaming];
+
+    final animal = TrackToEnvelopeConverter.convert(pts,
+        params: const TrackDraftParams.animalTrack());
+
+    expect(animal.roamingTrimmed, 3);
+    expect(animal.trimmedPoints.length, 3);
+    expect(animal.trimmedPoints, unorderedEquals(roaming));
+
+    // Same input under the default group: trim step disabled entirely.
+    final gpx = TrackToEnvelopeConverter.convert(pts);
+    expect(gpx.roamingTrimmed, 0);
+    expect(gpx.trimmedPoints, isEmpty);
+  });
+
+  test('explicit gpxDefault params are equivalent to the default call', () {
+    final pts = [
+      ...walkPolygon([(-100, -80), (100, -80), (100, 80), (-100, 80)]),
+      m(-5, -5),
+      m(300, 0),
+    ];
+
+    final a = TrackToEnvelopeConverter.convert(pts);
+    final b = TrackToEnvelopeConverter.convert(pts,
+        params: const TrackDraftParams.gpxDefault());
+
+    expect(b.isSuccess, a.isSuccess);
+    expect(b.failure, a.failure);
+    expect(b.method, a.method);
+    expect(b.rawCount, a.rawCount);
+    expect(b.ringsDropped, a.ringsDropped);
+    expect(b.outliersDropped, a.outliersDropped);
+    expect(a.roamingTrimmed, 0);
+    expect(a.trimmedPoints, isEmpty);
+    expect(b.roamingTrimmed, 0);
+    expect(b.trimmedPoints, isEmpty);
+    expect(b.vertexCount, a.vertexCount);
+    for (var i = 0; i < a.vertices.length; i++) {
+      expect(b.vertices[i].latitude, a.vertices[i].latitude);
+      expect(b.vertices[i].longitude, a.vertices[i].longitude);
+    }
   });
 }
