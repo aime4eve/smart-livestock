@@ -1,5 +1,5 @@
 import 'dart:async' show StreamSubscription;
-import 'dart:math' show cos, pow, sqrt;
+import 'dart:math' show cos, max, min, pow, sqrt;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -16,7 +16,7 @@ double _metersPerPixelAt(double zoom, double latDeg) =>
 /// 碎块翻进围栏内部）：改画「动态宽度 Polyline」——路径沿围栏边界向内
 /// 平移半带宽，带宽 = [bufferDistance]（像素随 zoom 实时换算），带外缘
 /// 正好贴围栏边界、整体落在围栏内侧。平移距离只有半带宽（25m），折叠
-/// 瑕疵（若有）完全被宽带覆盖。
+/// 瑕疵（若有）完全被宽带覆盖，不可见。
 class FenceBufferLayer extends StatefulWidget {
   const FenceBufferLayer({
     super.key,
@@ -87,11 +87,16 @@ class _FenceBufferLayerState extends State<FenceBufferLayer> {
     return PolylineLayer(polylines: polylines);
   }
 
-  /// 顶点环沿角平分线法线偏移 [meters]（负值=向内）。MVP 近似：急转角
-  /// 的偏移量 clamp 到 4 倍步长防飞点；半带宽（25m）的小偏移折叠瑕疵被
-  /// 色带宽度覆盖，不可见。
+  /// 顶点环沿角平分线法线偏移 [meters]（米制角平分线法，锐角补偿+安全
+  /// 上限）。负值=向内。窄凸起（宽 < 2×offset）处内缩环会自交——调用方
+  /// 用它作「洞」的带洞渲染下，该区域整体着色（凸起整体处于预警带内），
+  /// 视觉语义正确。
   List<LatLng> _offsetRing(List<LatLng> points, double meters) {
     if (points.length < 3) return [];
+    final lat0 = points.first.latitude;
+    const mPerLat = 111320.0;
+    final mPerLng = 111320.0 * cos(lat0 * pi / 180);
+
     final buffer = <LatLng>[];
     final n = points.length;
     for (int i = 0; i < n; i++) {
@@ -99,38 +104,42 @@ class _FenceBufferLayerState extends State<FenceBufferLayer> {
       final curr = points[i];
       final next = points[(i + 1) % n];
 
-      final dx1 = curr.longitude - prev.longitude;
-      final dy1 = curr.latitude - prev.latitude;
-      final dx2 = next.longitude - curr.longitude;
-      final dy2 = next.latitude - curr.latitude;
-
-      // 边法线（米制单位向量）：lng 分量按纬度缩放到与 lat 同米级。
-      final len1 = sqrt(dx1 * dx1 + dy1 * dy1);
-      final len2 = sqrt(dx2 * dx2 + dy2 * dy2);
-      if (len1 < 1e-10 || len2 < 1e-10) {
+      // 两邻边（米制）。
+      final e1x = (curr.longitude - prev.longitude) * mPerLng;
+      final e1y = (curr.latitude - prev.latitude) * mPerLat;
+      final e2x = (next.longitude - curr.longitude) * mPerLng;
+      final e2y = (next.latitude - curr.latitude) * mPerLat;
+      final l1 = sqrt(e1x * e1x + e1y * e1y);
+      final l2 = sqrt(e2x * e2x + e2y * e2y);
+      if (l1 < 1e-9 || l2 < 1e-9) {
         buffer.add(curr);
         continue;
       }
-      final nx1 = -dy1 / len1 / 111320.0;
-      final ny1 = dx1 / len1 / 111320.0;
-      final nx2 = -dy2 / len2 / 111320.0;
-      final ny2 = dx2 / len2 / 111320.0;
+      // 边单位向量 → 左法线（米制单位向量）。
+      final n1x = -e1y / l1;
+      final n1y = e1x / l1;
+      final n2x = -e2y / l2;
+      final n2y = e2x / l2;
 
-      final avgNx = (nx1 + nx2) / 2;
-      final avgNy = (ny1 + ny2) / 2;
-      final avgLen = sqrt(avgNx * avgNx + avgNy * avgNy);
-      if (avgLen < 1e-10) {
+      // 角平分线单位向量。
+      var bx = n1x + n2x;
+      var by = n1y + n2y;
+      final bl = sqrt(bx * bx + by * by);
+      if (bl < 1e-9) {
         buffer.add(curr);
         continue;
       }
+      bx /= bl;
+      by /= bl;
 
-      var scale = meters / avgLen;
-      final maxScale = meters.abs() * 4;
-      if (scale.abs() > maxScale) scale = scale.sign * maxScale;
+      // 转角正弦（邻边单位向量叉积）→ 内缩沿平分线的距离补偿。
+      final sinHalf = (n1x * n2y - n1y * n2x).abs();
+      var offset = meters / max(sinHalf, 0.5);
+      offset = min(offset, meters.abs() * 2.5);
 
       buffer.add(LatLng(
-        curr.latitude + avgNy * scale,
-        curr.longitude + avgNx * scale,
+        curr.latitude + by * offset / mPerLat,
+        curr.longitude + bx * offset / mPerLng,
       ));
     }
     return buffer;
