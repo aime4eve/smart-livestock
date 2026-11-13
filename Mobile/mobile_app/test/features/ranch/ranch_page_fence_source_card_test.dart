@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -344,19 +345,31 @@ void main() {
     expect(bandLayer, findsOneWidget);
     final polygons = tester.widget<PolygonLayer>(bandLayer).polygons;
     expect(polygons, hasLength(1));
-    // The ranch page serves AutoNavi tiles in this test env, so both the
-    // outer ring and the hole go through the WGS-84 → GCJ-02 transform —
-    // assert against the transformed geometry (and thereby also pin the
-    // ring/hole same-transform consistency).
-    expect(polygons.single.points,
-        CoordTransform.wgs84ToGcj02All(overviewBufferRing));
+    // shouldTransform depends on tile connectivity probing (AutoNavi online
+    // reachable locally → GCJ-02; CI runners have no egress → raw WGS-84),
+    // so the environment-dependent transform may NOT be a deterministic
+    // assertion input. What must hold everywhere: the ring is EXACTLY the
+    // overview-merged geometry (raw or transformed, never anything else)
+    // and ring + hole share the same coordinate space (no misaligned band).
+    const rawRing = overviewBufferRing;
+    final gcjRing = CoordTransform.wgs84ToGcj02All(rawRing);
+    const rawHole = [
+      LatLng(28.0, 112.0),
+      LatLng(28.01, 112.0),
+      LatLng(28.01, 112.01),
+    ];
+    final gcjHole = CoordTransform.wgs84ToGcj02All(rawHole);
+    final ringGcj = listEquals(polygons.single.points, gcjRing);
+    expect(
+      ringGcj || listEquals(polygons.single.points, rawRing),
+      isTrue,
+      reason: 'band ring must be the overview-merged backend geometry, '
+          'either raw WGS-84 (offline tiles) or its GCJ-02 transform '
+          '(AutoNavi online) — nothing else',
+    );
     expect(
       polygons.single.holePointsList!.single,
-      CoordTransform.wgs84ToGcj02All(const [
-        LatLng(28.0, 112.0),
-        LatLng(28.01, 112.0),
-        LatLng(28.01, 112.01),
-      ]),
+      ringGcj ? gcjHole : rawHole,
     );
   });
 
