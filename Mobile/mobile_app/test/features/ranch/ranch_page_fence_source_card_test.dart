@@ -6,11 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:hkt_livestock_agentic/app/session/app_session.dart';
+import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 import 'package:hkt_livestock_agentic/features/ranch/presentation/widgets/fence_buffer_layer.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
@@ -126,7 +128,17 @@ const _signalFence = MapFenceSignal(
 /// (ranchMapGeometryProvider), which carry no generation provenance of their
 /// own. RanchPage merges `generationMetadata` from overview.fences by id so
 /// the detail card's "generation source" section renders (spec §4.3).
+/// NIX-412: the backend JTS bufferPolygon rides the same overview merge —
+/// signal fences carry only the fence body, so without the by-id merge the
+/// warning band layer would silently skip every fence.
 void main() {
+  // Backend-computed buffer ring (JTS output echoed by ranch-overview).
+  const overviewBufferRing = [
+    LatLng(27.9995, 111.9995),
+    LatLng(28.0105, 111.9995),
+    LatLng(28.0105, 112.0105),
+    LatLng(27.9995, 112.0105),
+  ];
   const metadata = <String, dynamic>{
     'method': 'DEVICE_TRACK',
     'deviceIds': [101, 102],
@@ -149,7 +161,10 @@ void main() {
     HttpOverrides.global = null;
   });
 
-  RanchFenceData overviewFence({Map<String, dynamic>? meta}) => RanchFenceData(
+  RanchFenceData overviewFence({
+    Map<String, dynamic>? meta,
+    List<LatLng> buffer = const [],
+  }) => RanchFenceData(
         id: '7',
         name: 'North Pasture',
         active: true,
@@ -164,9 +179,13 @@ void main() {
         livestockCount: 2,
         version: 1,
         generationMetadata: meta,
+        bufferPoints: buffer,
       );
 
-  RanchOverview overview({bool withMetadata = true}) => RanchOverview(
+  RanchOverview overview({
+    bool withMetadata = true,
+    bool withBuffer = true,
+  }) => RanchOverview(
         overallStats: const RanchOverviewStats(
           totalLivestock: 2,
           healthyRate: 1.0,
@@ -178,8 +197,17 @@ void main() {
         sceneSummary: RanchSceneSummary.fromJson(null),
         pendingTasks: const [],
         // withMetadata=false models a signal fence with NO matching
-        // overview fence (merge misses → metadata stays null).
-        fences: withMetadata ? [overviewFence(meta: metadata)] : const [],
+        // overview fence (merge misses → metadata stays null). withBuffer=
+        // false models the overview fence lacking a stored buffer ring
+        // (merge misses → empty bufferPoints → band silently skipped).
+        fences: withMetadata
+            ? [
+                overviewFence(
+                  meta: metadata,
+                  buffer: withBuffer ? overviewBufferRing : const [],
+                ),
+              ]
+            : const [],
         livestockMarkers: const [],
         alerts: const [],
         fenceAlertSummary: const {},
@@ -196,6 +224,7 @@ void main() {
   Future<void> pumpRanchPage(
     WidgetTester tester, {
     required bool withMetadata,
+    bool withBuffer = true,
   }) async {
     tester.view.physicalSize = const Size(430, 1400);
     tester.view.devicePixelRatio = 1;
@@ -213,7 +242,10 @@ void main() {
               ),
             ),
             ranchControllerProvider.overrideWith(
-              () => _FakeRanchController(overview(withMetadata: withMetadata)),
+              () => _FakeRanchController(overview(
+                withMetadata: withMetadata,
+                withBuffer: withBuffer,
+              )),
             ),
             signalSyncControllerProvider.overrideWith(
               _FakeSignalSyncController.new,
@@ -295,5 +327,51 @@ void main() {
       await tester.pump(const Duration(milliseconds: 120));
     }
     expect(find.byType(FenceBufferLayer), findsNothing);
+  });
+
+  // NIX-412 geometry single-source: the band's outer ring must be the
+  // overview-merged backend JTS bufferPolygon (merged by id into the signal
+  // fence), with the signal fence body as the hole. FenceBufferLayer renders
+  // SizedBox.shrink when the merge misses, so anchor the assertion to the
+  // descendant PolygonLayer, not the layer widget itself.
+  testWidgets('selected fence renders the band from the overview-merged '
+      'buffer ring', (tester) async {
+    await pumpRanchPage(tester, withMetadata: true);
+    final bandLayer = find.descendant(
+      of: find.byType(FenceBufferLayer),
+      matching: find.byType(PolygonLayer),
+    );
+    expect(bandLayer, findsOneWidget);
+    final polygons = tester.widget<PolygonLayer>(bandLayer).polygons;
+    expect(polygons, hasLength(1));
+    // The ranch page serves AutoNavi tiles in this test env, so both the
+    // outer ring and the hole go through the WGS-84 → GCJ-02 transform —
+    // assert against the transformed geometry (and thereby also pin the
+    // ring/hole same-transform consistency).
+    expect(polygons.single.points,
+        CoordTransform.wgs84ToGcj02All(overviewBufferRing));
+    expect(
+      polygons.single.holePointsList!.single,
+      CoordTransform.wgs84ToGcj02All(const [
+        LatLng(28.0, 112.0),
+        LatLng(28.01, 112.0),
+        LatLng(28.01, 112.01),
+      ]),
+    );
+  });
+
+  testWidgets('overview fence without a buffer ring skips the band entirely',
+      (tester) async {
+    await pumpRanchPage(tester, withMetadata: true, withBuffer: false);
+    // Layer widget exists (selected) but renders nothing — no PolygonLayer
+    // under it, never a client-side recomputed ring.
+    expect(find.byType(FenceBufferLayer), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(FenceBufferLayer),
+        matching: find.byType(PolygonLayer),
+      ),
+      findsNothing,
+    );
   });
 }

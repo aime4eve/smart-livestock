@@ -223,4 +223,34 @@ void main() {
       expect(scene.gating.calving, SceneGatingState.locked);
     });
   });
+
+  group('RanchFenceData buffer geometry (NIX-412)', () {
+    test('parses backend bufferPolygon and bufferDistance', () {
+      final fence = RanchFenceData.fromJson({
+        'id': '6',
+        'name': 'Watering Zone',
+        'points': [
+          {'lat': 28.2, 'lng': 112.9},
+          {'lat': 28.21, 'lng': 112.9},
+          {'lat': 28.21, 'lng': 112.91},
+        ],
+        'bufferPolygon': [
+          {'lat': 28.199, 'lng': 112.899},
+          {'lat': 28.211, 'lng': 112.899},
+          {'lat': 28.211, 'lng': 112.911},
+        ],
+        'bufferDistance': 50,
+      });
+      expect(fence.bufferPoints, hasLength(3));
+      expect(fence.bufferPoints.first.latitude, closeTo(28.199, 1e-9));
+      expect(fence.bufferDistance, 50);
+    });
+
+    test('missing bufferPolygon degrades to empty, distance defaults to 50',
+        () {
+      final fence = RanchFenceData.fromJson({'id': '1', 'name': 'legacy'});
+      expect(fence.bufferPoints, isEmpty);
+      expect(fence.bufferDistance, 50);
+    });
+  });
 }
