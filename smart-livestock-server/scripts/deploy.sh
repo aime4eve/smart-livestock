@@ -42,7 +42,7 @@ echo "==> [2/5] Syncing code to remote ($ENV)..."
 # --delete keeps the remote tree identical to local: stale files deleted from
 # git previously survived here and leaked into release jars (839 incident,
 # 2026-11-02 — LoggingSignalOutboxEventPublisher shipped as a duplicate bean).
-# Excluded paths (.env/.env.dev) are protected from deletion by rsync default.
+# Excluded paths are protected from --delete by their --exclude entries.
 rsync -avz --delete \
   --exclude='.git' \
   --exclude='.gradle' \
@@ -57,7 +57,19 @@ rsync -avz --delete \
   --exclude='.env.dev' \
   --exclude='._*' \
   --exclude='nohup.out' \
+  --exclude='frontend/' \
   . "$REMOTE:$REMOTE_DIR/"
+
+# frontend/ is the gitignored Flutter web build (~207MB), present only in
+# checkouts that have built it — worktrees lack it. A worktree deploy used to
+# wipe the remote copy via --delete and the nginx image build then failed on
+# `COPY frontend` (NIX-369 incident, 2026-11-06). It is excluded above to keep
+# --delete from touching it, and synced here explicitly only when a local copy
+# exists, so UI updates from full checkouts keep flowing.
+if [ -d frontend ]; then
+  echo "==> [2.5/5] Syncing frontend build..."
+  rsync -az --delete frontend/ "$REMOTE:$REMOTE_DIR/frontend/"
+fi
 
 echo "==> [3/5] Cleaning old JARs on remote..."
 ssh "$REMOTE" "cd $REMOTE_DIR/build/libs && ls -t smart-livestock-server-*.jar 2>/dev/null | tail -n +2 | xargs -r rm -f"
