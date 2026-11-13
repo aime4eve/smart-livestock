@@ -1,96 +1,63 @@
-import 'dart:async' show StreamSubscription;
-import 'dart:math' show cos, max, min, pow, sqrt;
+import 'dart:math' show cos, max, min, sqrt;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 import 'package:hkt_livestock_agentic/features/ranch/domain/ranch_models.dart';
 
-/// Meters per screen pixel at the given zoom/latitude.
-double _metersPerPixelAt(double zoom, double latDeg) =>
-    156543.03392 * cos(latDeg * pi / 180) / pow(2, zoom);
-
-/// 50m 预警缓冲带（围栏内侧贴边环带）。
+/// 50m 预警缓冲带（围栏边界【外侧】环带，NIX-412）。
 ///
-/// 2026-11-13 重构（集成测试反馈 #4：旧版顶点外扩多边形在凹角处自交，
-/// 碎块翻进围栏内部）：改画「动态宽度 Polyline」——路径沿围栏边界向内
-/// 平移半带宽，带宽 = [bufferDistance]（像素随 zoom 实时换算），带外缘
-/// 正好贴围栏边界、整体落在围栏内侧。平移距离只有半带宽（25m），折叠
-/// 瑕疵（若有）完全被宽带覆盖，不可见。
-class FenceBufferLayer extends StatefulWidget {
+/// 渲染=带洞多边形：外环=围栏顶点外扩 50m（角平分线法），洞=围栏本体——
+/// 即使外扩环在凹角处局部自交，围栏内部恒被洞遮挡，可见部分只剩围栏外
+/// 50m 环带（2026-11-13 集成测试反馈：无挖洞时外扩碎片翻进围栏内部，
+/// 视觉上"缓冲带在围栏里"）。
+class FenceBufferLayer extends StatelessWidget {
   const FenceBufferLayer({
     super.key,
     required this.fences,
-    required this.mapController,
     this.bufferDistance = 50,
     this.shouldTransform = false,
   });
 
   final List<RanchFenceData> fences;
-  final MapController mapController;
   final int bufferDistance;
   final bool shouldTransform;
 
   @override
-  State<FenceBufferLayer> createState() => _FenceBufferLayerState();
-}
-
-class _FenceBufferLayerState extends State<FenceBufferLayer> {
-  StreamSubscription<MapEvent>? _sub;
-  double _metersPerPixel = _metersPerPixelAt(15, 28.2);
-
-  @override
-  void initState() {
-    super.initState();
-    _sub = widget.mapController.mapEventStream.listen(_onMapEvent);
-  }
-
-  @override
-  void dispose() {
-    _sub?.cancel();
-    super.dispose();
-  }
-
-  void _onMapEvent(MapEvent event) {
-    final mpp =
-        _metersPerPixelAt(event.camera.zoom, event.camera.center.latitude);
-    // 只在缩放级别实质变化时重建（平移不改变像素宽度）。
-    if ((mpp - _metersPerPixel).abs() / _metersPerPixel > 0.01) {
-      setState(() => _metersPerPixel = mpp);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final polylines = <Polyline>[];
+    final polygons = <Polygon>[];
 
-    for (final fence in widget.fences) {
+    for (final fence in fences) {
       if (!fence.active || fence.points.isEmpty) continue;
 
-      // 中心线沿边界向内平移半带宽 → 色带外缘正好贴围栏边界、整体在内。
-      final centerline =
-          _offsetRing(fence.points, -(widget.bufferDistance / 2));
-      if (centerline.length < 3) continue;
-      final path = widget.shouldTransform
-          ? CoordTransform.wgs84ToGcj02All(centerline)
-          : centerline;
+      final fenceScreen = shouldTransform
+          ? CoordTransform.wgs84ToGcj02All(fence.points)
+          : fence.points;
 
-      polylines.add(Polyline(
-        points: path,
-        strokeWidth: (widget.bufferDistance) / _metersPerPixel,
-        color: Colors.orange.withValues(alpha: 0.25),
+      final outer = _offsetRing(fence.points, bufferDistance.toDouble());
+      if (outer.isEmpty) continue;
+      final outerScreen =
+          shouldTransform ? CoordTransform.wgs84ToGcj02All(outer) : outer;
+
+      polygons.add(Polygon(
+        points: outerScreen,
+        holePointsList: [fenceScreen],
+        color: Colors.orange.withValues(alpha: 0.15),
+        borderColor: Colors.orange.withValues(alpha: 0.5),
+        borderStrokeWidth: 1.5,
+        pattern: StrokePattern.dashed(segments: const [8, 6]),
       ));
     }
 
-    if (polylines.isEmpty) return const SizedBox.shrink();
+    if (polygons.isEmpty) return const SizedBox.shrink();
 
-    return PolylineLayer(polylines: polylines);
+    return PolygonLayer(polygons: polygons);
   }
 
-  /// 顶点环沿角平分线法线偏移 [meters]（米制角平分线法，锐角补偿+安全
-  /// 上限）。负值=向内。窄凸起（宽 < 2×offset）处内缩环会自交——调用方
-  /// 用它作「洞」的带洞渲染下，该区域整体着色（凸起整体处于预警带内），
-  /// 视觉语义正确。
+  /// 顶点环沿角平分线法线向外偏移 [meters]（米制角平分线法，锐角补偿+
+  /// 安全上限防尖角飞点）。注意：法线计算全程在米制平面进行（先把边向
+  /// 量换算成米再归一）——旧版把单位法线再除以 111320 导致量纲错误，
+  /// scale 恒触发 clamp、实际偏移变成 8~200 米乱值。
   List<LatLng> _offsetRing(List<LatLng> points, double meters) {
     if (points.length < 3) return [];
     final lat0 = points.first.latitude;
@@ -132,7 +99,8 @@ class _FenceBufferLayerState extends State<FenceBufferLayer> {
       bx /= bl;
       by /= bl;
 
-      // 转角正弦（邻边单位向量叉积）→ 内缩沿平分线的距离补偿。
+      // 转角正弦（邻边单位向量叉积）→ 外扩沿平分线的距离补偿（保持到
+      // 两条边的垂直距离都 = meters）；安全上限防尖角飞点。
       final sinHalf = (n1x * n2y - n1y * n2x).abs();
       var offset = meters / max(sinHalf, 0.5);
       offset = min(offset, meters.abs() * 2.5);
