@@ -58,6 +58,32 @@ class _RanchPageState extends ConsumerState<RanchPage>
   final _mapController = MapController();
   SmartTileProvider? _tileProvider;
   String? _selectedFenceId;
+
+  /// Tap timestamp of the last fence-polygon hit. The map-level onTap also
+  /// fires for taps that land on a fence polygon (flutter_map's hitNotifier
+  /// does not consume the event) — this timestamp lets onTap skip the
+  /// deselect within a short window so "tap fence → select" and "tap blank →
+  /// deselect" never fight over the same tap.
+  DateTime? _lastFenceTapAt;
+
+  /// flutter_map polygon hit notifier: tapping a fence polygon selects it
+  /// (integration-test feedback 2026-11-13 — the buffer band only shows for
+  /// the selected fence, so tapping the fence on the map must select it too,
+  /// not just the list row).
+  // flutter_map 8's LayerHitNotifier is a ValueNotifier (not a callback):
+  // the layer sets .value on hit/miss; the state listens and reacts.
+  late final ValueNotifier<LayerHitResult<String>?> _fenceTapNotifier =
+      ValueNotifier<LayerHitResult<String>?>(null);
+
+  void _handleFenceTapHit() {
+    final hits = _fenceTapNotifier.value;
+    // Miss (null) is handled by the map-level onTap deselect path.
+    if (hits == null || hits.hitValues.isEmpty) return;
+    _lastFenceTapAt = DateTime.now();
+    final fenceId = hits.hitValues.first;
+    if (_selectedFenceId == fenceId) return;
+    setState(() => _selectedFenceId = fenceId);
+  }
   String? _centeredFarmId;
   int _sheetTab = 0; // 0=overview, 1=fence, 2=alerts
 
@@ -69,6 +95,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
   @override
   void initState() {
     super.initState();
+    _fenceTapNotifier.addListener(_handleFenceTapHit);
     _breathingController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -95,6 +122,8 @@ class _RanchPageState extends ConsumerState<RanchPage>
     _freshnessTicker?.cancel();
     _breathingController.dispose();
     _mapController.dispose();
+    _fenceTapNotifier.removeListener(_handleFenceTapHit);
+    _fenceTapNotifier.dispose();
     super.dispose();
   }
 
@@ -211,26 +240,32 @@ class _RanchPageState extends ConsumerState<RanchPage>
               urlTemplate: '',
             ),
             if (_selectedFenceId == null)
-              PolygonLayer(
+              PolygonLayer<String>(
+                hitNotifier: _fenceTapNotifier,
                 polygons: [
                   for (final fence in signalFences)
-                    Polygon(
+                    Polygon<String>(
                       points: shouldTransform
                           ? CoordTransform.wgs84ToGcj02All(fence.points)
                           : fence.points,
                       color: Color(fence.colorValue).withValues(alpha: 0.15),
                       borderColor: Color(fence.colorValue),
                       borderStrokeWidth: 2,
+                      // 点围栏多边形即可选中（2026-11-13 集成测试反馈：聚焦
+                      // 后缓冲带只在选中时显示，而此前只有列表项能选中——
+                      // 地图点围栏必须同样可达）。
+                      hitValue: fence.id,
                     ),
                 ],
               )
             else
               AnimatedBuilder(
                 animation: _breathingController,
-                builder: (context, _) => PolygonLayer(
+                builder: (context, _) => PolygonLayer<String>(
+                  hitNotifier: _fenceTapNotifier,
                   polygons: [
                     for (final fence in signalFences)
-                      Polygon(
+                      Polygon<String>(
                         points: shouldTransform
                             ? CoordTransform.wgs84ToGcj02All(fence.points)
                             : fence.points,
@@ -245,6 +280,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                         borderStrokeWidth: fence.id == _selectedFenceId
                             ? 3.0 + 1.5 * _breathingController.value
                             : 1.5,
+                        hitValue: fence.id,
                       ),
                   ],
                 ),
@@ -1818,6 +1854,13 @@ class _RanchPageState extends ConsumerState<RanchPage>
   }
 
   void _handleMapTap(LatLng point) {
+    // Taps on a fence polygon also arrive here (the polygon hitNotifier does
+    // not consume the event) — skip the deselect when a fence was just hit
+    // so the two notifications cannot cancel each other regardless of order.
+    final recentFenceTap = _lastFenceTapAt != null &&
+        DateTime.now().difference(_lastFenceTapAt!) <
+            const Duration(milliseconds: 80);
+    if (recentFenceTap) return;
     setState(() => _selectedFenceId = null);
   }
 
