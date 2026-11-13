@@ -35,10 +35,32 @@ class FenceBufferLayer extends StatelessWidget {
     for (final fence in fences) {
       if (!fence.active || fence.points.isEmpty) continue;
 
+      // 预警带画在围栏【内侧】（牲畜在栏内活动，接近边界 50m 时进入预警
+      // 带——集成测试反馈 2026-11-13：外扩版语义反了）。实现=带洞多边形：
+      // 外环=围栏顶点，洞=内缩 ring；内缩退化时回退外扩（原行为）。
+      final inner = _computeBuffer(fence.points, -bufferDistance);
+      final fenceScreen = shouldTransform
+          ? CoordTransform.wgs84ToGcj02All(fence.points)
+          : fence.points;
+
+      if (inner.length >= 3) {
+        final innerScreen =
+            shouldTransform ? CoordTransform.wgs84ToGcj02All(inner) : inner;
+        polygons.add(Polygon(
+          points: fenceScreen,
+          holePointsList: [innerScreen],
+          color: Colors.orange.withValues(alpha: 0.1),
+          borderColor: Colors.orange.withValues(alpha: 0.5),
+          borderStrokeWidth: 1.5,
+          pattern: StrokePattern.dashed(segments: const [8, 6]),
+        ));
+        continue;
+      }
+
       final rawBuffer = _computeBuffer(fence.points, bufferDistance);
       if (rawBuffer.isEmpty) continue;
-      final bufferPoints = shouldTransform ? CoordTransform.wgs84ToGcj02All(rawBuffer) : rawBuffer;
-
+      final bufferPoints =
+          shouldTransform ? CoordTransform.wgs84ToGcj02All(rawBuffer) : rawBuffer;
       polygons.add(Polygon(
         points: bufferPoints,
         color: Colors.orange.withValues(alpha: 0.1),
@@ -95,7 +117,10 @@ class FenceBufferLayer extends StatelessWidget {
         continue;
       }
 
-      final scale = meters / avgLen;
+      var scale = meters / avgLen;
+      // 尖角处 avgLen→0 会让外扩距离爆炸成"飞点"——clamp 到 4 倍步长。
+      final maxScale = meters.abs() * 4;
+      if (scale.abs() > maxScale) scale = scale.sign * maxScale;
       final dLng = avgNx * scale / 111000.0 * (latOff / lngOff);
       final dLat = avgNy * scale / 111000.0;
 
