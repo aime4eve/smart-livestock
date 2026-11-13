@@ -294,7 +294,6 @@ class _RanchPageState extends ConsumerState<RanchPage>
                   for (final fence in signalFences)
                     if (fence.id == _selectedFenceId) fence,
                 ],
-                mapController: _mapController,
                 bufferDistance: 50,
                 shouldTransform: shouldTransform,
               ),
