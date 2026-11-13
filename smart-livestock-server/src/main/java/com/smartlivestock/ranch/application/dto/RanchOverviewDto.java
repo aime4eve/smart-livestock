@@ -91,7 +91,13 @@ public final class RanchOverviewDto {
             int version,
             // Generation provenance echo (spec §4.3), same style as FenceDto:
             // stored JSON parsed to a Map, null/malformed degrades to null.
-            Map<String, Object> generationMetadata
+            Map<String, Object> generationMetadata,
+            // NIX-412: pre-computed JTS buffer ring (WGS-84) — the exact
+            // geometry the alert engine tests against (containsBuffer).
+            // Null when the stored fence has no buffer polygon (defensive;
+            // clients must skip rendering the warning band then).
+            List<GpsCoordinate> bufferPolygon,
+            int bufferDistance
     ) {
         private static final Logger log = LoggerFactory.getLogger(FenceData.class);
         private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -107,7 +113,9 @@ public final class RanchOverviewDto {
                     0.0,
                     livestockCount,
                     fence.getVersion(),
-                    parseGenerationMetadata(fence.getId(), fence.getGenerationMetadata())
+                    parseGenerationMetadata(fence.getId(), fence.getGenerationMetadata()),
+                    fence.getBufferPolygon(),
+                    fence.getBufferDistance()
             );
         }
 

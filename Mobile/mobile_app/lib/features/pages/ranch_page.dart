@@ -178,10 +178,21 @@ class _RanchPageState extends ConsumerState<RanchPage>
     final metaById = {
       for (final f in overview.fences) f.id: f.generationMetadata,
     };
+    // Same merge pattern for the buffer ring: signal geometry only carries
+    // the fence body, so the backend JTS bufferPolygon (the exact geometry
+    // the alert engine tests against, NIX-412) is merged by fence id —
+    // otherwise FenceBufferLayer silently skips every fence.
+    final bufferById = {
+      for (final f in overview.fences) f.id: f.bufferPoints,
+    };
     final signalFences = ref
         .watch(ranchMapGeometryProvider)
         .values
-        .map((s) => _signalFenceToRanchFence(s, metaById[s.fenceId]))
+        .map((s) => _signalFenceToRanchFence(
+              s,
+              metaById[s.fenceId],
+              bufferById[s.fenceId],
+            ))
         .toList();
     // Transform decision follows the tiles actually serving the farm area:
     // 高德 online → GCJ-02, local offline/server OSM tiles → none.
@@ -286,15 +297,14 @@ class _RanchPageState extends ConsumerState<RanchPage>
                 ),
               ),
             // 缓冲带聚焦当前关注对象（2026-11-13 用户裁决）：只在选中某个
-            // 围栏时显示该围栏的 50m 预警缓冲带——多围栏缓冲带全部常显会
-            // 相互叠加成视觉噪声（凹角外扩近似翻进围栏内部更显眼）。
+            // 围栏时显示该围栏的 50m 预警缓冲带（几何单源 NIX-412：外环
+            // 用后端 JTS bufferPolygon，与告警判定同一份几何）。
             if (_selectedFenceId != null)
               FenceBufferLayer(
                 fences: [
                   for (final fence in signalFences)
                     if (fence.id == _selectedFenceId) fence,
                 ],
-                bufferDistance: 50,
                 shouldTransform: shouldTransform,
               ),
             MarkerLayer(
@@ -1073,6 +1083,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
   RanchFenceData _signalFenceToRanchFence(
     MapFenceSignal fence,
     Map<String, dynamic>? generationMetadata,
+    List<LatLng>? bufferPoints,
   ) {
     final rawColor = fence.color.replaceFirst('#', '');
     final normalizedColor = rawColor.length == 6 ? 'FF$rawColor' : rawColor;
@@ -1091,6 +1102,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
       livestockCount: fence.livestockCount,
       version: fence.version,
       generationMetadata: generationMetadata,
+      // Backend JTS buffer ring merged by fence id; absent → empty → no
+      // warning band (never recomputed client-side, NIX-412).
+      bufferPoints: bufferPoints ?? const [],
     );
   }
 

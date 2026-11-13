@@ -252,6 +252,8 @@ class RanchFenceData {
     required this.livestockCount,
     required this.version,
     this.generationMetadata,
+    this.bufferPoints = const [],
+    this.bufferDistance = 50,
   });
 
   final String id;
@@ -267,6 +269,12 @@ class RanchFenceData {
   /// Generation provenance (spec §4.3); null for manually drawn fences.
   final Map<String, dynamic>? generationMetadata;
 
+  /// Pre-computed JTS buffer ring (WGS-84) from the backend — the exact
+  /// geometry the alert engine tests against. Empty when the fence has no
+  /// stored buffer polygon (NIX-412: never recompute locally; skip the band).
+  final List<LatLng> bufferPoints;
+  final int bufferDistance;
+
   factory RanchFenceData.fromJson(Map<String, dynamic> m) {
     final rawColor = m['color'] as String? ?? '#FF4C9A5F';
     final colorValue = _parseColor(rawColor);
@@ -278,6 +286,16 @@ class RanchFenceData {
                 ))
             .toList() ??
         [];
+    // NIX-412: backend-computed JTS buffer ring; empty when absent — the
+    // warning band is skipped (never recomputed client-side).
+    final rawBufferPoints = (m['bufferPolygon'] as List?)
+            ?.whereType<Map<String, dynamic>>()
+            .map((p) => LatLng(
+                  (p['lat'] as num?)?.toDouble() ?? 0.0,
+                  (p['lng'] as num?)?.toDouble() ?? 0.0,
+                ))
+            .toList() ??
+        const <LatLng>[];
     return RanchFenceData(
       id: (m['id'] ?? '').toString(),
       name: m['name'] as String? ?? '',
@@ -292,6 +310,8 @@ class RanchFenceData {
       generationMetadata: m['generationMetadata'] is Map
           ? Map<String, dynamic>.from(m['generationMetadata'] as Map)
           : null,
+      bufferPoints: rawBufferPoints,
+      bufferDistance: (m['bufferDistance'] as num?)?.toInt() ?? 50,
     );
   }
 }
