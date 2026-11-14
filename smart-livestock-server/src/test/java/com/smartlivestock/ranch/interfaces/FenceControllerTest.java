@@ -221,7 +221,7 @@ class FenceControllerTest {
             when(fenceApplicationService.createFence(org.mockito.ArgumentMatchers.any()))
                     .thenReturn(new FenceDto(101L, FARM_ID, "北围栏",
                             List.of(new GpsCoordinate(new BigDecimal("37.123"), new BigDecimal("122.654"))),
-                            "#33CC66", true, 1, "GRASS", 0, metadata));
+                            "#33CC66", true, 1, "boundary", "rectangle", 0, metadata));
 
             mvc.perform(post(BASE)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -229,7 +229,8 @@ class FenceControllerTest {
                                     {"name":"北围栏",
                                      "vertices":[{"lat":37.123,"lng":122.654}],
                                      "color":"#33CC66",
-                                     "fenceType":"GRASS",
+                                     "fenceType":"boundary",
+                                     "shape":"rectangle",
                                      "generationMetadata":{"source":"DEVICE_TRACK",
                                                            "deviceIds":[11,12],
                                                            "totalRawPoints":5230}}"""))
@@ -238,6 +239,8 @@ class FenceControllerTest {
                     .andExpect(jsonPath("$.data.id").value(101))
                     .andExpect(jsonPath("$.data.name").value("北围栏"))
                     .andExpect(jsonPath("$.data.vertices[0].lat").value(37.123))
+                    .andExpect(jsonPath("$.data.fenceType").value("boundary"))
+                    .andExpect(jsonPath("$.data.shape").value("rectangle"))
                     .andExpect(jsonPath("$.data.generationMetadata.source").value("DEVICE_TRACK"));
 
             ArgumentCaptor<CreateFenceCommand> captor =
@@ -247,7 +250,8 @@ class FenceControllerTest {
             assertThat(command.farmId()).isEqualTo(FARM_ID);
             assertThat(command.name()).isEqualTo("北围栏");
             assertThat(command.color()).isEqualTo("#33CC66");
-            assertThat(command.fenceType()).isEqualTo("GRASS");
+            assertThat(command.fenceType()).isEqualTo("boundary");
+            assertThat(command.shape()).isEqualTo("rectangle");
             assertThat(command.vertices()).hasSize(1);
             assertThat(command.vertices().get(0).latitude()).isEqualTo(new BigDecimal("37.123"));
             assertThat(command.vertices().get(0).longitude()).isEqualTo(new BigDecimal("122.654"));

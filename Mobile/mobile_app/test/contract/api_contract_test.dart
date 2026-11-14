@@ -73,6 +73,16 @@ void main() {
       expect(item.livestockCount, 5);
       expect(item.version, raw['version']);
       expect(item.fenceType, raw['fenceType']);
+      // NIX-410: the persisted form shape rides `shape` and maps to the enum.
+      expect(item.type, FenceType.polygon);
+      expect(
+        fenceItemFromJson(
+          Map<String, dynamic>.from(raw)..['shape'] = 'circle',
+          0,
+          5,
+        ).type,
+        FenceType.circle,
+      );
     });
 
     test('fenceItemsFromApiMaps 批量解析', () {

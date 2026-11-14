@@ -83,6 +83,7 @@ public class FenceController {
                 parseVertices(body.get("vertices")),
                 (String) body.get("color"),
                 (String) body.get("fenceType"),
+                (String) body.get("shape"),
                 parseGenerationMetadata(body.get("generationMetadata"))
         );
         FenceDto fence = fenceApplicationService.createFence(command);
@@ -160,6 +161,7 @@ public class FenceController {
                 (String) body.get("name"),
                 parseVertices(body.get("vertices")),
                 (String) body.get("color"),
+                (String) body.get("shape"),
                 expectedVersion
         );
         try {
@@ -191,6 +193,7 @@ public class FenceController {
                 parseVertices(body.get("vertices")),
                 (String) body.get("name"),
                 (String) body.get("color"),
+                (String) body.get("shape"),
                 version);
         return ResponseEntity.ok(ApiResponse.ok(fence));
     }

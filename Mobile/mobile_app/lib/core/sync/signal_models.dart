@@ -318,6 +318,7 @@ class MapFenceSignal {
     required this.active,
     required this.color,
     required this.fenceType,
+    this.shape = 'polygon',
     required this.version,
     required this.geometry,
   });
@@ -330,7 +331,12 @@ class MapFenceSignal {
   final int livestockCount;
   final bool active;
   final String color;
+
+  /// Fence role (sub | boundary) — the backend fence_type column default.
   final String fenceType;
+
+  /// Persisted form shape (NIX-410): polygon | circle | rectangle.
+  final String shape;
   final int version;
   final List<List<double>> geometry;
 
@@ -347,7 +353,10 @@ class MapFenceSignal {
       livestockCount: json['livestockCount'] as int? ?? 0,
       active: json['active'] as bool? ?? true,
       color: json['color'] as String? ?? '#FF4C9A5F',
-      fenceType: json['fenceType'] as String? ?? 'POLYGON',
+      // Role column default 'sub' (NIX-410): the previous 'POLYGON' default
+      // leaked the shape vocabulary into the role field.
+      fenceType: json['fenceType'] as String? ?? 'sub',
+      shape: json['shape'] as String? ?? 'polygon',
       version: json['version'] as int? ?? 1,
       geometry:
           rawGeometry

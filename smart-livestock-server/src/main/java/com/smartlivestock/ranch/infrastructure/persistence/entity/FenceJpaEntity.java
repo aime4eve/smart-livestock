@@ -43,6 +43,14 @@ public class FenceJpaEntity {
     @Column(name = "fence_type", nullable = false, length = 20)
     private String fenceType = "sub";
 
+    /**
+     * Persisted form shape (NIX-410): polygon | circle | rectangle. Legacy
+     * rows default to 'polygon' — their template vertices were saved as-is
+     * and are indistinguishable from drawn polygons.
+     */
+    @Column(name = "shape", nullable = false, length = 16)
+    private String shape = "polygon";
+
     @Column(name = "buffer_distance")
     private Integer bufferDistance;
 
@@ -97,6 +105,9 @@ public class FenceJpaEntity {
 
     public String getFenceType() { return fenceType; }
     public void setFenceType(String fenceType) { this.fenceType = fenceType; }
+
+    public String getShape() { return shape; }
+    public void setShape(String shape) { this.shape = shape; }
 
     public Integer getBufferDistance() { return bufferDistance; }
     public void setBufferDistance(Integer bufferDistance) { this.bufferDistance = bufferDistance; }

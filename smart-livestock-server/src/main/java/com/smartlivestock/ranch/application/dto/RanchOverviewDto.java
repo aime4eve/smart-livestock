@@ -107,7 +107,10 @@ public final class RanchOverviewDto {
                     fence.getId(),
                     fence.getName(),
                     fence.isActive(),
-                    "POLYGON",
+                    // NIX-410: persisted form shape, uppercased for the
+                    // front-end type-label switch (was a hardcoded
+                    // "POLYGON" that hid rectangle/circle fences).
+                    fence.getShape().toUpperCase(),
                     fence.getColor(),
                     fence.getVertices(),
                     0.0,

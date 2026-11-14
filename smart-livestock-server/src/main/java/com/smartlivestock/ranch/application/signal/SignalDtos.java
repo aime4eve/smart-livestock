@@ -82,6 +82,7 @@ public final class SignalDtos {
             boolean active,
             String color,
             String fenceType,
+            String shape,
             int version,
             List<List<BigDecimal>> geometry
     ) {}

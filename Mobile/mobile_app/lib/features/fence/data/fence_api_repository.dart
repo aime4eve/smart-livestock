@@ -68,7 +68,7 @@ class FenceApiRepository implements FenceRepository {
         ];
       }
     }
-    final type = fenceTypeFromApiString(raw['type'] as String?);
+    final type = fenceShapeFromApiString(raw['shape'] as String?);
     if (points.length < 3) {
       points = FenceItem.defaultPointsForType(type, _fallbackCenter);
     }

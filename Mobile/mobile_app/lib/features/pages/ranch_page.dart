@@ -1092,7 +1092,9 @@ class _RanchPageState extends ConsumerState<RanchPage>
       id: fence.fenceId,
       name: fence.name,
       active: fence.active,
-      type: 'POLYGON',
+      // Persisted shape (NIX-410), uppercased for the type-label switch;
+      // older payloads fall back inside MapFenceSignal to 'polygon'.
+      type: fence.shape.toUpperCase(),
       colorValue: colorValue,
       points: fence.geometry
           .where((point) => point.length >= 2)

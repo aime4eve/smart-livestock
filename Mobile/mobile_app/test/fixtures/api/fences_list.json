@@ -35,7 +35,8 @@
         "color": "#4C9A5F",
         "active": true,
         "version": 2,
-        "fenceType": "sub"
+        "fenceType": "sub",
+        "shape": "polygon"
       },
       {
         "id": 2,
@@ -62,7 +63,8 @@
         "color": null,
         "active": true,
         "version": 1,
-        "fenceType": "sub"
+        "fenceType": "sub",
+        "shape": "polygon"
       },
       {
         "id": 3,
@@ -89,7 +91,8 @@
         "color": null,
         "active": true,
         "version": 1,
-        "fenceType": "sub"
+        "fenceType": "sub",
+        "shape": "polygon"
       },
       {
         "id": 4,
@@ -116,7 +119,8 @@
         "color": null,
         "active": true,
         "version": 1,
-        "fenceType": "sub"
+        "fenceType": "sub",
+        "shape": "polygon"
       },
       {
         "id": 7,
@@ -143,7 +147,8 @@
         "color": "#FF5733",
         "active": true,
         "version": 1,
-        "fenceType": "sub"
+        "fenceType": "sub",
+        "shape": "polygon"
       }
     ],
     "page": 1
