@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 import 'package:hkt_livestock_agentic/features/fence/data/fence_dto.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
 
 /// Load a fixture file from test/fixtures/api/.
 Map<String, dynamic> _loadFixture(String name) {
