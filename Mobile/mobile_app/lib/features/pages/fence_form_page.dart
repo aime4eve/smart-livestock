@@ -46,12 +46,22 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
   final _nameController = TextEditingController();
   final _formMapController = MapController();
   SmartTileProvider? _tileProvider;
-  FenceType _type = FenceType.rectangle;
+  /// Form shape default. Deliberately `polygon` (NIX-415): it matches the
+  /// API/parse default, and a `rectangle` default here used to mislabel any
+  /// fence whose real shape had not loaded yet (deep-link edit window) and
+  /// could even persist `shape: "rectangle"` onto a polygon fence saved
+  /// through that window.
+  FenceType _type = FenceType.polygon;
   FenceTemplate? _selectedTemplate;
   bool _alarmEnabled = true;
   bool _active = true;
   bool _saving = false;
   bool _initialized = false;
+
+  /// NIX-415: the page only `read`s the fence controller, so fences arriving
+  /// after mount (deep link straight into the edit form) never rebuild it —
+  /// the subscription re-runs the edit init once the data lands.
+  ProviderSubscription? _fenceStateSub;
   bool _tileProviderInitialized = false;
   bool _drawMode = false;
 
@@ -95,7 +105,19 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    // NIX-415: deep links mount this page before the fence controller has
+    // loaded its list; re-run the edit init when the fences land.
+    _fenceStateSub = ref.listenManual(fenceControllerProvider, (_, __) {
+      if (!mounted) return;
+      setState(_initForEdit);
+    });
+  }
+
+  @override
   void dispose() {
+    _fenceStateSub?.close();
     _tileProvider?.dispose();
     _nameController.dispose();
     _formMapController.dispose();
@@ -256,7 +278,6 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
 
   void _initForEdit() {
     if (_initialized || !_isEdit) return;
-    _initialized = true;
     final fenceState = ref.read(fenceControllerProvider);
     FenceItem? fence;
     for (final f in fenceState.fences) {
@@ -265,7 +286,11 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
         break;
       }
     }
+    // NIX-415: stay uninitialized until the fence actually arrives so the
+    // build-driven retry (and the controller subscription) can fill the
+    // form later — deep links mount before the controller has loaded.
     if (fence == null) return;
+    _initialized = true;
     _nameController.text = fence.name;
     _type = fence.type;
     _alarmEnabled = fence.alarmEnabled;
