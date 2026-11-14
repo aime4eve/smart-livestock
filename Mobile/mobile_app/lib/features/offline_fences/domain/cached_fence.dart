@@ -7,6 +7,9 @@ class CachedFenceData {
   final int farmId;
   final String name;
   final String fenceType;
+
+  /// Persisted form shape (NIX-410): polygon | circle | rectangle.
+  final String shape;
   final List<LatLng> vertices;
   final String status;
   final int version;
@@ -21,6 +24,7 @@ class CachedFenceData {
     required this.farmId,
     required this.name,
     this.fenceType = 'sub',
+    this.shape = 'polygon',
     required this.vertices,
     this.status = 'active',
     this.version = 1,

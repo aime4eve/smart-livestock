@@ -17,6 +17,9 @@ public class Fence extends AggregateRoot {
     private int version = 1;
     private String fenceType = "sub";
 
+    /** Persisted form shape (NIX-410): polygon | circle | rectangle. */
+    private String shape = "polygon";
+
     /**
      * Opaque JSON string describing how the fence geometry was generated
      * (e.g. DEVICE_TRACK draft params). Written once at creation; NULL for
@@ -115,6 +118,9 @@ public class Fence extends AggregateRoot {
 
     public String getFenceType() { return fenceType; }
     public void setFenceType(String fenceType) { this.fenceType = fenceType; }
+
+    public String getShape() { return shape; }
+    public void setShape(String shape) { this.shape = shape; }
 
     public String getGenerationMetadata() { return generationMetadata; }
     public void setGenerationMetadata(String generationMetadata) { this.generationMetadata = generationMetadata; }

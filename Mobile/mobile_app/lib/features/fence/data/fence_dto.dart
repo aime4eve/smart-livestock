@@ -4,7 +4,10 @@ import 'package:hkt_livestock_agentic/core/l10n/l10n.dart';
 
 const _fallbackCenter = LatLng(28.229, 112.938);
 
-FenceType fenceTypeFromApiString(String? raw) {
+/// Persisted form shape (NIX-410): the backend echoes `shape`
+/// (polygon | circle | rectangle); anything else (older payload, missing
+/// key) degrades to polygon — the shape of a vertex list.
+FenceType fenceShapeFromApiString(String? raw) {
   return switch (raw) {
     'rectangle' => FenceType.rectangle,
     'circle' => FenceType.circle,
@@ -33,7 +36,7 @@ FenceItem fenceItemFromJson(
   final rawId = raw['id'];
   final id = rawId is int ? rawId.toString() : (rawId as String? ?? '');
   final name = raw['name'] as String? ?? L10n.instance.fenceUnnamed;
-  final type = fenceTypeFromApiString(raw['type'] as String?);
+  final type = fenceShapeFromApiString(raw['shape'] as String?);
   final alarmEnabled = raw['alarmEnabled'] as bool? ?? true;
   final active = raw['active'] as bool? ?? true;
   var points = coordinatesToLatLngPoints(raw['coordinates'] as List<dynamic>?);

@@ -44,7 +44,7 @@ class FenceVersionTest {
                 new BufferPolygonCalculator(),
                 new com.smartlivestock.ranch.domain.service.FenceLivestockCounter(),
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class));
-        FenceDto result = svc.updateFence(1L, new UpdateFenceCommand("up", TRIANGLE, "#00F", 2));
+        FenceDto result = svc.updateFence(1L, new UpdateFenceCommand("up", TRIANGLE, "#00F", null, 2));
         assertEquals(2, result.version());
     }
 
@@ -62,7 +62,7 @@ class FenceVersionTest {
                 new com.smartlivestock.ranch.domain.service.FenceLivestockCounter(),
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class));
         assertThrows(ApiException.class,
-            () -> svc.updateFence(1L, new UpdateFenceCommand("up", TRIANGLE, "#00F", 3)));
+            () -> svc.updateFence(1L, new UpdateFenceCommand("up", TRIANGLE, "#00F", null, 3)));
     }
 
     @Test
@@ -79,7 +79,7 @@ class FenceVersionTest {
                 new BufferPolygonCalculator(),
                 new com.smartlivestock.ranch.domain.service.FenceLivestockCounter(),
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class));
-        FenceDto result = svc.updateFence(1L, new UpdateFenceCommand("up", TRIANGLE, "#00F", null));
+        FenceDto result = svc.updateFence(1L, new UpdateFenceCommand("up", TRIANGLE, "#00F", null, null));
         assertEquals(5, result.version());
     }
 }

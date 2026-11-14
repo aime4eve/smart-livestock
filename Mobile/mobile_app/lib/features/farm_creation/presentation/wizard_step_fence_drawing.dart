@@ -173,7 +173,9 @@ class _WizardStepFenceDrawingState
 
     final body = <String, dynamic>{
       'name': _nameController.text.trim(),
-      'type': 'polygon',
+      // NIX-410: the persisted key is `shape` (the old `type` key was never
+      // read by the backend and silently dropped).
+      'shape': 'polygon',
       'vertices': vertices,
       'alarmEnabled': true,
     };

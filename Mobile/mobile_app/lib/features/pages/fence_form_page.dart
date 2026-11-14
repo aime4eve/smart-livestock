@@ -816,6 +816,9 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
       final body = <String, dynamic>{
         'name': _nameController.text.trim(),
         'vertices': vertices,
+        // NIX-410: persist the form shape so an edit reopens with the
+        // rectangle/circle template semantics (anchor protection) intact.
+        'shape': _type.name,
       };
       if (_isEdit) {
         body['status'] = _active ? 'active' : 'inactive';

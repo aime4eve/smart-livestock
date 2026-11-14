@@ -2,6 +2,7 @@ package com.smartlivestock.ranch.application;
 
 import com.smartlivestock.ranch.domain.model.Fence;
 import com.smartlivestock.ranch.application.command.CreateFenceCommand;
+import com.smartlivestock.ranch.application.command.UpdateFenceCommand;
 import com.smartlivestock.ranch.application.dto.FenceDto;
 import com.smartlivestock.ranch.application.signal.SignalEventType;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
@@ -122,7 +123,7 @@ class FenceApplicationServiceTest {
                 "usedPoints", 7412);
 
         FenceDto dto = service.createFence(new CreateFenceCommand(
-                1L, "test", TRIANGLE, "#FF0000", null, metadata));
+                1L, "test", TRIANGLE, "#FF0000", null, null, metadata));
 
         ArgumentCaptor<Fence> captor = ArgumentCaptor.forClass(Fence.class);
         verify(fenceRepository).save(captor.capture());
@@ -140,11 +141,118 @@ class FenceApplicationServiceTest {
         when(fenceRepository.save(any(Fence.class))).thenAnswer(inv -> inv.getArgument(0));
 
         FenceDto dto = service.createFence(new CreateFenceCommand(
-                1L, "test", TRIANGLE, "#FF0000", null, null));
+                1L, "test", TRIANGLE, "#FF0000", null, null, null));
 
         ArgumentCaptor<Fence> captor = ArgumentCaptor.forClass(Fence.class);
         verify(fenceRepository).save(captor.capture());
         assertNull(captor.getValue().getGenerationMetadata());
         assertNull(dto.generationMetadata());
+    }
+
+    // ── NIX-410: shape persistence + closed value domains ────────────
+
+    @Test
+    void createFence_withShape_persistsShapeAndEchoesItBack() {
+        when(fenceRepository.save(any(Fence.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        FenceDto dto = service.createFence(new CreateFenceCommand(
+                1L, "test", TRIANGLE, "#FF0000", null, "rectangle", null));
+
+        ArgumentCaptor<Fence> captor = ArgumentCaptor.forClass(Fence.class);
+        verify(fenceRepository).save(captor.capture());
+        assertEquals("rectangle", captor.getValue().getShape());
+        assertEquals("rectangle", dto.shape());
+        // The role column keeps its default when untouched.
+        assertEquals("sub", captor.getValue().getFenceType());
+    }
+
+    @Test
+    void createFence_withoutShape_defaultsToPolygon() {
+        when(fenceRepository.save(any(Fence.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        FenceDto dto = service.createFence(new CreateFenceCommand(
+                1L, "test", TRIANGLE, "#FF0000", null, null, null));
+
+        ArgumentCaptor<Fence> captor = ArgumentCaptor.forClass(Fence.class);
+        verify(fenceRepository).save(captor.capture());
+        assertEquals("polygon", captor.getValue().getShape());
+        assertEquals("polygon", dto.shape());
+    }
+
+    @Test
+    void createFence_withUnknownShape_throwsValidation() {
+        ApiException ex = assertThrows(ApiException.class,
+                () -> service.createFence(new CreateFenceCommand(
+                        1L, "test", TRIANGLE, "#FF0000", null, "GRASS", null)));
+
+        assertEquals(ErrorCode.VALIDATION_ERROR, ex.getCode());
+        verify(fenceRepository, never()).save(any());
+    }
+
+    @Test
+    void createFence_withUnknownFenceRole_throwsValidation() {
+        ApiException ex = assertThrows(ApiException.class,
+                () -> service.createFence(new CreateFenceCommand(
+                        1L, "test", TRIANGLE, "#FF0000", "GRASS", null, null)));
+
+        assertEquals(ErrorCode.VALIDATION_ERROR, ex.getCode());
+        verify(fenceRepository, never()).save(any());
+    }
+
+    @Test
+    void createFence_withBoundaryRole_persistsRole() {
+        when(fenceRepository.save(any(Fence.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.createFence(new CreateFenceCommand(
+                1L, "boundary", TRIANGLE, "#FF0000", "boundary", "polygon", null));
+
+        ArgumentCaptor<Fence> captor = ArgumentCaptor.forClass(Fence.class);
+        verify(fenceRepository).save(captor.capture());
+        assertEquals("boundary", captor.getValue().getFenceType());
+    }
+
+    @Test
+    void updateFence_withShape_updatesStoredShape() {
+        Fence existing = new Fence(1L, "test", TRIANGLE, "#FF0000");
+        existing.setId(FENCE_ID);
+        when(fenceRepository.findById(FENCE_ID)).thenReturn(Optional.of(existing));
+        when(fenceRepository.save(any(Fence.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.updateFence(FENCE_ID, new UpdateFenceCommand(
+                "test", TRIANGLE, "#FF0000", "circle", null));
+
+        ArgumentCaptor<Fence> captor = ArgumentCaptor.forClass(Fence.class);
+        verify(fenceRepository).save(captor.capture());
+        assertEquals("circle", captor.getValue().getShape());
+    }
+
+    @Test
+    void updateFence_withoutShape_keepsStoredShape() {
+        Fence existing = new Fence(1L, "test", TRIANGLE, "#FF0000");
+        existing.setId(FENCE_ID);
+        existing.setShape("rectangle");
+        when(fenceRepository.findById(FENCE_ID)).thenReturn(Optional.of(existing));
+        when(fenceRepository.save(any(Fence.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.updateFence(FENCE_ID, new UpdateFenceCommand(
+                "test", TRIANGLE, "#FF0000", null, null));
+
+        ArgumentCaptor<Fence> captor = ArgumentCaptor.forClass(Fence.class);
+        verify(fenceRepository).save(captor.capture());
+        assertEquals("rectangle", captor.getValue().getShape());
+    }
+
+    @Test
+    void updateFence_withUnknownShape_throwsValidation() {
+        Fence existing = new Fence(1L, "test", TRIANGLE, "#FF0000");
+        existing.setId(FENCE_ID);
+        when(fenceRepository.findById(FENCE_ID)).thenReturn(Optional.of(existing));
+
+        ApiException ex = assertThrows(ApiException.class,
+                () -> service.updateFence(FENCE_ID, new UpdateFenceCommand(
+                        "test", TRIANGLE, "#FF0000", "hexagon", null)));
+
+        assertEquals(ErrorCode.VALIDATION_ERROR, ex.getCode());
+        verify(fenceRepository, never()).save(any());
     }
 }

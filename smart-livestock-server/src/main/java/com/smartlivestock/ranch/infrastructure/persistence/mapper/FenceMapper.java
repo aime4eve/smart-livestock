@@ -28,6 +28,7 @@ public final class FenceMapper {
         jpa.setStatus(fence.isActive() ? "ACTIVE" : "DISABLED");
         jpa.setVersion(fence.getVersion());
         jpa.setFenceType(fence.getFenceType());
+        jpa.setShape(fence.getShape());
         jpa.setBufferDistance(fence.getBufferDistance());
         jpa.setBufferPolygon(toVerticesJson(fence.getBufferPolygon()));
         jpa.setGenerationMetadata(fence.getGenerationMetadata());
@@ -41,6 +42,7 @@ public final class FenceMapper {
         existing.setStatus(fence.isActive() ? "ACTIVE" : "DISABLED");
         existing.setVersion(fence.getVersion());
         existing.setFenceType(fence.getFenceType());
+        existing.setShape(fence.getShape());
         existing.setBufferDistance(fence.getBufferDistance());
         existing.setBufferPolygon(toVerticesJson(fence.getBufferPolygon()));
         // Intentionally excluded: generation_metadata is written once at
@@ -59,6 +61,7 @@ public final class FenceMapper {
         }
         fence.setVersion(jpa.getVersion());
         fence.setFenceType(jpa.getFenceType());
+        fence.setShape(jpa.getShape());
         if (jpa.getBufferDistance() != null) {
             fence.setBufferDistance(jpa.getBufferDistance());
         }

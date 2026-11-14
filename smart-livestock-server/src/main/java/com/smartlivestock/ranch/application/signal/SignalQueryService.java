@@ -397,6 +397,7 @@ public class SignalQueryService {
                             fence.isActive(),
                             fence.getColor(),
                             fence.getFenceType(),
+                            fence.getShape(),
                             fence.getVersion(),
                             includeGeometry ? fence.getVertices().stream()
                                     .map(point -> List.of(point.latitude(), point.longitude()))

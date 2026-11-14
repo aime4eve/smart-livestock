@@ -20,6 +20,7 @@ class AppDatabase {
     required int farmId,
     required String name,
     String fenceType = 'sub',
+    String shape = 'polygon',
     required String vertices,
     String status = 'active',
     int version = 1,

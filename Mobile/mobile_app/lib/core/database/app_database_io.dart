@@ -44,6 +44,18 @@ class AppDatabase {
       _createSchemaV1();
       _db.execute('PRAGMA user_version = 1');
     }
+    if (version < 2) {
+      // NIX-410: persist the fence form shape alongside the role column.
+      // A fresh v1 schema already carries the column (CREATE TABLE above),
+      // so guard by column presence — SQLite has no ADD COLUMN IF NOT EXISTS.
+      final cols = _db.select('PRAGMA table_info(cached_fences)');
+      final hasShape = cols.any((c) => c['name'] == 'shape');
+      if (!hasShape) {
+        _db.execute(
+            'ALTER TABLE cached_fences ADD COLUMN shape TEXT NOT NULL DEFAULT \'polygon\'');
+      }
+      _db.execute('PRAGMA user_version = 2');
+    }
   }
 
   void _createSchemaV1() {
@@ -77,6 +89,7 @@ class AppDatabase {
         farm_id INTEGER NOT NULL,
         name TEXT NOT NULL,
         fence_type TEXT NOT NULL DEFAULT 'sub',
+        shape TEXT NOT NULL DEFAULT 'polygon',
         vertices TEXT NOT NULL,
         status TEXT NOT NULL DEFAULT 'active',
         version INTEGER NOT NULL DEFAULT 1,
@@ -151,6 +164,7 @@ class AppDatabase {
     required int farmId,
     required String name,
     String fenceType = 'sub',
+    String shape = 'polygon',
     required String vertices,
     String status = 'active',
     int version = 1,
@@ -162,9 +176,9 @@ class AppDatabase {
       final existing = getCachedFenceByRemoteId(remoteId);
       if (existing != null) {
         _db.execute('''
-          UPDATE cached_fences SET farm_id=?, name=?, fence_type=?, vertices=?, status=?, version=?, synced=?, local_delete_flag=?, updated_at=?, last_local_modified_at=?
+          UPDATE cached_fences SET farm_id=?, name=?, fence_type=?, shape=?, vertices=?, status=?, version=?, synced=?, local_delete_flag=?, updated_at=?, last_local_modified_at=?
           WHERE remote_id=?
-        ''', [farmId, name, fenceType, vertices, status, version,
+        ''', [farmId, name, fenceType, shape, vertices, status, version,
               synced ? 1 : 0, localDeleteFlag ? 1 : 0,
               DateTime.now().toIso8601String(),
               lastLocalModifiedAt?.toIso8601String(), remoteId]);
@@ -172,10 +186,10 @@ class AppDatabase {
       }
     }
     _db.execute('''
-      INSERT INTO cached_fences 
-      (remote_id, farm_id, name, fence_type, vertices, status, version, synced, local_delete_flag, updated_at, last_local_modified_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', [remoteId, farmId, name, fenceType, vertices, status, version,
+      INSERT INTO cached_fences
+      (remote_id, farm_id, name, fence_type, shape, vertices, status, version, synced, local_delete_flag, updated_at, last_local_modified_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', [remoteId, farmId, name, fenceType, shape, vertices, status, version,
           synced ? 1 : 0, localDeleteFlag ? 1 : 0,
           DateTime.now().toIso8601String(),
           lastLocalModifiedAt?.toIso8601String()]);

@@ -20,6 +20,7 @@ public record FenceDto(
         boolean active,
         int version,
         String fenceType,
+        String shape,
         int livestockCount,
         Map<String, Object> generationMetadata
 ) {
@@ -45,6 +46,7 @@ public record FenceDto(
                 fence.isActive(),
                 fence.getVersion(),
                 fence.getFenceType(),
+                fence.getShape(),
                 livestockCount,
                 parseGenerationMetadata(fence.getId(), fence.getGenerationMetadata())
         );

@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hkt_livestock_agentic/core/models/subscription_tier.dart';
 import 'package:hkt_livestock_agentic/features/fence/data/fence_dto.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
 
 /// Load a fixture file from test/fixtures/api/.
 Map<String, dynamic> _loadFixture(String name) {
@@ -73,6 +74,16 @@ void main() {
       expect(item.livestockCount, 5);
       expect(item.version, raw['version']);
       expect(item.fenceType, raw['fenceType']);
+      // NIX-410: the persisted form shape rides `shape` and maps to the enum.
+      expect(item.type, FenceType.polygon);
+      expect(
+        fenceItemFromJson(
+          Map<String, dynamic>.from(raw)..['shape'] = 'circle',
+          0,
+          5,
+        ).type,
+        FenceType.circle,
+      );
     });
 
     test('fenceItemsFromApiMaps 批量解析', () {

@@ -43,6 +43,7 @@ class FenceSyncService {
             farmId: farmId,
             name: map['name'] as String? ?? '',
             fenceType: map['fenceType'] as String? ?? 'sub',
+            shape: map['shape'] as String? ?? 'polygon',
             vertices: jsonEncode(map['vertices'] ?? []),
             status: map['active'] == true ? 'active' : 'disabled',
             version: version,
@@ -57,6 +58,7 @@ class FenceSyncService {
         farmId: farmId,
         name: map['name'] as String? ?? '',
         fenceType: map['fenceType'] as String? ?? 'sub',
+        shape: map['shape'] as String? ?? 'polygon',
         vertices: jsonEncode(map['vertices'] ?? []),
         status: map['active'] == true ? 'active' : 'disabled',
         version: version,
@@ -86,6 +88,7 @@ class FenceSyncService {
           'vertices': jsonDecode(fence['vertices'] as String),
           'color': '#4C9A5F',
           'fenceType': fence['fence_type'],
+          'shape': fence['shape'] as String? ?? 'polygon',
         };
 
         if (fence['remote_id'] == null) {
@@ -129,6 +132,7 @@ class FenceSyncService {
               farmId: farmId,
               name: fence['name'] as String,
               fenceType: fence['fence_type'] as String? ?? 'sub',
+              shape: fence['shape'] as String? ?? 'polygon',
               vertices: localVertices,
               status: fence['status'] as String? ?? 'active',
               version: fence['version'] as int? ?? 1,

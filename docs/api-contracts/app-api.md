@@ -491,6 +491,8 @@ Error 403:
 > 2026-11-11 增补：可选字段 `generationMetadata`（JSON 对象）——记录围栏的生成来源（如「从设备轨迹生成」的设备 ID 列表、时间范围、包络方式、点数统计），创建时写入、随详情/列表回显；PUT/force 编辑路径不解析该键，既有元数据在编辑后保留。非 Map 值被忽略（不报错）。示例：
 > `{ "method": "DEVICE_TRACK", "deviceIds": [11, 12], "startTime": "2026-10-28T00:00:00+08:00", "endTime": "2026-11-11T00:00:00+08:00", "rawPointCount": 7802, "usedPoints": 3705, "outlierTrimmed": 195, "hullMethod": "concave" }`
 
+> 2026-11-14 增补（NIX-410）：可选字段 `shape`——表单形状语义落库（`polygon` | `circle` | `rectangle`，缺省 `polygon`），POST 写入、PUT/force 可更新、详情/列表/ranch-overview/信号链回显；非白名单值 → 400 `error.fenceInvalidShape`。同时 `fenceType`（围栏角色：`sub` | `boundary`，V13 既有列）收紧为封闭值域——非白名单值 → 400 `error.fenceInvalidType`；PUT 路径不解析 `fenceType`（角色创建后不可改，前端历史上 PUT 携带该键会被静默丢弃，现契约化）。存量围栏 `shape` 迁移为 `polygon`（矩形/圆形模板历史上以顶点落库，无法区分，按 polygon 处理无显示退化）。
+
 #### GET /farms/{farmId}/fences/{fenceId}
 
 围栏详情（含坐标点）。

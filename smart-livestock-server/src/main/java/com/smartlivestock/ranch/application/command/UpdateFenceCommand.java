@@ -4,5 +4,10 @@ import com.smartlivestock.ranch.domain.model.GpsCoordinate;
 
 import java.util.List;
 
-public record UpdateFenceCommand(String name, List<GpsCoordinate> vertices, String color, Integer expectedVersion) {
+/**
+ * @param shape persisted form shape (NIX-410): polygon | circle | rectangle;
+ *              null leaves the stored shape untouched (whitelist update)
+ */
+public record UpdateFenceCommand(String name, List<GpsCoordinate> vertices, String color,
+                                 String shape, Integer expectedVersion) {
 }

@@ -44,13 +44,20 @@ public class FenceApplicationService {
     private final FenceLivestockCounter fenceLivestockCounter;
     private final SignalRevisionService signalRevisionService;
 
+    /** Persisted form shapes (NIX-410) — mirrors the front-end FenceType enum. */
+    private static final List<String> VALID_SHAPES = List.of("polygon", "circle", "rectangle");
+    /** Fence roles — the only values V13's fence_type column may carry. */
+    private static final List<String> VALID_FENCE_ROLES = List.of("sub", "boundary");
+
     @Transactional
     public FenceDto createFence(CreateFenceCommand command) {
         validateVertices(command.vertices());
         Fence fence = new Fence(command.farmId(), command.name(), command.vertices(), command.color());
         if (command.fenceType() != null) {
+            validateFenceRole(command.fenceType());
             fence.setFenceType(command.fenceType());
         }
+        fence.setShape(command.shape() == null ? "polygon" : validateShape(command.shape()));
         fence.setGenerationMetadata(serializeGenerationMetadata(command.generationMetadata()));
         computeBufferPolygon(fence);
         Fence saved = fenceRepository.save(fence);
@@ -95,6 +102,9 @@ public class FenceApplicationService {
         fence.setName(command.name());
         fence.setVertices(command.vertices());
         fence.setColor(command.color());
+        if (command.shape() != null) {
+            fence.setShape(validateShape(command.shape()));
+        }
         computeBufferPolygon(fence);
         try {
             Fence saved = fenceRepository.save(fence);
@@ -113,13 +123,16 @@ public class FenceApplicationService {
 
     @Transactional
     public FenceDto forceUpdateFence(Long id, List<GpsCoordinate> vertices,
-                                      String name, String color, int version) {
+                                      String name, String color, String shape, int version) {
         validateVertices(vertices);
         Fence fence = fenceRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "围栏不存在: " + id));
         fence.setName(name);
         fence.setVertices(vertices);
         fence.setColor(color);
+        if (shape != null) {
+            fence.setShape(validateShape(shape));
+        }
         computeBufferPolygon(fence);
         try {
             Fence saved = fenceRepository.save(fence);
@@ -192,6 +205,21 @@ public class FenceApplicationService {
     private static void validateVertices(List<GpsCoordinate> vertices) {
         if (vertices == null || vertices.size() < 3) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.fenceTooFewVertices");
+        }
+    }
+
+    /** NIX-410: reject unknown shapes instead of persisting them raw. */
+    private static String validateShape(String shape) {
+        if (!VALID_SHAPES.contains(shape)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.fenceInvalidShape");
+        }
+        return shape;
+    }
+
+    /** NIX-410: the role column is a closed domain — reject arbitrary strings. */
+    private static void validateFenceRole(String fenceType) {
+        if (!VALID_FENCE_ROLES.contains(fenceType)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "error.fenceInvalidType");
         }
     }
 

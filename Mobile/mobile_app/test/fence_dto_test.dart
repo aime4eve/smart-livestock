@@ -47,4 +47,60 @@ void main() {
     expect(item.points.length, 4);
     expect(item.type, FenceType.polygon);
   });
+
+  // NIX-410: the persisted form shape rides the `shape` key (the legacy
+  // `type` key was never sent by the backend and always fell back).
+  test('fenceItemFromJson maps the shape key to the FenceType enum', () {
+    FenceItem parse(Map<String, dynamic> raw) =>
+        fenceItemFromJson(raw, 0, 0);
+
+    expect(
+      parse({
+        'id': 'f1',
+        'shape': 'rectangle',
+        'coordinates': [
+          [112.9, 28.2],
+          [112.91, 28.2],
+          [112.91, 28.21],
+        ],
+      }).type,
+      FenceType.rectangle,
+    );
+    expect(
+      parse({
+        'id': 'f2',
+        'shape': 'circle',
+        'coordinates': [
+          [112.9, 28.2],
+          [112.91, 28.2],
+          [112.91, 28.21],
+        ],
+      }).type,
+      FenceType.circle,
+    );
+    // Missing key (older payloads) and unknown values degrade to polygon.
+    expect(
+      parse({
+        'id': 'f3',
+        'coordinates': [
+          [112.9, 28.2],
+          [112.91, 28.2],
+          [112.91, 28.21],
+        ],
+      }).type,
+      FenceType.polygon,
+    );
+    expect(
+      parse({
+        'id': 'f4',
+        'shape': 'hexagon',
+        'coordinates': [
+          [112.9, 28.2],
+          [112.91, 28.2],
+          [112.91, 28.21],
+        ],
+      }).type,
+      FenceType.polygon,
+    );
+  });
 }
