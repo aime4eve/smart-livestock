@@ -96,12 +96,27 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
 
   bool get _isEdit => widget.fenceId != null;
 
-  /// 新建围栏的锚点：当前牧场登记坐标（转为屏幕坐标系）；未登记时退回演示默认点
+  /// NIX-237: one decision for the whole form page — every point the form
+  /// holds lives in screen space (GCJ-02 under 高德: create defaults, the
+  /// edit-loaded vertices and collected tracks alike), so the anchor
+  /// display, the loaded/collected conversion and the save-path inverse
+  /// must all agree. Anchored at the farm center the map opens on; local
+  /// mbtiles / server OSM tiles are WGS-84 → no transform.
+  bool get _screenSpaceIsGcj02 {
+    final provider = _tileProvider;
+    if (provider == null) return false;
+    final center = ref.read(farmSwitcherControllerProvider).activeFarmCenter
+        ?? MapConstants.mapCenter;
+    return provider.shouldTransformAt(center);
+  }
+
+  /// 新建围栏的锚点：当前牧场登记坐标（转为屏幕坐标系）；未登记时退回演示
+  /// 默认点——回退值同样进屏幕系（NIX-237：否则保存链路按屏幕系决策做逆
+  /// 转换时，WGS 锚点的默认模板会整体偏 ~500m）
   LatLng get _farmAnchor {
-    final center = ref.read(farmSwitcherControllerProvider).activeFarmCenter;
-    if (center == null) return MapConstants.mapCenter;
-    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
-    return shouldTransform ? CoordTransform.wgs84ToGcj02(center) : center;
+    final center = ref.read(farmSwitcherControllerProvider).activeFarmCenter
+        ?? MapConstants.mapCenter;
+    return _screenSpaceIsGcj02 ? CoordTransform.wgs84ToGcj02(center) : center;
   }
 
   @override
@@ -290,6 +305,11 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
     // build-driven retry (and the controller subscription) can fill the
     // form later — deep links mount before the controller has loaded.
     if (fence == null) return;
+    // NIX-237: the form state lives in SCREEN space, so loading the API's
+    // WGS-84 vertices needs the tile decision — wait for the provider the
+    // same way the fence wait above does (its arrival triggers a rebuild
+    // via _initTileProvider's setState).
+    if (_tileProvider == null) return;
     _initialized = true;
     _nameController.text = fence.name;
     _type = fence.type;
@@ -297,7 +317,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
     _active = fence.active;
     if (fence.type == FenceType.rectangle) {
       if (fence.points.length >= 4) {
-        _drawingPoints = [fence.points[0], fence.points[2]];
+        _drawingPoints = _toScreenAll([fence.points[0], fence.points[2]]);
       }
     } else if (fence.type == FenceType.circle) {
       if (fence.points.isNotEmpty) {
@@ -307,12 +327,18 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
           lat += p.latitude;
           lng += p.longitude;
         }
-        _drawingPoints = [LatLng(lat / n, lng / n), fence.points[0]];
+        _drawingPoints =
+            _toScreenAll([LatLng(lat / n, lng / n), fence.points[0]]);
       }
     } else {
-      _drawingPoints = List.from(fence.points);
+      _drawingPoints = _toScreenAll(List<LatLng>.from(fence.points));
     }
   }
+
+  /// WGS-84 → screen space with the page-wide per-tile decision (NIX-237).
+  List<LatLng> _toScreenAll(List<LatLng> wgsPoints) => _screenSpaceIsGcj02
+      ? CoordTransform.wgs84ToGcj02All(wgsPoints)
+      : wgsPoints;
 
   List<LatLng> _getPreviewPoints() {
     if (_drawMode &&
@@ -606,8 +632,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
   /// 与手绘多边形一致，保存链路的 GCJ→WGS 转换零改动复用。
   void _applyCollectedVertices(List<LatLng> wgsPoints, {String? defaultName}) {
     if (wgsPoints.length < 3 || !mounted) return;
-    final shouldTransform =
-        _tileProvider?.shouldTransformCoordinates() ?? false;
+    final shouldTransform = _screenSpaceIsGcj02;
     final screen = shouldTransform
         ? CoordTransform.wgs84ToGcj02All(wgsPoints)
         : List<LatLng>.from(wgsPoints);
@@ -921,7 +946,7 @@ class _FenceFormPageState extends ConsumerState<FenceFormPage> {
     var pts = _getPreviewPoints().isNotEmpty
         ? _getPreviewPoints()
         : FenceItem.defaultPointsForType(_type, _farmAnchor);
-    if (_tileProvider?.shouldTransformCoordinates() ?? false) {
+    if (_screenSpaceIsGcj02) {
       pts = CoordTransform.gcj02ToWgs84All(pts);
     }
     return pts.map((p) => [p.longitude, p.latitude]).toList();

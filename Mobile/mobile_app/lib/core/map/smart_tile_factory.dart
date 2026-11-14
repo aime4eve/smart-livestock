@@ -47,12 +47,22 @@ Future<SmartTileProvider> buildSmartTileProvider({
   return provider;
 }
 
+/// Test seam: when non-null, [loadSmartTileProvider] hands this instance
+/// back instead of building one — skipping the ref reads and the
+/// connectivity probe (no timers, no HTTP) so widget tests can force the
+/// 高德/OSM/offline states deterministically (NIX-237).
+@visibleForTesting
+SmartTileProvider? debugTileProviderOverride;
+
 /// Widget-side adapter: collects local state and delegates to
 /// [buildSmartTileProvider].
 Future<SmartTileProvider> loadSmartTileProvider(
   WidgetRef ref, {
   VoidCallback? onSourceChanged,
 }) async {
+  final override = debugTileProviderOverride;
+  if (override != null) return override;
+
   // Locally available mbtiles (user-downloaded regions only).
   final mbtilesProviders = <MBTilesTileProvider>[];
   if (!kIsWeb) {

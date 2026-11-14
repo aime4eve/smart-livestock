@@ -33,7 +33,9 @@ class WizardStepFenceDrawing extends ConsumerStatefulWidget {
 
   final String farmId;
 
-  /// 第一步选定的牧场中心（屏幕坐标系）；空则退回演示默认点
+  /// 第一步选定的牧场中心（WGS-84 正典坐标，NIX-189/237 修正；屏幕系显示
+  /// 由 [_WizardStepFenceDrawingState._displayInitialCenter] 按瓦片源转换）；
+  /// 空则退回演示默认点
   final LatLng? initialCenter;
   final void Function(int count) onComplete;
   final VoidCallback onSkip;
@@ -147,10 +149,18 @@ class _WizardStepFenceDrawingState
     });
   }
 
+  /// Whether the tiles actually serving the drawing area are GCJ-02
+  /// (NIX-237: per-tile decision anchored at the step-1 farm center —
+  /// local mbtiles / server OSM tiles are WGS-84, only 高德 online is GCJ).
+  bool get _drawingAreaIsGcj02 {
+    final anchor = widget.initialCenter ?? MapConfig.defaultCenter;
+    return _tileProvider?.shouldTransformAt(anchor) ?? false;
+  }
+
   /// When the tile source uses GCJ-02, vertices drawn on the map must be
   /// inverse-transformed to WGS-84 before storage.
   List<LatLng> _verticesForSave(List<LatLng> drawnVertices) {
-    if (_tileProvider?.shouldTransformCoordinates() ?? false) {
+    if (_drawingAreaIsGcj02) {
       return CoordTransform.gcj02ToWgs84All(drawnVertices);
     }
     return drawnVertices;
@@ -264,6 +274,13 @@ class _WizardStepFenceDrawingState
     );
   }
 
+  /// Step-1 center is WGS-84 canonical; transform for display only when the
+  /// tiles serving this area are GCJ-02 (NIX-237).
+  LatLng get _displayInitialCenter {
+    final anchor = widget.initialCenter ?? MapConfig.defaultCenter;
+    return _drawingAreaIsGcj02 ? CoordTransform.wgs84ToGcj02(anchor) : anchor;
+  }
+
   String get _hintText {
     final count = _session.points.length;
     if (count == 0) return '点击地图添加围栏顶点（至少3个）';
@@ -345,8 +362,7 @@ class _WizardStepFenceDrawingState
                 child: FlutterMap(
                   mapController: _mapController,
                   options: MapOptions(
-                    initialCenter:
-                        widget.initialCenter ?? MapConfig.defaultCenter,
+                    initialCenter: _displayInitialCenter,
                     initialZoom: 14.0,
                     onTap: _onMapTap,
                   ),

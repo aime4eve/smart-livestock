@@ -1140,7 +1140,9 @@ class _MapPreviewState extends State<_MapPreview> {
     }
 
     final center = widget.farmCenter ?? const LatLng(28.229, 112.938);
-    final shouldTransform = widget.tileProvider?.shouldTransformCoordinates() ?? false;
+    // NIX-237: per-tile decision anchored at the farm center — offline
+    // mbtiles / server OSM tiles are WGS-84, only 高德 online is GCJ-02.
+    final shouldTransform = widget.tileProvider?.shouldTransformAt(center) ?? false;
     final polygons = _buildPolygons(shouldTransform);
 
     return Container(

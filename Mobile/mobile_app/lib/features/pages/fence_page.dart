@@ -79,10 +79,41 @@ class _FencePageState extends ConsumerState<FencePage>
   /// 初始位置：当前牧场登记坐标（屏幕坐标系）；未登记时退回演示默认点
   LatLng get _initialMapCenter {
     final center = ref.read(farmSwitcherControllerProvider).activeFarmCenter;
-    if (center == null) return MapConstants.mapCenter;
-    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
-    return shouldTransform ? CoordTransform.wgs84ToGcj02(center) : center;
+    final target = center ?? MapConstants.mapCenter;
+    return _shouldTransformAt(target)
+        ? CoordTransform.wgs84ToGcj02(target)
+        : target;
   }
+
+  /// NIX-237: per-tile GCJ-02 decision anchored at the WGS-84 point the map
+  /// actually renders there. Local mbtiles (WGS-84) and the server tileserver
+  /// fallback (WGS-84) must NOT be transformed even when the online source is
+  /// 高德 — the global flag mis-offline-tile devices by ~500-660 m. No anchor
+  /// → global-flag fallback (ranch_page mixed pattern).
+  bool _shouldTransformAt(LatLng? anchor) {
+    final provider = _tileProvider;
+    if (provider == null) return false;
+    return anchor == null
+        ? provider.shouldTransformCoordinates()
+        : provider.shouldTransformAt(anchor);
+  }
+
+  /// Browse-mode anchor: the first real point on the map decides which tile
+  /// source serves this farm's area (same refPoint pattern as ranch_page).
+  LatLng? _browseAnchor(FenceState fenceState) {
+    for (final fence in fenceState.fences) {
+      if (fence.points.isNotEmpty) return fence.points.first;
+    }
+    for (final position in fenceState.livestockPositions) {
+      return position.toLatLng();
+    }
+    return null;
+  }
+
+  /// Edit-session anchor: the drawn polygon's first vertex (WGS-84, in
+  /// memory) — every render/tap/save decision of the session must agree.
+  LatLng? _sessionAnchorOf(FenceEditSession session) =>
+      session.points.isEmpty ? null : session.points.first;
 
 
   @override
@@ -258,9 +289,11 @@ class _FencePageState extends ConsumerState<FencePage>
                             PolylineLayer(
                               polylines: [
                                 Polyline(
-                                  points: (_tileProvider?.shouldTransformCoordinates() ?? false)
-                                      ? CoordTransform.wgs84ToGcj02All([...editSession.points, editSession.points.first])
-                                      : [...editSession.points, editSession.points.first],
+                                  points: _shouldTransformAt(
+                                      _sessionAnchorOf(editSession))
+                                  ? CoordTransform.wgs84ToGcj02All(
+                                      [...editSession.points, editSession.points.first])
+                                  : [...editSession.points, editSession.points.first],
                                   color: AppColors.primary,
                                   strokeWidth: 2.5,
                                 ),
@@ -503,7 +536,7 @@ class _FencePageState extends ConsumerState<FencePage>
   List<Polygon> _buildBrowsePolygons(FenceState fenceState) {
     final t = _breathingController.value;
     final hasSelection = fenceState.selectedFenceId != null;
-    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
+    final shouldTransform = _shouldTransformAt(_browseAnchor(fenceState));
     return fenceState.fences.map((fence) {
       final color = Color(fence.colorValue);
       final selected = fence.id == fenceState.selectedFenceId;
@@ -530,8 +563,9 @@ class _FencePageState extends ConsumerState<FencePage>
 
   List<Polygon> _buildEditPolygons(FenceEditSession editSession) {
     if (editSession.points.length < 3) return const [];
-    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
-    final pts = shouldTransform ? CoordTransform.wgs84ToGcj02All(editSession.points) : editSession.points;
+    final pts = _shouldTransformAt(_sessionAnchorOf(editSession))
+        ? CoordTransform.wgs84ToGcj02All(editSession.points)
+        : editSession.points;
     return [
       Polygon(
         points: pts,
@@ -548,7 +582,7 @@ class _FencePageState extends ConsumerState<FencePage>
     bool isSaving,
   ) {
     final isInteractive = !isSaving;
-    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
+    final shouldTransform = _shouldTransformAt(_sessionAnchorOf(editSession));
     return [
       for (var i = 0; i < editSession.points.length; i++)
         Marker(
@@ -614,7 +648,7 @@ class _FencePageState extends ConsumerState<FencePage>
     FenceController controller,
     bool isSaving,
   ) {
-    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
+    final shouldTransform = _shouldTransformAt(_sessionAnchorOf(editSession));
     return [
       for (var i = 0; i < editSession.points.length; i++)
         Marker(
@@ -680,7 +714,7 @@ class _FencePageState extends ConsumerState<FencePage>
     if (local == null) return;
     final raw = _latLngFromLocal(local);
     if (raw == null) return;
-    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
+    final shouldTransform = _shouldTransformAt(_sessionAnchorOf(session));
     final point = shouldTransform ? CoordTransform.gcj02ToWgs84(raw) : raw;
     if (!fencePolygonContainsLatLng(point, session.points)) return;
     setState(() {
@@ -705,7 +739,9 @@ class _FencePageState extends ConsumerState<FencePage>
       return;
     }
     // 地图屏幕坐标 → GCJ-02（高德降级），转 WGS-84 后算 delta，保证平移量与 WGS-84 存储一致
-    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
+    final session = ref.read(fenceControllerProvider).editSession;
+    final shouldTransform = _shouldTransformAt(
+        session == null ? null : _sessionAnchorOf(session));
     final previousLatLng = shouldTransform ? CoordTransform.gcj02ToWgs84(prevRaw) : prevRaw;
     final currentLatLng = shouldTransform ? CoordTransform.gcj02ToWgs84(currRaw) : currRaw;
     ref.read(fenceControllerProvider.notifier).translateDraft(
@@ -764,7 +800,7 @@ class _FencePageState extends ConsumerState<FencePage>
     final screenPoint = tapPosition.relative;
     if (screenPoint == null) return;
     final camera = _mapController.camera;
-    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
+    final shouldTransform = _shouldTransformAt(_browseAnchor(fenceState));
 
     Offset project(LatLng ll) {
       // fence.points 为 WGS-84，高德降级时先转 GCJ-02 再投影到瓦片屏幕坐标
@@ -837,8 +873,12 @@ class _FencePageState extends ConsumerState<FencePage>
     if (local == null) return;
     final edgeHit = _findNearestEdge(local, editSession.points);
     if (edgeHit == null || edgeHit.distance > 24.0) return;
-    final insertPoint = _latLngFromLocal(local);
-    if (insertPoint == null) return;
+    final raw = _latLngFromLocal(local);
+    if (raw == null) return;
+    // NIX-237: the tapped screen point is GCJ-02 under 高德 tiles — store
+    // WGS-84 with the same per-tile decision the session renders with.
+    final shouldTransform = _shouldTransformAt(_sessionAnchorOf(editSession));
+    final insertPoint = shouldTransform ? CoordTransform.gcj02ToWgs84(raw) : raw;
     controller.insertDraftVertex(edgeHit.edgeStartIndex, insertPoint);
   }
 
@@ -854,7 +894,9 @@ class _FencePageState extends ConsumerState<FencePage>
     final local = renderBox.globalToLocal(globalPosition);
     final raw = _latLngFromLocal(local);
     if (raw == null) return;
-    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
+    final session = ref.read(fenceControllerProvider).editSession;
+    final shouldTransform =
+        _shouldTransformAt(session == null ? null : _sessionAnchorOf(session));
     final nextPoint = shouldTransform ? CoordTransform.gcj02ToWgs84(raw) : raw;
     controller.moveDraftVertex(vertexIndex, nextPoint);
   }
@@ -871,7 +913,14 @@ class _FencePageState extends ConsumerState<FencePage>
 
   Offset? _offsetForPoint(LatLng point) {
     try {
-      final offset = _mapController.camera.latLngToScreenOffset(point);
+      // NIX-237: project in screen space (GCJ-02 under 高德 tiles) so edge
+      // detection matches the rendered polygon; the session anchor decides.
+      final session = ref.read(fenceControllerProvider).editSession;
+      final projected =
+          _shouldTransformAt(session == null ? null : _sessionAnchorOf(session))
+              ? CoordTransform.wgs84ToGcj02(point)
+              : point;
+      final offset = _mapController.camera.latLngToScreenOffset(projected);
       return Offset(
         (offset.dx as num).toDouble(),
         (offset.dy as num).toDouble(),
@@ -1030,7 +1079,7 @@ class _FencePageState extends ConsumerState<FencePage>
   }
 
   List<Marker> _buildFenceNameMarkers(FenceState fenceState) {
-    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
+    final shouldTransform = _shouldTransformAt(_browseAnchor(fenceState));
     return [
       for (final fence in fenceState.fences)
         if (fence.points.isNotEmpty)
@@ -1051,7 +1100,7 @@ class _FencePageState extends ConsumerState<FencePage>
 
   List<Marker> _buildLivestockMarkers(FenceState fenceState) {
     if (fenceState.livestockPositions.isEmpty) return const [];
-    final shouldTransform = _tileProvider?.shouldTransformCoordinates() ?? false;
+    final shouldTransform = _shouldTransformAt(_browseAnchor(fenceState));
     return fenceState.livestockPositions.map((p) {
       final label = p.livestockCode ?? p.livestockId ?? '';
       return Marker(
