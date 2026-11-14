@@ -30,6 +30,16 @@ public interface TemperatureLogJpaRepository extends JpaRepository<TemperatureLo
     boolean existsByDeviceIdAndRecordedAtAndSource(Long deviceId, Instant recordedAt, String source);
 
     /**
+     * Half-open window {@code [from, to)} of one device — the drinking
+     * journey test's fixture-hygiene filter (NIX-400): a device whose seed
+     * temperature rows (V31/V35 now()-relative 72h backfills) fall inside
+     * the recalculated window would perturb μ/σ and spawn borderline
+     * candidates, so the test must pick a device with a clean window.
+     */
+    boolean existsByDeviceIdAndRecordedAtGreaterThanEqualAndRecordedAtLessThan(
+            Long deviceId, Instant from, Instant to);
+
+    /**
      * Points of one livestock (all its devices) recorded in {@code [from, to)}
      * — the sample-day minimum-points check (NIX-256 Task 5a). The
      * recorded_at range keeps the time-partition pruning intact.
