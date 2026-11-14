@@ -12,8 +12,7 @@ import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -28,6 +27,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/admin/farms")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('PLATFORM_ADMIN')")
 public class FarmAdminController {
 
     private final SpringDataFarmRepository springDataFarmRepository;
@@ -46,7 +46,6 @@ public class FarmAdminController {
             @RequestParam(required = false) Long tenantId,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String keyword) {
-        requirePlatformAdmin();
 
         List<FarmJpaEntity> farms;
         if (tenantId != null) {
@@ -92,7 +91,6 @@ public class FarmAdminController {
      */
     @PostMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> createFarm(@RequestBody Map<String, Object> body) {
-        requirePlatformAdmin();
 
         Object tenantIdObj = body.get("tenantId");
         String name = (String) body.get("name");
@@ -138,7 +136,6 @@ public class FarmAdminController {
      */
     @GetMapping("/{farmId}")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getFarm(@PathVariable Long farmId) {
-        requirePlatformAdmin();
 
         FarmJpaEntity f = springDataFarmRepository.findById(farmId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "牧场不存在: " + farmId));
@@ -167,7 +164,6 @@ public class FarmAdminController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> updateFarmStatus(
             @PathVariable Long farmId,
             @RequestBody Map<String, String> body) {
-        requirePlatformAdmin();
 
         String status = body.get("status");
         if (status == null || (!status.equals("active") && !status.equals("disabled"))) {
@@ -193,15 +189,4 @@ public class FarmAdminController {
         return new BigDecimal(value.toString());
     }
 
-    private void requirePlatformAdmin() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "未认证");
-        }
-        boolean isAdmin = auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_PLATFORM_ADMIN"));
-        if (!isAdmin) {
-            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "需要 platform_admin 角色");
-        }
-    }
 }

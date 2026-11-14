@@ -8,8 +8,7 @@ import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
@@ -23,6 +22,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/admin/feature-gates")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('PLATFORM_ADMIN')")
 public class AdminFeatureGateController {
 
     private final SpringDataFeatureGateRepository springDataFeatureGateRepository;
@@ -33,7 +33,6 @@ public class AdminFeatureGateController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> listFeatureGates() {
-        requirePlatformAdmin();
 
         List<Map<String, Object>> items = springDataFeatureGateRepository.findAll().stream()
                 .map(FeatureGateMapper::toDomain)
@@ -50,7 +49,6 @@ public class AdminFeatureGateController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> updateFeatureGate(
             @PathVariable Long id,
             @RequestBody Map<String, Object> body) {
-        requirePlatformAdmin();
 
         var existing = springDataFeatureGateRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
@@ -71,18 +69,6 @@ public class AdminFeatureGateController {
     }
 
     // ── Helpers ────────────────────────────────────────────────────
-
-    private void requirePlatformAdmin() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "未认证");
-        }
-        boolean isAdmin = auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_PLATFORM_ADMIN"));
-        if (!isAdmin) {
-            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "需要 platform_admin 角色");
-        }
-    }
 
     private Map<String, Object> toGateMap(FeatureGate gate) {
         Map<String, Object> m = new LinkedHashMap<>();

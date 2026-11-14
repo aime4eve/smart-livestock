@@ -10,8 +10,7 @@ import com.smartlivestock.shared.domain.DomainEventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -27,6 +26,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1/admin/subscription-services")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('PLATFORM_ADMIN')")
 public class AdminServiceController {
 
     private final SubscriptionServiceRepository subscriptionServiceRepository;
@@ -41,7 +41,6 @@ public class AdminServiceController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int pageSize,
             @RequestParam(required = false) Long tenantId) {
-        requirePlatformAdmin();
 
         List<SubscriptionService> all = subscriptionServiceRepository.findAll();
 
@@ -74,7 +73,6 @@ public class AdminServiceController {
     @PostMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> provisionService(
             @RequestBody Map<String, Object> body) {
-        requirePlatformAdmin();
 
         Long tenantId = requireLong(body, "tenantId");
         String serviceName = requireString(body, "serviceName");
@@ -100,7 +98,6 @@ public class AdminServiceController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getService(@PathVariable Long id) {
-        requirePlatformAdmin();
 
         SubscriptionService svc = subscriptionServiceRepository.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
@@ -116,7 +113,6 @@ public class AdminServiceController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> updateStatus(
             @PathVariable Long id,
             @RequestBody Map<String, String> body) {
-        requirePlatformAdmin();
 
         String targetStatus = body.get("targetStatus");
         if (targetStatus == null || targetStatus.isBlank()) {
@@ -147,7 +143,6 @@ public class AdminServiceController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> adjustQuota(
             @PathVariable Long id,
             @RequestBody Map<String, Object> body) {
-        requirePlatformAdmin();
 
         int newQuota = requireInt(body, "deviceQuota");
 
@@ -162,18 +157,6 @@ public class AdminServiceController {
     }
 
     // ── Helpers ────────────────────────────────────────────────────
-
-    private void requirePlatformAdmin() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "未认证");
-        }
-        boolean isAdmin = auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_PLATFORM_ADMIN"));
-        if (!isAdmin) {
-            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "需要 platform_admin 角色");
-        }
-    }
 
     private Map<String, Object> toServiceMap(SubscriptionService svc) {
         Map<String, Object> m = new LinkedHashMap<>();

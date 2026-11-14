@@ -14,6 +14,7 @@ import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/admin/tenants")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('PLATFORM_ADMIN')")
 public class TenantAdminController {
 
     private final SpringDataTenantRepository springDataTenantRepository;
@@ -50,7 +52,6 @@ public class TenantAdminController {
             @RequestParam(required = false) String phase,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "false") boolean includeDeleted) {
-        requirePlatformAdmin();
 
         List<TenantJpaEntity> allTenants = springDataTenantRepository.findAll();
         List<Map<String, Object>> items = allTenants.stream()
@@ -91,7 +92,6 @@ public class TenantAdminController {
      */
     @PostMapping
     public ResponseEntity<ApiResponse<TenantDto>> createTenant(@RequestBody Map<String, String> body) {
-        requirePlatformAdmin();
 
         String name = body.get("name");
         String contactName = body.get("contactName");
@@ -113,7 +113,6 @@ public class TenantAdminController {
      */
     @GetMapping("/{tenantId}")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getTenant(@PathVariable Long tenantId) {
-        requirePlatformAdmin();
 
         TenantJpaEntity t = springDataTenantRepository.findById(tenantId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "租户不存在: " + tenantId));
@@ -149,7 +148,6 @@ public class TenantAdminController {
     public ResponseEntity<ApiResponse<TenantDto>> updateTenant(
             @PathVariable Long tenantId,
             @RequestBody Map<String, String> body) {
-        requirePlatformAdmin();
 
         String name = body.get("name");
         String contactName = body.get("contactName");
@@ -169,7 +167,6 @@ public class TenantAdminController {
             @PathVariable Long tenantId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int pageSize) {
-        requirePlatformAdmin();
 
         springDataTenantRepository.findById(tenantId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "租户不存在: " + tenantId));
@@ -205,7 +202,6 @@ public class TenantAdminController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> updateTenantStatus(
             @PathVariable Long tenantId,
             @RequestBody Map<String, String> body) {
-        requirePlatformAdmin();
 
         String status = body.get("status");
         if (status == null || (!status.equals("active") && !status.equals("disabled"))) {
@@ -232,7 +228,6 @@ public class TenantAdminController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> deleteTenant(
             @PathVariable Long tenantId,
             @RequestParam(required = false, defaultValue = "false") boolean cancelSubscription) {
-        requirePlatformAdmin();
         tenantLifecycleService.delete(tenantId, currentUserId(), cancelSubscription);
         return ResponseEntity.ok(ApiResponse.ok(Map.of(
                 "id", String.valueOf(tenantId),
@@ -246,7 +241,6 @@ public class TenantAdminController {
     @PostMapping("/{tenantId}/restore")
     public ResponseEntity<ApiResponse<Map<String, Object>>> restoreTenant(
             @PathVariable Long tenantId) {
-        requirePlatformAdmin();
         tenantLifecycleService.restore(tenantId, currentUserId());
         return ResponseEntity.ok(ApiResponse.ok(Map.of(
                 "id", String.valueOf(tenantId),
@@ -261,7 +255,6 @@ public class TenantAdminController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> updateTenantPhase(
             @PathVariable Long tenantId,
             @RequestBody Map<String, String> body) {
-        requirePlatformAdmin();
 
         String phase = body.get("phase");
         if (phase == null) {
@@ -296,15 +289,4 @@ public class TenantAdminController {
         return userId;
     }
 
-    private void requirePlatformAdmin() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "未认证");
-        }
-        boolean isAdmin = auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_PLATFORM_ADMIN"));
-        if (!isAdmin) {
-            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "需要 platform_admin 角色");
-        }
-    }
 }

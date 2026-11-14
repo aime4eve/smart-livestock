@@ -7,6 +7,7 @@ import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -62,6 +63,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/admin/tenants")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('PLATFORM_ADMIN')")
 public class CloudPilotLicenseController {
 
     private final CloudPilotLicenseService cloudPilotLicenseService;
@@ -117,6 +119,12 @@ public class CloudPilotLicenseController {
         }
     }
 
+    /**
+     * In-body backstop kept alongside the class-level @PreAuthorize: method
+     * security does not run for direct-invocation unit tests (the same
+     * reason PlatformDisplaySettingsAdminController keeps its explicit
+     * guard), so the nonPlatformAdminIsRejected test exercises this one.
+     */
     private void requirePlatformAdmin() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null) {
