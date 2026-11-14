@@ -302,11 +302,18 @@ class _TrackCollectPageState extends ConsumerState<TrackCollectPage> {
     }
   }
 
-  /// WGS-84 → 显示坐标（高德瓦片时转 GCJ-02，存储仍为 WGS-84）。
-  LatLng _displayPoint(LatLng wgs) =>
-      (_tileProvider?.shouldTransformCoordinates() ?? false)
-          ? CoordTransform.wgs84ToGcj02(wgs)
-          : wgs;
+  /// WGS-84 → 显示坐标：仅当实际服务本轨迹区域的瓦片是 GCJ-02 才转换；
+  /// 存储始终 WGS-84（NIX-237 逐瓦片判定，锚点=轨迹首点，与
+  /// trajectory_sheet 范式一致）。
+  LatLng _displayPoint(LatLng wgs) {
+    final provider = _tileProvider;
+    if (provider == null) return wgs;
+    final anchor = _track.isNotEmpty ? _track.first.toLatLng() : null;
+    final shouldTransform = anchor == null
+        ? provider.shouldTransformCoordinates()
+        : provider.shouldTransformAt(anchor);
+    return shouldTransform ? CoordTransform.wgs84ToGcj02(wgs) : wgs;
+  }
 
   List<LatLng> get _displayTrack =>
       _track.map((p) => _displayPoint(p.toLatLng())).toList();

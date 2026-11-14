@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/api/api_client.dart';
+import 'package:hkt_livestock_agentic/core/map/coord_transform.dart';
 import 'package:hkt_livestock_agentic/core/map/map_config.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_provider.dart';
 import 'package:hkt_livestock_agentic/core/map/smart_tile_factory.dart';
@@ -32,6 +33,11 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
   final _nameController = TextEditingController();
   final _areaController = TextEditingController();
   final _mapController = MapController();
+
+  /// NIX-189/237: canonical WGS-84 at all times. Taps land in screen space
+  /// (GCJ-02 under 高德 tiles) and are inverse-converted via [_toWgs84];
+  /// display goes through [_displayCenter]. Storing GCJ here used to shift
+  /// the whole farm ~500 m.
   LatLng _selectedCenter = MapConfig.defaultCenter;
   bool _submitting = false;
   late String? _timezone = optionForOffset(activeTzOffsetMinutes())?.name;
@@ -61,6 +67,27 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
       onSourceChanged: () { if (mounted) setState(() {}); },
     );
     if (mounted) setState(() {});
+  }
+
+  /// NIX-237: whether the tiles actually serving [mapPoint] are GCJ-02.
+  /// [mapPoint] must be a value in the map's own fed space — flutter_map
+  /// derives the tile it renders from exactly that value, so the check must
+  /// use it raw (local mbtiles / server OSM tiles are WGS-84 and suppress
+  /// the transform even when the online source is 高德).
+  bool _tilesAreGcj02(LatLng mapPoint) =>
+      _tileProvider?.shouldTransformAt(mapPoint) ?? false;
+
+  /// Screen tap (the map's fed space) → canonical WGS-84 (NIX-189/237).
+  LatLng _toWgs84(LatLng screenPoint) => _tilesAreGcj02(screenPoint)
+      ? CoordTransform.gcj02ToWgs84(screenPoint)
+      : screenPoint;
+
+  /// [_selectedCenter] (WGS-84) → screen coordinates for marker/center
+  /// display. The decision probes the transformed candidate, because that
+  /// is the value the map would project to pick its tiles.
+  LatLng get _displayCenter {
+    final candidate = CoordTransform.wgs84ToGcj02(_selectedCenter);
+    return _tilesAreGcj02(candidate) ? candidate : _selectedCenter;
   }
 
   Future<void> _submit() async {
@@ -197,11 +224,11 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
                 child: FlutterMap(
                   mapController: _mapController,
                   options: MapOptions(
-                    initialCenter: _selectedCenter,
+                    initialCenter: _displayCenter,
                     initialZoom: 13.0,
                     onTap: (tapPosition, point) {
                       if (!mounted) return;
-                      setState(() => _selectedCenter = point);
+                      setState(() => _selectedCenter = _toWgs84(point));
                     },
                   ),
                   children: [
@@ -216,7 +243,7 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
                       markers: [
                         Marker(
                           key: const Key('farm-creation-center-marker'),
-                          point: _selectedCenter,
+                          point: _displayCenter,
                           width: 32,
                           height: 32,
                           child: const Icon(
@@ -232,6 +259,9 @@ class _WizardStepBasicInfoState extends ConsumerState<WizardStepBasicInfo> {
               ),
             ),
             const SizedBox(height: AppSpacing.xs),
+            // WGS-84 canonical values — the same numbers the farm is
+            // registered with (NIX-189: the label used to show raw screen
+            // coordinates, GCJ-02 under 高德).
             Text(
               '纬度：${_selectedCenter.latitude.toStringAsFixed(6)}，'
               '经度：${_selectedCenter.longitude.toStringAsFixed(6)}',
