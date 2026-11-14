@@ -116,12 +116,24 @@ public class DrinkingEventJourneyTest extends AbstractJourneyTest {
         List<CapsuleBinding> bindings = deviceQueryPort.findActiveCapsuleBindings(farmLivestockIds);
         Instant fixtureStart = fixtureDay.atStartOfDay(ZONE).toInstant();
         Instant fixtureEnd = fixtureStart.plus(Duration.ofDays(1));
+        // NIX-400: the recalc statistics window reads [day−3h, day+27h) — a
+        // device carrying seed temperature rows inside that span (V31/V35
+        // now()-relative 72h random backfills) perturbs μ/σ and can spawn a
+        // borderline candidate row, making the row-count assertions
+        // non-deterministic (~1/3 CI false reds). Only a device with a
+        // clean window is selected; the remaining unseeded heads qualify.
+        Instant windowStart = fixtureStart.minus(Duration.ofHours(4));
+        Instant windowEnd = fixtureEnd.plus(Duration.ofHours(28));
         CapsuleBinding chosen = bindings.stream()
                 .filter(b -> alertSpansByLivestock.getOrDefault(b.livestockId(), List.of()).stream()
                         .noneMatch(span -> overlaps(span, fixtureStart, fixtureEnd)))
+                .filter(b -> !temperatureLogRepository
+                        .existsByDeviceIdAndRecordedAtGreaterThanEqualAndRecordedAtLessThan(
+                                b.deviceId(), windowStart, windowEnd))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException(
-                        "Seed data has no fever-free farm-1 livestock with an active capsule"));
+                        "Seed data has no fever-free farm-1 livestock with an active capsule "
+                                + "and a temperature-free fixture window"));
         boundLivestockId = chosen.livestockId();
         capsuleDeviceId = chosen.deviceId();
         unboundLivestockId = farmLivestockIds.stream()
@@ -433,9 +445,14 @@ public class DrinkingEventJourneyTest extends AbstractJourneyTest {
     void recalcPreservesManualRowsLabelsAndRestoresLabeledRows() {
         // Two valleys 40 min apart → two events on the first pass. One shared
         // series — the same timestamp must never be inserted twice (μ/σ).
+        // Valley one recovers in one step (14:35 trough → 14:40 back at the
+        // 39.0 plateau): a gradual mid-recovery point (38.2) here would form
+        // a 0.8°C descent pair that the third-pass μ/σ — tightened by the
+        // removed valley-two points — promotes to an ALGORITHM_CANDIDATE
+        // row, breaking the deterministic row-count contract (NIX-400).
         List<TemperatureLogJpaEntity> valleyTwoPoints = new ArrayList<>();
         insertSeries("T13:00", "T17:00", 39.0, Map.of(
-                "T14:30", 39.0, "T14:35", 37.0, "T14:45", 38.2, "T14:55", 39.0,
+                "T14:30", 39.0, "T14:35", 37.0, "T14:55", 39.0,
                 "T15:10", 39.0, "T15:15", 37.0, "T15:20", 38.5, "T15:25", 39.0), "DATAGEN",
                 Set.of("T15:10", "T15:15", "T15:20", "T15:25"), valleyTwoPoints);
         assertThat(valleyTwoPoints).hasSize(4);
