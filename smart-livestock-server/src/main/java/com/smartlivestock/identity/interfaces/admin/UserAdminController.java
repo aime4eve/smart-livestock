@@ -14,8 +14,7 @@ import com.smartlivestock.shared.security.PasswordHasher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +27,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/admin/users")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('PLATFORM_ADMIN')")
 public class UserAdminController {
 
     private final SpringDataUserRepository springDataUserRepository;
@@ -49,7 +49,6 @@ public class UserAdminController {
             @RequestParam(required = false) String role,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String keyword) {
-        requirePlatformAdmin();
 
         List<UserJpaEntity> users = springDataUserRepository.findAll();
         List<Map<String, Object>> items = users.stream()
@@ -97,7 +96,6 @@ public class UserAdminController {
      */
     @PostMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> createUser(@RequestBody Map<String, Object> body) {
-        requirePlatformAdmin();
 
         String phone = (String) body.get("phone");
         String account = (String) body.get("account");
@@ -188,7 +186,6 @@ public class UserAdminController {
      */
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getUser(@PathVariable Long userId) {
-        requirePlatformAdmin();
 
         UserJpaEntity u = springDataUserRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "用户不存在: " + userId));
@@ -219,7 +216,6 @@ public class UserAdminController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> updateUser(
             @PathVariable Long userId,
             @RequestBody Map<String, Object> body) {
-        requirePlatformAdmin();
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND, "用户不存在: " + userId));
@@ -304,7 +300,6 @@ public class UserAdminController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> updateUserStatus(
             @PathVariable Long userId,
             @RequestBody Map<String, String> body) {
-        requirePlatformAdmin();
 
         String status = body.get("status");
         if (status == null || (!status.equals("active") && !status.equals("disabled") && !status.equals("locked"))) {
@@ -332,7 +327,6 @@ public class UserAdminController {
     public ResponseEntity<ApiResponse<Void>> resetPassword(
             @PathVariable Long userId,
             @RequestBody Map<String, String> body) {
-        requirePlatformAdmin();
 
         String newPassword = body.get("newPassword");
         if (newPassword == null || newPassword.isBlank()) {
@@ -354,15 +348,4 @@ public class UserAdminController {
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
-    private void requirePlatformAdmin() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "未认证");
-        }
-        boolean isAdmin = auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_PLATFORM_ADMIN"));
-        if (!isAdmin) {
-            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "需要 platform_admin 角色");
-        }
-    }
 }

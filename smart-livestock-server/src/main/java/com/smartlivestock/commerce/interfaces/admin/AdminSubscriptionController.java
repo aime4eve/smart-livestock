@@ -14,8 +14,7 @@ import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,6 +31,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/admin/subscriptions")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('PLATFORM_ADMIN')")
 public class AdminSubscriptionController {
 
     private final SubscriptionApplicationService subscriptionApplicationService;
@@ -51,7 +51,6 @@ public class AdminSubscriptionController {
             @RequestParam(required = false) Long tenantId,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String tier) {
-        requirePlatformAdmin();
 
         List<Map<String, Object>> all = springDataSubscriptionRepository.findAll().stream()
                 .map(SubscriptionMapper::toDomain)
@@ -89,7 +88,6 @@ public class AdminSubscriptionController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<SubscriptionResponse>> getSubscription(@PathVariable Long id) {
-        requirePlatformAdmin();
 
         Subscription subscription = springDataSubscriptionRepository.findById(id)
                 .map(SubscriptionMapper::toDomain)
@@ -106,7 +104,6 @@ public class AdminSubscriptionController {
     public ResponseEntity<ApiResponse<SubscriptionResponse>> updateStatus(
             @PathVariable Long id,
             @RequestBody Map<String, String> body) {
-        requirePlatformAdmin();
         // NIX-184 T5: ONPREM subscriptions are license-driven (design §11).
         licenseModeGuard.requireSelfServiceAllowed();
 
@@ -147,15 +144,4 @@ public class AdminSubscriptionController {
 
     // ── Helpers ────────────────────────────────────────────────────
 
-    private void requirePlatformAdmin() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "未认证");
-        }
-        boolean isAdmin = auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_PLATFORM_ADMIN"));
-        if (!isAdmin) {
-            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "需要 platform_admin 角色");
-        }
-    }
 }

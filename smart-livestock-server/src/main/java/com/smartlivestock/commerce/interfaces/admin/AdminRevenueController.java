@@ -11,8 +11,7 @@ import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -26,6 +25,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/admin/revenue")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('PLATFORM_ADMIN')")
 public class AdminRevenueController {
 
     private final RevenueApplicationService revenueApplicationService;
@@ -40,7 +40,6 @@ public class AdminRevenueController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> listPeriods(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int pageSize) {
-        requirePlatformAdmin();
 
         List<RevenuePeriodResponse> all = RevenuePeriodAssembler.toResponseList(
                 springDataRevenuePeriodRepository.findAll().stream()
@@ -62,7 +61,6 @@ public class AdminRevenueController {
      */
     @GetMapping("/periods/{id}")
     public ResponseEntity<ApiResponse<RevenuePeriodResponse>> getPeriod(@PathVariable Long id) {
-        requirePlatformAdmin();
         RevenuePeriodResponse period = revenueQueryService.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "Revenue period not found: " + id));
@@ -76,7 +74,6 @@ public class AdminRevenueController {
     @PostMapping("/calculate")
     public ResponseEntity<ApiResponse<RevenuePeriodResponse>> calculate(
             @RequestBody Map<String, Object> body) {
-        requirePlatformAdmin();
 
         Long contractId = requireLong(body, "contractId");
         String periodStartStr = requireString(body, "periodStart");
@@ -104,7 +101,6 @@ public class AdminRevenueController {
     @PostMapping("/periods/{id}/confirm")
     public ResponseEntity<ApiResponse<RevenuePeriodResponse>> confirmByPlatform(
             @PathVariable Long id) {
-        requirePlatformAdmin();
         revenueApplicationService.confirmByPlatform(id);
         RevenuePeriodResponse period = revenueQueryService.findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
@@ -120,7 +116,6 @@ public class AdminRevenueController {
     public ResponseEntity<ApiResponse<RevenuePeriodResponse>> recalculate(
             @PathVariable Long id,
             @RequestBody Map<String, Object> body) {
-        requirePlatformAdmin();
         int grossAmountCents = requireInt(body, "grossAmountCents");
         revenueApplicationService.recalculate(id, grossAmountCents);
         RevenuePeriodResponse period = revenueQueryService.findById(id)
@@ -130,18 +125,6 @@ public class AdminRevenueController {
     }
 
     // ── Helpers ────────────────────────────────────────────────────
-
-    private void requirePlatformAdmin() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "未认证");
-        }
-        boolean isAdmin = auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_PLATFORM_ADMIN"));
-        if (!isAdmin) {
-            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "需要 platform_admin 角色");
-        }
-    }
 
     private String requireString(Map<String, Object> body, String field) {
         Object value = body.get(field);

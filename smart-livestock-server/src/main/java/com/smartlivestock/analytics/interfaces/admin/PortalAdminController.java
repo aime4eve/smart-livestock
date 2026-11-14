@@ -7,8 +7,7 @@ import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +16,11 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/admin/portal/keys")
 @RequiredArgsConstructor
+// NIX-416: declarative class-level guard (AnalyticsAdminController precedent).
+// The per-method requirePlatformAdmin() calls were the only gate before, so a
+// future endpoint added without the call would have been reachable by any
+// logged-in role. Method security rejects non-admins before the body runs.
+@PreAuthorize("hasRole('PLATFORM_ADMIN')")
 public class PortalAdminController {
 
     private final IdentityQueryPort identityQueryPort;
@@ -26,7 +30,6 @@ public class PortalAdminController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int pageSize,
             @RequestParam(required = false) Long tenantId) {
-        requirePlatformAdmin();
 
         List<ApiKeyInfo> keys = tenantId != null
                 ? identityQueryPort.listApiKeysByTenant(tenantId)
@@ -43,7 +46,6 @@ public class PortalAdminController {
     @PutMapping("/{keyId}/rate-limit")
     public ResponseEntity<ApiResponse<Map<String, Object>>> updateRateLimit(
             @PathVariable Long keyId, @RequestBody Map<String, Object> body) {
-        requirePlatformAdmin();
         ApiKeyInfo key = identityQueryPort.findApiKeyById(keyId).orElse(null);
         if (key == null) return ResponseEntity.status(404).body(ApiResponse.error(com.smartlivestock.shared.common.ErrorCode.RESOURCE_NOT_FOUND, "API Key not found"));
 
@@ -62,7 +64,6 @@ public class PortalAdminController {
     @PutMapping("/{keyId}/scopes")
     public ResponseEntity<ApiResponse<Map<String, Object>>> updateScopes(
             @PathVariable Long keyId, @RequestBody Map<String, String> body) {
-        requirePlatformAdmin();
         ApiKeyInfo key = identityQueryPort.findApiKeyById(keyId).orElse(null);
         if (key == null) return ResponseEntity.status(404).body(ApiResponse.error(com.smartlivestock.shared.common.ErrorCode.RESOURCE_NOT_FOUND, "API Key not found"));
 
@@ -77,7 +78,6 @@ public class PortalAdminController {
 
     @PostMapping("/{keyId}/approve")
     public ResponseEntity<ApiResponse<Map<String, Object>>> approveKey(@PathVariable Long keyId) {
-        requirePlatformAdmin();
         ApiKeyInfo key = identityQueryPort.findApiKeyById(keyId).orElse(null);
         if (key == null) return ResponseEntity.status(404).body(ApiResponse.error(com.smartlivestock.shared.common.ErrorCode.RESOURCE_NOT_FOUND, "API Key not found"));
         if (!"PENDING".equals(key.status())) {
@@ -91,21 +91,12 @@ public class PortalAdminController {
 
     @GetMapping("/stats")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getStats() {
-        requirePlatformAdmin();
         List<ApiKeyInfo> all = List.of();
         long active = all.stream().filter(k -> "ACTIVE".equals(k.status())).count();
         long revoked = all.stream().filter(k -> "REVOKED".equals(k.status())).count();
         long pending = all.stream().filter(k -> "PENDING".equals(k.status())).count();
         return ResponseEntity.ok(ApiResponse.ok(Map.of(
                 "total", all.size(), "active", active, "revoked", revoked, "pending", pending)));
-    }
-
-    private void requirePlatformAdmin() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "未认证");
-        boolean isAdmin = auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_PLATFORM_ADMIN"));
-        if (!isAdmin) throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "需要 platform_admin 角色");
     }
 
     private Map<String, Object> toSummary(ApiKeyInfo k) {

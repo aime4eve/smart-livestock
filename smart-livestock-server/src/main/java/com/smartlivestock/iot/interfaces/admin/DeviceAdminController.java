@@ -8,6 +8,7 @@ import com.smartlivestock.shared.common.ApiResponse;
 import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/admin/devices")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('PLATFORM_ADMIN')")
 public class DeviceAdminController {
 
     private final DeviceApplicationService deviceApplicationService;
@@ -35,7 +37,6 @@ public class DeviceAdminController {
      */
     @GetMapping("/lookup")
     public ResponseEntity<ApiResponse<DeviceTransferLookupDto>> lookup(@RequestParam String eui) {
-        requirePlatformAdmin();
         return ResponseEntity.ok(ApiResponse.ok(deviceApplicationService.lookupForTransfer(eui)));
     }
 
@@ -45,7 +46,6 @@ public class DeviceAdminController {
      */
     @PostMapping("/transfer")
     public ResponseEntity<ApiResponse<Map<String, Object>>> transfer(@RequestBody Map<String, Object> body) {
-        requirePlatformAdmin();
         Object euiObj = body.get("devEui");
         Object tenantIdObj = body.get("targetTenantId");
         if (euiObj == null || euiObj.toString().isBlank()) {
@@ -72,18 +72,6 @@ public class DeviceAdminController {
         data.put("status", device.status());
         data.put("tenantId", device.tenantId() != null ? String.valueOf(device.tenantId()) : "");
         return ResponseEntity.ok(ApiResponse.ok(data));
-    }
-
-    private void requirePlatformAdmin() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "未认证");
-        }
-        boolean isAdmin = auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_PLATFORM_ADMIN"));
-        if (!isAdmin) {
-            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "需要 platform_admin 角色");
-        }
     }
 
     private Long currentUserId() {

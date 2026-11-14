@@ -12,6 +12,7 @@ import com.smartlivestock.identity.domain.repository.DataExportJobRepository;
 import com.smartlivestock.identity.infrastructure.persistence.SpringDataTenantRepository;
 import com.smartlivestock.shared.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1/admin/subscription-overview")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('PLATFORM_ADMIN')")
 public class AdminSubscriptionOverviewController {
 
     private final SpringDataSubscriptionRepository springDataSubscriptionRepository;

@@ -10,6 +10,7 @@ import com.smartlivestock.shared.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/admin/contracts")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('PLATFORM_ADMIN')")
 public class AdminContractController {
 
     private final ContractApplicationService contractApplicationService;
@@ -37,7 +39,6 @@ public class AdminContractController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<List<ContractResponse>>> listContracts() {
-        requirePlatformAdmin();
         List<ContractResponse> contracts = revenueQueryService.listActiveContracts();
         return ResponseEntity.ok(ApiResponse.ok(contracts));
     }
@@ -49,7 +50,6 @@ public class AdminContractController {
     @PostMapping
     public ResponseEntity<ApiResponse<ContractResponse>> createContract(
             @RequestBody Map<String, Object> body) {
-        requirePlatformAdmin();
 
         Long tenantId = requireLong(body, "tenantId");
         String contractNumber = requireString(body, "contractNumber");
@@ -74,7 +74,6 @@ public class AdminContractController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ContractResponse>> getContract(@PathVariable Long id) {
-        requirePlatformAdmin();
         ContractResponse contract = revenueQueryService.findContractById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.RESOURCE_NOT_FOUND,
                         "Contract not found: " + id));
@@ -90,7 +89,6 @@ public class AdminContractController {
     public ResponseEntity<ApiResponse<ContractResponse>> updateContract(
             @PathVariable Long id,
             @RequestBody Map<String, Object> body) {
-        requirePlatformAdmin();
 
         String billingModel = (String) body.get("billingModel");
         String effectiveTier = (String) body.get("effectiveTier");
@@ -112,7 +110,6 @@ public class AdminContractController {
      */
     @PostMapping("/{id}/sign")
     public ResponseEntity<ApiResponse<ContractResponse>> signContract(@PathVariable Long id) {
-        requirePlatformAdmin();
         Long userId = getCurrentUserId();
         contractApplicationService.sign(id, userId);
         ContractResponse contract = revenueQueryService.findContractById(id)
@@ -129,7 +126,6 @@ public class AdminContractController {
     public ResponseEntity<ApiResponse<ContractResponse>> updateStatus(
             @PathVariable Long id,
             @RequestBody Map<String, String> body) {
-        requirePlatformAdmin();
 
         String targetStatus = body.get("targetStatus");
         if (targetStatus == null || targetStatus.isBlank()) {
@@ -159,7 +155,6 @@ public class AdminContractController {
     public ResponseEntity<ApiResponse<ContractResponse>> recordIssuedLicense(
             @PathVariable Long id,
             @RequestBody Map<String, String> body) {
-        requirePlatformAdmin();
 
         String licenseId = body.get("licenseId");
         if (licenseId == null || licenseId.isBlank()) {
@@ -174,18 +169,6 @@ public class AdminContractController {
     }
 
     // ── Helpers ────────────────────────────────────────────────────
-
-    private void requirePlatformAdmin() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "未认证");
-        }
-        boolean isAdmin = auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_PLATFORM_ADMIN"));
-        if (!isAdmin) {
-            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "需要 platform_admin 角色");
-        }
-    }
 
     private Long getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

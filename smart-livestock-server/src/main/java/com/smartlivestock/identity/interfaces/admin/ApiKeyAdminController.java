@@ -10,8 +10,7 @@ import com.smartlivestock.shared.scope.ScopeInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
@@ -21,6 +20,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/admin/api-keys")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('PLATFORM_ADMIN')")
 public class ApiKeyAdminController {
 
     private final ApiKeyApplicationService apiKeyApplicationService;
@@ -31,7 +31,6 @@ public class ApiKeyAdminController {
             @RequestParam(defaultValue = "20") int pageSize,
             @RequestParam(required = false) Long tenantId,
             @RequestParam(required = false) String status) {
-        requirePlatformAdmin();
 
         List<ApiKey> keys = tenantId != null
                 ? apiKeyApplicationService.listApiKeysByTenant(tenantId)
@@ -64,7 +63,6 @@ public class ApiKeyAdminController {
     @SuppressWarnings("unchecked")
     @PostMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> createApiKey(@RequestBody Map<String, Object> body) {
-        requirePlatformAdmin();
 
         String name = (String) body.get("name");
         String role = (String) body.get("role");
@@ -122,7 +120,6 @@ public class ApiKeyAdminController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> updateApiKeyStatus(
             @PathVariable Long keyId,
             @RequestBody Map<String, String> body) {
-        requirePlatformAdmin();
 
         String status = body.get("status");
         if (status == null || (!status.equals("active") && !status.equals("disabled"))) {
@@ -139,20 +136,8 @@ public class ApiKeyAdminController {
 
     @DeleteMapping("/{keyId}")
     public ResponseEntity<ApiResponse<Void>> deleteApiKey(@PathVariable Long keyId) {
-        requirePlatformAdmin();
         apiKeyApplicationService.deleteApiKey(keyId);
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
-    private void requirePlatformAdmin() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            throw new ApiException(ErrorCode.AUTH_INVALID_TOKEN, "未认证");
-        }
-        boolean isAdmin = auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_PLATFORM_ADMIN"));
-        if (!isAdmin) {
-            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "需要 platform_admin 角色");
-        }
-    }
 }
