@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartlivestock.ranch.domain.model.Fence;
 import com.smartlivestock.ranch.domain.model.GpsCoordinate;
+import com.smartlivestock.ranch.domain.service.FenceAreaCalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +22,7 @@ public record FenceDto(
         int version,
         String fenceType,
         String shape,
+        double areaHectares,
         int livestockCount,
         Map<String, Object> generationMetadata
 ) {
@@ -47,6 +49,9 @@ public record FenceDto(
                 fence.getVersion(),
                 fence.getFenceType(),
                 fence.getShape(),
+                // NIX-200: the read surfaces used to show a hardcoded 0.0 —
+                // the only real computation lived client-side in the editor.
+                FenceAreaCalculator.areaHectares(fence.getVertices()),
                 livestockCount,
                 parseGenerationMetadata(fence.getId(), fence.getGenerationMetadata())
         );

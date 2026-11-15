@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:hkt_livestock_agentic/features/fence/data/fence_dto.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/track_draft_area.dart';
 
 void main() {
   test('coordinatesToLatLngPoints maps lng lat pairs to LatLng', () {
@@ -101,6 +102,60 @@ void main() {
         ],
       }).type,
       FenceType.polygon,
+    );
+  });
+
+  // NIX-200: the backend sends the true area; the offline-cache / older
+  // payload path (no key or 0) falls back to computing from the vertices
+  // with the SAME planar formula as the server — one value on every surface.
+  test('fenceItemFromJson prefers the API area and falls back to vertices',
+      () {
+    FenceItem parse(Map<String, dynamic> raw) =>
+        fenceItemFromJson(raw, 0, 0);
+    final squareCoords = [
+      [112.938, 28.0],
+      [112.939, 28.0],
+      [112.939, 28.001],
+      [112.938, 28.001],
+    ];
+
+    // API value wins when present.
+    expect(
+      parse({
+        'id': 'a1',
+        'shape': 'polygon',
+        'areaHectares': 6.55,
+        'coordinates': squareCoords,
+      }).areaHectares,
+      closeTo(6.55, 1e-9),
+    );
+
+    // Missing key → computed fallback (0.001° square at lat 28 ≈ 1.1 ha).
+    final computed = parse({
+      'id': 'a2',
+      'shape': 'polygon',
+      'coordinates': squareCoords,
+    }).areaHectares;
+    final expected = polygonAreaM2([
+      const LatLng(28.0, 112.938),
+      const LatLng(28.0, 112.939),
+      const LatLng(28.001, 112.939),
+      const LatLng(28.001, 112.938),
+    ]) / 10000.0;
+    expect(computed, closeTo(expected, 1e-9));
+    // Server mirror (FenceAreaCalculatorTest) pins the same square to
+    // FenceAreaCalculator.areaHectares — this cross-checks the formulas.
+    expect(computed, closeTo(1.0942, 0.001));
+
+    // Legacy zero → still computes instead of showing 0.
+    expect(
+      parse({
+        'id': 'a3',
+        'shape': 'polygon',
+        'areaHectares': 0,
+        'coordinates': squareCoords,
+      }).areaHectares,
+      closeTo(expected, 1e-9),
     );
   });
 }
