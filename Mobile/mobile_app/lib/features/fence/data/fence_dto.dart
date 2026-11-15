@@ -1,8 +1,18 @@
 import 'package:latlong2/latlong.dart';
 import 'package:hkt_livestock_agentic/features/fence/domain/fence_item.dart';
+import 'package:hkt_livestock_agentic/features/fence/domain/track_draft_area.dart';
 import 'package:hkt_livestock_agentic/core/l10n/l10n.dart';
 
 const _fallbackCenter = LatLng(28.229, 112.938);
+
+/// NIX-200: the backend sends the true area (same planar formula as the
+/// editor); offline caches and older payloads don't carry it, so fall back
+/// to computing from the vertices — one identical value on every surface.
+double resolveFenceAreaHectares(Map<String, dynamic> raw, List<LatLng> points) {
+  final fromApi = (raw['areaHectares'] as num?)?.toDouble();
+  if (fromApi != null && fromApi > 0) return fromApi;
+  return polygonAreaM2(points) / 10000.0;
+}
 
 /// Persisted form shape (NIX-410): the backend echoes `shape`
 /// (polygon | circle | rectangle); anything else (older payload, missing
@@ -76,7 +86,7 @@ FenceItem fenceItemFromJson(
     type: type,
     alarmEnabled: alarmEnabled,
     active: active,
-    areaHectares: 0,
+    areaHectares: resolveFenceAreaHectares(raw, points),
     livestockCount: livestockCount,
     colorValue: colorValue,
     points: points,

@@ -87,7 +87,7 @@ class FenceApiRepository implements FenceRepository {
       type: type,
       alarmEnabled: alarmEnabled,
       active: active,
-      areaHectares: (raw['areaHectares'] as num?)?.toDouble() ?? 0,
+      areaHectares: resolveFenceAreaHectares(raw, points),
       livestockCount: livestockCount,
       colorValue: colorValue,
       points: points,

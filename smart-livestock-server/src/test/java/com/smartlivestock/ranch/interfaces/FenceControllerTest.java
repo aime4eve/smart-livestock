@@ -221,7 +221,7 @@ class FenceControllerTest {
             when(fenceApplicationService.createFence(org.mockito.ArgumentMatchers.any()))
                     .thenReturn(new FenceDto(101L, FARM_ID, "北围栏",
                             List.of(new GpsCoordinate(new BigDecimal("37.123"), new BigDecimal("122.654"))),
-                            "#33CC66", true, 1, "boundary", "rectangle", 0, metadata));
+                            "#33CC66", true, 1, "boundary", "rectangle", 0.0, 0, metadata));
 
             mvc.perform(post(BASE)
                             .contentType(MediaType.APPLICATION_JSON)

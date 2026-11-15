@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartlivestock.ranch.domain.model.Fence;
 import com.smartlivestock.ranch.domain.model.FenceZone;
 import com.smartlivestock.ranch.domain.model.GpsCoordinate;
+import com.smartlivestock.ranch.domain.service.FenceAreaCalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +114,9 @@ public final class RanchOverviewDto {
                     fence.getShape().toUpperCase(),
                     fence.getColor(),
                     fence.getVertices(),
-                    0.0,
+                    // NIX-200: real area (was a hardcoded 0.0; the only real
+                    // computation lived client-side in the editor form).
+                    FenceAreaCalculator.areaHectares(fence.getVertices()),
                     livestockCount,
                     fence.getVersion(),
                     parseGenerationMetadata(fence.getId(), fence.getGenerationMetadata()),
