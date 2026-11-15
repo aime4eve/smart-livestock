@@ -244,4 +244,39 @@ class LivestockApplicationServiceTest {
 
         assertThat(result.markedSource()).isNull();
     }
+
+    @Test
+    void listByFarmDerivesHealthFromSnapshotsInsteadOfStaticColumn() {
+        Livestock sick = detailLivestock();
+        Livestock plain = new Livestock(1L, "COW-002", "和牛", "FEMALE",
+                LocalDate.of(2024, 5, 1), new BigDecimal("500"));
+        plain.setId(20L);
+        when(livestockRepository.findByFarmId(1L)).thenReturn(java.util.List.of(sick, plain));
+        // The snapshot says FEVER; the static column would report HEALTHY.
+        when(healthQueryPort.findHealthByFarmId(1L)).thenReturn(java.util.List.of(
+                new HealthQueryPort.LivestockHealthState(10L, "FEVER", "NORMAL",
+                        0, null, null, null, null)));
+
+        var result = service.listByFarm(1L);
+
+        // NIX-198: the snapshot drives the status on every list surface.
+        assertThat(result.get(0).healthStatus()).isEqualTo("WARNING");
+        // No snapshot → never alarming.
+        assertThat(result.get(1).healthStatus()).isEqualTo("NORMAL");
+    }
+
+    @Test
+    void detailDerivesHealthStatusFromSnapshot() {
+        when(livestockRepository.findById(10L)).thenReturn(Optional.of(detailLivestock()));
+        when(healthQueryPort.findHealthByLivestockId(10L)).thenReturn(Optional.of(
+                new HealthQueryPort.LivestockHealthState(10L, "CRITICAL", "NORMAL",
+                        0, new BigDecimal("41.2"), null, null, null)));
+        when(iotQueryPort.findActiveDevicesByLivestockIds(any())).thenReturn(java.util.Map.of());
+        when(healthQueryPort.findMarkedSourceByLivestockId(10L)).thenReturn(Optional.empty());
+
+        var result = service.getLivestock(10L);
+
+        assertThat(result.healthStatus()).isEqualTo("CRITICAL");
+        assertThat(result.bodyTemp()).isEqualByComparingTo(new BigDecimal("41.2"));
+    }
 }
