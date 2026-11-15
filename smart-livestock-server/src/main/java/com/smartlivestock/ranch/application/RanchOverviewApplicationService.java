@@ -21,6 +21,7 @@ import com.smartlivestock.ranch.domain.repository.FenceRepository;
 import com.smartlivestock.ranch.domain.repository.FenceZoneRepository;
 import com.smartlivestock.ranch.domain.repository.LivestockRepository;
 import com.smartlivestock.ranch.domain.service.FenceLivestockCounter;
+import com.smartlivestock.ranch.domain.service.HealthStatusDeriver;
 import com.smartlivestock.ranch.infrastructure.persistence.SpringDataAlertReadStatusRepository;
 import com.smartlivestock.shared.cache.RedisCacheService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,7 +46,7 @@ public class RanchOverviewApplicationService {
      * hardcoded like the estrus 70 above it because ranch must not depend on
      * health configuration.
      */
-    private static final int CALVING_WARNING_SCORE = 70;
+    private static final int CALVING_WARNING_SCORE = HealthStatusDeriver.CALVING_WARNING_SCORE;
     /** NIX-389 calving tile: watch band lower bound (alert band starts at {@link #CALVING_WARNING_SCORE}). */
     private static final int CALVING_WATCH_SCORE = 50;
 
@@ -446,23 +447,16 @@ public class RanchOverviewApplicationService {
         return summary;
     }
 
+    // NIX-198: the derivation rules moved to HealthStatusDeriver (shared
+    // with the livestock detail and list surfaces — the static health_status
+    // column has no business writer and reported HEALTHY forever).
+
     private String deriveHealthStatus(LivestockHealthState health) {
-        if ("CRITICAL".equals(health.tempStatus())) return "CRITICAL";
-        if ("FEVER".equals(health.tempStatus())) return "WARNING";
-        if ("ABNORMAL".equals(health.motilityStatus())) return "WARNING";
-        if ("ELEVATED".equals(health.tempStatus())) return "WARNING";
-        if (health.estrusScore() >= 70) return "WARNING";
-        // NIX-381 map linkage: null = never scored / released, never alarming.
-        if (health.calvingRiskScore() != null && health.calvingRiskScore() >= CALVING_WARNING_SCORE) return "WARNING";
-        return "NORMAL";
+        return HealthStatusDeriver.deriveHealthStatus(health);
     }
 
     private String derivePrimaryAlert(LivestockHealthState health) {
-        if ("CRITICAL".equals(health.tempStatus()) || "FEVER".equals(health.tempStatus())) return "FEVER";
-        if ("ABNORMAL".equals(health.motilityStatus())) return "DIGESTIVE";
-        if (health.estrusScore() >= 70) return "ESTRUS";
-        if (health.calvingRiskScore() != null && health.calvingRiskScore() >= CALVING_WARNING_SCORE) return "CALVING";
-        return "";
+        return HealthStatusDeriver.derivePrimaryAlert(health);
     }
 
     private String buildTaskTitle(LivestockHealthState health) {

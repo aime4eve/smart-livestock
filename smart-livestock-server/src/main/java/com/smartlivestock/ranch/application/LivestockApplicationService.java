@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -73,8 +74,18 @@ public class LivestockApplicationService {
 
     @Transactional(readOnly = true)
     public List<LivestockDto> listByFarm(Long farmId) {
-        return livestockRepository.findByFarmId(farmId).stream()
-                .map(LivestockDto::from)
+        List<Livestock> livestock = livestockRepository.findByFarmId(farmId);
+        // NIX-198: derive health from the same snapshots the map markers use
+        // — the static health_status column is a registration default with
+        // no business writer (dashboard counts and map points consume this
+        // list too, so all surfaces share one vocabulary).
+        Map<Long, HealthQueryPort.LivestockHealthState> healthByLivestockId =
+                healthQueryPort.findHealthByFarmId(farmId).stream()
+                        .collect(Collectors.toMap(
+                                HealthQueryPort.LivestockHealthState::livestockId,
+                                h -> h, (a, b) -> a));
+        return livestock.stream()
+                .map(l -> LivestockDto.from(l, healthByLivestockId.get(l.getId())))
                 .toList();
     }
 
@@ -159,15 +170,26 @@ public class LivestockApplicationService {
         String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
         int safePage = Math.max(1, page);
         int offset = (safePage - 1) * pageSize;
+        // NIX-198: same snapshot-derived health as the unpaginated list —
+        // the management list page must not disagree with the map markers.
+        Map<Long, HealthQueryPort.LivestockHealthState> healthByLivestockId =
+                healthQueryPort.findHealthByFarmId(farmId).stream()
+                        .collect(Collectors.toMap(
+                                HealthQueryPort.LivestockHealthState::livestockId,
+                                h -> h, (a, b) -> a));
        List<LivestockDto> items;
         long total;
         if (kw != null) {
            items = livestockRepository.findByFarmIdAndKeyword(farmId, kw, offset, pageSize)
-                   .stream().map(LivestockDto::from).toList();
+                   .stream()
+                   .map(l -> LivestockDto.from(l, healthByLivestockId.get(l.getId())))
+                   .toList();
             total = livestockRepository.countByFarmIdAndKeyword(farmId, kw);
         } else {
            items = livestockRepository.findByFarmIdPaged(farmId, offset, pageSize)
-                   .stream().map(LivestockDto::from).toList();
+                   .stream()
+                   .map(l -> LivestockDto.from(l, healthByLivestockId.get(l.getId())))
+                   .toList();
             total = livestockRepository.countByFarmIdPaged(farmId);
         }
         // Enrich with device info

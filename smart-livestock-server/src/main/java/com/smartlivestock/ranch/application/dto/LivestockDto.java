@@ -3,6 +3,8 @@ package com.smartlivestock.ranch.application.dto;
 import com.smartlivestock.ranch.domain.model.Livestock;
 import com.smartlivestock.ranch.domain.port.HealthQueryPort;
 import com.smartlivestock.ranch.domain.port.dto.DeviceBrief;
+import com.smartlivestock.ranch.domain.service.HealthStatusDeriver;
+import org.springframework.lang.Nullable;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -47,6 +49,17 @@ public record LivestockDto(
     ) {}
 
     public static LivestockDto from(Livestock livestock) {
+        return from(livestock, null);
+    }
+
+    /**
+     * NIX-198: healthStatus derives from the health snapshot (the same rules
+     * the map markers use) — the static {@code health_status} column is a
+     * registration default with no business writer. A null snapshot yields
+     * NORMAL (never alarming), e.g. freshly saved animals on write paths.
+     */
+    public static LivestockDto from(Livestock livestock,
+            @Nullable HealthQueryPort.LivestockHealthState health) {
         return new LivestockDto(
                 livestock.getId(),
                 livestock.getFarmId(),
@@ -55,7 +68,7 @@ public record LivestockDto(
                 livestock.getGender(),
                 livestock.getBirthDate(),
                 livestock.getWeight(),
-                livestock.getHealthStatus().name(),
+                HealthStatusDeriver.deriveHealthStatus(health),
                 livestock.getLastLatitude(),
                 livestock.getLastLongitude(),
                 livestock.getLastPositionAt(),
@@ -93,7 +106,7 @@ public record LivestockDto(
                 livestock.getGender(),
                 livestock.getBirthDate(),
                 livestock.getWeight(),
-                livestock.getHealthStatus().name(),
+                HealthStatusDeriver.deriveHealthStatus(health),
                 livestock.getLastLatitude(),
                 livestock.getLastLongitude(),
                 livestock.getLastPositionAt(),

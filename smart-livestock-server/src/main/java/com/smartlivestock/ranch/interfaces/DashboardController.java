@@ -43,8 +43,10 @@ public class DashboardController {
         List<AlertDto> alerts = alertApplicationService.listByFarm(farmId);
         List<FenceDto> fences = fenceApplicationService.listByFarm(farmId);
 
+        // NIX-198: healthStatus is derived from snapshots now (vocabulary
+        // NORMAL/WARNING/CRITICAL — the HEALTHY column value is gone).
         long healthyCount = livestock.stream()
-                .filter(l -> "HEALTHY".equals(l.healthStatus())).count();
+                .filter(l -> "NORMAL".equals(l.healthStatus())).count();
         long warningCount = livestock.stream()
                 .filter(l -> "WARNING".equals(l.healthStatus())).count();
         long criticalCount = livestock.stream()
