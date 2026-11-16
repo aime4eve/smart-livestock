@@ -12,6 +12,7 @@ import 'package:hkt_livestock_agentic/core/api/jwt_decoder.dart';
 import 'package:hkt_livestock_agentic/core/api/jwt_storage.dart';
 import 'package:hkt_livestock_agentic/core/database/app_database.dart';
 import 'package:hkt_livestock_agentic/core/models/user_role.dart';
+import 'package:hkt_livestock_agentic/core/push/push_service.dart';
 import 'package:hkt_livestock_agentic/core/timezone/time_zone_controller.dart';
 import 'package:hkt_livestock_agentic/core/utils/app_time.dart';
 
@@ -49,6 +50,10 @@ void main() async {
   // Manual user choice outranks the farm chain (ruling 2026-10-12); null
   // keeps the farm chain in charge.
   setUserOverrideOffsetMinutes(timeZoneStandardOffset(initialTimeZoneId));
+
+  // NIX-430: APNs push init (iOS only; no-op elsewhere). Best-effort —
+  // a failed authorization/registration never blocks the boot.
+  initPush();
 
   debugPrint('boot: runApp');
   runApp(

@@ -60,7 +60,7 @@ class AlertSummaryTest {
         // Real ObjectMapper: the summary is serialized into the Redis cache
         service = new AlertApplicationService(
                 alertRepository, readStatusRepository, alertMessageLocalizer,
-                ioTQueryPort, redisCacheService, new ObjectMapper(), signalRevisionService);
+                event -> { }, ioTQueryPort, redisCacheService, new ObjectMapper(), signalRevisionService);
     }
 
     @Test

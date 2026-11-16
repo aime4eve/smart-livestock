@@ -8,6 +8,7 @@ import com.smartlivestock.ranch.domain.model.AlertType;
 import com.smartlivestock.ranch.domain.model.Severity;
 import com.smartlivestock.ranch.domain.repository.AlertRepository;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
+import com.smartlivestock.ranch.application.signal.AlertCreatedEvent;
 import com.smartlivestock.ranch.application.signal.SignalEventType;
 import org.springframework.stereotype.Component;
 
@@ -17,12 +18,15 @@ public class RanchCommandPortImpl implements RanchCommandPort {
     private final AlertRepository alertRepository;
     private final ObjectMapper objectMapper;
     private final SignalRevisionService signalRevisionService;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     public RanchCommandPortImpl(AlertRepository alertRepository, ObjectMapper objectMapper,
-                                SignalRevisionService signalRevisionService) {
+                                SignalRevisionService signalRevisionService,
+                                org.springframework.context.ApplicationEventPublisher eventPublisher) {
         this.alertRepository = alertRepository;
         this.objectMapper = objectMapper;
         this.signalRevisionService = signalRevisionService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -40,6 +44,7 @@ public class RanchCommandPortImpl implements RanchCommandPort {
       alertRepository.save(alert);
        signalRevisionService.bumpStatus(
                info.farmId(), SignalEventType.ALERT_CHANGED, "ALERT", alert.getId());
+       eventPublisher.publishEvent(new AlertCreatedEvent(info.farmId(), alert.getId()));
     }
 
     @Override
