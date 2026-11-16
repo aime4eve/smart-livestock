@@ -54,6 +54,10 @@ public class UserJpaEntity {
     @Column(name = "must_change_password", nullable = false)
     private Boolean mustChangePassword = false;
 
+    /** NIX-430: user-level push toggle (default on; dispatch filters on it). */
+    @Column(name = "push_alerts_enabled", nullable = false)
+    private Boolean pushAlertsEnabled = Boolean.TRUE;
+
     @Column(name = "last_login_at")
     private Instant lastLoginAt;
 
@@ -110,6 +114,11 @@ public class UserJpaEntity {
     public Boolean getMustChangePassword() { return mustChangePassword; }
     public void setMustChangePassword(Boolean mustChangePassword) {
         this.mustChangePassword = mustChangePassword != null && mustChangePassword;
+    }
+
+    public Boolean getPushAlertsEnabled() { return pushAlertsEnabled; }
+    public void setPushAlertsEnabled(Boolean pushAlertsEnabled) {
+        this.pushAlertsEnabled = pushAlertsEnabled != null && pushAlertsEnabled;
     }
 
     public Instant getLastLoginAt() { return lastLoginAt; }

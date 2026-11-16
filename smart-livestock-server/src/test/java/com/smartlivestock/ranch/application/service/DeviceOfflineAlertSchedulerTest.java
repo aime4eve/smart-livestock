@@ -43,7 +43,7 @@ class DeviceOfflineAlertSchedulerTest {
                 21L, AlertType.DEVICE_OFFLINE, AlertStatus.ACTIVE)).thenReturn(List.of());
         when(alertRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        new DeviceOfflineAlertScheduler(deviceSignalPort, alertRepository, new ObjectMapper(),
+        new DeviceOfflineAlertScheduler(deviceSignalPort, event -> { }, alertRepository, new ObjectMapper(),
                 signalRevisionService).reconcile();
 
         ArgumentCaptor<Alert> captor = ArgumentCaptor.forClass(Alert.class);
@@ -71,7 +71,7 @@ class DeviceOfflineAlertSchedulerTest {
                 21L, AlertType.DEVICE_OFFLINE, AlertStatus.ACTIVE)).thenReturn(List.of(active));
         when(alertRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        new DeviceOfflineAlertScheduler(deviceSignalPort, alertRepository, new ObjectMapper(),
+        new DeviceOfflineAlertScheduler(deviceSignalPort, event -> { }, alertRepository, new ObjectMapper(),
                 signalRevisionService).reconcile();
 
         verify(alertRepository).save(active);
@@ -92,7 +92,7 @@ class DeviceOfflineAlertSchedulerTest {
         when(alertRepository.findByDeviceIdAndTypeAndStatus(
                 21L, AlertType.DEVICE_OFFLINE, AlertStatus.ACTIVE)).thenReturn(List.of(active));
 
-        new DeviceOfflineAlertScheduler(deviceSignalPort, alertRepository, new ObjectMapper(),
+        new DeviceOfflineAlertScheduler(deviceSignalPort, event -> { }, alertRepository, new ObjectMapper(),
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class)
         ).reconcile();
 

@@ -1,6 +1,8 @@
 package com.smartlivestock.ranch.application.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.smartlivestock.ranch.application.signal.AlertCreatedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.smartlivestock.ranch.domain.model.Alert;
 import com.smartlivestock.ranch.domain.model.AlertStatus;
 import com.smartlivestock.ranch.domain.model.AlertType;
@@ -31,6 +33,7 @@ public class DeviceOfflineAlertScheduler {
     private static final Duration OFFLINE_THRESHOLD = Duration.ofHours(2);
 
     private final DeviceSignalPort deviceSignalPort;
+    private final ApplicationEventPublisher eventPublisher;
     private final AlertRepository alertRepository;
     private final ObjectMapper objectMapper;
     private final SignalRevisionService signalRevisionService;
@@ -88,6 +91,7 @@ public class DeviceOfflineAlertScheduler {
             alert.setMessageArgs("[]");
         }
         alertRepository.save(alert);
+        eventPublisher.publishEvent(new AlertCreatedEvent(signal.farmId(), alert.getId()));
         signalRevisionService.bumpStatus(signal.farmId(), java.util.List.of(
                 new SignalRevisionService.SignalEvent(
                         SignalEventType.ALERT_CHANGED, "ALERT", alert.getId()),

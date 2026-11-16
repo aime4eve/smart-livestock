@@ -3,6 +3,8 @@ package com.smartlivestock.iot.application;
 import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.model.LinkQualityStats;
 import com.smartlivestock.iot.domain.repository.DeviceTelemetryLogRepository;
+import com.smartlivestock.ranch.application.signal.AlertCreatedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.smartlivestock.ranch.domain.model.Alert;
 import com.smartlivestock.ranch.domain.model.AlertStatus;
 import com.smartlivestock.ranch.domain.model.AlertType;
@@ -36,6 +38,7 @@ public class DeviceLinkQualityService {
     private static final int LIMIT_FRAMES = 30;
 
     private final DeviceTelemetryLogRepository deviceTelemetryLogRepository;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final AlertRepository alertRepository;
     private final ObjectMapper objectMapper;
     private final SignalRevisionService signalRevisionService;
@@ -90,6 +93,7 @@ public class DeviceLinkQualityService {
         alertRepository.save(alert);
         signalRevisionService.bumpStatus(
                 farmId, SignalEventType.ALERT_CHANGED, "ALERT", alert.getId());
+        eventPublisher.publishEvent(new AlertCreatedEvent(farmId, alert.getId()));
     }
 
     private void autoResolveEdgeAlert(Device device) {

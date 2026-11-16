@@ -16,6 +16,7 @@ import com.smartlivestock.ranch.infrastructure.persistence.SpringDataAlertReadSt
 import com.smartlivestock.ranch.infrastructure.persistence.entity.AlertReadStatusJpaEntity;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
 import com.smartlivestock.ranch.application.signal.SignalEventType;
+import com.smartlivestock.ranch.application.signal.AlertCreatedEvent;
 import com.smartlivestock.shared.cache.RedisCacheService;
 import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ErrorCode;
@@ -49,6 +50,7 @@ public class AlertApplicationService {
     private final AlertRepository alertRepository;
     private final SpringDataAlertReadStatusRepository readStatusRepository;
     private final AlertMessageLocalizer alertMessageLocalizer;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final IoTQueryPort ioTQueryPort;
     private final RedisCacheService redisCacheService;
     private final ObjectMapper objectMapper;
@@ -62,6 +64,7 @@ public class AlertApplicationService {
         Alert saved = alertRepository.save(alert);
         signalRevisionService.bumpStatus(
                 farmId, SignalEventType.ALERT_CHANGED, "ALERT", saved.getId());
+        eventPublisher.publishEvent(new AlertCreatedEvent(farmId, saved.getId()));
         return fromLocalized(saved);
     }
 
@@ -72,6 +75,7 @@ public class AlertApplicationService {
         Alert saved = alertRepository.save(alert);
         signalRevisionService.bumpStatus(
                 farmId, SignalEventType.ALERT_CHANGED, "ALERT", saved.getId());
+        eventPublisher.publishEvent(new AlertCreatedEvent(farmId, saved.getId()));
         return fromLocalized(saved);
     }
 

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hkt_livestock_agentic/app/app_router.dart';
+import 'package:hkt_livestock_agentic/app/session/session_controller.dart';
 import 'package:hkt_livestock_agentic/core/l10n/locale_controller.dart';
+import 'package:hkt_livestock_agentic/core/push/push_service.dart';
 import 'package:hkt_livestock_agentic/core/theme/app_theme.dart';
 import 'package:hkt_livestock_agentic/l10n/gen/app_localizations.dart';
 
@@ -11,6 +13,23 @@ class DemoApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
+    // NIX-430: push taps deep-link through this router (idempotent).
+    attachPushRouter(router);
+    // NIX-430: token lifecycle follows the session — re-upload on login
+    // (covers first-install-before-login), release on sign-out.
+    final session = ref.watch(sessionControllerProvider);
+    ref.listen(sessionControllerProvider, (previous, next) {
+      final wasIn = previous?.isLoggedIn ?? false;
+      final isIn = next.isLoggedIn;
+      if (!wasIn && isIn) {
+        retryPushTokenUpload();
+      } else if (wasIn && !isIn) {
+        notifyPushSignedOut();
+      }
+    });
+    if (session.isLoggedIn) {
+      retryPushTokenUpload();
+    }
     final locale = ref.watch(localeControllerProvider);
     return MaterialApp.router(
       // Browser tab title on web (brand name, not localized copy).

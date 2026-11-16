@@ -33,7 +33,13 @@ import static org.mockito.Mockito.when;
 class SubscriptionSemanticsCrossCheckTest {
 
     private static final Long TENANT_ID = 42L;
-    private static final Instant NOW = Instant.parse("2026-10-27T00:00:00Z");
+    // NIX-430: rolling reference. The pinned 2026-10-27 NOW was a time bomb —
+    // isTrialActive() gates on the real wall clock (see the realNow note
+    // below), so the trial-active sample's pinned window (NOW+20d) expired on
+    // 2026-11-16 and the matrix started asserting HEALTHY instead of TRIAL.
+    // Every sample is built from NOW±offsets, so a rolling NOW keeps every
+    // band consistent and aligns with the real-clock gates.
+    private static final Instant NOW = Instant.now();
     private static final long WINDOW_DAYS = 30;
 
     @Mock

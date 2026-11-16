@@ -1,5 +1,7 @@
 package com.smartlivestock.iot.application;
 
+import com.smartlivestock.ranch.application.signal.AlertCreatedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.smartlivestock.iot.domain.model.Device;
 import com.smartlivestock.iot.domain.model.GatewayLatestFix;
 import com.smartlivestock.iot.domain.model.GatewayRegistry;
@@ -51,6 +53,7 @@ public class LivestockPresenceService {
     private static final Duration FIX_WINDOW = Duration.ofDays(90);
 
     private final InstallationRepository installationRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final DeviceRepository deviceRepository;
     private final RanchQueryPort ranchQueryPort;
     private final GatewayRegistryRepository gatewayRegistryRepository;
@@ -249,6 +252,7 @@ public class LivestockPresenceService {
         alertRepository.save(alert);
         signalRevisionService.bumpStatus(
                 device.farmId(), SignalEventType.ALERT_CHANGED, "ALERT", alert.getId());
+        eventPublisher.publishEvent(new AlertCreatedEvent(device.farmId(), alert.getId()));
     }
 
     private void resolveScenarioAlert(Long deviceId, AlertType type) {

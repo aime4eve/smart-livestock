@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import com.smartlivestock.ranch.application.signal.AlertCreatedEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -435,6 +436,7 @@ public class TelemetryIngestionService {
         alertRepository.save(alert);
         signalRevisionService.bumpStatus(
                 farmId, SignalEventType.ALERT_CHANGED, "ALERT", alert.getId());
+        eventPublisher.publishEvent(new AlertCreatedEvent(farmId, alert.getId()));
     }
 
     private String toJson(List<?> args) {

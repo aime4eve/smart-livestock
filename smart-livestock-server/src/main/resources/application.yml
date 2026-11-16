@@ -204,6 +204,22 @@ smartlivestock:
   # Blank = legacy rolling windows (pilot now+365d, self-service now+14d).
   trial:
     ends-at: ${SMARTLIVESTOCK_TRIAL_ENDS_AT:2027-09-30T21:00:00Z}
+  # NIX-430: APNs push (iOS first; Android/FCM deferred). enabled=false keeps
+  # every environment push-free until the key file is provisioned on the
+  # server filesystem (never in the repo). environment: sandbox pairs with
+  # dev-signed installs, production with TestFlight / App Store builds.
+  push:
+    apns:
+      enabled: ${SMARTLIVESTOCK_PUSH_APNS_ENABLED:false}
+      # Key material: base64 of the whole .p8 file (deployment seam for
+      # containers without host-path bind mounts) or a filesystem key-path.
+      key-b64: ${SMARTLIVESTOCK_PUSH_APNS_KEY_B64:}
+      key-path: ${SMARTLIVESTOCK_PUSH_APNS_KEY_PATH:}
+      key-id: ${SMARTLIVESTOCK_PUSH_APNS_KEY_ID:}
+      team-id: ${SMARTLIVESTOCK_PUSH_APNS_TEAM_ID:}
+      topic: ${SMARTLIVESTOCK_PUSH_APNS_TOPIC:com.hktlora.smartlivestock}
+      environment: ${SMARTLIVESTOCK_PUSH_APNS_ENVIRONMENT:sandbox}
+      locale: ${SMARTLIVESTOCK_PUSH_APNS_LOCALE:zh}
   # Individual temperature baseline auto-learning (plan 2026-11-03):
   # learning window (event-time sliding window over recorded_at), sample
   # admission thresholds (qualified days / samples per day / source

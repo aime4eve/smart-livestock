@@ -53,7 +53,7 @@ class GpsLogEventConsumerTest {
     void setUp() {
         consumer = new GpsLogEventConsumer(
                 new ObjectMapper(), ioTQueryPort, livestockRepository,
-                fenceRepository, alertRepository, fenceBreachDetector,
+                fenceRepository, alertRepository, event -> { }, fenceBreachDetector,
                 locationProjectionService, signalRevisionService);
     }
 

@@ -47,6 +47,8 @@ class AlertApplicationServiceTest {
     @Mock
     private ObjectMapper objectMapper;
     @Mock
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
+    @Mock
     private com.smartlivestock.ranch.application.signal.SignalRevisionService signalRevisionService;
 
     @InjectMocks

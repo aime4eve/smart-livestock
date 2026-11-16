@@ -12,6 +12,8 @@ import com.smartlivestock.ranch.domain.service.FenceBreachDetector;
 import com.smartlivestock.ranch.application.signal.SignalLocationProjectionService;
 import com.smartlivestock.ranch.application.signal.SignalEventType;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService;
+import com.smartlivestock.ranch.application.signal.AlertCreatedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -46,6 +48,7 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
     private final LivestockRepository livestockRepository;
     private final FenceRepository fenceRepository;
     private final AlertRepository alertRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final FenceBreachDetector fenceBreachDetector;
     private final SignalLocationProjectionService locationProjectionService;
     private final SignalRevisionService signalRevisionService;
@@ -219,6 +222,7 @@ public class GpsLogEventConsumer implements RocketMQListener<String> {
         signalRevisionService.bumpStatus(
                 livestock.getFarmId(), SignalEventType.ALERT_CHANGED,
                 "ALERT", alert.getId());
+        eventPublisher.publishEvent(new AlertCreatedEvent(livestock.getFarmId(), alert.getId()));
         log.info("Created {} alert for livestock [{}] fence [{}]", type, livestock.getId(), fence.getId());
     }
 
