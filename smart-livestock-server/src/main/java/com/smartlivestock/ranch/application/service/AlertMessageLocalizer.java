@@ -34,6 +34,19 @@ public class AlertMessageLocalizer {
                 alert.getMessageKey(), parseArgs(alert.getMessageArgs()), locale);
     }
 
+    /**
+     * NIX-430: locale-explicit variant for contexts without a request locale
+     * (push dispatch runs on a background thread where LocaleContextHolder
+     * would fall back to the JVM default).
+     */
+    public String localize(Alert alert, Locale locale) {
+        if (alert.getMessageKey() == null || alert.getMessageKey().isBlank()) {
+            return alert.getMessage();
+        }
+        return messageResolver.resolve(
+                alert.getMessageKey(), parseArgs(alert.getMessageArgs()), locale);
+    }
+
     private Object[] parseArgs(String json) {
         if (json == null || json.isBlank()) return new Object[0];
         try {

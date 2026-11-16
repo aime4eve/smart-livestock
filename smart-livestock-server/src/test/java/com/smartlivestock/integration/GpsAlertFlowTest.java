@@ -53,7 +53,8 @@ class GpsAlertFlowTest {
     void setUp() {
         fenceBreachDetector = new FenceBreachDetector();
         consumer = new GpsLogEventConsumer(objectMapper, ioTQueryPort,
-                livestockRepository, fenceRepository, alertRepository, fenceBreachDetector,
+                livestockRepository, fenceRepository, alertRepository, event -> { },
+                fenceBreachDetector,
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalLocationProjectionService.class),
                 org.mockito.Mockito.mock(com.smartlivestock.ranch.application.signal.SignalRevisionService.class));
     }

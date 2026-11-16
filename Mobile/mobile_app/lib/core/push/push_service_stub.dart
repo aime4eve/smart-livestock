@@ -4,3 +4,7 @@ import 'package:go_router/go_router.dart';
 void initPush() {}
 
 void attachPushRouter(GoRouter router) {}
+
+Future<void> retryPushTokenUpload() async {}
+
+Future<void> notifyPushSignedOut() async {}

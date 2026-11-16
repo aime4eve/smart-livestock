@@ -85,6 +85,11 @@ public class PushDispatchService {
     }
 
     void doDispatch(AlertCreatedEvent event) {
+        // Belt-and-braces guard (the listener checks too): keeps the gate
+        // testable at doDispatch level and safe for direct callers.
+        if (!properties.isEnabled()) {
+            return;
+        }
         Alert alert = alertRepository.findById(event.alertId()).orElse(null);
         if (alert == null) {
             log.warn("[push] alert {} vanished before dispatch", event.alertId());
@@ -112,14 +117,18 @@ public class PushDispatchService {
             return;
         }
 
-        String body = alertMessageLocalizer.localize(alert);
+        String body = alertMessageLocalizer.localize(alert,
+                java.util.Locale.forLanguageTag(properties.getLocale()));
         String payload = buildPayload(event.farmId(), alert, body);
         log.info("[push] dispatching alert {} to {} device(s) (env={})",
                 event.alertId(), tokens.size(), properties.getEnvironment());
 
+        // Reaping must not run on Pushy's Netty event loop (blocking JPA IO) —
+        // hand it back to the dispatch executor.
         Consumer<String> invalidTokenSink = invalidToken ->
-                pushTokenRepository.findByToken(invalidToken)
-                        .ifPresent(pushTokenRepository::delete);
+                dispatchExecutor.execute(() ->
+                        pushTokenRepository.findByToken(invalidToken)
+                                .ifPresent(pushTokenRepository::delete));
         apnsPushService.sendAll(tokens, payload, invalidTokenSink);
     }
 

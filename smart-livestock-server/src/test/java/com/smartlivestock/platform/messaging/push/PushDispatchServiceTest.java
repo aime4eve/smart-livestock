@@ -89,7 +89,7 @@ class PushDispatchServiceTest {
                 Severity.WARNING, "fallback");
         alert.setId(42L);
         when(alertRepository.findById(42L)).thenReturn(Optional.of(alert));
-        when(alertMessageLocalizer.localize(any(Alert.class))).thenReturn("体温异常：39.6°C");
+        when(alertMessageLocalizer.localize(any(Alert.class), any())).thenReturn("体温异常：39.6°C");
         when(userFarmAssignmentRepository.findByFarmIdAndStatus(1L, "ACTIVE"))
                 .thenAnswer(inv -> {
                     UserFarmAssignmentJpaEntity a = new UserFarmAssignmentJpaEntity();
@@ -164,7 +164,8 @@ class PushDispatchServiceTest {
 
         assertThat(sinks).hasSize(1);
         sinks.get(0).accept("token-100-sandbox");
-        verify(pushTokenRepository).delete(dead);
+        // The sink hops to the dispatch executor (never blocks Pushy's event loop).
+        verify(pushTokenRepository, org.mockito.Mockito.after(1000)).delete(dead);
     }
 
     @Test

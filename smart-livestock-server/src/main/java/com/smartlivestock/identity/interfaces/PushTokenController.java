@@ -6,6 +6,8 @@ import com.smartlivestock.platform.messaging.push.PushProperties;
 import com.smartlivestock.platform.messaging.push.SpringDataUserPushTokenRepository;
 import com.smartlivestock.platform.messaging.push.UserPushTokenJpaEntity;
 import com.smartlivestock.shared.common.ApiResponse;
+import com.smartlivestock.shared.common.ErrorCode;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,9 +22,9 @@ import java.util.Set;
 
 /**
  * NIX-430: device push-token registration and the per-user push toggle.
- * Any logged-in user; tokens are owned by the registering user and a token
- * already on file is re-attached to the latest registrant (device resale /
- * re-login semantics).
+ * Any logged-in USER (JWT); API-key principals are rejected — they identify
+ * an api_keys row, not a user, and would collide with users.id (see
+ * PasswordChangeRequiredInterceptor's precedent).
  */
 @RestController
 @RequestMapping("/api/v1/push")
@@ -34,6 +36,7 @@ public class PushTokenController {
     private final SpringDataUserPushTokenRepository pushTokenRepository;
     private final SpringDataUserRepository userRepository;
     private final PushProperties pushProperties;
+    private final HttpServletRequest request;
 
     public record RegisterRequest(String platform, String token, String appVersion) {
     }
@@ -44,10 +47,14 @@ public class PushTokenController {
     @PostMapping("/register")
     public ApiResponse<Map<String, Object>> register(@RequestBody RegisterRequest body) {
         Long userId = currentUserId();
+        if (userId == null) {
+            return ApiResponse.error(ErrorCode.AUTH_FORBIDDEN,
+                    "推送端点需要用户令牌（API Key 不可用）");
+        }
         if (body == null || body.platform() == null
                 || !PLATFORMS.contains(body.platform().toLowerCase())
                 || body.token() == null || body.token().isBlank()) {
-            return ApiResponse.error(com.smartlivestock.shared.common.ErrorCode.VALIDATION_ERROR,
+            return ApiResponse.error(ErrorCode.VALIDATION_ERROR,
                     "platform 与 token 必填（platform ∈ ios|android）");
         }
         String platform = body.platform().toLowerCase();
@@ -67,6 +74,10 @@ public class PushTokenController {
     @PostMapping("/unregister")
     public ApiResponse<Map<String, Object>> unregister(@RequestBody Map<String, String> body) {
         Long userId = currentUserId();
+        if (userId == null) {
+            return ApiResponse.error(ErrorCode.AUTH_FORBIDDEN,
+                    "推送端点需要用户令牌（API Key 不可用）");
+        }
         String token = body.get("token");
         if (token == null || token.isBlank()) {
             return ApiResponse.error(com.smartlivestock.shared.common.ErrorCode.VALIDATION_ERROR,
@@ -81,6 +92,10 @@ public class PushTokenController {
     @PostMapping("/preferences")
     public ApiResponse<Map<String, Object>> updatePreferences(@RequestBody PreferencesRequest body) {
         Long userId = currentUserId();
+        if (userId == null) {
+            return ApiResponse.error(ErrorCode.AUTH_FORBIDDEN,
+                    "推送端点需要用户令牌（API Key 不可用）");
+        }
         UserJpaEntity user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             return ApiResponse.error(com.smartlivestock.shared.common.ErrorCode.RESOURCE_NOT_FOUND,
@@ -95,14 +110,23 @@ public class PushTokenController {
     @GetMapping("/preferences")
     public ApiResponse<Map<String, Object>> preferences() {
         Long userId = currentUserId();
+        if (userId == null) {
+            return ApiResponse.error(ErrorCode.AUTH_FORBIDDEN,
+                    "推送端点需要用户令牌（API Key 不可用）");
+        }
         return userRepository.findById(userId)
                 .map(u -> ApiResponse.ok(Map.<String, Object>of(
                         "enabled", Boolean.TRUE.equals(u.getPushAlertsEnabled()))))
-                .orElseGet(() -> ApiResponse.error(com.smartlivestock.shared.common.ErrorCode.RESOURCE_NOT_FOUND,
+                .orElseGet(() -> ApiResponse.error(ErrorCode.RESOURCE_NOT_FOUND,
                         "用户不存在"));
     }
 
     private Long currentUserId() {
+        // API-key principals carry an api_keys.id, NOT a user id (they would
+        // collide with users.id) — push endpoints are user-only.
+        if (request.getAttribute(com.smartlivestock.shared.security.ApiKeyAuthFilter.ATTR_API_KEY) != null) {
+            return null;
+        }
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof Long userId) {
             return userId;
