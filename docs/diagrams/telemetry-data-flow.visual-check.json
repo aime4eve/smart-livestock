@@ -5,7 +5,7 @@
   "status": "pass",
   "visualReview": "pending",
   "artifact": {
-    "path": "/Volumes/DEV/00-products-dev/01-solutions/02-smart-livestock/docs/diagrams/telemetry-data-flow.html",
+    "path": "/Volumes/DEV/00-products-dev/hkt-smart-agentic/L3-smart-livestock/docs/diagrams/telemetry-data-flow.html",
     "sha256": "9d87461d9636a8a9330d1f4c8dd75ff6aa07c59d8b3bcfc8ff80812260c98270",
     "bytes": 719434
   },

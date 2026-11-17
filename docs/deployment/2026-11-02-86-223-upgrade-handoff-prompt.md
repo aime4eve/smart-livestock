@@ -6,7 +6,7 @@
 
 ## 一、任务背景
 
-- 项目：智慧畜牧（BoviScout），仓库本地路径 `/Volumes/DEV/00-products-dev/01-solutions/02-smart-livestock`，master 分支，最新提交 `67ed98e2`（已推 origin，Flutter CI 绿）。
+- 项目：智慧畜牧（BoviScout），仓库本地路径 `/Volumes/DEV/00-products-dev/hkt-smart-agentic/L3-smart-livestock`，master 分支，最新提交 `67ed98e2`（已推 origin，Flutter CI 绿）。
 - 目标：把 master 最新版本发布到 4 环境全量部署链的剩余两台：172.17.10.86（HOSTED，当前运行 669）与 172.17.10.223（ONPREM）。dev（19080）与 test（18080）已在本轮部署完成。
 - 操作手册：`docs/deployment/release-deployment-playbook.md` §2（两跳传输）与 §4（升级流程）；经验判据见 `docs/reference/lessons-learned.md` #23。
 
