@@ -1,0 +1,24 @@
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+stages: [test]
+
+unit-test:
+  stage: test
+  image: alpine:3.20
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script: ["echo sandbox-tests-ok"]
+
+mr-gates:
+  stage: test
+  image: python:3.12-alpine
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - python .gitlab/ci/mr_gates.py
