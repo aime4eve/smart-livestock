@@ -119,6 +119,10 @@
    - Hibernate validate 报错即停：修一处 mismatch 前，先全量静态对账该实体所有字段与迁移 DDL。
 5. **golden 测试跨平台不可比**：一律 `skip: Platform.environment['CI']=='true'`（先例 `truth_reference_tab_visual_capture_test`），本地生成比对，禁止把 golden 比对留给 CI。
 
+## 5c. master 禁直推（2026-11-18 起，对齐 parking，B2-① 裁决）
+
+**master 禁止一切直推/强推**：变更一律走分支 → PR → 合并。GitHub Free 私有仓无服务端分支保护，现阶段靠纪律 + 本地钩子兜底（`git config core.hooksPath .git-hooks`，commit-msg 拦非 conventional 提交）；迁 GitLab 后由保护分支 + 必绿 pipeline + MR 硬门禁完整接管（参照 04-smart-parking AGENTS.md「main 禁直推」节）。紧急修复也走 PR（可自审快合），事后补记录。
+
 ---
 
 ## 6. 故障层定位（先定位层，再查症状）
