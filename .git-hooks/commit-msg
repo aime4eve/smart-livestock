@@ -1,0 +1,17 @@
+#!/bin/sh
+# conventional commits 硬闸（项目群工作流第一道；CI mr-gates 为第二道同源规则）
+# 安装（每个 clone 一次）：git config core.hooksPath <本文件所在目录>
+# 紧急旁路：git commit --no-verify（须在 MR 描述说明原因）
+msg_file="$1"
+[ -f "$msg_file" ] || exit 0
+first=$(head -1 "$msg_file")
+case "$first" in
+  "Merge "*|"Revert "*|fixup!\ *|squash!\ *) exit 0 ;;
+esac
+if ! printf '%s' "$first" | grep -qE '^(feat|fix|docs|style|refactor|perf|test|chore|build|ci|revert)(\(.+\))?!?: .+'; then
+  echo "x commit message 首行须为 conventional commits：type(scope): subject" >&2
+  echo "  type ∈ feat|fix|docs|style|refactor|perf|test|chore|build|ci|revert" >&2
+  echo "  当前首行：$first" >&2
+  exit 1
+fi
+exit 0
