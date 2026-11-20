@@ -1,6 +1,6 @@
 # 智慧畜牧系统架构说明（Smart Livestock System Architecture）
 
-> 版本：v2.0　基线日期：2026-11-01（上一版 v1.0 / 2026-06-15）
+> 版本：v2.1　基线日期：2026-11-18（release 769 / 0.7.1；上一版 v2.0 / 2026-11-01，v1.0 / 2026-06-15）
 > 信息来源：`smart-livestock-server/`（Spring Boot 后端）、`Mobile/mobile_app/`（Flutter 前端）源码与 Flyway 迁移脚本核实（v2.0 按 master 逐章对账刷新，对账明细见 `docs/reports/2026-11-01-product-docs-sync-audit.md`）
 > 维护原则：本文档与代码同步演进，数字与结构均来自实际代码核查，非概述性描述。
 
@@ -1012,7 +1012,7 @@ graph TB
 |------|------|
 | [`customer-journey.md`](./customer-journey.md) | 客户旅程（2026-11-01 基线） |
 | [`user-journey-guide.md`](./user-journey-guide.md) | 用户旅程与权限说明（2026-11-01 代码基线） |
-| [`smart-livestock-prd-v2.4.md`](./smart-livestock-prd-v2.4.md) | 产品需求文档 v2.4（功能口径事实源） |
+| [`smart-livestock-prd-v2.5.md`](./smart-livestock-prd-v2.5.md) | 产品需求文档 v2.5（功能口径事实源，2026-11-18 基线） |
 | [`../api-contracts/`](../api-contracts/) | API 契约（app / admin / open / overview） |
 | [`../reference/seed-data-landscape.md`](../reference/seed-data-landscape.md) | 种子数据全景 |
 | [`../guides/subscription-guide.md`](../guides/subscription-guide.md) | 订阅功能指南 |
@@ -1034,8 +1034,9 @@ graph TB
 | **TelemetrySource** | 遥测来源枚举：AGENTIC_PLATFORM / THINGSBOARD / DATAGEN / HTTP / MANUAL_IMPORT |
 | **GPS outbox** | GPS 写入外置任务表异步落库的管道模式，幂等键 (device_id, recorded_at) |
 | **SSE 信号流** | SignalController 服务端单向推送（stream-ticket + SignalEventType 10 值） |
+| **APNs 离线推送** | messaging/push 包：ApnsPushService + PushDispatchService + user push token 表（NIX-430，2026-11-16，仅 iOS；FCM/Android 规划未实现） |
 | **超管上下文（act）** | SUPER_ADMIN 经 switch-context 重签的委托 token（RFC 8693 act claim，NIX-306） |
 
 ---
 
-*本文档 v2.0 基于 2026-11-01 `master` 代码状态核实（上一版 v1.0 / 2026-06-15）。后续架构演进请同步更新。*
+*本文档 v2.1 基于 2026-11-18 `master` 代码状态核实（release 769 / 0.7.1；上一版 v2.0 / 2026-11-01，v1.0 / 2026-06-15）。v2.1 变更：APNs 离线推送（NIX-430，iOS）、围栏缓冲带几何单源（NIX-412）、围栏轨迹生成、发情确认回流/评分解释（NIX-286/390）、分娩预警（NIX-381/389）等 11-01 后合入项对齐。后续架构演进请同步更新。*
