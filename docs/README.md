@@ -5,7 +5,7 @@
 ## 落位规则（新增文档先看这里）
 
 1. **事实源优先**：代码、Flyway 迁移、部署验证记录优先于任何文档；文档之间的引用以本索引为准。
-2. **落位表**：对外材料 → `marketing/`；交互原型与设计令牌 → `prototypes/`；一次性调研分析 → `research/`；常驻参考 → `reference/`；设计规格 → `superpowers/specs/`；实施计划 → `superpowers/plans/`。
+2. **落位表**：对外材料 → `docs/gtm/smart-livestock/`（GTM 源稿仓，本仓 `marketing/` 仅存指针）；交互原型与设计令牌 → `prototypes/`；一次性调研分析 → `research/`；常驻参考 → `reference/`；设计规格 → `superpowers/specs/`；实施计划 → `superpowers/plans/`。
 3. **过程文档带日期前缀**（`YYYY-MM-DD-`）；过时或完成使命的文档移入 `archive/`，不删除（git 历史之外仍需可读的归档）。
 4. 历史快照（如 `archive/features/`、`Mobile/docs/`）不作为当前完成状态的事实来源。
 
@@ -20,17 +20,11 @@
 | `customer-journey.md` | 客户旅程（platform_admin → b2b_admin → owner，2026-11-01 基线） |
 | `user-journey-guide.md` | 用户旅程与权限说明（2026-11-01 代码基线） |
 
-### `marketing/` — 对外材料（可直接发客户）
+### `marketing/` — 对外材料（已迁出，指针目录）
 
-| 文档 | 说明 |
-|------|------|
-| `solution-introduction-market-beta.md` | 市场测试版方案介绍（订阅档位 / 试点授权 / 续费模式） |
-| `solution-brochure.html` | 中英双语方案册 |
-| `technical-support-guide.md` | 技术支持 / FAQ |
-| `market-development-kit.md` | 市场开发工具包 |
-| `BoviScout-告警与监测体系说明-Alerts-and-Monitoring-v0.6.1.xlsx` | 告警与监测体系说明（中英双语：体系总览 / 13 种告警定义 / 行为监测 / AI 观察，阈值口径以 master 代码为准，2026-10-22 审计） |
+全部对外/上市材料已于 2026-11-18 收编至 GTM 源稿仓：**[`docs/gtm/smart-livestock/`](../docs/gtm/smart-livestock/)**（本地检出：`/Volumes/DEV/00-products-dev/hkt-smart-agentic/docs/gtm/`）。本目录仅保留指针说明（见 [`marketing/README.md`](marketing/README.md)），目录结构：`brochure/`（方案书、介绍、告警监测说明）、`responses/`（客户答复批次）、根级（market-development-kit、technical-support-guide）。
 
-> 内部交互原型不再放本目录，统一在 `prototypes/`。
+> 新 GTM 材料一律在 docs/gtm 仓编辑（MR + /approve），不要在本工程仓新建；内部交互原型统一在 `prototypes/`。
 
 ### `prototypes/` — 交互原型与设计令牌（内部）
 
