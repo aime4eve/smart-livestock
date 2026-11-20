@@ -5,7 +5,7 @@
 > **状态**：基线
 > **替代**：v2.4（2026-11-01）
 > **范围**：全平台系统（Flutter Mobile App + PC 管理端 + Spring Boot 后端服务 + AI Platform 微服务 + IoT 设备层 + 商业模式；无人机巡检为 P2 规划）
-> **编制**：基于 v2.4 对账增量更新（2026-11-18 master 基线）— 全文档按 master 实现逐章对账刷新（对账明细：`docs/reports/2026-11-01-prd-v2.4-sync-audit.md`）：告警模型（V26 重设计）、订阅生命周期（统一试点截止日 / RENEWAL_FAILED 补缴 / 到期降档）、角色权限（多标识登录 + 超管上下文切换 NIX-306）、设备接入通道（多源 TelemetrySource + GPS outbox + ThingsBoard 直连，MQTT 标注规划）对齐实现；新增模块 M 网关定位与数据质量（NIX-219/220）、模块 N 饮水行为检测与生理事件（NIX-256）；端点计数 329（83 控制器）、Flyway 117 个迁移；无人机巡检（P2）、蓝牙防盗、App 推送 / SMS / 邮件等未实现项就地标注
+> **编制**：基于 v2.4 对账增量更新（2026-11-18 master 基线，release 769 / 0.7.1）— 全文档按 master 实现逐章对账刷新（对账明细：`docs/reports/2026-11-20-prd-v2.5-sync-audit.md`）：APNs 离线推送落地（NIX-430，iOS）、围栏缓冲带几何单源（NIX-412）、围栏轨迹生成、发情确认回流（NIX-286）、分娩预警（NIX-381/389）等对齐实现；SMS / 邮件、FCM（Android 推送）、无人机巡检（P2）、蓝牙防盗等未实现项就地标注
 
 ---
 
