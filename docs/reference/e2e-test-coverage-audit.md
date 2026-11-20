@@ -250,3 +250,53 @@
 - **真实 Bug 修复**：发现并修复 5 个生产环境 bug（API Key 500×2、订阅恢复、分润计算 500、Mapper 缺失字段）
 - **断言质量**：所有模糊断言已修复为精确值，0 处模糊
 - **测试稳定性**：CommerceJourneyTest 订阅状态污染问题通过 `ensurePremiumSubscription()` + try-finally 彻底解决
+
+---
+
+## 6. 第七轮补审（2026-11-21）：2026-06~11 新功能覆盖对账
+
+> 基线推进：第六轮停在 2026-05-31（27 个测试类 / 459 个 @Test）。此后 2026-06~11 测试资产大幅增长：
+> 后端 240 个测试类 / **1867 个 @Test**（34 个集成 Journey 测试文件），Mobile 118 个测试文件。
+> 全量测试文件已用例化为 TC 规格文档：`testing/test-cases/`（357 文件 / 2604 条用例，见该目录 README）。
+
+### 6.1 新功能 × 测试覆盖对账
+
+| 2026-06~11 新功能 | 工单 | 测试覆盖 | 评价 |
+|---|---|---|---|
+| 分娩预警 | NIX-381 | CalvingPredictionJourneyTest + Scheduler/ApplicationService/QueryService/Properties/SeriesReplayer/StateTransition 全链测试 | ✅ 覆盖完整（服务+集成+配置） |
+| 围栏预警缓冲带（JTS bufferPolygon 单源） | NIX-412 | FenceApplicationServiceTest（buffer 几何）+ FenceBreachDetectorTest + 前端 fence_buffer_layer_test（widget 级） | ⚠️ 后端几何已测；"仅聚焦选中才渲染"为前端视觉行为，缺 golden/e2e 断言 |
+| 订阅治理（健康设置/自服务守卫/语义交叉核对） | 订阅治理批次 | SubscriptionHealthSettingsAdminControllerTest + SubscriptionSelfServiceGuardTest + SubscriptionSemanticsCrossCheckTest + 前端 subscription_health_* | ✅ 覆盖良好 |
+| 告警 V26 工作台改版 | 告警批次 | AlertWorkbenchServiceTest + AlertSummaryTest + AlertReadStatusTest（批量已读/多用户隔离）+ 前端 alert_workbench_test | ⚠️ 后端+widget 已测；批量已读缺集成 Journey 断言；AlertReadStatusTest 5 例为既有 mock 债务失败（AGENTS §1 基线） |
+| iOS APNs 推送 | NIX-430 | 仅 PushDispatchServiceTest | ❌ 缺口：ApnsPushService 无专测、UserPushToken 注册/失效清理无测试、离线触达端到端未验证 |
+| GPS 质量治理（批量导入/比对/真值参考） | GPS 治理 | GpsQualityBatchImportServiceTest + DynamicQualityCalculatorTest + 前端 gps_quality 9 个测试文件 | ✅ 覆盖良好（前端 golden 类按 CI 约定 skip，本地生成比对） |
+| 逐瓦片智能路由 | NIX-237 | smart_tile_provider/transform_decision/smart_tile_factory + TileCoverageCalculatorTest | ✅ 覆盖良好 |
+| 饮水事件重算 | 饮水批次 | DrinkingRecalculationServiceTest + DrinkingRecalculateAdminApiTest + Journey | ✅ 覆盖完整 |
+| 发情归一化评分/解释 | 发情批次 | EstrusNormalizedScoring(Test/Journey) + ScoreExplainer + Feedback(Test/Journey) | ✅ 覆盖完整 |
+| 信号流 SSE/Outbox | 信号批次 | SignalOutbox/Dispatcher/StreamHub/Ticket/Query/Revision 全套 + SignalOutboxJourneyTest | ✅ 覆盖完整 |
+| ONPREM/Pilot 许可 | 许可批次 | OnPremLicenseJourneyTest + PilotLicenseJourneyTest + licensing 14 个测试类 | ✅ 覆盖完整 |
+| 行为数据集/仿真评估 | Phase C | datagen 26 个测试类 + SimulationEvaluationJourneyTest | ✅ 覆盖完整（仿真数据不作真实效果验收，AGENTS §2） |
+
+### 6.2 覆盖缺口清单（旅程 × 测试）
+
+| # | 旅程/能力 | 缺口 | 建议 |
+|---|---|---|---|
+| G1 | iOS 离线告警触达（NIX-430） | ApnsPushService 单测 + token 失效清理测试缺失；无真机触达冒烟 | 补单测 + dev 环境真机冒烟脚本化 |
+| G2 | 围栏缓冲带聚焦渲染 | 仅 widget 级断言，无聚焦态 golden | 补 golden（CI skip + 本地比对约定，先例 truth_reference_tab_visual_capture_test） |
+| G3 | 告警批量已读 | 后端服务已测但无集成 Journey | 在 AlertStateMachineJourneyTest 补批量已读步骤 |
+| G4 | Journey 集成测试可执行性 | integration/** 从未被 CI 执行，2026-10-28 首跑大面积挂（AGENTS §5b 已知债） | 修复另立工单；修复前覆盖度评分按"未验证"折算 |
+| G5 | Mobile 端到端旅程 | 仅 backend_e2e_test.dart 单文件；订阅→告警→围栏关键旅程无 Flutter e2e 自动化 | 视阶段决定是否引入 integration_test 包 |
+| G6 | Testcontainers 环境类 | 本地无 Docker 时 14 例必挂（既有基线） | 借 123 testbed 跑 remote-integration-test.sh |
+
+### 6.3 第七轮评分（口径：旅程×后端集成+前端 widget，G4 折算前）
+
+| 旅程 | 第六轮 | **第七轮** | 变化 |
+|------|--------|----------|------|
+| 2.1 平台入驻 | 90% | **90%** | TenantOnboarding/HostedFirstYearFree 已有 Journey |
+| 2.2 B端管理 | 70% | **85%** | +订阅治理/合同/分润/许可 Journey 全套 |
+| 2.3 牧场主 | 85% | **90%** | +围栏轨迹生成/缓冲带/信号流 |
+| 2.4 牧工 | 90% | **90%** | — |
+| 2.5 角色创建链 | 80% | **85%** | +Worker/Owner Livestock Device Journey |
+| 2.6 告警状态机 | 95% | **95%** | —（批量已读缺口见 G3） |
+| 2.7 GPS→告警 | 90% | **90%** | —（GPS 质量治理已补） |
+| iOS 离线推送（新增维度） | — | **40%** | 仅 Dispatch 单测，G1 缺口 |
+| **总体** | **~87%** | **~88%** | **+1%（受 G1/G4 折算压制）** |
