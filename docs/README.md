@@ -15,7 +15,7 @@
 
 | 文档 | 说明 |
 |------|------|
-| `smart-livestock-prd-v2.4.md` | 产品需求文档 v2.4（功能口径事实源，2026-11-01 基线） |
+| `smart-livestock-prd-v2.5.md` | 产品需求文档 v2.5（功能口径事实源，2026-11-18 基线 / release 769 / 0.7.1） |
 | `system-architecture.md` | 系统架构设计（v2.0，2026-11-01 代码基线） |
 | `customer-journey.md` | 客户旅程（platform_admin → b2b_admin → owner，2026-11-01 基线） |
 | `user-journey-guide.md` | 用户旅程与权限说明（2026-11-01 代码基线） |
