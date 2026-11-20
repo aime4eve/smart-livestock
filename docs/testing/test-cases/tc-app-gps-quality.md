@@ -13,9 +13,9 @@
 | TC-IOT-005 | search sends filters to the server and resets to the first page | P1 | REQ-IOT-005、REQ-IOT-006 | `Mobile/mobile_app/test/features/admin/gps_quality/checks_controller_test.dart::search sends filters to the server and resets to the first page` |
 | TC-IOT-006 | load more appends the next page and keeps filters | P1 | REQ-IOT-005、REQ-IOT-006 | `Mobile/mobile_app/test/features/admin/gps_quality/checks_controller_test.dart::load more appends the next page and keeps filters` |
 | TC-IOT-007 | 选择动态路线后展示多设备动态对比表 | P1 | REQ-IOT-005、REQ-IOT-006 | `Mobile/mobile_app/test/features/admin/gps_quality/comparison_tab_test.dart::选择动态路线后展示多设备动态对比表` |
-| TC-IOT-008 | parses counts and rows per backend contract | P1 | REQ-IOT-005、REQ-IOT-006、REQ-CMC-004、REQ-CMC-005 | `Mobile/mobile_app/test/features/admin/gps_quality/gps_quality_models_test.dart::parses counts and rows per backend contract` |
+| TC-IOT-008 | parses counts and rows per backend contract | P1 | REQ-IOT-005、REQ-IOT-006、REQ-CMC-005 | `Mobile/mobile_app/test/features/admin/gps_quality/gps_quality_models_test.dart::parses counts and rows per backend contract` |
 | TC-IOT-009 | tolerates missing optional fields | P1 | REQ-IOT-005、REQ-IOT-006 | `Mobile/mobile_app/test/features/admin/gps_quality/gps_quality_models_test.dart::tolerates missing optional fields` |
-| TC-IOT-010 | parses device summaries per backend contract | P1 | REQ-IOT-005、REQ-IOT-006、REQ-CMC-004、REQ-CMC-005 | `Mobile/mobile_app/test/features/admin/gps_quality/gps_quality_models_test.dart::parses device summaries per backend contract` |
+| TC-IOT-010 | parses device summaries per backend contract | P1 | REQ-IOT-005、REQ-IOT-006、REQ-CMC-005、REQ-IOT-001 | `Mobile/mobile_app/test/features/admin/gps_quality/gps_quality_models_test.dart::parses device summaries per backend contract` |
 | TC-IOT-011 | 搜索框按 EUI 子串过滤设备分组（大小写不敏感） | P1 | REQ-IOT-005、REQ-IOT-006 | `Mobile/mobile_app/test/features/admin/gps_quality/quality_check_list_test.dart::搜索框按 EUI 子串过滤设备分组（大小写不敏感）` |
 | TC-IOT-012 | 搜索无匹配时显示无匹配设备提示 | P1 | REQ-IOT-005、REQ-IOT-006 | `Mobile/mobile_app/test/features/admin/gps_quality/quality_check_list_test.dart::搜索无匹配时显示无匹配设备提示` |
 | TC-IOT-013 | 状态下拉过滤为待注册时仅显示待注册设备 | P1 | REQ-IOT-005、REQ-IOT-006 | `Mobile/mobile_app/test/features/admin/gps_quality/quality_check_list_test.dart::状态下拉过滤为待注册时仅显示待注册设备` |
@@ -23,7 +23,7 @@
 | TC-IOT-015 | 检验记录超过一页时可以加载更多 | P1 | REQ-IOT-005、REQ-IOT-006 | `Mobile/mobile_app/test/features/admin/gps_quality/quality_check_list_test.dart::检验记录超过一页时可以加载更多` |
 | TC-IOT-016 | 存在待注册检验时显示批量注册按钮，点击调 retryRegistration(全部) | P1 | REQ-IOT-005、REQ-IOT-006 | `Mobile/mobile_app/test/features/admin/gps_quality/quality_check_list_test.dart::存在待注册检验时显示批量注册按钮，点击调 retryRegistration(全部)` |
 | TC-IOT-017 | 手动注册按钮调 retryRegistration(checkIds=[该设备待注册检验id]) | P1 | REQ-IOT-005、REQ-IOT-006 | `Mobile/mobile_app/test/features/admin/gps_quality/quality_check_list_test.dart::手动注册按钮调 retryRegistration(checkIds=[该设备待注册检验id])` |
-| TC-IOT-018 | 删除设备按钮弹确认框，确认后调 deleteChecksByDevice | P1 | REQ-IOT-005、REQ-IOT-006、REQ-IOT-003、REQ-IOT-004 | `Mobile/mobile_app/test/features/admin/gps_quality/quality_check_list_test.dart::删除设备按钮弹确认框，确认后调 deleteChecksByDevice` |
+| TC-IOT-018 | 删除设备按钮弹确认框，确认后调 deleteChecksByDevice | P1 | REQ-IOT-005、REQ-IOT-006、REQ-IOT-001、REQ-IOT-002 | `Mobile/mobile_app/test/features/admin/gps_quality/quality_check_list_test.dart::删除设备按钮弹确认框，确认后调 deleteChecksByDevice` |
 | TC-IOT-019 | READY 状态设备也显示删除设备按钮 | P1 | REQ-IOT-005、REQ-IOT-006 | `Mobile/mobile_app/test/features/admin/gps_quality/quality_check_list_test.dart::READY 状态设备也显示删除设备按钮` |
 | TC-IOT-020 | 时间线段删除图标弹确认框，确认后调 deleteCheck(该检验id) | P1 | REQ-IOT-005、REQ-IOT-006 | `Mobile/mobile_app/test/features/admin/gps_quality/quality_check_list_test.dart::时间线段删除图标弹确认框，确认后调 deleteCheck(该检验id)` |
 | TC-IOT-021 | 静态+轨迹泳道：两段均可独立点击选中 | P1 | REQ-IOT-005、REQ-IOT-006 | `Mobile/mobile_app/test/features/admin/gps_quality/quality_check_list_test.dart::静态+轨迹泳道：两段均可独立点击选中` |
@@ -106,7 +106,7 @@
 - 所属分组：BatchParseResult.fromJson
 - 步骤：运行来源测试 `Mobile/mobile_app/test/features/admin/gps_quality/gps_quality_models_test.dart::parses counts and rows per backend contract`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-CMC-004、REQ-CMC-005
+- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-CMC-005
 
 ### TC-IOT-009 tolerates missing optional fields
 
@@ -123,7 +123,7 @@
 - 所属分组：DynamicComparisonResult.fromJson
 - 步骤：运行来源测试 `Mobile/mobile_app/test/features/admin/gps_quality/gps_quality_models_test.dart::parses device summaries per backend contract`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-CMC-004、REQ-CMC-005
+- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-CMC-005、REQ-IOT-001
 
 ### TC-IOT-011 搜索框按 EUI 子串过滤设备分组（大小写不敏感）
 
@@ -187,7 +187,7 @@
 - 前置条件：单元级，无需外部依赖（mock 由 setUp 注入）
 - 步骤：运行来源测试 `Mobile/mobile_app/test/features/admin/gps_quality/quality_check_list_test.dart::删除设备按钮弹确认框，确认后调 deleteChecksByDevice`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-IOT-003、REQ-IOT-004
+- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-IOT-001、REQ-IOT-002
 
 ### TC-IOT-019 READY 状态设备也显示删除设备按钮
 

@@ -19,23 +19,23 @@
 | TC-IDT-011 | PLATFORM_ADMIN 上下文会话进平台管理台 | P1 | REQ-IDT-004 | `Mobile/mobile_app/test/app/route_guard_test.dart::PLATFORM_ADMIN 上下文会话进平台管理台` |
 | TC-IDT-012 | 根会话改密锁优先于选择器 | P1 | REQ-IDT-004 | `Mobile/mobile_app/test/app/route_guard_test.dart::根会话改密锁优先于选择器` |
 | TC-IDT-013 | OWNER 上下文会话在选择器页被送回牧场页（2026-10-20 修复回归） | P1 | REQ-IDT-004 | `Mobile/mobile_app/test/app/route_guard_test.dart::OWNER 上下文会话在选择器页被送回牧场页（2026-10-20 修复回归）` |
-| TC-IDT-014 | logout 应 invalidate farmSwitcher，使残留牧场状态被重置 | P1 | REQ-IDT-002、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/app/session_logout_farm_state_test.dart::logout 应 invalidate farmSwitcher，使残留牧场状态被重置` |
-| TC-IDT-015 | FenceController 在 activeFarmId 恢复后应自愈，不永久卡 loading | P1 | REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-IDT-002 | `Mobile/mobile_app/test/app/session_logout_farm_state_test.dart::FenceController 在 activeFarmId 恢复后应自愈，不永久卡 loading` |
-| TC-IDT-016 | farm* 的 farmId 参数不污染全局 activeFarmId（b2b 跨农场防回归） | P1 | REQ-IDT-002、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/app/session_logout_farm_state_test.dart::farm* 的 farmId 参数不污染全局 activeFarmId（b2b 跨农场防回归）` |
-| TC-IDT-017 | 普通会话不渲染横幅（挂载透明） | P2 | REQ-IDT-002、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/acting_as_banner_test.dart::普通会话不渲染横幅（挂载透明）` |
-| TC-IDT-018 | OWNER 上下文渲染双行横幅（含审计副行与租户名） | P2 | REQ-IDT-002、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/acting_as_banner_test.dart::OWNER 上下文渲染双行横幅（含审计副行与租户名）` |
-| TC-IDT-019 | 平台上下文横幅不显示租户名 | P2 | REQ-IDT-002、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/acting_as_banner_test.dart::平台上下文横幅不显示租户名` |
-| TC-IDT-020 | 根 token 过期时切换按钮提示重登（不弹 sheet） | P2 | REQ-IDT-002、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/acting_as_banner_test.dart::根 token 过期时切换按钮提示重登（不弹 sheet）` |
-| TC-IDT-021 | 四张角色卡与登录者卡渲染 | P2 | REQ-IDT-002、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::四张角色卡与登录者卡渲染` |
-| TC-IDT-022 | 平台级角色直接弹确认 sheet | P2 | REQ-IDT-002、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::平台级角色直接弹确认 sheet` |
-| TC-IDT-023 | 租户型角色进入租户列表，三种租户状态齐全 | P2 | REQ-IDT-002、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::租户型角色进入租户列表，三种租户状态齐全` |
-| TC-IDT-024 | 到期租户不可点击，无确认 sheet | P2 | REQ-IDT-002、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::到期租户不可点击，无确认 sheet` |
-| TC-IDT-025 | 停用租户确认 sheet 带警示与「仍要进入」 | P2 | REQ-IDT-002、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::停用租户确认 sheet 带警示与「仍要进入」` |
-| TC-IDT-026 | 正常租户确认 sheet 主按钮为「进入」 | P2 | REQ-IDT-002、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::正常租户确认 sheet 主按钮为「进入」` |
-| TC-IDT-027 | 租户名搜索过滤列表 | P2 | REQ-IDT-002、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::租户名搜索过滤列表` |
-| TC-IDT-028 | weak new password surfaces the strength rule | P2 | REQ-IDT-002 | `Mobile/mobile_app/test/features/auth/forced_password_change_page_test.dart::weak new password surfaces the strength rule` |
-| TC-IDT-029 | mismatched confirmation surfaces the mismatch error | P2 | REQ-IDT-002 | `Mobile/mobile_app/test/features/auth/forced_password_change_page_test.dart::mismatched confirmation surfaces the mismatch error` |
-| TC-IDT-030 | returns the farm matching activeFarmId with its coordinates | P1 | REQ-IDT-001、REQ-IDT-003、REQ-RCH-001、REQ-RCH-002 | `Mobile/mobile_app/test/features/farm_switcher/farm_switcher_state_test.dart::returns the farm matching activeFarmId with its coordinates` |
+| TC-IDT-014 | logout 应 invalidate farmSwitcher，使残留牧场状态被重置 | P1 | REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/app/session_logout_farm_state_test.dart::logout 应 invalidate farmSwitcher，使残留牧场状态被重置` |
+| TC-IDT-015 | FenceController 在 activeFarmId 恢复后应自愈，不永久卡 loading | P1 | REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-RCH-006 | `Mobile/mobile_app/test/app/session_logout_farm_state_test.dart::FenceController 在 activeFarmId 恢复后应自愈，不永久卡 loading` |
+| TC-IDT-016 | farm* 的 farmId 参数不污染全局 activeFarmId（b2b 跨农场防回归） | P1 | REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/app/session_logout_farm_state_test.dart::farm* 的 farmId 参数不污染全局 activeFarmId（b2b 跨农场防回归）` |
+| TC-IDT-017 | 普通会话不渲染横幅（挂载透明） | P2 | REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/acting_as_banner_test.dart::普通会话不渲染横幅（挂载透明）` |
+| TC-IDT-018 | OWNER 上下文渲染双行横幅（含审计副行与租户名） | P2 | REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/acting_as_banner_test.dart::OWNER 上下文渲染双行横幅（含审计副行与租户名）` |
+| TC-IDT-019 | 平台上下文横幅不显示租户名 | P2 | REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/acting_as_banner_test.dart::平台上下文横幅不显示租户名` |
+| TC-IDT-020 | 根 token 过期时切换按钮提示重登（不弹 sheet） | P2 | REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/acting_as_banner_test.dart::根 token 过期时切换按钮提示重登（不弹 sheet）` |
+| TC-IDT-021 | 四张角色卡与登录者卡渲染 | P2 | REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::四张角色卡与登录者卡渲染` |
+| TC-IDT-022 | 平台级角色直接弹确认 sheet | P2 | REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::平台级角色直接弹确认 sheet` |
+| TC-IDT-023 | 租户型角色进入租户列表，三种租户状态齐全 | P2 | REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::租户型角色进入租户列表，三种租户状态齐全` |
+| TC-IDT-024 | 到期租户不可点击，无确认 sheet | P2 | REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::到期租户不可点击，无确认 sheet` |
+| TC-IDT-025 | 停用租户确认 sheet 带警示与「仍要进入」 | P2 | REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::停用租户确认 sheet 带警示与「仍要进入」` |
+| TC-IDT-026 | 正常租户确认 sheet 主按钮为「进入」 | P2 | REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::正常租户确认 sheet 主按钮为「进入」` |
+| TC-IDT-027 | 租户名搜索过滤列表 | P2 | REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::租户名搜索过滤列表` |
+| TC-IDT-028 | weak new password surfaces the strength rule | P2 | REQ-IDT-002、REQ-IDT-006 | `Mobile/mobile_app/test/features/auth/forced_password_change_page_test.dart::weak new password surfaces the strength rule` |
+| TC-IDT-029 | mismatched confirmation surfaces the mismatch error | P2 | REQ-IDT-002、REQ-IDT-006 | `Mobile/mobile_app/test/features/auth/forced_password_change_page_test.dart::mismatched confirmation surfaces the mismatch error` |
+| TC-IDT-030 | returns the farm matching activeFarmId with its coordinates | P1 | REQ-IDT-001、REQ-IDT-003、REQ-RCH-002、REQ-RCH-006 | `Mobile/mobile_app/test/features/farm_switcher/farm_switcher_state_test.dart::returns the farm matching activeFarmId with its coordinates` |
 | TC-IDT-031 | falls back to first farm when activeFarmId matches nothing | P1 | REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/farm_switcher/farm_switcher_state_test.dart::falls back to first farm when activeFarmId matches nothing` |
 | TC-IDT-032 | returns null when no farms loaded | P1 | REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/farm_switcher/farm_switcher_state_test.dart::returns null when no farms loaded` |
 | TC-IDT-033 | PaginationBar 显示当前页/总页数 | P1 | REQ-IDT-001、REQ-IDT-003 | `Mobile/mobile_app/test/features/tenant/pagination_bar_test.dart::PaginationBar 显示当前页/总页数` |
@@ -165,7 +165,7 @@
 - 前置条件：单元级，无需外部依赖（mock 由 setUp 注入）
 - 步骤：运行来源测试 `Mobile/mobile_app/test/app/session_logout_farm_state_test.dart::logout 应 invalidate farmSwitcher，使残留牧场状态被重置`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IDT-002、REQ-IDT-001、REQ-IDT-003
+- 对应 REQ：REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003
 
 ### TC-IDT-015 FenceController 在 activeFarmId 恢复后应自愈，不永久卡 loading
 
@@ -173,7 +173,7 @@
 - 前置条件：单元级，无需外部依赖（mock 由 setUp 注入）
 - 步骤：运行来源测试 `Mobile/mobile_app/test/app/session_logout_farm_state_test.dart::FenceController 在 activeFarmId 恢复后应自愈，不永久卡 loading`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-IDT-002
+- 对应 REQ：REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-RCH-006
 
 ### TC-IDT-016 farm* 的 farmId 参数不污染全局 activeFarmId（b2b 跨农场防回归）
 
@@ -181,7 +181,7 @@
 - 前置条件：单元级，无需外部依赖（mock 由 setUp 注入）
 - 步骤：运行来源测试 `Mobile/mobile_app/test/app/session_logout_farm_state_test.dart::farm* 的 farmId 参数不污染全局 activeFarmId（b2b 跨农场防回归）`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IDT-002、REQ-IDT-001、REQ-IDT-003
+- 对应 REQ：REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003
 
 ### TC-IDT-017 普通会话不渲染横幅（挂载透明）
 
@@ -189,7 +189,7 @@
 - 前置条件：单元级，无需外部依赖（mock 由 setUp 注入）
 - 步骤：运行来源测试 `Mobile/mobile_app/test/features/auth/acting_as_banner_test.dart::普通会话不渲染横幅（挂载透明）`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IDT-002、REQ-IDT-001、REQ-IDT-003
+- 对应 REQ：REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003
 
 ### TC-IDT-018 OWNER 上下文渲染双行横幅（含审计副行与租户名）
 
@@ -197,7 +197,7 @@
 - 前置条件：单元级，无需外部依赖（mock 由 setUp 注入）
 - 步骤：运行来源测试 `Mobile/mobile_app/test/features/auth/acting_as_banner_test.dart::OWNER 上下文渲染双行横幅（含审计副行与租户名）`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IDT-002、REQ-IDT-001、REQ-IDT-003
+- 对应 REQ：REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003
 
 ### TC-IDT-019 平台上下文横幅不显示租户名
 
@@ -205,7 +205,7 @@
 - 前置条件：单元级，无需外部依赖（mock 由 setUp 注入）
 - 步骤：运行来源测试 `Mobile/mobile_app/test/features/auth/acting_as_banner_test.dart::平台上下文横幅不显示租户名`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IDT-002、REQ-IDT-001、REQ-IDT-003
+- 对应 REQ：REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003
 
 ### TC-IDT-020 根 token 过期时切换按钮提示重登（不弹 sheet）
 
@@ -213,7 +213,7 @@
 - 前置条件：单元级，无需外部依赖（mock 由 setUp 注入）
 - 步骤：运行来源测试 `Mobile/mobile_app/test/features/auth/acting_as_banner_test.dart::根 token 过期时切换按钮提示重登（不弹 sheet）`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IDT-002、REQ-IDT-001、REQ-IDT-003
+- 对应 REQ：REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003
 
 ### TC-IDT-021 四张角色卡与登录者卡渲染
 
@@ -221,7 +221,7 @@
 - 前置条件：目标 Widget 可独立 pump；必要时包 ProviderScope
 - 步骤：运行来源测试 `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::四张角色卡与登录者卡渲染`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IDT-002、REQ-IDT-001、REQ-IDT-003
+- 对应 REQ：REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003
 
 ### TC-IDT-022 平台级角色直接弹确认 sheet
 
@@ -229,7 +229,7 @@
 - 前置条件：目标 Widget 可独立 pump；必要时包 ProviderScope
 - 步骤：运行来源测试 `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::平台级角色直接弹确认 sheet`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IDT-002、REQ-IDT-001、REQ-IDT-003
+- 对应 REQ：REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003
 
 ### TC-IDT-023 租户型角色进入租户列表，三种租户状态齐全
 
@@ -237,7 +237,7 @@
 - 前置条件：目标 Widget 可独立 pump；必要时包 ProviderScope
 - 步骤：运行来源测试 `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::租户型角色进入租户列表，三种租户状态齐全`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IDT-002、REQ-IDT-001、REQ-IDT-003
+- 对应 REQ：REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003
 
 ### TC-IDT-024 到期租户不可点击，无确认 sheet
 
@@ -245,7 +245,7 @@
 - 前置条件：目标 Widget 可独立 pump；必要时包 ProviderScope
 - 步骤：运行来源测试 `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::到期租户不可点击，无确认 sheet`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IDT-002、REQ-IDT-001、REQ-IDT-003
+- 对应 REQ：REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003
 
 ### TC-IDT-025 停用租户确认 sheet 带警示与「仍要进入」
 
@@ -253,7 +253,7 @@
 - 前置条件：目标 Widget 可独立 pump；必要时包 ProviderScope
 - 步骤：运行来源测试 `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::停用租户确认 sheet 带警示与「仍要进入」`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IDT-002、REQ-IDT-001、REQ-IDT-003
+- 对应 REQ：REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003
 
 ### TC-IDT-026 正常租户确认 sheet 主按钮为「进入」
 
@@ -261,7 +261,7 @@
 - 前置条件：目标 Widget 可独立 pump；必要时包 ProviderScope
 - 步骤：运行来源测试 `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::正常租户确认 sheet 主按钮为「进入」`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IDT-002、REQ-IDT-001、REQ-IDT-003
+- 对应 REQ：REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003
 
 ### TC-IDT-027 租户名搜索过滤列表
 
@@ -269,7 +269,7 @@
 - 前置条件：目标 Widget 可独立 pump；必要时包 ProviderScope
 - 步骤：运行来源测试 `Mobile/mobile_app/test/features/auth/context_picker_page_test.dart::租户名搜索过滤列表`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IDT-002、REQ-IDT-001、REQ-IDT-003
+- 对应 REQ：REQ-IDT-002、REQ-IDT-006、REQ-IDT-001、REQ-IDT-003
 
 ### TC-IDT-028 weak new password surfaces the strength rule
 
@@ -277,7 +277,7 @@
 - 前置条件：目标 Widget 可独立 pump；必要时包 ProviderScope
 - 步骤：运行来源测试 `Mobile/mobile_app/test/features/auth/forced_password_change_page_test.dart::weak new password surfaces the strength rule`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IDT-002
+- 对应 REQ：REQ-IDT-002、REQ-IDT-006
 
 ### TC-IDT-029 mismatched confirmation surfaces the mismatch error
 
@@ -285,7 +285,7 @@
 - 前置条件：目标 Widget 可独立 pump；必要时包 ProviderScope
 - 步骤：运行来源测试 `Mobile/mobile_app/test/features/auth/forced_password_change_page_test.dart::mismatched confirmation surfaces the mismatch error`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IDT-002
+- 对应 REQ：REQ-IDT-002、REQ-IDT-006
 
 ### TC-IDT-030 returns the farm matching activeFarmId with its coordinates
 
@@ -294,7 +294,7 @@
 - 所属分组：FarmSwitcherState.activeFarm
 - 步骤：运行来源测试 `Mobile/mobile_app/test/features/farm_switcher/farm_switcher_state_test.dart::returns the farm matching activeFarmId with its coordinates`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IDT-001、REQ-IDT-003、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-IDT-001、REQ-IDT-003、REQ-RCH-002、REQ-RCH-006
 
 ### TC-IDT-031 falls back to first farm when activeFarmId matches nothing
 

@@ -5,7 +5,7 @@ import path from 'node:path';
 import { execSync } from 'node:child_process';
 
 const ROOT = process.cwd();
-const OUT = path.join(ROOT, 'testing/test-cases');
+const OUT = path.join(ROOT, 'docs/testing/test-cases');
 
 function loadReqRegistry() {
   const dir = path.join(ROOT, 'docs/requirements');
@@ -21,24 +21,33 @@ function loadReqRegistry() {
 }
 
 const REQ_KEYWORDS = [
-  [/fence|envelope|track_draft|track2|track4|track_to_envelope|breach|buffer/i, ['REQ-RCH-003','REQ-RCH-004','REQ-RCH-005']],
-  [/alert|workbench|alarm/i, ['REQ-RCH-006','REQ-RCH-007']],
-  [/gps|trajectory|track_line|quality/i, ['REQ-IOT-005','REQ-IOT-006']],
-  [/telemetry|ingestion|dedup|rumen|temperature/i, ['REQ-IOT-001','REQ-IOT-002','REQ-HLT-001','REQ-HLT-002']],
-  [/estrus/i, ['REQ-HLT-006']],
-  [/calving/i, ['REQ-HLT-004']],
-  [/drinking/i, ['REQ-HLT-007']],
-  [/fever|health|episode|epidemic|baseline|physiology/i, ['REQ-HLT-003','REQ-HLT-005']],
-  [/subscription|quota|feature_gate|tier|entitlement|plan/i, ['REQ-CMC-001','REQ-CMC-002']],
-  [/license|onprem|pilot/i, ['REQ-CMC-008']],
-  [/contract|revenue/i, ['REQ-CMC-004','REQ-CMC-005']],
-  [/auth|jwt|login|password|apikey|api_key|token|session/i, ['REQ-IDT-002']],
+  [/fence|envelope|track_draft|track2|track4|track_to_envelope|breach|buffer/i, ['REQ-RCH-003','REQ-RCH-004','REQ-RCH-005','REQ-RCH-006']],
+  [/alert|workbench|alarm/i, ['REQ-RCH-008','REQ-RCH-009','REQ-RCH-010']],
+  [/gps|track_line|quality/i, ['REQ-IOT-005','REQ-IOT-006']],
+  [/trajectory/i, ['REQ-RCH-007']],
+  [/telemetry|ingestion|dedup/i, ['REQ-IOT-001','REQ-IOT-002','REQ-IOT-003','REQ-IOT-004']],
+  [/rumen|temperature/i, ['REQ-HLT-001','REQ-HLT-002']],
+  [/estrus/i, ['REQ-HLT-022','REQ-HLT-023','REQ-HLT-024']],
+  [/calving/i, ['REQ-HLT-004','REQ-HLT-025']],
+  [/drinking/i, ['REQ-HLT-010','REQ-HLT-011']],
+  [/fever/i, ['REQ-HLT-003']],
+  [/baseline/i, ['REQ-HLT-020']],
+  [/anomaly/i, ['REQ-HLT-030','REQ-HLT-031','REQ-HLT-032']],
+  [/health|episode|physiology/i, ['REQ-HLT-005','REQ-HLT-033']],
+  [/subscription|tier|entitlement|plan|snooze/i, ['REQ-CMC-001','REQ-CMC-002']],
+  [/quota|feature_gate/i, ['REQ-CMC-003','REQ-CMC-009']],
+  [/subscription_health|health_settings/i, ['REQ-CMC-008']],
+  [/license|onprem|pilot/i, ['REQ-CMC-004','REQ-CMC-006','REQ-CMC-007']],
+  [/contract|revenue/i, ['REQ-CMC-005']],
+  [/auth|jwt|login|password|token|session|apikey|api_key/i, ['REQ-IDT-002','REQ-IDT-006']],
   [/farm|tenant|context|switcher|acting_as|scope/i, ['REQ-IDT-001','REQ-IDT-003']],
+  [/onboarding|seed/i, ['REQ-IDT-005','REQ-IDT-007']],
   [/role|permission|guard|security/i, ['REQ-IDT-004']],
   [/signal|sse|stream|outbox|push/i, ['REQ-PLT-001','REQ-PLT-002','REQ-PLT-005']],
-  [/tile|map|coord|ranch|overview|livestock/i, ['REQ-RCH-001','REQ-RCH-002']],
-  [/device|installation|gateway|thingsboard|tb_|provisioning/i, ['REQ-IOT-003','REQ-IOT-004']],
-  [/partition|migration/i, ['REQ-NFR-001','REQ-NFR-002']],
+  [/tile|map|coord/i, ['REQ-RCH-002','REQ-RCH-006']],
+  [/overview|livestock|ranch/i, ['REQ-RCH-001','REQ-RCH-002','REQ-RCH-012']],
+  [/device|installation|gateway|thingsboard|tb_|provisioning/i, ['REQ-IOT-001','REQ-IOT-002','REQ-IOT-008','REQ-IOT-009']],
+  [/partition|migration/i, ['REQ-HLT-006','REQ-NFR-002']],
 ];
 function mapReq(filePath, testCaseName) {
   const hay = filePath + ' ' + (testCaseName || '');
@@ -46,7 +55,9 @@ function mapReq(filePath, testCaseName) {
   for (const [re, ids2] of REQ_KEYWORDS) {
     if (re.test(hay)) ids2.forEach(i => ids.add(i));
   }
-  return [...ids].slice(0, 4);
+  const REG = loadReqRegistry();
+  const regIds = new Set(REG.map(r => r.id));
+  return [...ids].filter(i => regIds.has(i)).slice(0, 4);
 }
 
 const SERVER_VOLUMES = [
@@ -205,7 +216,7 @@ for (const [key, v] of volumes) {
   fs.writeFileSync(path.join(OUT, key), md);
 }
 
-let readme = '# 测试用例规格（testing/test-cases）\n\n';
+let readme = '# 测试用例规格（docs/testing/test-cases）\n\n';
 readme += '> 由 tools/generate-test-cases.mjs 从后端 ' + serverFiles.length + ' 个测试类与 Mobile ' + appFiles.length + ' 个测试文件批量解析生成初稿（2026-11-21 基线）。\n';
 readme += '> 用例编号：TC-<域>-NNN，域对齐 SRS REQ 体系（RCH/IOT/HLT/IDT/CMC/PLT/JRY=旅程集成）。\n';
 readme += '> 状态：脚本初稿——优先级为规则推断，REQ 为关键词自动映射，步骤为单测载体模板，均需人工校对。\n\n';

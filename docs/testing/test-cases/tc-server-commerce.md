@@ -6,48 +6,48 @@
 
 | 编号 | 用例名称 | 优先级 | 对应 REQ（自动映射） | 来源 |
 |---|---|---|---|---|
-| TC-CMC-084 | createsDraftContract | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::createsDraftContract` |
-| TC-CMC-085 | invalidRevenueShareRatio_throws | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::invalidRevenueShareRatio_throws` |
-| TC-CMC-086 | draftContract_signsSuccessfully | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::draftContract_signsSuccessfully` |
-| TC-CMC-087 | contractNotFound_throws | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::contractNotFound_throws` |
-| TC-CMC-088 | activeContract_suspends | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::activeContract_suspends` |
-| TC-CMC-089 | suspendedContract_reactivates | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::suspendedContract_reactivates` |
-| TC-CMC-090 | activeContract_terminates | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::activeContract_terminates` |
-| TC-CMC-091 | contractNotFound_doesNotPublish | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::contractNotFound_doesNotPublish` |
-| TC-CMC-092 | missing settings row falls back to SHOW_LOCKED | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/PlatformDisplaySettingsProviderTest.java::missingRow_fallsBackToShowLocked` |
-| TC-CMC-093 | repository failure falls back to SHOW_LOCKED | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/PlatformDisplaySettingsProviderTest.java::repositoryFailure_fallsBackToShowLocked` |
-| TC-CMC-094 | persisted HIDE policy is returned | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/PlatformDisplaySettingsProviderTest.java::persistedHide_isReturned` |
-| TC-CMC-095 | cache hit within TTL does not re-read the repository | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/PlatformDisplaySettingsProviderTest.java::cacheHit_skipsRepository` |
-| TC-CMC-096 | getLockedTilePolicy delegates to the provider (fallback included) | P1 | REQ-PLT-001、REQ-PLT-002、REQ-PLT-005、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/PlatformDisplaySettingsServiceTest.java::get_delegatesToProvider` |
+| TC-CMC-084 | createsDraftContract | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::createsDraftContract` |
+| TC-CMC-085 | invalidRevenueShareRatio_throws | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::invalidRevenueShareRatio_throws` |
+| TC-CMC-086 | draftContract_signsSuccessfully | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::draftContract_signsSuccessfully` |
+| TC-CMC-087 | contractNotFound_throws | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::contractNotFound_throws` |
+| TC-CMC-088 | activeContract_suspends | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::activeContract_suspends` |
+| TC-CMC-089 | suspendedContract_reactivates | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::suspendedContract_reactivates` |
+| TC-CMC-090 | activeContract_terminates | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::activeContract_terminates` |
+| TC-CMC-091 | contractNotFound_doesNotPublish | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::contractNotFound_doesNotPublish` |
+| TC-CMC-092 | missing settings row falls back to SHOW_LOCKED | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/PlatformDisplaySettingsProviderTest.java::missingRow_fallsBackToShowLocked` |
+| TC-CMC-093 | repository failure falls back to SHOW_LOCKED | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/PlatformDisplaySettingsProviderTest.java::repositoryFailure_fallsBackToShowLocked` |
+| TC-CMC-094 | persisted HIDE policy is returned | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/PlatformDisplaySettingsProviderTest.java::persistedHide_isReturned` |
+| TC-CMC-095 | cache hit within TTL does not re-read the repository | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/PlatformDisplaySettingsProviderTest.java::cacheHit_skipsRepository` |
+| TC-CMC-096 | getLockedTilePolicy delegates to the provider (fallback included) | P1 | REQ-PLT-001、REQ-PLT-002、REQ-PLT-005、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/PlatformDisplaySettingsServiceTest.java::get_delegatesToProvider` |
 | TC-CMC-097 | update persists the policy, records an audit entry and invalidates the cache | P1 | REQ-PLT-001、REQ-PLT-002、REQ-PLT-005、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/PlatformDisplaySettingsServiceTest.java::update_persistsAuditsAndInvalidates` |
 | TC-CMC-098 | update with a null policy is rejected with VALIDATION_ERROR | P1 | REQ-PLT-001、REQ-PLT-002、REQ-PLT-005、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/PlatformDisplaySettingsServiceTest.java::update_nullPolicy_rejected` |
 | TC-CMC-099 | parsePolicy accepts case-insensitive values from the domain | P1 | REQ-PLT-001、REQ-PLT-002、REQ-PLT-005、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/PlatformDisplaySettingsServiceTest.java::parsePolicy_acceptsKnownValues` |
 | TC-CMC-100 | parsePolicy rejects anything outside the value domain | P1 | REQ-PLT-001、REQ-PLT-002、REQ-PLT-005、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/PlatformDisplaySettingsServiceTest.java::parsePolicy_rejectsUnknownValues` |
-| TC-CMC-101 | subscriptionNotFound_throwsDomainException | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::subscriptionNotFound_throwsDomainException` |
-| TC-CMC-102 | suspendedSubscription_deniedRegardlessOfGate | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::suspendedSubscription_deniedRegardlessOfGate` |
-| TC-CMC-103 | cancelledSubscription_denied | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::cancelledSubscription_denied` |
-| TC-CMC-104 | expiredSubscription_denied | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::expiredSubscription_denied` |
-| TC-CMC-105 | renewalFailedSubscription_denied | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::renewalFailedSubscription_denied` |
-| TC-CMC-106 | allowsAccess | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::allowsAccess` |
-| TC-CMC-107 | missingGate_treatedAsNone | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::missingGate_treatedAsNone` |
-| TC-CMC-108 | enabledLock_allowsAccess | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::enabledLock_allowsAccess` |
-| TC-CMC-109 | disabledLock_deniesAccess | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::disabledLock_deniesAccess` |
-| TC-CMC-110 | underLimit_allowsAccess | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::underLimit_allowsAccess` |
-| TC-CMC-111 | atLimit_deniesAccess | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::atLimit_deniesAccess` |
-| TC-CMC-112 | overLimit_deniesAccess | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::overLimit_deniesAccess` |
-| TC-CMC-113 | allowedWithRetentionDays | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::allowedWithRetentionDays` |
-| TC-CMC-114 | trialUsesEffectiveTierPremium | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::trialUsesEffectiveTierPremium` |
-| TC-CMC-115 | licenseQuotaPresent_overridesFeatureGate | P1 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::licenseQuotaPresent_overridesFeatureGate` |
-| TC-CMC-116 | licenseQuotaBoundaryUsageInclusive_allowed | P1 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::licenseQuotaBoundaryUsageInclusive_allowed` |
-| TC-CMC-117 | licenseQuotaExceeded_deniesWithLocalizedMessage | P1 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::licenseQuotaExceeded_deniesWithLocalizedMessage` |
-| TC-CMC-118 | licenseQuotaEmpty_fallsBackToFeatureGateLimit | P1 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::licenseQuotaEmpty_fallsBackToFeatureGateLimit` |
-| TC-CMC-119 | calculatesPeriodForActiveContract | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::calculatesPeriodForActiveContract` |
-| TC-CMC-120 | inactiveContract_throws | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::inactiveContract_throws` |
-| TC-CMC-121 | pendingPeriod_confirmedByPlatform | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::pendingPeriod_confirmedByPlatform` |
-| TC-CMC-122 | platformConfirmedPeriod_confirmedByPartner | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::platformConfirmedPeriod_confirmedByPartner` |
-| TC-CMC-123 | partnerConfirmedPeriod_settles | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::partnerConfirmedPeriod_settles` |
-| TC-CMC-124 | updatesExistingPeriod_inPlace | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::updatesExistingPeriod_inPlace` |
-| TC-CMC-125 | settledPeriod_throwsStateConflict | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::settledPeriod_throwsStateConflict` |
+| TC-CMC-101 | subscriptionNotFound_throwsDomainException | P1 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-003、REQ-CMC-009 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::subscriptionNotFound_throwsDomainException` |
+| TC-CMC-102 | suspendedSubscription_deniedRegardlessOfGate | P1 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-003、REQ-CMC-009 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::suspendedSubscription_deniedRegardlessOfGate` |
+| TC-CMC-103 | cancelledSubscription_denied | P1 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-003、REQ-CMC-009 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::cancelledSubscription_denied` |
+| TC-CMC-104 | expiredSubscription_denied | P1 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-003、REQ-CMC-009 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::expiredSubscription_denied` |
+| TC-CMC-105 | renewalFailedSubscription_denied | P1 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-003、REQ-CMC-009 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::renewalFailedSubscription_denied` |
+| TC-CMC-106 | allowsAccess | P1 | REQ-CMC-003、REQ-CMC-009、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::allowsAccess` |
+| TC-CMC-107 | missingGate_treatedAsNone | P1 | REQ-CMC-003、REQ-CMC-009、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::missingGate_treatedAsNone` |
+| TC-CMC-108 | enabledLock_allowsAccess | P1 | REQ-CMC-003、REQ-CMC-009、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::enabledLock_allowsAccess` |
+| TC-CMC-109 | disabledLock_deniesAccess | P1 | REQ-CMC-003、REQ-CMC-009、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::disabledLock_deniesAccess` |
+| TC-CMC-110 | underLimit_allowsAccess | P1 | REQ-CMC-003、REQ-CMC-009、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::underLimit_allowsAccess` |
+| TC-CMC-111 | atLimit_deniesAccess | P1 | REQ-CMC-003、REQ-CMC-009、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::atLimit_deniesAccess` |
+| TC-CMC-112 | overLimit_deniesAccess | P1 | REQ-CMC-003、REQ-CMC-009、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::overLimit_deniesAccess` |
+| TC-CMC-113 | allowedWithRetentionDays | P1 | REQ-CMC-003、REQ-CMC-009、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::allowedWithRetentionDays` |
+| TC-CMC-114 | trialUsesEffectiveTierPremium | P1 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-003、REQ-CMC-009 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::trialUsesEffectiveTierPremium` |
+| TC-CMC-115 | licenseQuotaPresent_overridesFeatureGate | P1 | REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::licenseQuotaPresent_overridesFeatureGate` |
+| TC-CMC-116 | licenseQuotaBoundaryUsageInclusive_allowed | P1 | REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::licenseQuotaBoundaryUsageInclusive_allowed` |
+| TC-CMC-117 | licenseQuotaExceeded_deniesWithLocalizedMessage | P1 | REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::licenseQuotaExceeded_deniesWithLocalizedMessage` |
+| TC-CMC-118 | licenseQuotaEmpty_fallsBackToFeatureGateLimit | P1 | REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::licenseQuotaEmpty_fallsBackToFeatureGateLimit` |
+| TC-CMC-119 | calculatesPeriodForActiveContract | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::calculatesPeriodForActiveContract` |
+| TC-CMC-120 | inactiveContract_throws | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::inactiveContract_throws` |
+| TC-CMC-121 | pendingPeriod_confirmedByPlatform | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::pendingPeriod_confirmedByPlatform` |
+| TC-CMC-122 | platformConfirmedPeriod_confirmedByPartner | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::platformConfirmedPeriod_confirmedByPartner` |
+| TC-CMC-123 | partnerConfirmedPeriod_settles | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::partnerConfirmedPeriod_settles` |
+| TC-CMC-124 | updatesExistingPeriod_inPlace | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::updatesExistingPeriod_inPlace` |
+| TC-CMC-125 | settledPeriod_throwsStateConflict | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::settledPeriod_throwsStateConflict` |
 | TC-CMC-126 | existingSubscription_returnsExisting | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/SubscriptionApplicationServiceTest.java::existingSubscription_returnsExisting` |
 | TC-CMC-127 | noExistingSubscription_createsTrial | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/SubscriptionApplicationServiceTest.java::noExistingSubscription_createsTrial` |
 | TC-CMC-128 | noExistingSubscription_fixedDeadlineConfigured_createsTrialAtDeadline | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/SubscriptionApplicationServiceTest.java::noExistingSubscription_fixedDeadlineConfigured_createsTrialAtDeadline` |
@@ -73,57 +73,57 @@
 | TC-CMC-148 | trialLapsedDoesNotShowAsTrial | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/SubscriptionSemanticsCrossCheckTest.java::trialLapsedDoesNotShowAsTrial` |
 | TC-CMC-149 | expiringSoonLevels | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/SubscriptionSemanticsCrossCheckTest.java::expiringSoonLevels` |
 | TC-CMC-150 | defaultTiersKeepSnoozeGateOn14And7Only | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/SubscriptionSemanticsCrossCheckTest.java::defaultTiersKeepSnoozeGateOn14And7Only` |
-| TC-CMC-151 | defaultTiersMapSeverity14Info7Warn3Danger | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/SubscriptionSemanticsCrossCheckTest.java::defaultTiersMapSeverity14Info7Warn3Danger` |
+| TC-CMC-151 | defaultTiersMapSeverity14Info7Warn3Danger | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-002、REQ-RCH-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/SubscriptionSemanticsCrossCheckTest.java::defaultTiersMapSeverity14Info7Warn3Danger` |
 | TC-CMC-152 | trialBannerEscalatesSeverityByLevelWithoutSnooze | P1 | REQ-CMC-001、REQ-CMC-002、REQ-PLT-001、REQ-PLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/SubscriptionSemanticsCrossCheckTest.java::trialBannerEscalatesSeverityByLevelWithoutSnooze` |
 | TC-CMC-153 | severityNonNullWhereverLevelPresentSnoozeOnlyInExpiringSoon | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/SubscriptionSemanticsCrossCheckTest.java::severityNonNullWhereverLevelPresentSnoozeOnlyInExpiringSoon` |
 | TC-CMC-154 | customTiersDriveWindowLevelAndSnoozeGate | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/SubscriptionSemanticsCrossCheckTest.java::customTiersDriveWindowLevelAndSnoozeGate` |
 | TC-CMC-155 | degradedAndExportEligibilityAgreeOnEverySample | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/SubscriptionSemanticsCrossCheckTest.java::degradedAndExportEligibilityAgreeOnEverySample` |
-| TC-CMC-156 | setsDraftStatusAndFields | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::setsDraftStatusAndFields` |
-| TC-CMC-157 | registersContractCreatedEvent | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::registersContractCreatedEvent` |
-| TC-CMC-158 | revenueShareModel_requiresRatio | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::revenueShareModel_requiresRatio` |
-| TC-CMC-159 | nonRevenueShareModel_allowsNullRatio | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::nonRevenueShareModel_allowsNullRatio` |
-| TC-CMC-160 | ratioMustBeGreaterThanZero | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::ratioMustBeGreaterThanZero` |
-| TC-CMC-161 | ratioMustBeLessThanOne | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::ratioMustBeLessThanOne` |
-| TC-CMC-162 | transitionsToActive | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::transitionsToActive` |
-| TC-CMC-163 | registersContractSignedEvent | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::registersContractSignedEvent` |
-| TC-CMC-164 | suspend_transitionsToSuspended | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::suspend_transitionsToSuspended` |
-| TC-CMC-165 | reactivate_transitionsToActive | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::reactivate_transitionsToActive` |
-| TC-CMC-166 | transitionsToTerminated | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::transitionsToTerminated` |
-| TC-CMC-167 | transitionsToExpired | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::transitionsToExpired` |
-| TC-CMC-168 | calculatesSharesFromRatio | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::calculatesSharesFromRatio` |
-| TC-CMC-169 | differentRatio | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::differentRatio` |
-| TC-CMC-170 | zeroGrossAmount | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::zeroGrossAmount` |
-| TC-CMC-171 | rejectsNegativeGrossAmount | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::rejectsNegativeGrossAmount` |
-| TC-CMC-172 | signFromActive_throwsStateConflict | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::signFromActive_throwsStateConflict` |
-| TC-CMC-173 | suspendFromDraft_throwsStateConflict | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::suspendFromDraft_throwsStateConflict` |
-| TC-CMC-174 | reactivateFromActive_throwsStateConflict | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::reactivateFromActive_throwsStateConflict` |
-| TC-CMC-175 | terminateFromSuspended_throwsStateConflict | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::terminateFromSuspended_throwsStateConflict` |
-| TC-CMC-176 | markExpiredFromSuspended_throwsStateConflict | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::markExpiredFromSuspended_throwsStateConflict` |
-| TC-CMC-177 | terminateFromDraft_throwsStateConflict | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::terminateFromDraft_throwsStateConflict` |
-| TC-CMC-178 | markExpiredFromDraft_throwsStateConflict | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::markExpiredFromDraft_throwsStateConflict` |
-| TC-CMC-179 | unrestricted_allowsAccess | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::unrestricted_allowsAccess` |
-| TC-CMC-180 | isLockedWhenEnabled | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::isLockedWhenEnabled` |
-| TC-CMC-181 | isLockedWhenDisabled | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::isLockedWhenDisabled` |
-| TC-CMC-182 | isLimitedWithLimitValue | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::isLimitedWithLimitValue` |
-| TC-CMC-183 | isLimitedWithNullRetentionDays | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::isLimitedWithNullRetentionDays` |
-| TC-CMC-184 | isFilteredWithRetentionDays | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::isFilteredWithRetentionDays` |
-| TC-CMC-185 | createsNoneGate | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::createsNoneGate` |
-| TC-CMC-186 | setsPendingStatusAndFields | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::setsPendingStatusAndFields` |
-| TC-CMC-187 | registersRevenuePeriodCreatedEvent | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::registersRevenuePeriodCreatedEvent` |
-| TC-CMC-188 | allowsRatioEqualToZero_forDirectModel | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::allowsRatioEqualToZero_forDirectModel` |
-| TC-CMC-189 | rejectsRatioEqualToOne | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsRatioEqualToOne` |
-| TC-CMC-190 | rejectsSharesNotSummingToGross | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsSharesNotSummingToGross` |
-| TC-CMC-191 | rejectsPeriodEndBeforeStart | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsPeriodEndBeforeStart` |
-| TC-CMC-192 | transitionsToPlatformConfirmed | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::transitionsToPlatformConfirmed` |
-| TC-CMC-193 | rejectsFromNonPending | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromNonPending` |
-| TC-CMC-194 | rejectsFromSettled | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromSettled` |
-| TC-CMC-195 | transitionsToPartnerConfirmed | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::transitionsToPartnerConfirmed` |
-| TC-CMC-196 | rejectsFromPending | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromPending` |
-| TC-CMC-197 | rejectsFromPartnerConfirmed | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromPartnerConfirmed` |
-| TC-CMC-198 | transitionsToSettled | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::transitionsToSettled` |
-| TC-CMC-199 | rejectsFromPending | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromPending` |
-| TC-CMC-200 | rejectsFromPlatformConfirmed | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromPlatformConfirmed` |
-| TC-CMC-201 | rejectsFromSettled | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromSettled` |
+| TC-CMC-156 | setsDraftStatusAndFields | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::setsDraftStatusAndFields` |
+| TC-CMC-157 | registersContractCreatedEvent | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::registersContractCreatedEvent` |
+| TC-CMC-158 | revenueShareModel_requiresRatio | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::revenueShareModel_requiresRatio` |
+| TC-CMC-159 | nonRevenueShareModel_allowsNullRatio | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::nonRevenueShareModel_allowsNullRatio` |
+| TC-CMC-160 | ratioMustBeGreaterThanZero | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::ratioMustBeGreaterThanZero` |
+| TC-CMC-161 | ratioMustBeLessThanOne | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::ratioMustBeLessThanOne` |
+| TC-CMC-162 | transitionsToActive | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::transitionsToActive` |
+| TC-CMC-163 | registersContractSignedEvent | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::registersContractSignedEvent` |
+| TC-CMC-164 | suspend_transitionsToSuspended | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::suspend_transitionsToSuspended` |
+| TC-CMC-165 | reactivate_transitionsToActive | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::reactivate_transitionsToActive` |
+| TC-CMC-166 | transitionsToTerminated | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::transitionsToTerminated` |
+| TC-CMC-167 | transitionsToExpired | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::transitionsToExpired` |
+| TC-CMC-168 | calculatesSharesFromRatio | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::calculatesSharesFromRatio` |
+| TC-CMC-169 | differentRatio | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::differentRatio` |
+| TC-CMC-170 | zeroGrossAmount | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::zeroGrossAmount` |
+| TC-CMC-171 | rejectsNegativeGrossAmount | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::rejectsNegativeGrossAmount` |
+| TC-CMC-172 | signFromActive_throwsStateConflict | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::signFromActive_throwsStateConflict` |
+| TC-CMC-173 | suspendFromDraft_throwsStateConflict | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::suspendFromDraft_throwsStateConflict` |
+| TC-CMC-174 | reactivateFromActive_throwsStateConflict | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::reactivateFromActive_throwsStateConflict` |
+| TC-CMC-175 | terminateFromSuspended_throwsStateConflict | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::terminateFromSuspended_throwsStateConflict` |
+| TC-CMC-176 | markExpiredFromSuspended_throwsStateConflict | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::markExpiredFromSuspended_throwsStateConflict` |
+| TC-CMC-177 | terminateFromDraft_throwsStateConflict | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::terminateFromDraft_throwsStateConflict` |
+| TC-CMC-178 | markExpiredFromDraft_throwsStateConflict | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::markExpiredFromDraft_throwsStateConflict` |
+| TC-CMC-179 | unrestricted_allowsAccess | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::unrestricted_allowsAccess` |
+| TC-CMC-180 | isLockedWhenEnabled | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::isLockedWhenEnabled` |
+| TC-CMC-181 | isLockedWhenDisabled | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::isLockedWhenDisabled` |
+| TC-CMC-182 | isLimitedWithLimitValue | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::isLimitedWithLimitValue` |
+| TC-CMC-183 | isLimitedWithNullRetentionDays | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::isLimitedWithNullRetentionDays` |
+| TC-CMC-184 | isFilteredWithRetentionDays | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::isFilteredWithRetentionDays` |
+| TC-CMC-185 | createsNoneGate | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::createsNoneGate` |
+| TC-CMC-186 | setsPendingStatusAndFields | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::setsPendingStatusAndFields` |
+| TC-CMC-187 | registersRevenuePeriodCreatedEvent | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::registersRevenuePeriodCreatedEvent` |
+| TC-CMC-188 | allowsRatioEqualToZero_forDirectModel | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::allowsRatioEqualToZero_forDirectModel` |
+| TC-CMC-189 | rejectsRatioEqualToOne | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsRatioEqualToOne` |
+| TC-CMC-190 | rejectsSharesNotSummingToGross | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsSharesNotSummingToGross` |
+| TC-CMC-191 | rejectsPeriodEndBeforeStart | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsPeriodEndBeforeStart` |
+| TC-CMC-192 | transitionsToPlatformConfirmed | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::transitionsToPlatformConfirmed` |
+| TC-CMC-193 | rejectsFromNonPending | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromNonPending` |
+| TC-CMC-194 | rejectsFromSettled | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromSettled` |
+| TC-CMC-195 | transitionsToPartnerConfirmed | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::transitionsToPartnerConfirmed` |
+| TC-CMC-196 | rejectsFromPending | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromPending` |
+| TC-CMC-197 | rejectsFromPartnerConfirmed | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromPartnerConfirmed` |
+| TC-CMC-198 | transitionsToSettled | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::transitionsToSettled` |
+| TC-CMC-199 | rejectsFromPending | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromPending` |
+| TC-CMC-200 | rejectsFromPlatformConfirmed | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromPlatformConfirmed` |
+| TC-CMC-201 | rejectsFromSettled | P1 | REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromSettled` |
 | TC-CMC-202 | setsProvisionedStatusAndFields | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/SubscriptionServiceTest.java::setsProvisionedStatusAndFields` |
 | TC-CMC-203 | hashesServiceKeyAndExtractsPrefix | P1 | REQ-CMC-001、REQ-CMC-002、REQ-PLT-001、REQ-PLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/SubscriptionServiceTest.java::hashesServiceKeyAndExtractsPrefix` |
 | TC-CMC-204 | registersServiceProvisionedEvent | P1 | REQ-CMC-001、REQ-CMC-002、REQ-PLT-001、REQ-PLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/SubscriptionServiceTest.java::registersServiceProvisionedEvent` |
@@ -147,7 +147,7 @@
 | TC-CMC-222 | transitionsFromActiveToExpired | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/SubscriptionServiceTest.java::transitionsFromActiveToExpired` |
 | TC-CMC-223 | rejectsFromProvisioned | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/SubscriptionServiceTest.java::rejectsFromProvisioned` |
 | TC-CMC-224 | rejectsFromExpired | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/SubscriptionServiceTest.java::rejectsFromExpired` |
-| TC-CMC-225 | updatesQuotaAndRegistersEvent | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/SubscriptionServiceTest.java::updatesQuotaAndRegistersEvent` |
+| TC-CMC-225 | updatesQuotaAndRegistersEvent | P1 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-003、REQ-CMC-009 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/SubscriptionServiceTest.java::updatesQuotaAndRegistersEvent` |
 | TC-CMC-226 | rejectsFromProvisioned | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/SubscriptionServiceTest.java::rejectsFromProvisioned` |
 | TC-CMC-227 | rejectsFromExpired | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/SubscriptionServiceTest.java::rejectsFromExpired` |
 | TC-CMC-228 | acceptsCorrectKey | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/SubscriptionServiceTest.java::acceptsCorrectKey` |
@@ -220,50 +220,50 @@
 | TC-CMC-295 | largeHerd | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/SubscriptionTierTest.java::largeHerd` |
 | TC-CMC-296 | basicIsAlwaysFree | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/SubscriptionTierTest.java::basicIsAlwaysFree` |
 | TC-CMC-297 | enterpriseThrowsDomainException | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/SubscriptionTierTest.java::enterpriseThrowsDomainException` |
-| TC-CMC-298 | returnsEmptyRegardlessOfLicense | P1 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::returnsEmptyRegardlessOfLicense` |
-| TC-CMC-299 | validLicenseWithKey_returnsQuota | P1 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::validLicenseWithKey_returnsQuota` |
-| TC-CMC-300 | validLicenseWithoutKey_returnsEmpty | P1 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::validLicenseWithoutKey_returnsEmpty` |
-| TC-CMC-301 | expiredRuntime_returnsEmpty | P1 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::expiredRuntime_returnsEmpty` |
-| TC-CMC-302 | suspendedRuntime_returnsEmpty | P1 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::suspendedRuntime_returnsEmpty` |
-| TC-CMC-303 | noCurrentLicense_returnsEmpty | P1 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::noCurrentLicense_returnsEmpty` |
-| TC-CMC-304 | modeMatchIsCaseInsensitive | P1 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::modeMatchIsCaseInsensitive` |
-| TC-CMC-305 | resolvesLimitFromFeatureGateLimitRow | P1 | REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-CMC-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/FenceQuotaPortImplTest.java::resolvesLimitFromFeatureGateLimitRow` |
-| TC-CMC-306 | licenseQuotaWinsOverFeatureGate | P1 | REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-CMC-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/FenceQuotaPortImplTest.java::licenseQuotaWinsOverFeatureGate` |
-| TC-CMC-307 | enterpriseNoneGateResolvesToNull | P1 | REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-CMC-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/FenceQuotaPortImplTest.java::enterpriseNoneGateResolvesToNull` |
-| TC-CMC-308 | missingGateRowResolvesToNull | P1 | REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-CMC-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/FenceQuotaPortImplTest.java::missingGateRowResolvesToNull` |
-| TC-CMC-309 | inactiveSubscriptionResolvesToNull | P1 | REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-CMC-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/FenceQuotaPortImplTest.java::inactiveSubscriptionResolvesToNull` |
-| TC-CMC-310 | noTenantContextResolvesToNullWithoutTouchingStores | P1 | REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-CMC-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/FenceQuotaPortImplTest.java::noTenantContextResolvesToNullWithoutTouchingStores` |
-| TC-CMC-311 | seedRowMatchesPreChangeHardcodedTiers | P1 | REQ-HLT-003、REQ-HLT-005、REQ-CMC-001、REQ-CMC-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/SubscriptionHealthSettingsRepositoryIntegrationTest.java::seedRowMatchesPreChangeHardcodedTiers` |
-| TC-CMC-312 | unorderedTiersViolateTheCheckConstraint | P1 | REQ-HLT-003、REQ-HLT-005、REQ-CMC-001、REQ-CMC-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/SubscriptionHealthSettingsRepositoryIntegrationTest.java::unorderedTiersViolateTheCheckConstraint` |
-| TC-CMC-313 | providerInvalidationReloadsPersistedTiers | P1 | REQ-HLT-003、REQ-HLT-005、REQ-CMC-001、REQ-CMC-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/SubscriptionHealthSettingsRepositoryIntegrationTest.java::providerInvalidationReloadsPersistedTiers` |
-| TC-CMC-314 | allFieldsPreservedViaToJpaEntityAndBack | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::allFieldsPreservedViaToJpaEntityAndBack` |
-| TC-CMC-315 | activeSubscriptionWithAllFieldsFilledRoundTrips | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::activeSubscriptionWithAllFieldsFilledRoundTrips` |
-| TC-CMC-316 | updateEntityPreservesMutableFields | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::updateEntityPreservesMutableFields` |
-| TC-CMC-317 | allFieldsPreservedViaToJpaEntityAndBack | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::allFieldsPreservedViaToJpaEntityAndBack` |
-| TC-CMC-318 | draftContractRoundTrips | P1 | REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::draftContractRoundTrips` |
-| TC-CMC-319 | allFieldsPreservedViaToJpaEntityAndBack | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::allFieldsPreservedViaToJpaEntityAndBack` |
-| TC-CMC-320 | settledPeriodRoundTrips | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::settledPeriodRoundTrips` |
-| TC-CMC-321 | allFieldsPreservedViaToJpaEntityAndBack | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::allFieldsPreservedViaToJpaEntityAndBack` |
-| TC-CMC-322 | activatedServiceRoundTrips | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::activatedServiceRoundTrips` |
-| TC-CMC-323 | nullHeartbeatDefaultsPreserved | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::nullHeartbeatDefaultsPreserved` |
-| TC-CMC-324 | limitGateRoundTrips | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::limitGateRoundTrips` |
-| TC-CMC-325 | filterGateRoundTrips | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::filterGateRoundTrips` |
-| TC-CMC-326 | disabledGateRoundTrips | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::disabledGateRoundTrips` |
-| TC-CMC-327 | nullIsEnabledDefaultsToTrue | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::nullIsEnabledDefaultsToTrue` |
-| TC-CMC-328 | onPremCheckoutIsRejectedWithLicenseRequired | P0 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-IDT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/SubscriptionSelfServiceGuardTest.java::onPremCheckoutIsRejectedWithLicenseRequired` |
-| TC-CMC-329 | onPremTierChangeIsRejectedWithLicenseRequired | P0 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-IDT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/SubscriptionSelfServiceGuardTest.java::onPremTierChangeIsRejectedWithLicenseRequired` |
-| TC-CMC-330 | onPremCancelIsRejectedWithLicenseRequired | P0 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-IDT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/SubscriptionSelfServiceGuardTest.java::onPremCancelIsRejectedWithLicenseRequired` |
+| TC-CMC-298 | returnsEmptyRegardlessOfLicense | P1 | REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::returnsEmptyRegardlessOfLicense` |
+| TC-CMC-299 | validLicenseWithKey_returnsQuota | P1 | REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::validLicenseWithKey_returnsQuota` |
+| TC-CMC-300 | validLicenseWithoutKey_returnsEmpty | P1 | REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::validLicenseWithoutKey_returnsEmpty` |
+| TC-CMC-301 | expiredRuntime_returnsEmpty | P1 | REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::expiredRuntime_returnsEmpty` |
+| TC-CMC-302 | suspendedRuntime_returnsEmpty | P1 | REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::suspendedRuntime_returnsEmpty` |
+| TC-CMC-303 | noCurrentLicense_returnsEmpty | P1 | REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::noCurrentLicense_returnsEmpty` |
+| TC-CMC-304 | modeMatchIsCaseInsensitive | P1 | REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::modeMatchIsCaseInsensitive` |
+| TC-CMC-305 | resolvesLimitFromFeatureGateLimitRow | P1 | REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-RCH-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/FenceQuotaPortImplTest.java::resolvesLimitFromFeatureGateLimitRow` |
+| TC-CMC-306 | licenseQuotaWinsOverFeatureGate | P1 | REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-RCH-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/FenceQuotaPortImplTest.java::licenseQuotaWinsOverFeatureGate` |
+| TC-CMC-307 | enterpriseNoneGateResolvesToNull | P1 | REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-RCH-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/FenceQuotaPortImplTest.java::enterpriseNoneGateResolvesToNull` |
+| TC-CMC-308 | missingGateRowResolvesToNull | P1 | REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-RCH-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/FenceQuotaPortImplTest.java::missingGateRowResolvesToNull` |
+| TC-CMC-309 | inactiveSubscriptionResolvesToNull | P1 | REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-RCH-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/FenceQuotaPortImplTest.java::inactiveSubscriptionResolvesToNull` |
+| TC-CMC-310 | noTenantContextResolvesToNullWithoutTouchingStores | P1 | REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-RCH-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/FenceQuotaPortImplTest.java::noTenantContextResolvesToNullWithoutTouchingStores` |
+| TC-CMC-311 | seedRowMatchesPreChangeHardcodedTiers | P1 | REQ-HLT-005、REQ-HLT-033、REQ-CMC-001、REQ-CMC-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/SubscriptionHealthSettingsRepositoryIntegrationTest.java::seedRowMatchesPreChangeHardcodedTiers` |
+| TC-CMC-312 | unorderedTiersViolateTheCheckConstraint | P1 | REQ-HLT-005、REQ-HLT-033、REQ-CMC-001、REQ-CMC-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/SubscriptionHealthSettingsRepositoryIntegrationTest.java::unorderedTiersViolateTheCheckConstraint` |
+| TC-CMC-313 | providerInvalidationReloadsPersistedTiers | P1 | REQ-HLT-005、REQ-HLT-033、REQ-CMC-001、REQ-CMC-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/SubscriptionHealthSettingsRepositoryIntegrationTest.java::providerInvalidationReloadsPersistedTiers` |
+| TC-CMC-314 | allFieldsPreservedViaToJpaEntityAndBack | P1 | REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::allFieldsPreservedViaToJpaEntityAndBack` |
+| TC-CMC-315 | activeSubscriptionWithAllFieldsFilledRoundTrips | P1 | REQ-CMC-001、REQ-CMC-002、REQ-RCH-002、REQ-RCH-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::activeSubscriptionWithAllFieldsFilledRoundTrips` |
+| TC-CMC-316 | updateEntityPreservesMutableFields | P1 | REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::updateEntityPreservesMutableFields` |
+| TC-CMC-317 | allFieldsPreservedViaToJpaEntityAndBack | P1 | REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::allFieldsPreservedViaToJpaEntityAndBack` |
+| TC-CMC-318 | draftContractRoundTrips | P1 | REQ-CMC-005、REQ-RCH-002、REQ-RCH-006、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::draftContractRoundTrips` |
+| TC-CMC-319 | allFieldsPreservedViaToJpaEntityAndBack | P1 | REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::allFieldsPreservedViaToJpaEntityAndBack` |
+| TC-CMC-320 | settledPeriodRoundTrips | P1 | REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::settledPeriodRoundTrips` |
+| TC-CMC-321 | allFieldsPreservedViaToJpaEntityAndBack | P1 | REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::allFieldsPreservedViaToJpaEntityAndBack` |
+| TC-CMC-322 | activatedServiceRoundTrips | P1 | REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::activatedServiceRoundTrips` |
+| TC-CMC-323 | nullHeartbeatDefaultsPreserved | P1 | REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::nullHeartbeatDefaultsPreserved` |
+| TC-CMC-324 | limitGateRoundTrips | P1 | REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::limitGateRoundTrips` |
+| TC-CMC-325 | filterGateRoundTrips | P1 | REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::filterGateRoundTrips` |
+| TC-CMC-326 | disabledGateRoundTrips | P1 | REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::disabledGateRoundTrips` |
+| TC-CMC-327 | nullIsEnabledDefaultsToTrue | P1 | REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::nullIsEnabledDefaultsToTrue` |
+| TC-CMC-328 | onPremCheckoutIsRejectedWithLicenseRequired | P0 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-004、REQ-CMC-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/SubscriptionSelfServiceGuardTest.java::onPremCheckoutIsRejectedWithLicenseRequired` |
+| TC-CMC-329 | onPremTierChangeIsRejectedWithLicenseRequired | P0 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-004、REQ-CMC-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/SubscriptionSelfServiceGuardTest.java::onPremTierChangeIsRejectedWithLicenseRequired` |
+| TC-CMC-330 | onPremCancelIsRejectedWithLicenseRequired | P0 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-004、REQ-CMC-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/SubscriptionSelfServiceGuardTest.java::onPremCancelIsRejectedWithLicenseRequired` |
 | TC-CMC-331 | hostedCheckoutKeepsWorking | P0 | REQ-CMC-001、REQ-CMC-002、REQ-IDT-004、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/SubscriptionSelfServiceGuardTest.java::hostedCheckoutKeepsWorking` |
-| TC-CMC-332 | onPremManualStatusChangeIsRejectedWithLicenseRequired | P0 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-IDT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/SubscriptionSelfServiceGuardTest.java::onPremManualStatusChangeIsRejectedWithLicenseRequired` |
+| TC-CMC-332 | onPremManualStatusChangeIsRejectedWithLicenseRequired | P0 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-004、REQ-CMC-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/SubscriptionSelfServiceGuardTest.java::onPremManualStatusChangeIsRejectedWithLicenseRequired` |
 | TC-CMC-333 | hostedManualStatusChangeReachesBusinessLogic | P0 | REQ-CMC-001、REQ-CMC-002、REQ-IDT-004、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/SubscriptionSelfServiceGuardTest.java::hostedManualStatusChangeReachesBusinessLogic` |
-| TC-CMC-334 | onPremReadEndpointsStayUsable | P0 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-IDT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/SubscriptionSelfServiceGuardTest.java::onPremReadEndpointsStayUsable` |
+| TC-CMC-334 | onPremReadEndpointsStayUsable | P0 | REQ-CMC-001、REQ-CMC-002、REQ-CMC-004、REQ-CMC-006 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/SubscriptionSelfServiceGuardTest.java::onPremReadEndpointsStayUsable` |
 | TC-CMC-335 | classLevel_requiresPlatformAdminOnly | P0 | REQ-CMC-001、REQ-CMC-002、REQ-IDT-004、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/admin/AdminSubscriptionOverviewControllerSecurityTest.java::classLevel_requiresPlatformAdminOnly` |
 | TC-CMC-336 | endpoints_haveNoPerMethodOverride | P0 | REQ-CMC-001、REQ-CMC-002、REQ-IDT-004、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/admin/AdminSubscriptionOverviewControllerSecurityTest.java::endpoints_haveNoPerMethodOverride` |
-| TC-CMC-337 | nonPlatformAdminIsRejectedOnEveryEndpoint | P0 | REQ-HLT-003、REQ-HLT-005、REQ-CMC-001、REQ-CMC-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/admin/SubscriptionHealthSettingsAdminControllerTest.java::nonPlatformAdminIsRejectedOnEveryEndpoint` |
-| TC-CMC-338 | platformAdminGetsCurrentTiers | P0 | REQ-HLT-003、REQ-HLT-005、REQ-CMC-001、REQ-CMC-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/admin/SubscriptionHealthSettingsAdminControllerTest.java::platformAdminGetsCurrentTiers` |
-| TC-CMC-339 | validTiersRoundTrip | P0 | REQ-HLT-003、REQ-HLT-005、REQ-CMC-001、REQ-CMC-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/admin/SubscriptionHealthSettingsAdminControllerTest.java::validTiersRoundTrip` |
-| TC-CMC-340 | nonOrderedTiersReturnValidationError | P0 | REQ-HLT-003、REQ-HLT-005、REQ-CMC-001、REQ-CMC-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/admin/SubscriptionHealthSettingsAdminControllerTest.java::nonOrderedTiersReturnValidationError` |
-| TC-CMC-341 | missingFieldReturnsValidationError | P0 | REQ-HLT-003、REQ-HLT-005、REQ-CMC-001、REQ-CMC-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/admin/SubscriptionHealthSettingsAdminControllerTest.java::missingFieldReturnsValidationError` |
+| TC-CMC-337 | nonPlatformAdminIsRejectedOnEveryEndpoint | P0 | REQ-HLT-005、REQ-HLT-033、REQ-CMC-001、REQ-CMC-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/admin/SubscriptionHealthSettingsAdminControllerTest.java::nonPlatformAdminIsRejectedOnEveryEndpoint` |
+| TC-CMC-338 | platformAdminGetsCurrentTiers | P0 | REQ-HLT-005、REQ-HLT-033、REQ-CMC-001、REQ-CMC-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/admin/SubscriptionHealthSettingsAdminControllerTest.java::platformAdminGetsCurrentTiers` |
+| TC-CMC-339 | validTiersRoundTrip | P0 | REQ-HLT-005、REQ-HLT-033、REQ-CMC-001、REQ-CMC-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/admin/SubscriptionHealthSettingsAdminControllerTest.java::validTiersRoundTrip` |
+| TC-CMC-340 | nonOrderedTiersReturnValidationError | P0 | REQ-HLT-005、REQ-HLT-033、REQ-CMC-001、REQ-CMC-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/admin/SubscriptionHealthSettingsAdminControllerTest.java::nonOrderedTiersReturnValidationError` |
+| TC-CMC-341 | missingFieldReturnsValidationError | P0 | REQ-HLT-005、REQ-HLT-033、REQ-CMC-001、REQ-CMC-002 | `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/admin/SubscriptionHealthSettingsAdminControllerTest.java::missingFieldReturnsValidationError` |
 
 ## 用例明细（初稿模板）
 
@@ -273,7 +273,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::createsDraftContract`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-085 invalidRevenueShareRatio_throws
 
@@ -281,7 +281,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::invalidRevenueShareRatio_throws`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-086 draftContract_signsSuccessfully
 
@@ -289,7 +289,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::draftContract_signsSuccessfully`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-087 contractNotFound_throws
 
@@ -297,7 +297,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::contractNotFound_throws`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-088 activeContract_suspends
 
@@ -305,7 +305,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::activeContract_suspends`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-089 suspendedContract_reactivates
 
@@ -313,7 +313,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::suspendedContract_reactivates`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-090 activeContract_terminates
 
@@ -321,7 +321,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::activeContract_terminates`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-091 contractNotFound_doesNotPublish
 
@@ -329,7 +329,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/ContractApplicationServiceTest.java::contractNotFound_doesNotPublish`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-092 missing settings row falls back to SHOW_LOCKED
 
@@ -337,7 +337,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/PlatformDisplaySettingsProviderTest.java::missingRow_fallsBackToShowLocked`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-093 repository failure falls back to SHOW_LOCKED
 
@@ -345,7 +345,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/PlatformDisplaySettingsProviderTest.java::repositoryFailure_fallsBackToShowLocked`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-094 persisted HIDE policy is returned
 
@@ -353,7 +353,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/PlatformDisplaySettingsProviderTest.java::persistedHide_isReturned`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-095 cache hit within TTL does not re-read the repository
 
@@ -361,7 +361,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/PlatformDisplaySettingsProviderTest.java::cacheHit_skipsRepository`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-096 getLockedTilePolicy delegates to the provider (fallback included)
 
@@ -369,7 +369,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/PlatformDisplaySettingsServiceTest.java::get_delegatesToProvider`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-PLT-001、REQ-PLT-002、REQ-PLT-005、REQ-RCH-001
+- 对应 REQ：REQ-PLT-001、REQ-PLT-002、REQ-PLT-005、REQ-RCH-002
 
 ### TC-CMC-097 update persists the policy, records an audit entry and invalidates the cache
 
@@ -409,7 +409,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::subscriptionNotFound_throwsDomainException`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-003、REQ-CMC-009
 
 ### TC-CMC-102 suspendedSubscription_deniedRegardlessOfGate
 
@@ -417,7 +417,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::suspendedSubscription_deniedRegardlessOfGate`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-003、REQ-CMC-009
 
 ### TC-CMC-103 cancelledSubscription_denied
 
@@ -425,7 +425,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::cancelledSubscription_denied`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-003、REQ-CMC-009
 
 ### TC-CMC-104 expiredSubscription_denied
 
@@ -433,7 +433,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::expiredSubscription_denied`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-003、REQ-CMC-009
 
 ### TC-CMC-105 renewalFailedSubscription_denied
 
@@ -441,7 +441,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::renewalFailedSubscription_denied`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-003、REQ-CMC-009
 
 ### TC-CMC-106 allowsAccess
 
@@ -449,7 +449,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::allowsAccess`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-003、REQ-CMC-009、REQ-RCH-001、REQ-RCH-002
 
 ### TC-CMC-107 missingGate_treatedAsNone
 
@@ -457,7 +457,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::missingGate_treatedAsNone`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-003、REQ-CMC-009、REQ-RCH-001、REQ-RCH-002
 
 ### TC-CMC-108 enabledLock_allowsAccess
 
@@ -465,7 +465,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::enabledLock_allowsAccess`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-003、REQ-CMC-009、REQ-RCH-001、REQ-RCH-002
 
 ### TC-CMC-109 disabledLock_deniesAccess
 
@@ -473,7 +473,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::disabledLock_deniesAccess`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-003、REQ-CMC-009、REQ-RCH-001、REQ-RCH-002
 
 ### TC-CMC-110 underLimit_allowsAccess
 
@@ -481,7 +481,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::underLimit_allowsAccess`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-003、REQ-CMC-009、REQ-RCH-001、REQ-RCH-002
 
 ### TC-CMC-111 atLimit_deniesAccess
 
@@ -489,7 +489,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::atLimit_deniesAccess`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-003、REQ-CMC-009、REQ-RCH-001、REQ-RCH-002
 
 ### TC-CMC-112 overLimit_deniesAccess
 
@@ -497,7 +497,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::overLimit_deniesAccess`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-003、REQ-CMC-009、REQ-RCH-001、REQ-RCH-002
 
 ### TC-CMC-113 allowedWithRetentionDays
 
@@ -505,7 +505,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::allowedWithRetentionDays`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-003、REQ-CMC-009、REQ-RCH-001、REQ-RCH-002
 
 ### TC-CMC-114 trialUsesEffectiveTierPremium
 
@@ -513,7 +513,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::trialUsesEffectiveTierPremium`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-003、REQ-CMC-009
 
 ### TC-CMC-115 licenseQuotaPresent_overridesFeatureGate
 
@@ -521,7 +521,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::licenseQuotaPresent_overridesFeatureGate`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001
+- 对应 REQ：REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006
 
 ### TC-CMC-116 licenseQuotaBoundaryUsageInclusive_allowed
 
@@ -529,7 +529,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::licenseQuotaBoundaryUsageInclusive_allowed`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001
+- 对应 REQ：REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006
 
 ### TC-CMC-117 licenseQuotaExceeded_deniesWithLocalizedMessage
 
@@ -537,7 +537,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::licenseQuotaExceeded_deniesWithLocalizedMessage`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001
+- 对应 REQ：REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006
 
 ### TC-CMC-118 licenseQuotaEmpty_fallsBackToFeatureGateLimit
 
@@ -545,7 +545,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/QuotaApplicationServiceTest.java::licenseQuotaEmpty_fallsBackToFeatureGateLimit`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001
+- 对应 REQ：REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006
 
 ### TC-CMC-119 calculatesPeriodForActiveContract
 
@@ -553,7 +553,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::calculatesPeriodForActiveContract`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-120 inactiveContract_throws
 
@@ -561,7 +561,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::inactiveContract_throws`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-121 pendingPeriod_confirmedByPlatform
 
@@ -569,7 +569,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::pendingPeriod_confirmedByPlatform`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-122 platformConfirmedPeriod_confirmedByPartner
 
@@ -577,7 +577,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::platformConfirmedPeriod_confirmedByPartner`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-123 partnerConfirmedPeriod_settles
 
@@ -585,7 +585,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::partnerConfirmedPeriod_settles`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-124 updatesExistingPeriod_inPlace
 
@@ -593,7 +593,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::updatesExistingPeriod_inPlace`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-125 settledPeriod_throwsStateConflict
 
@@ -601,7 +601,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/RevenueApplicationServiceTest.java::settledPeriod_throwsStateConflict`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-126 existingSubscription_returnsExisting
 
@@ -809,7 +809,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/application/service/SubscriptionSemanticsCrossCheckTest.java::defaultTiersMapSeverity14Info7Warn3Danger`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-RCH-002、REQ-RCH-006
 
 ### TC-CMC-152 trialBannerEscalatesSeverityByLevelWithoutSnooze
 
@@ -849,7 +849,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::setsDraftStatusAndFields`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-157 registersContractCreatedEvent
 
@@ -857,7 +857,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::registersContractCreatedEvent`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-158 revenueShareModel_requiresRatio
 
@@ -865,7 +865,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::revenueShareModel_requiresRatio`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-159 nonRevenueShareModel_allowsNullRatio
 
@@ -873,7 +873,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::nonRevenueShareModel_allowsNullRatio`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-160 ratioMustBeGreaterThanZero
 
@@ -881,7 +881,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::ratioMustBeGreaterThanZero`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-161 ratioMustBeLessThanOne
 
@@ -889,7 +889,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::ratioMustBeLessThanOne`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-162 transitionsToActive
 
@@ -897,7 +897,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::transitionsToActive`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-163 registersContractSignedEvent
 
@@ -905,7 +905,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::registersContractSignedEvent`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-164 suspend_transitionsToSuspended
 
@@ -913,7 +913,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::suspend_transitionsToSuspended`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-165 reactivate_transitionsToActive
 
@@ -921,7 +921,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::reactivate_transitionsToActive`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-166 transitionsToTerminated
 
@@ -929,7 +929,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::transitionsToTerminated`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-167 transitionsToExpired
 
@@ -937,7 +937,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::transitionsToExpired`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-168 calculatesSharesFromRatio
 
@@ -945,7 +945,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::calculatesSharesFromRatio`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-169 differentRatio
 
@@ -953,7 +953,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::differentRatio`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-170 zeroGrossAmount
 
@@ -961,7 +961,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::zeroGrossAmount`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-171 rejectsNegativeGrossAmount
 
@@ -969,7 +969,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::rejectsNegativeGrossAmount`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-172 signFromActive_throwsStateConflict
 
@@ -977,7 +977,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::signFromActive_throwsStateConflict`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-173 suspendFromDraft_throwsStateConflict
 
@@ -985,7 +985,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::suspendFromDraft_throwsStateConflict`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-174 reactivateFromActive_throwsStateConflict
 
@@ -993,7 +993,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::reactivateFromActive_throwsStateConflict`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-175 terminateFromSuspended_throwsStateConflict
 
@@ -1001,7 +1001,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::terminateFromSuspended_throwsStateConflict`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-176 markExpiredFromSuspended_throwsStateConflict
 
@@ -1009,7 +1009,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::markExpiredFromSuspended_throwsStateConflict`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-177 terminateFromDraft_throwsStateConflict
 
@@ -1017,7 +1017,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::terminateFromDraft_throwsStateConflict`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-178 markExpiredFromDraft_throwsStateConflict
 
@@ -1025,7 +1025,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/ContractTest.java::markExpiredFromDraft_throwsStateConflict`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-179 unrestricted_allowsAccess
 
@@ -1033,7 +1033,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::unrestricted_allowsAccess`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-180 isLockedWhenEnabled
 
@@ -1041,7 +1041,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::isLockedWhenEnabled`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-181 isLockedWhenDisabled
 
@@ -1049,7 +1049,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::isLockedWhenDisabled`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-182 isLimitedWithLimitValue
 
@@ -1057,7 +1057,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::isLimitedWithLimitValue`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-183 isLimitedWithNullRetentionDays
 
@@ -1065,7 +1065,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::isLimitedWithNullRetentionDays`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-184 isFilteredWithRetentionDays
 
@@ -1073,7 +1073,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::isFilteredWithRetentionDays`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-185 createsNoneGate
 
@@ -1081,7 +1081,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/FeatureGateTest.java::createsNoneGate`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-186 setsPendingStatusAndFields
 
@@ -1089,7 +1089,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::setsPendingStatusAndFields`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-187 registersRevenuePeriodCreatedEvent
 
@@ -1097,7 +1097,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::registersRevenuePeriodCreatedEvent`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-188 allowsRatioEqualToZero_forDirectModel
 
@@ -1105,7 +1105,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::allowsRatioEqualToZero_forDirectModel`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-189 rejectsRatioEqualToOne
 
@@ -1113,7 +1113,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsRatioEqualToOne`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-190 rejectsSharesNotSummingToGross
 
@@ -1121,7 +1121,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsSharesNotSummingToGross`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-191 rejectsPeriodEndBeforeStart
 
@@ -1129,7 +1129,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsPeriodEndBeforeStart`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-192 transitionsToPlatformConfirmed
 
@@ -1137,7 +1137,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::transitionsToPlatformConfirmed`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-193 rejectsFromNonPending
 
@@ -1145,7 +1145,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromNonPending`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-194 rejectsFromSettled
 
@@ -1153,7 +1153,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromSettled`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-195 transitionsToPartnerConfirmed
 
@@ -1161,7 +1161,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::transitionsToPartnerConfirmed`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-196 rejectsFromPending
 
@@ -1169,7 +1169,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromPending`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-197 rejectsFromPartnerConfirmed
 
@@ -1177,7 +1177,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromPartnerConfirmed`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-198 transitionsToSettled
 
@@ -1185,7 +1185,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::transitionsToSettled`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-199 rejectsFromPending
 
@@ -1193,7 +1193,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromPending`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-200 rejectsFromPlatformConfirmed
 
@@ -1201,7 +1201,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromPlatformConfirmed`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-201 rejectsFromSettled
 
@@ -1209,7 +1209,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/RevenuePeriodTest.java::rejectsFromSettled`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-CMC-202 setsProvisionedStatusAndFields
 
@@ -1401,7 +1401,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/domain/model/SubscriptionServiceTest.java::updatesQuotaAndRegistersEvent`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-003、REQ-CMC-009
 
 ### TC-CMC-226 rejectsFromProvisioned
 
@@ -1985,7 +1985,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::returnsEmptyRegardlessOfLicense`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001
+- 对应 REQ：REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006
 
 ### TC-CMC-299 validLicenseWithKey_returnsQuota
 
@@ -1993,7 +1993,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::validLicenseWithKey_returnsQuota`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001
+- 对应 REQ：REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006
 
 ### TC-CMC-300 validLicenseWithoutKey_returnsEmpty
 
@@ -2001,7 +2001,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::validLicenseWithoutKey_returnsEmpty`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001
+- 对应 REQ：REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006
 
 ### TC-CMC-301 expiredRuntime_returnsEmpty
 
@@ -2009,7 +2009,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::expiredRuntime_returnsEmpty`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001
+- 对应 REQ：REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006
 
 ### TC-CMC-302 suspendedRuntime_returnsEmpty
 
@@ -2017,7 +2017,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::suspendedRuntime_returnsEmpty`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001
+- 对应 REQ：REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006
 
 ### TC-CMC-303 noCurrentLicense_returnsEmpty
 
@@ -2025,7 +2025,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::noCurrentLicense_returnsEmpty`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001
+- 对应 REQ：REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006
 
 ### TC-CMC-304 modeMatchIsCaseInsensitive
 
@@ -2033,7 +2033,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/CommerceQuotaLicenseAdapterTest.java::modeMatchIsCaseInsensitive`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-RCH-001
+- 对应 REQ：REQ-CMC-003、REQ-CMC-009、REQ-CMC-004、REQ-CMC-006
 
 ### TC-CMC-305 resolvesLimitFromFeatureGateLimitRow
 
@@ -2041,7 +2041,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/FenceQuotaPortImplTest.java::resolvesLimitFromFeatureGateLimitRow`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-CMC-001
+- 对应 REQ：REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-RCH-006
 
 ### TC-CMC-306 licenseQuotaWinsOverFeatureGate
 
@@ -2049,7 +2049,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/FenceQuotaPortImplTest.java::licenseQuotaWinsOverFeatureGate`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-CMC-001
+- 对应 REQ：REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-RCH-006
 
 ### TC-CMC-307 enterpriseNoneGateResolvesToNull
 
@@ -2057,7 +2057,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/FenceQuotaPortImplTest.java::enterpriseNoneGateResolvesToNull`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-CMC-001
+- 对应 REQ：REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-RCH-006
 
 ### TC-CMC-308 missingGateRowResolvesToNull
 
@@ -2065,7 +2065,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/FenceQuotaPortImplTest.java::missingGateRowResolvesToNull`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-CMC-001
+- 对应 REQ：REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-RCH-006
 
 ### TC-CMC-309 inactiveSubscriptionResolvesToNull
 
@@ -2073,7 +2073,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/FenceQuotaPortImplTest.java::inactiveSubscriptionResolvesToNull`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-CMC-001
+- 对应 REQ：REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-RCH-006
 
 ### TC-CMC-310 noTenantContextResolvesToNullWithoutTouchingStores
 
@@ -2081,7 +2081,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/acl/FenceQuotaPortImplTest.java::noTenantContextResolvesToNullWithoutTouchingStores`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-CMC-001
+- 对应 REQ：REQ-RCH-003、REQ-RCH-004、REQ-RCH-005、REQ-RCH-006
 
 ### TC-CMC-311 seedRowMatchesPreChangeHardcodedTiers
 
@@ -2089,7 +2089,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/SubscriptionHealthSettingsRepositoryIntegrationTest.java::seedRowMatchesPreChangeHardcodedTiers`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-HLT-003、REQ-HLT-005、REQ-CMC-001、REQ-CMC-002
+- 对应 REQ：REQ-HLT-005、REQ-HLT-033、REQ-CMC-001、REQ-CMC-002
 
 ### TC-CMC-312 unorderedTiersViolateTheCheckConstraint
 
@@ -2097,7 +2097,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/SubscriptionHealthSettingsRepositoryIntegrationTest.java::unorderedTiersViolateTheCheckConstraint`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-HLT-003、REQ-HLT-005、REQ-CMC-001、REQ-CMC-002
+- 对应 REQ：REQ-HLT-005、REQ-HLT-033、REQ-CMC-001、REQ-CMC-002
 
 ### TC-CMC-313 providerInvalidationReloadsPersistedTiers
 
@@ -2105,7 +2105,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/SubscriptionHealthSettingsRepositoryIntegrationTest.java::providerInvalidationReloadsPersistedTiers`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-HLT-003、REQ-HLT-005、REQ-CMC-001、REQ-CMC-002
+- 对应 REQ：REQ-HLT-005、REQ-HLT-033、REQ-CMC-001、REQ-CMC-002
 
 ### TC-CMC-314 allFieldsPreservedViaToJpaEntityAndBack
 
@@ -2113,7 +2113,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::allFieldsPreservedViaToJpaEntityAndBack`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012
 
 ### TC-CMC-315 activeSubscriptionWithAllFieldsFilledRoundTrips
 
@@ -2121,7 +2121,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::activeSubscriptionWithAllFieldsFilledRoundTrips`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-RCH-002、REQ-RCH-006
 
 ### TC-CMC-316 updateEntityPreservesMutableFields
 
@@ -2129,7 +2129,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::updateEntityPreservesMutableFields`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012
 
 ### TC-CMC-317 allFieldsPreservedViaToJpaEntityAndBack
 
@@ -2137,7 +2137,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::allFieldsPreservedViaToJpaEntityAndBack`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012
 
 ### TC-CMC-318 draftContractRoundTrips
 
@@ -2145,7 +2145,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::draftContractRoundTrips`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-004、REQ-CMC-005、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-CMC-005、REQ-RCH-002、REQ-RCH-006、REQ-RCH-001
 
 ### TC-CMC-319 allFieldsPreservedViaToJpaEntityAndBack
 
@@ -2153,7 +2153,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::allFieldsPreservedViaToJpaEntityAndBack`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012
 
 ### TC-CMC-320 settledPeriodRoundTrips
 
@@ -2161,7 +2161,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::settledPeriodRoundTrips`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012
 
 ### TC-CMC-321 allFieldsPreservedViaToJpaEntityAndBack
 
@@ -2169,7 +2169,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::allFieldsPreservedViaToJpaEntityAndBack`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012
 
 ### TC-CMC-322 activatedServiceRoundTrips
 
@@ -2177,7 +2177,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::activatedServiceRoundTrips`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012
 
 ### TC-CMC-323 nullHeartbeatDefaultsPreserved
 
@@ -2185,7 +2185,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::nullHeartbeatDefaultsPreserved`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012
 
 ### TC-CMC-324 limitGateRoundTrips
 
@@ -2193,7 +2193,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::limitGateRoundTrips`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012
 
 ### TC-CMC-325 filterGateRoundTrips
 
@@ -2201,7 +2201,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::filterGateRoundTrips`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012
 
 ### TC-CMC-326 disabledGateRoundTrips
 
@@ -2209,7 +2209,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::disabledGateRoundTrips`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012
 
 ### TC-CMC-327 nullIsEnabledDefaultsToTrue
 
@@ -2217,7 +2217,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/infrastructure/persistence/mapper/MapperRoundTripTest.java::nullIsEnabledDefaultsToTrue`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012
 
 ### TC-CMC-328 onPremCheckoutIsRejectedWithLicenseRequired
 
@@ -2225,7 +2225,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/SubscriptionSelfServiceGuardTest.java::onPremCheckoutIsRejectedWithLicenseRequired`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-IDT-004
+- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-004、REQ-CMC-006
 
 ### TC-CMC-329 onPremTierChangeIsRejectedWithLicenseRequired
 
@@ -2233,7 +2233,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/SubscriptionSelfServiceGuardTest.java::onPremTierChangeIsRejectedWithLicenseRequired`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-IDT-004
+- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-004、REQ-CMC-006
 
 ### TC-CMC-330 onPremCancelIsRejectedWithLicenseRequired
 
@@ -2241,7 +2241,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/SubscriptionSelfServiceGuardTest.java::onPremCancelIsRejectedWithLicenseRequired`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-IDT-004
+- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-004、REQ-CMC-006
 
 ### TC-CMC-331 hostedCheckoutKeepsWorking
 
@@ -2257,7 +2257,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/SubscriptionSelfServiceGuardTest.java::onPremManualStatusChangeIsRejectedWithLicenseRequired`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-IDT-004
+- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-004、REQ-CMC-006
 
 ### TC-CMC-333 hostedManualStatusChangeReachesBusinessLogic
 
@@ -2273,7 +2273,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/SubscriptionSelfServiceGuardTest.java::onPremReadEndpointsStayUsable`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-008、REQ-IDT-004
+- 对应 REQ：REQ-CMC-001、REQ-CMC-002、REQ-CMC-004、REQ-CMC-006
 
 ### TC-CMC-335 classLevel_requiresPlatformAdminOnly
 
@@ -2297,7 +2297,7 @@
 - 前置条件：已认证测试用户与目标角色上下文
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/admin/SubscriptionHealthSettingsAdminControllerTest.java::nonPlatformAdminIsRejectedOnEveryEndpoint`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-HLT-003、REQ-HLT-005、REQ-CMC-001、REQ-CMC-002
+- 对应 REQ：REQ-HLT-005、REQ-HLT-033、REQ-CMC-001、REQ-CMC-002
 
 ### TC-CMC-338 platformAdminGetsCurrentTiers
 
@@ -2305,7 +2305,7 @@
 - 前置条件：已认证测试用户与目标角色上下文
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/admin/SubscriptionHealthSettingsAdminControllerTest.java::platformAdminGetsCurrentTiers`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-HLT-003、REQ-HLT-005、REQ-CMC-001、REQ-CMC-002
+- 对应 REQ：REQ-HLT-005、REQ-HLT-033、REQ-CMC-001、REQ-CMC-002
 
 ### TC-CMC-339 validTiersRoundTrip
 
@@ -2313,7 +2313,7 @@
 - 前置条件：已认证测试用户与目标角色上下文
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/admin/SubscriptionHealthSettingsAdminControllerTest.java::validTiersRoundTrip`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-HLT-003、REQ-HLT-005、REQ-CMC-001、REQ-CMC-002
+- 对应 REQ：REQ-HLT-005、REQ-HLT-033、REQ-CMC-001、REQ-CMC-002
 
 ### TC-CMC-340 nonOrderedTiersReturnValidationError
 
@@ -2321,7 +2321,7 @@
 - 前置条件：已认证测试用户与目标角色上下文
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/admin/SubscriptionHealthSettingsAdminControllerTest.java::nonOrderedTiersReturnValidationError`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-HLT-003、REQ-HLT-005、REQ-CMC-001、REQ-CMC-002
+- 对应 REQ：REQ-HLT-005、REQ-HLT-033、REQ-CMC-001、REQ-CMC-002
 
 ### TC-CMC-341 missingFieldReturnsValidationError
 
@@ -2329,5 +2329,5 @@
 - 前置条件：已认证测试用户与目标角色上下文
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/commerce/interfaces/admin/SubscriptionHealthSettingsAdminControllerTest.java::missingFieldReturnsValidationError`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-HLT-003、REQ-HLT-005、REQ-CMC-001、REQ-CMC-002
+- 对应 REQ：REQ-HLT-005、REQ-HLT-033、REQ-CMC-001、REQ-CMC-002
 

@@ -18,69 +18,69 @@
 | TC-IOT-111 | supportsExcelDateFormattedNumericCell | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/GpsQualityBatchImportServiceTest.java::supportsExcelDateFormattedNumericCell` |
 | TC-IOT-112 | keepsSupportingFullAndIsoFormats | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/GpsQualityBatchImportServiceTest.java::keepsSupportingFullAndIsoFormats` |
 | TC-IOT-113 | invalidFormatReportsErrorRow | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/GpsQualityBatchImportServiceTest.java::invalidFormatReportsErrorRow` |
-| TC-IOT-131 | shouldPollBindingsAcrossTenants | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldPollBindingsAcrossTenants` |
-| TC-IOT-132 | shouldIngestFramesAndAdvanceCursor | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldIngestFramesAndAdvanceCursor` |
-| TC-IOT-133 | shouldCarryBindingIdentityAndFingerprintIntoArbitration | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldCarryBindingIdentityAndFingerprintIntoArbitration` |
-| TC-IOT-134 | shouldTreatExistingDtlFrameAsIdempotentSuccess | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldTreatExistingDtlFrameAsIdempotentSuccess` |
-| TC-IOT-135 | shouldStopAtFailedFrameAndKeepSuccessfulPrefixCursor | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldStopAtFailedFrameAndKeepSuccessfulPrefixCursor` |
-| TC-IOT-136 | shouldNotWedgeCursorWhenDuplicateObservationStopsIngest | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldNotWedgeCursorWhenDuplicateObservationStopsIngest` |
-| TC-IOT-137 | shouldContinueWhenBatchReachesLimit | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldContinueWhenBatchReachesLimit` |
+| TC-IOT-131 | shouldPollBindingsAcrossTenants | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldPollBindingsAcrossTenants` |
+| TC-IOT-132 | shouldIngestFramesAndAdvanceCursor | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldIngestFramesAndAdvanceCursor` |
+| TC-IOT-133 | shouldCarryBindingIdentityAndFingerprintIntoArbitration | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldCarryBindingIdentityAndFingerprintIntoArbitration` |
+| TC-IOT-134 | shouldTreatExistingDtlFrameAsIdempotentSuccess | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldTreatExistingDtlFrameAsIdempotentSuccess` |
+| TC-IOT-135 | shouldStopAtFailedFrameAndKeepSuccessfulPrefixCursor | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldStopAtFailedFrameAndKeepSuccessfulPrefixCursor` |
+| TC-IOT-136 | shouldNotWedgeCursorWhenDuplicateObservationStopsIngest | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldNotWedgeCursorWhenDuplicateObservationStopsIngest` |
+| TC-IOT-137 | shouldContinueWhenBatchReachesLimit | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldContinueWhenBatchReachesLimit` |
 | TC-IOT-138 | shouldClampOutOfRangeGpsBeforeIngest | P1 | REQ-IOT-005、REQ-IOT-006、REQ-IOT-001、REQ-IOT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldClampOutOfRangeGpsBeforeIngest` |
-| TC-IOT-139 | shouldSkipNonActiveDeviceWithoutFetch | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldSkipNonActiveDeviceWithoutFetch` |
-| TC-IOT-140 | shouldSkipUndecodableFramesAndAdvanceCursorPastThem | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldSkipUndecodableFramesAndAdvanceCursorPastThem` |
-| TC-IOT-141 | shouldCountConsecutiveFailuresOnPageError | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldCountConsecutiveFailuresOnPageError` |
-| TC-IOT-142 | shouldResetFailuresOnCleanCycleWithoutFrames | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldResetFailuresOnCleanCycleWithoutFrames` |
-| TC-IOT-143 | shouldParseCapsuleResultFrameWithOcConverterKeys | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldParseCapsuleResultFrameWithOcConverterKeys` |
-| TC-IOT-144 | shouldSkipDataHexThatDuplicatesResultFrame | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldSkipDataHexThatDuplicatesResultFrame` |
-| TC-IOT-145 | shouldFallbackToTlvDecodeForDistantDataHexOnly | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldFallbackToTlvDecodeForDistantDataHexOnly` |
-| TC-IOT-146 | shouldFallbackToTlvWhenDecodeStatusIsFalse | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldFallbackToTlvWhenDecodeStatusIsFalse` |
-| TC-IOT-147 | shouldFallbackToTlvWhenResultIsMalformedJson | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldFallbackToTlvWhenResultIsMalformedJson` |
-| TC-IOT-148 | shouldFallbackToLegacyTlvWhenConverterReportsLegacyUnknownTypes | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldFallbackToLegacyTlvWhenConverterReportsLegacyUnknownTypes` |
-| TC-IOT-149 | shouldSkipInvalidTrackerResultWithoutFallback | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldSkipInvalidTrackerResultWithoutFallback` |
-| TC-IOT-150 | shouldMapTrackerPropertiesAndSortByTs | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldMapTrackerPropertiesAndSortByTs` |
-| TC-IOT-151 | firstObservationBecomesCanonical | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::firstObservationBecomesCanonical` |
-| TC-IOT-152 | sameSourceObservationIsSourceDuplicate | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::sameSourceObservationIsSourceDuplicate` |
-| TC-IOT-153 | nearNeighborWithSameFingerprintMergesAsDuplicate | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::nearNeighborWithSameFingerprintMergesAsDuplicate` |
-| TC-IOT-154 | neighborBeyondMatchWindowIsIndependentCanonical | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::neighborBeyondMatchWindowIsIndependentCanonical` |
-| TC-IOT-155 | neighborWithDifferentFingerprintIsIndependentCanonical | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::neighborWithDifferentFingerprintIsIndependentCanonical` |
-| TC-IOT-156 | twoFingerprintMatchingNeighborsAreAmbiguous | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::twoFingerprintMatchingNeighborsAreAmbiguous` |
-| TC-IOT-157 | sameCanonicalKeyFingerprintDriftFallsBackToDuplicate | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::sameCanonicalKeyFingerprintDriftFallsBackToDuplicate` |
-| TC-IOT-158 | arbitrationLocksAcquiredPerObservation | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::arbitrationLocksAcquiredPerObservation` |
-| TC-IOT-159 | fingerprintIsStableAndOrderIndependent | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::fingerprintIsStableAndOrderIndependent` |
-| TC-IOT-160 | fingerprintExcludesWirelessParams | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::fingerprintExcludesWirelessParams` |
-| TC-IOT-161 | parse_classificationMatrix_coversAllStatuses | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_classificationMatrix_coversAllStatuses` |
-| TC-IOT-162 | parse_matchedDeviceWithInstallation_resolvesLivestockAndFarmNames | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_matchedDeviceWithInstallation_resolvesLivestockAndFarmNames` |
-| TC-IOT-163 | parse_deviceNotRegistered_matchedFalseWithKey | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_deviceNotRegistered_matchedFalseWithKey` |
-| TC-IOT-164 | parse_deviceNotActive_matchedFalseWithKey | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_deviceNotActive_matchedFalseWithKey` |
-| TC-IOT-165 | parse_nonTrackerDevice_matchedFalseWithKey | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_nonTrackerDevice_matchedFalseWithKey` |
-| TC-IOT-166 | import_deviceNotRegistered_throwsBeforeIngest | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::import_deviceNotRegistered_throwsBeforeIngest` |
-| TC-IOT-167 | parse_badFileName_throws | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_badFileName_throws` |
-| TC-IOT-168 | parse_microsecondTime_parsedAtFaceValueUtc | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_microsecondTime_parsedAtFaceValueUtc` |
-| TC-IOT-169 | import_success_ingestsImportableRowsAscendingWithManualImportSource | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::import_success_ingestsImportableRowsAscendingWithManualImportSource` |
-| TC-IOT-170 | import_idempotentReplay_allRowsDuplicate_nothingIngested | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::import_idempotentReplay_allRowsDuplicate_nothingIngested` |
-| TC-IOT-171 | import_singleRowFailure_countedAndContinues | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::import_singleRowFailure_countedAndContinues` |
-| TC-IOT-172 | parse_numericCells_wholeNumbersRenderWithoutDecimalPoint | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_numericCells_wholeNumbersRenderWithoutDecimalPoint` |
-| TC-IOT-173 | canonicalObservationProceedsToIngest | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceDedupGateTest.java::canonicalObservationProceedsToIngest` |
-| TC-IOT-174 | duplicateClassesNeverReachIngest | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceDedupGateTest.java::duplicateClassesNeverReachIngest` |
-| TC-IOT-175 | ingest_capsule_publishesGenericTelemetryEvent | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_capsule_publishesGenericTelemetryEvent` |
-| TC-IOT-176 | ingest_realCapsule_computesGastricCounterDeltaAndStoresRawCounter | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_realCapsule_computesGastricCounterDeltaAndStoresRawCounter` |
-| TC-IOT-177 | ingest_realCapsule_ignoresGastricCounterReset | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_realCapsule_ignoresGastricCounterReset` |
+| TC-IOT-139 | shouldSkipNonActiveDeviceWithoutFetch | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldSkipNonActiveDeviceWithoutFetch` |
+| TC-IOT-140 | shouldSkipUndecodableFramesAndAdvanceCursorPastThem | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldSkipUndecodableFramesAndAdvanceCursorPastThem` |
+| TC-IOT-141 | shouldCountConsecutiveFailuresOnPageError | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldCountConsecutiveFailuresOnPageError` |
+| TC-IOT-142 | shouldResetFailuresOnCleanCycleWithoutFrames | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldResetFailuresOnCleanCycleWithoutFrames` |
+| TC-IOT-143 | shouldParseCapsuleResultFrameWithOcConverterKeys | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldParseCapsuleResultFrameWithOcConverterKeys` |
+| TC-IOT-144 | shouldSkipDataHexThatDuplicatesResultFrame | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldSkipDataHexThatDuplicatesResultFrame` |
+| TC-IOT-145 | shouldFallbackToTlvDecodeForDistantDataHexOnly | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldFallbackToTlvDecodeForDistantDataHexOnly` |
+| TC-IOT-146 | shouldFallbackToTlvWhenDecodeStatusIsFalse | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldFallbackToTlvWhenDecodeStatusIsFalse` |
+| TC-IOT-147 | shouldFallbackToTlvWhenResultIsMalformedJson | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldFallbackToTlvWhenResultIsMalformedJson` |
+| TC-IOT-148 | shouldFallbackToLegacyTlvWhenConverterReportsLegacyUnknownTypes | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldFallbackToLegacyTlvWhenConverterReportsLegacyUnknownTypes` |
+| TC-IOT-149 | shouldSkipInvalidTrackerResultWithoutFallback | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldSkipInvalidTrackerResultWithoutFallback` |
+| TC-IOT-150 | shouldMapTrackerPropertiesAndSortByTs | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldMapTrackerPropertiesAndSortByTs` |
+| TC-IOT-151 | firstObservationBecomesCanonical | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::firstObservationBecomesCanonical` |
+| TC-IOT-152 | sameSourceObservationIsSourceDuplicate | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::sameSourceObservationIsSourceDuplicate` |
+| TC-IOT-153 | nearNeighborWithSameFingerprintMergesAsDuplicate | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::nearNeighborWithSameFingerprintMergesAsDuplicate` |
+| TC-IOT-154 | neighborBeyondMatchWindowIsIndependentCanonical | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::neighborBeyondMatchWindowIsIndependentCanonical` |
+| TC-IOT-155 | neighborWithDifferentFingerprintIsIndependentCanonical | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::neighborWithDifferentFingerprintIsIndependentCanonical` |
+| TC-IOT-156 | twoFingerprintMatchingNeighborsAreAmbiguous | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::twoFingerprintMatchingNeighborsAreAmbiguous` |
+| TC-IOT-157 | sameCanonicalKeyFingerprintDriftFallsBackToDuplicate | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::sameCanonicalKeyFingerprintDriftFallsBackToDuplicate` |
+| TC-IOT-158 | arbitrationLocksAcquiredPerObservation | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::arbitrationLocksAcquiredPerObservation` |
+| TC-IOT-159 | fingerprintIsStableAndOrderIndependent | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::fingerprintIsStableAndOrderIndependent` |
+| TC-IOT-160 | fingerprintExcludesWirelessParams | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::fingerprintExcludesWirelessParams` |
+| TC-IOT-161 | parse_classificationMatrix_coversAllStatuses | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_classificationMatrix_coversAllStatuses` |
+| TC-IOT-162 | parse_matchedDeviceWithInstallation_resolvesLivestockAndFarmNames | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_matchedDeviceWithInstallation_resolvesLivestockAndFarmNames` |
+| TC-IOT-163 | parse_deviceNotRegistered_matchedFalseWithKey | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_deviceNotRegistered_matchedFalseWithKey` |
+| TC-IOT-164 | parse_deviceNotActive_matchedFalseWithKey | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_deviceNotActive_matchedFalseWithKey` |
+| TC-IOT-165 | parse_nonTrackerDevice_matchedFalseWithKey | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_nonTrackerDevice_matchedFalseWithKey` |
+| TC-IOT-166 | import_deviceNotRegistered_throwsBeforeIngest | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::import_deviceNotRegistered_throwsBeforeIngest` |
+| TC-IOT-167 | parse_badFileName_throws | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_badFileName_throws` |
+| TC-IOT-168 | parse_microsecondTime_parsedAtFaceValueUtc | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_microsecondTime_parsedAtFaceValueUtc` |
+| TC-IOT-169 | import_success_ingestsImportableRowsAscendingWithManualImportSource | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::import_success_ingestsImportableRowsAscendingWithManualImportSource` |
+| TC-IOT-170 | import_idempotentReplay_allRowsDuplicate_nothingIngested | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::import_idempotentReplay_allRowsDuplicate_nothingIngested` |
+| TC-IOT-171 | import_singleRowFailure_countedAndContinues | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::import_singleRowFailure_countedAndContinues` |
+| TC-IOT-172 | parse_numericCells_wholeNumbersRenderWithoutDecimalPoint | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_numericCells_wholeNumbersRenderWithoutDecimalPoint` |
+| TC-IOT-173 | canonicalObservationProceedsToIngest | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceDedupGateTest.java::canonicalObservationProceedsToIngest` |
+| TC-IOT-174 | duplicateClassesNeverReachIngest | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceDedupGateTest.java::duplicateClassesNeverReachIngest` |
+| TC-IOT-175 | ingest_capsule_publishesGenericTelemetryEvent | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_capsule_publishesGenericTelemetryEvent` |
+| TC-IOT-176 | ingest_realCapsule_computesGastricCounterDeltaAndStoresRawCounter | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_realCapsule_computesGastricCounterDeltaAndStoresRawCounter` |
+| TC-IOT-177 | ingest_realCapsule_ignoresGastricCounterReset | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_realCapsule_ignoresGastricCounterReset` |
 | TC-IOT-178 | ingest_tracker_enqueuesGpsAndPublishesEvent | P1 | REQ-IOT-005、REQ-IOT-006、REQ-IOT-001、REQ-IOT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_tracker_enqueuesGpsAndPublishesEvent` |
 | TC-IOT-179 | ingest_capsule_doesNotExtractGps | P1 | REQ-IOT-005、REQ-IOT-006、REQ-IOT-001、REQ-IOT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_capsule_doesNotExtractGps` |
 | TC-IOT-180 | ingest_earTag_enqueuesGps | P1 | REQ-IOT-005、REQ-IOT-006、REQ-IOT-001、REQ-IOT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_earTag_enqueuesGps` |
 | TC-IOT-181 | ingest_gpsCapableDevice_derivesDistanceFromPreviousCoordinate | P1 | REQ-IOT-005、REQ-IOT-006、REQ-IOT-001、REQ-IOT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_gpsCapableDevice_derivesDistanceFromPreviousCoordinate` |
-| TC-IOT-182 | ingest_deviceNotFound_throwsException | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_deviceNotFound_throwsException` |
-| TC-IOT-183 | ingest_deviceNotActive_throwsException | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_deviceNotActive_throwsException` |
-| TC-IOT-184 | ingest_noActiveInstallation_succeedsWithoutLivestockId | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_noActiveInstallation_succeedsWithoutLivestockId` |
+| TC-IOT-182 | ingest_deviceNotFound_throwsException | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_deviceNotFound_throwsException` |
+| TC-IOT-183 | ingest_deviceNotActive_throwsException | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_deviceNotActive_throwsException` |
+| TC-IOT-184 | ingest_noActiveInstallation_succeedsWithoutLivestockId | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_noActiveInstallation_succeedsWithoutLivestockId` |
 | TC-IOT-185 | ingest_invalidGpsFix_skipsOutboxAndStillPublishesTelemetry | P1 | REQ-IOT-005、REQ-IOT-006、REQ-IOT-001、REQ-IOT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_invalidGpsFix_skipsOutboxAndStillPublishesTelemetry` |
 | TC-IOT-186 | ingest_outOfRangeGps_skipsOutboxAndStillIngestsTelemetry | P1 | REQ-IOT-005、REQ-IOT-006、REQ-IOT-001、REQ-IOT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_outOfRangeGps_skipsOutboxAndStillIngestsTelemetry` |
-| TC-IOT-187 | ingest_usesCurrentTimeWhenRecordedAtIsNull | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_usesCurrentTimeWhenRecordedAtIsNull` |
-| TC-IOT-188 | ingest_manualImport_skipsRuntimeSnapshot_logsHistoricalValues | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_manualImport_skipsRuntimeSnapshot_logsHistoricalValues` |
-| TC-IOT-189 | ingest_platformDeviceFault_persistsLocalizedMessageKey | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_platformDeviceFault_persistsLocalizedMessageKey` |
-| TC-IOT-190 | ingest_duplicateDeviceAndTime_skipsAllProcessing | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_duplicateDeviceAndTime_skipsAllProcessing` |
-| TC-IOT-191 | ingest_thingsBoardDeviceFault_triggersDeviceAlert | P1 | REQ-RCH-006、REQ-RCH-007、REQ-IOT-001、REQ-IOT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_thingsBoardDeviceFault_triggersDeviceAlert` |
-| TC-IOT-192 | ingest_unassignedDeviceFault_skipsAlertInsteadOfFailing | P1 | REQ-RCH-006、REQ-RCH-007、REQ-IOT-001、REQ-IOT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_unassignedDeviceFault_skipsAlertInsteadOfFailing` |
-| TC-IOT-193 | ingest_agenticPlatform_updatesSnapshotAndWritesSource | P1 | REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_agenticPlatform_updatesSnapshotAndWritesSource` |
+| TC-IOT-187 | ingest_usesCurrentTimeWhenRecordedAtIsNull | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_usesCurrentTimeWhenRecordedAtIsNull` |
+| TC-IOT-188 | ingest_manualImport_skipsRuntimeSnapshot_logsHistoricalValues | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_manualImport_skipsRuntimeSnapshot_logsHistoricalValues` |
+| TC-IOT-189 | ingest_platformDeviceFault_persistsLocalizedMessageKey | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_platformDeviceFault_persistsLocalizedMessageKey` |
+| TC-IOT-190 | ingest_duplicateDeviceAndTime_skipsAllProcessing | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_duplicateDeviceAndTime_skipsAllProcessing` |
+| TC-IOT-191 | ingest_thingsBoardDeviceFault_triggersDeviceAlert | P1 | REQ-RCH-008、REQ-RCH-009、REQ-RCH-010、REQ-IOT-001 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_thingsBoardDeviceFault_triggersDeviceAlert` |
+| TC-IOT-192 | ingest_unassignedDeviceFault_skipsAlertInsteadOfFailing | P1 | REQ-RCH-008、REQ-RCH-009、REQ-RCH-010、REQ-IOT-001 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_unassignedDeviceFault_skipsAlertInsteadOfFailing` |
+| TC-IOT-193 | ingest_agenticPlatform_updatesSnapshotAndWritesSource | P1 | REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_agenticPlatform_updatesSnapshotAndWritesSource` |
 | TC-IOT-236 | markFailed_underMaxAttempts_schedulesRetry | P1 | REQ-IOT-005、REQ-IOT-006、REQ-IOT-001、REQ-IOT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/model/GpsIngestionTaskTest.java::markFailed_underMaxAttempts_schedulesRetry` |
 | TC-IOT-237 | markFailed_atMaxAttempts_marksFailed | P1 | REQ-IOT-005、REQ-IOT-006、REQ-IOT-001、REQ-IOT-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/model/GpsIngestionTaskTest.java::markFailed_atMaxAttempts_marksFailed` |
 | TC-IOT-254 | deriveDistanceMeters_returnsHaversineDistanceForValidSegment | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/GpsDistanceDerivationServiceTest.java::deriveDistanceMeters_returnsHaversineDistanceForValidSegment` |
@@ -106,57 +106,57 @@
 | TC-IOT-274 | n110_noOutliers | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/GpsQualityCalculatorTest.java::n110_noOutliers` |
 | TC-IOT-275 | twoPoints_maxPairwiseDistance | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/GpsQualityCalculatorTest.java::twoPoints_maxPairwiseDistance` |
 | TC-IOT-276 | singlePoint_zeroJitter | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/GpsQualityCalculatorTest.java::singlePoint_zeroJitter` |
-| TC-IOT-283 | perpendicularFootInsideSegment | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::perpendicularFootInsideSegment` |
-| TC-IOT-284 | footBeyondSegmentEndFallsBackToEndpoint | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::footBeyondSegmentEndFallsBackToEndpoint` |
-| TC-IOT-285 | degenerateSegmentUsesEndpointDistance | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::degenerateSegmentUsesEndpointDistance` |
-| TC-IOT-286 | cornerProjectionPicksNearestSegment | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::cornerProjectionPicksNearestSegment` |
-| TC-IOT-287 | equalDistanceTieKeepsFirstSegment | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::equalDistanceTieKeepsFirstSegment` |
-| TC-IOT-288 | rejectsLineWithFewerThanTwoPoints | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::rejectsLineWithFewerThanTwoPoints` |
-| TC-IOT-289 | emptyDeviationsYieldZeroStats | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::emptyDeviationsYieldZeroStats` |
-| TC-IOT-290 | degeneratePercentilesFallBackToMax | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::degeneratePercentilesFallBackToMax` |
-| TC-IOT-291 | percentilesUseLinearInterpolation | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::percentilesUseLinearInterpolation` |
-| TC-IOT-292 | p95Exactly15With10SamplesIsExcellent | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::p95Exactly15With10SamplesIsExcellent` |
-| TC-IOT-293 | p95JustAbove15DropsToUsable | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::p95JustAbove15DropsToUsable` |
-| TC-IOT-294 | nineSamplesCannotBeExcellent | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::nineSamplesCannotBeExcellent` |
-| TC-IOT-295 | p95Exactly40With4SamplesIsMarginal | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::p95Exactly40With4SamplesIsMarginal` |
-| TC-IOT-296 | fewerThan4SamplesIsUnavailable | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::fewerThan4SamplesIsUnavailable` |
-| TC-IOT-297 | p95Above40IsUnavailable | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::p95Above40IsUnavailable` |
-| TC-IOT-298 | corridorBoundaryIncludes99m | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::corridorBoundaryIncludes99m` |
-| TC-IOT-299 | corridorBoundaryExcludes101m | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::corridorBoundaryExcludes101m` |
-| TC-IOT-300 | gapOver300sSplitsIntoTwoTrips | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::gapOver300sSplitsIntoTwoTrips` |
-| TC-IOT-301 | gapExactly300sStaysInOneTrip | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::gapExactly300sStaysInOneTrip` |
-| TC-IOT-302 | segmentWithFewerThan4PointsIsDropped | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::segmentWithFewerThan4PointsIsDropped` |
-| TC-IOT-303 | outsideCorridorPointCutsTheSegment | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::outsideCorridorPointCutsTheSegment` |
-| TC-IOT-304 | multipleTripsMergeIntoOneStatistic | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::multipleTripsMergeIntoOneStatistic` |
-| TC-IOT-305 | noValidSegmentYieldsZeroSamplesAndUnavailable | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::noValidSegmentYieldsZeroSamplesAndUnavailable` |
-| TC-IOT-306 | matchedPointsCarryDeviationAndSegment | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::matchedPointsCarryDeviationAndSegment` |
-| TC-IOT-307 | polylineLengthSumsHaversineSegments | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::polylineLengthSumsHaversineSegments` |
-| TC-IOT-308 | decode_realPeriodicFrame_extractsAllFields | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_realPeriodicFrame_extractsAllFields` |
-| TC-IOT-309 | toReadings_realPeriodicFrame_matchesPlatformKeyConventions | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::toReadings_realPeriodicFrame_matchesPlatformKeyConventions` |
-| TC-IOT-310 | decode_unknownType30_returnsEmpty | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_unknownType30_returnsEmpty` |
-| TC-IOT-311 | decode_nonSyncHead_returnsEmpty | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_nonSyncHead_returnsEmpty` |
-| TC-IOT-312 | decode_unknownType8A_returnsEmpty | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_unknownType8A_returnsEmpty` |
-| TC-IOT-313 | decode_nullOrEmpty_returnsEmpty | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_nullOrEmpty_returnsEmpty` |
-| TC-IOT-314 | decode_shorterThanHeader_returnsEmpty | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_shorterThanHeader_returnsEmpty` |
-| TC-IOT-315 | decode_truncatedTlvValue_returnsEmpty | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_truncatedTlvValue_returnsEmpty` |
-| TC-IOT-316 | decode_zeroZeroCoordinate_decodesToZero | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_zeroZeroCoordinate_decodesToZero` |
-| TC-IOT-317 | decode_negativeCoordinate_bit31Set | P1 | REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_negativeCoordinate_bit31Set` |
-| TC-IOT-318 | decode_antiDisassemblyAndSkippedTypes_consumedWithoutMapping | P1 | REQ-PLT-001、REQ-PLT-002、REQ-PLT-005、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_antiDisassemblyAndSkippedTypes_consumedWithoutMapping` |
-| TC-IOT-319 | fileCoordinatesShortCircuitWithoutCandidates | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::fileCoordinatesShortCircuitWithoutCandidates` |
-| TC-IOT-320 | pairsNearestLogWithinTolerance | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::pairsNearestLogWithinTolerance` |
-| TC-IOT-321 | equidistantTieGoesToEarlierReport | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::equidistantTieGoesToEarlierReport` |
-| TC-IOT-322 | beyondToleranceIsUnpaired | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::beyondToleranceIsUnpaired` |
-| TC-IOT-323 | emptyCandidatesIsUnpaired | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::emptyCandidatesIsUnpaired` |
-| TC-IOT-324 | emptyListYieldsZeros | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::emptyListYieldsZeros` |
-| TC-IOT-325 | unpairedExcludedFromErrorStatistics | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::unpairedExcludedFromErrorStatistics` |
-| TC-IOT-326 | percentilesDegradeToMaxOnSmallSamples | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::percentilesDegradeToMaxOnSmallSamples` |
-| TC-IOT-327 | p95ComputedWhenEnoughSamples | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::p95ComputedWhenEnoughSamples` |
-| TC-IOT-328 | prototypeExampleIsExcellent | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::prototypeExampleIsExcellent` |
-| TC-IOT-329 | excellentRequiresTenPairedSamples | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::excellentRequiresTenPairedSamples` |
-| TC-IOT-330 | excellentRequiresPairRateAboveEighty | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::excellentRequiresPairRateAboveEighty` |
-| TC-IOT-331 | usableRequiresPairRateAboveSixty | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::usableRequiresPairRateAboveSixty` |
-| TC-IOT-332 | fewerThanFourPairedIsUnavailable | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::fewerThanFourPairedIsUnavailable` |
-| TC-IOT-333 | p95AboveFortyIsUnavailable | P1 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::p95AboveFortyIsUnavailable` |
+| TC-IOT-283 | perpendicularFootInsideSegment | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::perpendicularFootInsideSegment` |
+| TC-IOT-284 | footBeyondSegmentEndFallsBackToEndpoint | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::footBeyondSegmentEndFallsBackToEndpoint` |
+| TC-IOT-285 | degenerateSegmentUsesEndpointDistance | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::degenerateSegmentUsesEndpointDistance` |
+| TC-IOT-286 | cornerProjectionPicksNearestSegment | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::cornerProjectionPicksNearestSegment` |
+| TC-IOT-287 | equalDistanceTieKeepsFirstSegment | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::equalDistanceTieKeepsFirstSegment` |
+| TC-IOT-288 | rejectsLineWithFewerThanTwoPoints | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::rejectsLineWithFewerThanTwoPoints` |
+| TC-IOT-289 | emptyDeviationsYieldZeroStats | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::emptyDeviationsYieldZeroStats` |
+| TC-IOT-290 | degeneratePercentilesFallBackToMax | P1 | REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::degeneratePercentilesFallBackToMax` |
+| TC-IOT-291 | percentilesUseLinearInterpolation | P1 | REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::percentilesUseLinearInterpolation` |
+| TC-IOT-292 | p95Exactly15With10SamplesIsExcellent | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::p95Exactly15With10SamplesIsExcellent` |
+| TC-IOT-293 | p95JustAbove15DropsToUsable | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::p95JustAbove15DropsToUsable` |
+| TC-IOT-294 | nineSamplesCannotBeExcellent | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::nineSamplesCannotBeExcellent` |
+| TC-IOT-295 | p95Exactly40With4SamplesIsMarginal | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::p95Exactly40With4SamplesIsMarginal` |
+| TC-IOT-296 | fewerThan4SamplesIsUnavailable | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::fewerThan4SamplesIsUnavailable` |
+| TC-IOT-297 | p95Above40IsUnavailable | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::p95Above40IsUnavailable` |
+| TC-IOT-298 | corridorBoundaryIncludes99m | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::corridorBoundaryIncludes99m` |
+| TC-IOT-299 | corridorBoundaryExcludes101m | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::corridorBoundaryExcludes101m` |
+| TC-IOT-300 | gapOver300sSplitsIntoTwoTrips | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::gapOver300sSplitsIntoTwoTrips` |
+| TC-IOT-301 | gapExactly300sStaysInOneTrip | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::gapExactly300sStaysInOneTrip` |
+| TC-IOT-302 | segmentWithFewerThan4PointsIsDropped | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::segmentWithFewerThan4PointsIsDropped` |
+| TC-IOT-303 | outsideCorridorPointCutsTheSegment | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::outsideCorridorPointCutsTheSegment` |
+| TC-IOT-304 | multipleTripsMergeIntoOneStatistic | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::multipleTripsMergeIntoOneStatistic` |
+| TC-IOT-305 | noValidSegmentYieldsZeroSamplesAndUnavailable | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::noValidSegmentYieldsZeroSamplesAndUnavailable` |
+| TC-IOT-306 | matchedPointsCarryDeviationAndSegment | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::matchedPointsCarryDeviationAndSegment` |
+| TC-IOT-307 | polylineLengthSumsHaversineSegments | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::polylineLengthSumsHaversineSegments` |
+| TC-IOT-308 | decode_realPeriodicFrame_extractsAllFields | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_realPeriodicFrame_extractsAllFields` |
+| TC-IOT-309 | toReadings_realPeriodicFrame_matchesPlatformKeyConventions | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::toReadings_realPeriodicFrame_matchesPlatformKeyConventions` |
+| TC-IOT-310 | decode_unknownType30_returnsEmpty | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_unknownType30_returnsEmpty` |
+| TC-IOT-311 | decode_nonSyncHead_returnsEmpty | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_nonSyncHead_returnsEmpty` |
+| TC-IOT-312 | decode_unknownType8A_returnsEmpty | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_unknownType8A_returnsEmpty` |
+| TC-IOT-313 | decode_nullOrEmpty_returnsEmpty | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_nullOrEmpty_returnsEmpty` |
+| TC-IOT-314 | decode_shorterThanHeader_returnsEmpty | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_shorterThanHeader_returnsEmpty` |
+| TC-IOT-315 | decode_truncatedTlvValue_returnsEmpty | P1 | REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_truncatedTlvValue_returnsEmpty` |
+| TC-IOT-316 | decode_zeroZeroCoordinate_decodesToZero | P1 | REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_zeroZeroCoordinate_decodesToZero` |
+| TC-IOT-317 | decode_negativeCoordinate_bit31Set | P1 | REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_negativeCoordinate_bit31Set` |
+| TC-IOT-318 | decode_antiDisassemblyAndSkippedTypes_consumedWithoutMapping | P1 | REQ-PLT-001、REQ-PLT-002、REQ-PLT-005、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_antiDisassemblyAndSkippedTypes_consumedWithoutMapping` |
+| TC-IOT-319 | fileCoordinatesShortCircuitWithoutCandidates | P1 | REQ-RCH-007、REQ-RCH-002、REQ-RCH-006、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::fileCoordinatesShortCircuitWithoutCandidates` |
+| TC-IOT-320 | pairsNearestLogWithinTolerance | P1 | REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::pairsNearestLogWithinTolerance` |
+| TC-IOT-321 | equidistantTieGoesToEarlierReport | P1 | REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::equidistantTieGoesToEarlierReport` |
+| TC-IOT-322 | beyondToleranceIsUnpaired | P1 | REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::beyondToleranceIsUnpaired` |
+| TC-IOT-323 | emptyCandidatesIsUnpaired | P1 | REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::emptyCandidatesIsUnpaired` |
+| TC-IOT-324 | emptyListYieldsZeros | P1 | REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::emptyListYieldsZeros` |
+| TC-IOT-325 | unpairedExcludedFromErrorStatistics | P1 | REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::unpairedExcludedFromErrorStatistics` |
+| TC-IOT-326 | percentilesDegradeToMaxOnSmallSamples | P1 | REQ-RCH-007、REQ-RCH-002、REQ-RCH-006、REQ-RCH-001 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::percentilesDegradeToMaxOnSmallSamples` |
+| TC-IOT-327 | p95ComputedWhenEnoughSamples | P1 | REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::p95ComputedWhenEnoughSamples` |
+| TC-IOT-328 | prototypeExampleIsExcellent | P1 | REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::prototypeExampleIsExcellent` |
+| TC-IOT-329 | excellentRequiresTenPairedSamples | P1 | REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::excellentRequiresTenPairedSamples` |
+| TC-IOT-330 | excellentRequiresPairRateAboveEighty | P1 | REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::excellentRequiresPairRateAboveEighty` |
+| TC-IOT-331 | usableRequiresPairRateAboveSixty | P1 | REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::usableRequiresPairRateAboveSixty` |
+| TC-IOT-332 | fewerThanFourPairedIsUnavailable | P1 | REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::fewerThanFourPairedIsUnavailable` |
+| TC-IOT-333 | p95AboveFortyIsUnavailable | P1 | REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::p95AboveFortyIsUnavailable` |
 | TC-IOT-372 | getDeviceGpsHistory_rejectsCapsule | P0 | REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002 | `smart-livestock-server/src/test/java/com/smartlivestock/iot/interfaces/GpsLogControllerTest.java::getDeviceGpsHistory_rejectsCapsule` |
 
 ## 用例明细（初稿模板）
@@ -263,7 +263,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldPollBindingsAcrossTenants`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-132 shouldIngestFramesAndAdvanceCursor
 
@@ -271,7 +271,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldIngestFramesAndAdvanceCursor`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-133 shouldCarryBindingIdentityAndFingerprintIntoArbitration
 
@@ -279,7 +279,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldCarryBindingIdentityAndFingerprintIntoArbitration`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-134 shouldTreatExistingDtlFrameAsIdempotentSuccess
 
@@ -287,7 +287,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldTreatExistingDtlFrameAsIdempotentSuccess`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-135 shouldStopAtFailedFrameAndKeepSuccessfulPrefixCursor
 
@@ -295,7 +295,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldStopAtFailedFrameAndKeepSuccessfulPrefixCursor`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-136 shouldNotWedgeCursorWhenDuplicateObservationStopsIngest
 
@@ -303,7 +303,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldNotWedgeCursorWhenDuplicateObservationStopsIngest`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-137 shouldContinueWhenBatchReachesLimit
 
@@ -311,7 +311,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldContinueWhenBatchReachesLimit`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-138 shouldClampOutOfRangeGpsBeforeIngest
 
@@ -327,7 +327,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldSkipNonActiveDeviceWithoutFetch`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-140 shouldSkipUndecodableFramesAndAdvanceCursorPastThem
 
@@ -335,7 +335,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldSkipUndecodableFramesAndAdvanceCursorPastThem`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-141 shouldCountConsecutiveFailuresOnPageError
 
@@ -343,7 +343,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldCountConsecutiveFailuresOnPageError`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-142 shouldResetFailuresOnCleanCycleWithoutFrames
 
@@ -351,7 +351,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryChannelTest.java::shouldResetFailuresOnCleanCycleWithoutFrames`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-143 shouldParseCapsuleResultFrameWithOcConverterKeys
 
@@ -359,7 +359,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldParseCapsuleResultFrameWithOcConverterKeys`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-144 shouldSkipDataHexThatDuplicatesResultFrame
 
@@ -367,7 +367,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldSkipDataHexThatDuplicatesResultFrame`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-145 shouldFallbackToTlvDecodeForDistantDataHexOnly
 
@@ -375,7 +375,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldFallbackToTlvDecodeForDistantDataHexOnly`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-146 shouldFallbackToTlvWhenDecodeStatusIsFalse
 
@@ -383,7 +383,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldFallbackToTlvWhenDecodeStatusIsFalse`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-147 shouldFallbackToTlvWhenResultIsMalformedJson
 
@@ -391,7 +391,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldFallbackToTlvWhenResultIsMalformedJson`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-148 shouldFallbackToLegacyTlvWhenConverterReportsLegacyUnknownTypes
 
@@ -399,7 +399,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldFallbackToLegacyTlvWhenConverterReportsLegacyUnknownTypes`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-149 shouldSkipInvalidTrackerResultWithoutFallback
 
@@ -407,7 +407,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldSkipInvalidTrackerResultWithoutFallback`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-150 shouldMapTrackerPropertiesAndSortByTs
 
@@ -415,7 +415,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TbTelemetryFrameParserTest.java::shouldMapTrackerPropertiesAndSortByTs`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-151 firstObservationBecomesCanonical
 
@@ -423,7 +423,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::firstObservationBecomesCanonical`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-152 sameSourceObservationIsSourceDuplicate
 
@@ -431,7 +431,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::sameSourceObservationIsSourceDuplicate`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-153 nearNeighborWithSameFingerprintMergesAsDuplicate
 
@@ -439,7 +439,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::nearNeighborWithSameFingerprintMergesAsDuplicate`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-154 neighborBeyondMatchWindowIsIndependentCanonical
 
@@ -447,7 +447,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::neighborBeyondMatchWindowIsIndependentCanonical`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-155 neighborWithDifferentFingerprintIsIndependentCanonical
 
@@ -455,7 +455,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::neighborWithDifferentFingerprintIsIndependentCanonical`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-156 twoFingerprintMatchingNeighborsAreAmbiguous
 
@@ -463,7 +463,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::twoFingerprintMatchingNeighborsAreAmbiguous`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-157 sameCanonicalKeyFingerprintDriftFallsBackToDuplicate
 
@@ -471,7 +471,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::sameCanonicalKeyFingerprintDriftFallsBackToDuplicate`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-158 arbitrationLocksAcquiredPerObservation
 
@@ -479,7 +479,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::arbitrationLocksAcquiredPerObservation`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-159 fingerprintIsStableAndOrderIndependent
 
@@ -487,7 +487,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::fingerprintIsStableAndOrderIndependent`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-160 fingerprintExcludesWirelessParams
 
@@ -495,7 +495,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryDedupApplicationServiceTest.java::fingerprintExcludesWirelessParams`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-161 parse_classificationMatrix_coversAllStatuses
 
@@ -503,7 +503,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_classificationMatrix_coversAllStatuses`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-162 parse_matchedDeviceWithInstallation_resolvesLivestockAndFarmNames
 
@@ -511,7 +511,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_matchedDeviceWithInstallation_resolvesLivestockAndFarmNames`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-163 parse_deviceNotRegistered_matchedFalseWithKey
 
@@ -519,7 +519,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_deviceNotRegistered_matchedFalseWithKey`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-164 parse_deviceNotActive_matchedFalseWithKey
 
@@ -527,7 +527,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_deviceNotActive_matchedFalseWithKey`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-165 parse_nonTrackerDevice_matchedFalseWithKey
 
@@ -535,7 +535,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_nonTrackerDevice_matchedFalseWithKey`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-166 import_deviceNotRegistered_throwsBeforeIngest
 
@@ -543,7 +543,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::import_deviceNotRegistered_throwsBeforeIngest`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-167 parse_badFileName_throws
 
@@ -551,7 +551,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_badFileName_throws`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-168 parse_microsecondTime_parsedAtFaceValueUtc
 
@@ -559,7 +559,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_microsecondTime_parsedAtFaceValueUtc`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-169 import_success_ingestsImportableRowsAscendingWithManualImportSource
 
@@ -567,7 +567,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::import_success_ingestsImportableRowsAscendingWithManualImportSource`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-170 import_idempotentReplay_allRowsDuplicate_nothingIngested
 
@@ -575,7 +575,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::import_idempotentReplay_allRowsDuplicate_nothingIngested`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-171 import_singleRowFailure_countedAndContinues
 
@@ -583,7 +583,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::import_singleRowFailure_countedAndContinues`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-172 parse_numericCells_wholeNumbersRenderWithoutDecimalPoint
 
@@ -591,7 +591,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryImportServiceTest.java::parse_numericCells_wholeNumbersRenderWithoutDecimalPoint`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-173 canonicalObservationProceedsToIngest
 
@@ -599,7 +599,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceDedupGateTest.java::canonicalObservationProceedsToIngest`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-174 duplicateClassesNeverReachIngest
 
@@ -607,7 +607,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceDedupGateTest.java::duplicateClassesNeverReachIngest`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-175 ingest_capsule_publishesGenericTelemetryEvent
 
@@ -615,7 +615,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_capsule_publishesGenericTelemetryEvent`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-176 ingest_realCapsule_computesGastricCounterDeltaAndStoresRawCounter
 
@@ -623,7 +623,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_realCapsule_computesGastricCounterDeltaAndStoresRawCounter`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-177 ingest_realCapsule_ignoresGastricCounterReset
 
@@ -631,7 +631,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_realCapsule_ignoresGastricCounterReset`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-178 ingest_tracker_enqueuesGpsAndPublishesEvent
 
@@ -671,7 +671,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_deviceNotFound_throwsException`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-183 ingest_deviceNotActive_throwsException
 
@@ -679,7 +679,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_deviceNotActive_throwsException`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-184 ingest_noActiveInstallation_succeedsWithoutLivestockId
 
@@ -687,7 +687,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_noActiveInstallation_succeedsWithoutLivestockId`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-185 ingest_invalidGpsFix_skipsOutboxAndStillPublishesTelemetry
 
@@ -711,7 +711,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_usesCurrentTimeWhenRecordedAtIsNull`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-188 ingest_manualImport_skipsRuntimeSnapshot_logsHistoricalValues
 
@@ -719,7 +719,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_manualImport_skipsRuntimeSnapshot_logsHistoricalValues`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-189 ingest_platformDeviceFault_persistsLocalizedMessageKey
 
@@ -727,7 +727,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_platformDeviceFault_persistsLocalizedMessageKey`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-190 ingest_duplicateDeviceAndTime_skipsAllProcessing
 
@@ -735,7 +735,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_duplicateDeviceAndTime_skipsAllProcessing`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-191 ingest_thingsBoardDeviceFault_triggersDeviceAlert
 
@@ -743,7 +743,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_thingsBoardDeviceFault_triggersDeviceAlert`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-006、REQ-RCH-007、REQ-IOT-001、REQ-IOT-002
+- 对应 REQ：REQ-RCH-008、REQ-RCH-009、REQ-RCH-010、REQ-IOT-001
 
 ### TC-IOT-192 ingest_unassignedDeviceFault_skipsAlertInsteadOfFailing
 
@@ -751,7 +751,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_unassignedDeviceFault_skipsAlertInsteadOfFailing`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-006、REQ-RCH-007、REQ-IOT-001、REQ-IOT-002
+- 对应 REQ：REQ-RCH-008、REQ-RCH-009、REQ-RCH-010、REQ-IOT-001
 
 ### TC-IOT-193 ingest_agenticPlatform_updatesSnapshotAndWritesSource
 
@@ -759,7 +759,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/application/TelemetryIngestionServiceTest.java::ingest_agenticPlatform_updatesSnapshotAndWritesSource`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-HLT-001、REQ-HLT-002
+- 对应 REQ：REQ-IOT-001、REQ-IOT-002、REQ-IOT-003、REQ-IOT-004
 
 ### TC-IOT-236 markFailed_underMaxAttempts_schedulesRetry
 
@@ -967,7 +967,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::perpendicularFootInsideSegment`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-284 footBeyondSegmentEndFallsBackToEndpoint
 
@@ -975,7 +975,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::footBeyondSegmentEndFallsBackToEndpoint`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-285 degenerateSegmentUsesEndpointDistance
 
@@ -983,7 +983,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::degenerateSegmentUsesEndpointDistance`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-286 cornerProjectionPicksNearestSegment
 
@@ -991,7 +991,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::cornerProjectionPicksNearestSegment`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-287 equalDistanceTieKeepsFirstSegment
 
@@ -999,7 +999,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::equalDistanceTieKeepsFirstSegment`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-288 rejectsLineWithFewerThanTwoPoints
 
@@ -1007,7 +1007,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::rejectsLineWithFewerThanTwoPoints`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-289 emptyDeviationsYieldZeroStats
 
@@ -1015,7 +1015,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::emptyDeviationsYieldZeroStats`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-290 degeneratePercentilesFallBackToMax
 
@@ -1023,7 +1023,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::degeneratePercentilesFallBackToMax`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012
 
 ### TC-IOT-291 percentilesUseLinearInterpolation
 
@@ -1031,7 +1031,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::percentilesUseLinearInterpolation`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012
 
 ### TC-IOT-292 p95Exactly15With10SamplesIsExcellent
 
@@ -1039,7 +1039,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::p95Exactly15With10SamplesIsExcellent`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-293 p95JustAbove15DropsToUsable
 
@@ -1047,7 +1047,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::p95JustAbove15DropsToUsable`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-294 nineSamplesCannotBeExcellent
 
@@ -1055,7 +1055,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::nineSamplesCannotBeExcellent`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-295 p95Exactly40With4SamplesIsMarginal
 
@@ -1063,7 +1063,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::p95Exactly40With4SamplesIsMarginal`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-296 fewerThan4SamplesIsUnavailable
 
@@ -1071,7 +1071,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::fewerThan4SamplesIsUnavailable`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-297 p95Above40IsUnavailable
 
@@ -1079,7 +1079,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::p95Above40IsUnavailable`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-298 corridorBoundaryIncludes99m
 
@@ -1087,7 +1087,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::corridorBoundaryIncludes99m`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-299 corridorBoundaryExcludes101m
 
@@ -1095,7 +1095,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::corridorBoundaryExcludes101m`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-300 gapOver300sSplitsIntoTwoTrips
 
@@ -1103,7 +1103,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::gapOver300sSplitsIntoTwoTrips`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-301 gapExactly300sStaysInOneTrip
 
@@ -1111,7 +1111,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::gapExactly300sStaysInOneTrip`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-302 segmentWithFewerThan4PointsIsDropped
 
@@ -1119,7 +1119,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::segmentWithFewerThan4PointsIsDropped`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-303 outsideCorridorPointCutsTheSegment
 
@@ -1127,7 +1127,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::outsideCorridorPointCutsTheSegment`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-304 multipleTripsMergeIntoOneStatistic
 
@@ -1135,7 +1135,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::multipleTripsMergeIntoOneStatistic`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-305 noValidSegmentYieldsZeroSamplesAndUnavailable
 
@@ -1143,7 +1143,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::noValidSegmentYieldsZeroSamplesAndUnavailable`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-306 matchedPointsCarryDeviationAndSegment
 
@@ -1151,7 +1151,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::matchedPointsCarryDeviationAndSegment`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-307 polylineLengthSumsHaversineSegments
 
@@ -1159,7 +1159,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackLineCalculatorTest.java::polylineLengthSumsHaversineSegments`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-308 decode_realPeriodicFrame_extractsAllFields
 
@@ -1167,7 +1167,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_realPeriodicFrame_extractsAllFields`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-309 toReadings_realPeriodicFrame_matchesPlatformKeyConventions
 
@@ -1175,7 +1175,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::toReadings_realPeriodicFrame_matchesPlatformKeyConventions`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-310 decode_unknownType30_returnsEmpty
 
@@ -1183,7 +1183,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_unknownType30_returnsEmpty`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-311 decode_nonSyncHead_returnsEmpty
 
@@ -1191,7 +1191,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_nonSyncHead_returnsEmpty`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-312 decode_unknownType8A_returnsEmpty
 
@@ -1199,7 +1199,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_unknownType8A_returnsEmpty`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-313 decode_nullOrEmpty_returnsEmpty
 
@@ -1207,7 +1207,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_nullOrEmpty_returnsEmpty`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-314 decode_shorterThanHeader_returnsEmpty
 
@@ -1215,7 +1215,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_shorterThanHeader_returnsEmpty`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-315 decode_truncatedTlvValue_returnsEmpty
 
@@ -1223,7 +1223,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_truncatedTlvValue_returnsEmpty`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-316 decode_zeroZeroCoordinate_decodesToZero
 
@@ -1231,7 +1231,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_zeroZeroCoordinate_decodesToZero`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012
 
 ### TC-IOT-317 decode_negativeCoordinate_bit31Set
 
@@ -1239,7 +1239,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_negativeCoordinate_bit31Set`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-002、REQ-RCH-006、REQ-RCH-001、REQ-RCH-012
 
 ### TC-IOT-318 decode_antiDisassemblyAndSkippedTypes_consumedWithoutMapping
 
@@ -1247,7 +1247,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrackerPayloadDecoderTest.java::decode_antiDisassemblyAndSkippedTypes_consumedWithoutMapping`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-PLT-001、REQ-PLT-002、REQ-PLT-005、REQ-RCH-001
+- 对应 REQ：REQ-PLT-001、REQ-PLT-002、REQ-PLT-005、REQ-RCH-002
 
 ### TC-IOT-319 fileCoordinatesShortCircuitWithoutCandidates
 
@@ -1255,7 +1255,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::fileCoordinatesShortCircuitWithoutCandidates`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-007、REQ-RCH-002、REQ-RCH-006、REQ-RCH-001
 
 ### TC-IOT-320 pairsNearestLogWithinTolerance
 
@@ -1263,7 +1263,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::pairsNearestLogWithinTolerance`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-321 equidistantTieGoesToEarlierReport
 
@@ -1271,7 +1271,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::equidistantTieGoesToEarlierReport`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-322 beyondToleranceIsUnpaired
 
@@ -1279,7 +1279,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::beyondToleranceIsUnpaired`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-323 emptyCandidatesIsUnpaired
 
@@ -1287,7 +1287,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::emptyCandidatesIsUnpaired`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-324 emptyListYieldsZeros
 
@@ -1295,7 +1295,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::emptyListYieldsZeros`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-325 unpairedExcludedFromErrorStatistics
 
@@ -1303,7 +1303,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::unpairedExcludedFromErrorStatistics`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-326 percentilesDegradeToMaxOnSmallSamples
 
@@ -1311,7 +1311,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::percentilesDegradeToMaxOnSmallSamples`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-007、REQ-RCH-002、REQ-RCH-006、REQ-RCH-001
 
 ### TC-IOT-327 p95ComputedWhenEnoughSamples
 
@@ -1319,7 +1319,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::p95ComputedWhenEnoughSamples`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-328 prototypeExampleIsExcellent
 
@@ -1327,7 +1327,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::prototypeExampleIsExcellent`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-329 excellentRequiresTenPairedSamples
 
@@ -1335,7 +1335,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::excellentRequiresTenPairedSamples`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-330 excellentRequiresPairRateAboveEighty
 
@@ -1343,7 +1343,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::excellentRequiresPairRateAboveEighty`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-331 usableRequiresPairRateAboveSixty
 
@@ -1351,7 +1351,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::usableRequiresPairRateAboveSixty`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-332 fewerThanFourPairedIsUnavailable
 
@@ -1359,7 +1359,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::fewerThanFourPairedIsUnavailable`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-333 p95AboveFortyIsUnavailable
 
@@ -1367,7 +1367,7 @@
 - 前置条件：测试夹具按测试类 @BeforeEach 构造
 - 步骤：运行来源测试 `smart-livestock-server/src/test/java/com/smartlivestock/iot/domain/service/TrajectoryPairingServiceTest.java::p95AboveFortyIsUnavailable`（脚本初稿：以单测作为可执行步骤载体；人工校对时改写为业务步骤）
 - 预期结果：测试断言全部通过；失败即用例不通过
-- 对应 REQ：REQ-IOT-005、REQ-IOT-006、REQ-RCH-001、REQ-RCH-002
+- 对应 REQ：REQ-RCH-007、REQ-RCH-001、REQ-RCH-002、REQ-RCH-012
 
 ### TC-IOT-372 getDeviceGpsHistory_rejectsCapsule
 
