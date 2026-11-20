@@ -2,7 +2,7 @@
 
 > 本文档基于智慧畜牧系统（Smart Livestock）**实际代码实现**编写，描述各角色的登录、认证、权限与端到端旅程。
 > 所有权限/流程声明均标注源文件路径，便于追溯。
-> **基线**：2026-11-01，基于 `master` 核实。上一版 2026-09-20（分支 `nix/219-gateway-position-distance`）；本次差异主要来自：多标识登录（PR #132）与密码策略 8 位四类（2026-10-15 裁决）、超管上下文切换（NIX-306，`SUPER_ADMIN` 第 6 角色）、订阅到期治理（NIX-323/324/325/334）、设备跨租户移交、时区三级链、告警 dismiss 放宽到 WORKER、AppRoute 47→57、[7.7](#77-会话恢复不读-mustchangepassword) 会话恢复缺口已修复。
+> **基线**：2026-11-18（release 769 / 0.7.1），基于 `master` 核实。上一版 2026-11-01；本次差异主要来自：APNs 离线推送（NIX-430，iOS）、发情确认/否认回流与评分解释（NIX-286/390，告警页 estrus_feedback_actions）、分娩预警瓷片与预测页（NIX-381/389）、围栏轨迹生成（PR #148/150/151）；更早差异：多标识登录（PR #132）与密码策略 8 位四类（2026-10-15 裁决）、超管上下文切换（NIX-306，`SUPER_ADMIN` 第 6 角色）、订阅到期治理（NIX-323/324/325/334）、设备跨租户移交、时区三级链、告警 dismiss 放宽到 WORKER、AppRoute 47→57、[7.7](#77-会话恢复不读-mustchangepassword) 会话恢复缺口已修复。
 > 代码现状与旧文档 `docs/customer-journey.md` 之间的差异，集中列入末尾「[已知不一致点](#7-已知不一致点)」一节。
 
 ---
@@ -245,10 +245,10 @@ logout()
 
 ### 3.3 路由定义
 
-**路由表**：`Mobile/mobile_app/lib/app/app_route.dart`（AppRoute 枚举，**57 项**，路径唯一来源；2026-11-01 核实，较 09-20 基线 +10，新增 `/select-context`、`/admin/subscription-overview` 订阅健康度等）
+**路由表**：`Mobile/mobile_app/lib/app/app_route.dart`（AppRoute 枚举，**60 项**，路径唯一来源；2026-11-18 核实，较 11-01 基线 +3，新增 `/twin/calving-predictions` 分娩预测（NIX-389）等）
 
 - **owner / worker 共用（App 端，MainShell 底部导航栏）**：
-  `/ranch`、`/twin`（含 `/twin/fever`、`/twin/fever/:livestockId`、`/twin/digestive[/:id]`、`/twin/estrus[/:id]`、`/twin/epidemic`、`/twin/epidemic/contacts`）、`/alerts`、`/mine`、`/fence`、`/fence/form`、`/fence/conflict`、`/devices`、`/stats`、`/livestock`、`/livestock/:id`、`/mine/gateways`、`/mine/gateways/:gatewayId`、`/mine/coverage-diagnostics`、`/mine/api-auth`、`/mine/help`、`/subscription`、`/subscription/plans`、`/subscription/checkout`。
+  `/ranch`、`/twin`（含 `/twin/fever`、`/twin/fever/:livestockId`、`/twin/digestive[/:id]`、`/twin/estrus[/:id]`、`/twin/epidemic`、`/twin/epidemic/contacts`、`/twin/calving-predictions`（分娩预测，NIX-389，订阅门控））、`/alerts`、`/mine`、`/fence`、`/fence/form`、`/fence/conflict`、`/devices`、`/stats`、`/livestock`、`/livestock/:id`、`/mine/gateways`、`/mine/gateways/:gatewayId`、`/mine/coverage-diagnostics`、`/mine/api-auth`、`/mine/help`、`/subscription`、`/subscription/plans`、`/subscription/checkout`。
 - **owner 独有（守卫层面）**：仅 `/mine/workers`（牧工管理）。其余共用路由对 worker 无前端限制（写操作由 `RolePermission` 控制按钮可用性）。
 - **owner 不可达**：`/admin`（枚举仍存在但**无 GoRoute 注册**，redirect 直接重定向 `/ranch`）。
 - **platform_admin**：`/ops/admin`（+ `create` / `:id` / `:id/edit` 子路由），以及 `/admin/contracts`、`/admin/revenue`、`/admin/subscriptions`、`/admin/deployment-license`、`/admin/api-auth`、`/admin/audit-logs`、`/admin/feature-gates`、`/admin/analytics`、`/admin/tiles`、`/admin/device-profile-rules`、`/admin/gps-quality`、`/admin/telemetry-import`、`/admin/datagen`、`/admin/gateway-overview`。
@@ -687,4 +687,4 @@ ACTIVE ──规则自动恢复──→ AUTO_RESOLVED
 
 ---
 
-*文档基线：2026-11-01 · 基于 `master` 核实。上一版 2026-09-20（分支 `nix/219-gateway-position-distance`）。*
+*文档基线：2026-11-18 · 基于 `master` 核实（release 769 / 0.7.1）。上一版 2026-11-01。*

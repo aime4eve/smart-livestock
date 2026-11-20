@@ -5,9 +5,9 @@
 ## 落位规则（新增文档先看这里）
 
 1. **事实源优先**：代码、Flyway 迁移、部署验证记录优先于任何文档；文档之间的引用以本索引为准。
-2. **落位表**：对外材料 → `marketing/`；交互原型与设计令牌 → `prototypes/`；一次性调研分析 → `research/`；常驻参考 → `reference/`；设计规格 → `superpowers/specs/`；实施计划 → `superpowers/plans/`。
-3. **过程文档带日期前缀**（`YYYY-MM-DD-`）；过时或完成使命的文档移入 `archive/`，不删除（git 历史之外仍需可读的归档）。
-4. 历史快照（如 `archive/features/`、`Mobile/docs/`）不作为当前完成状态的事实来源。
+2. **落位表**：对外材料 → `docs/gtm/smart-livestock/`（GTM 源稿仓，本仓 `marketing/` 仅存指针）；**需求规格（SRS）→ `requirements/`**；**测试用例规格 → `testing/test-cases/`**（测试执行报告仍按批次放 `testing/` 根）；交互原型与设计令牌 → `prototypes/`；一次性调研分析 → `research/`（实证数据文件放 `research/data/`）；常驻参考 → `reference/`；设计规格 → `superpowers/specs/`；实施计划 → `superpowers/plans/`。
+3. **需求与测试用例是常驻事实源，不带版本号**（版本演进记录在文内修订表，git 承载历史）；过程文档带日期前缀（`YYYY-MM-DD-`）；过时或完成使命的文档移入 `archive/`，不删除（git 历史之外仍需可读的归档）。
+4. 历史快照（如 `archive/features/`、`Mobile/docs/`）不作为当前完成状态的事实来源；`Mobile/docs/` 为冻结史料区（2026-03~05 早期需求/设计史料），不再新增，编制 SRS 时作为需求谱系输入盘点。
 
 ## 目录结构
 
@@ -15,22 +15,16 @@
 
 | 文档 | 说明 |
 |------|------|
-| `smart-livestock-prd-v2.4.md` | 产品需求文档 v2.4（功能口径事实源，2026-11-01 基线） |
+| `smart-livestock-prd-v2.5.md` | 产品需求文档 v2.5（功能口径事实源，2026-11-18 基线 / release 769 / 0.7.1） |
 | `system-architecture.md` | 系统架构设计（v2.0，2026-11-01 代码基线） |
 | `customer-journey.md` | 客户旅程（platform_admin → b2b_admin → owner，2026-11-01 基线） |
 | `user-journey-guide.md` | 用户旅程与权限说明（2026-11-01 代码基线） |
 
-### `marketing/` — 对外材料（可直接发客户）
+### `marketing/` — 对外材料（已迁出，指针目录）
 
-| 文档 | 说明 |
-|------|------|
-| `solution-introduction-market-beta.md` | 市场测试版方案介绍（订阅档位 / 试点授权 / 续费模式） |
-| `solution-brochure.html` | 中英双语方案册 |
-| `technical-support-guide.md` | 技术支持 / FAQ |
-| `market-development-kit.md` | 市场开发工具包 |
-| `BoviScout-告警与监测体系说明-Alerts-and-Monitoring-v0.6.1.xlsx` | 告警与监测体系说明（中英双语：体系总览 / 13 种告警定义 / 行为监测 / AI 观察，阈值口径以 master 代码为准，2026-10-22 审计） |
+全部对外/上市材料已于 2026-11-18 收编至 GTM 源稿仓：**[`docs/gtm/smart-livestock/`](../docs/gtm/smart-livestock/)**（本地检出：`/Volumes/DEV/00-products-dev/hkt-smart-agentic/docs/gtm/`）。本目录仅保留指针说明（见 [`marketing/README.md`](marketing/README.md)），目录结构：`brochure/`（方案书、介绍、告警监测说明）、`responses/`（客户答复批次）、根级（market-development-kit、technical-support-guide）。
 
-> 内部交互原型不再放本目录，统一在 `prototypes/`。
+> 新 GTM 材料一律在 docs/gtm 仓编辑（MR + /approve），不要在本工程仓新建；内部交互原型统一在 `prototypes/`。
 
 ### `prototypes/` — 交互原型与设计令牌（内部）
 
@@ -96,6 +90,21 @@ GPS 抖动系列（`gps-jitter-*`、`GPS抖动的行业解决思路`）、瘤胃
 ### `guides/` — 操作指南
 
 `ONBOARDING.md`、`server-setup-guide.md`、`subscription-guide.md`、`tileserver-deployment-guide.md`、`tileserver-gl-implementation-overview.md`。
+
+### 硬件资料地图（跨目录汇总）
+
+> 智慧畜牧（BoviScout）硬件相关资料散落多个目录，此处按设备/用途汇总入口（2026-11-20 增）。**LoRaWAN 网关不纳入本仓硬件资料体系**（已裁决，见规划 v1.1 §11.2 决策 9 相关口径）。
+
+| 类别 | 资料 | 位置 | 说明 |
+|------|------|------|------|
+| 设备协议 | 牛羊追踪器（GAT-100）LoRaWAN 上行 Payload 解析 | [`protocols/LoRaWAN 牛羊追踪器上行 Payload 解析协议定义.md`](protocols/LoRaWAN%20牛羊追踪器上行%20Payload%20解析协议定义.md) | 上行帧格式与解析口径 |
+| 设备协议 | 瘤胃胶囊（RBC-100）LoRaWAN 上行 Payload 解析 | [`protocols/LoRa WAN瘤胃胶囊上行Payload解析协议定义.md`](protocols/LoRa%20WAN瘤胃胶囊上行Payload解析协议定义.md) | 上行帧格式与解析口径 |
+| 元器件规格 | LIS3DHTR 姿态传感器（加速度计）规格书 | [`reference/C15134_…LIS3DHTR_规格书_WJ51889.PDF`](reference/) | RBC-100 加速度计（WJ51889） |
+| 设备培训 | GAT-100 项圈（追踪器）培训手册 | [`training/04-gat-100-cattle-sheep-tracker-training.md`](training/04-gat-100-cattle-sheep-tracker-training.md) | 售前/售后培训 |
+| 设备培训 | RBC-100 瘤胃胶囊培训手册 | [`training/05-rbc-100-rumen-capsule-training.md`](training/05-rbc-100-rumen-capsule-training.md) | 售前/售后培训 |
+| 外部平台接入 | hkt-blade-device 对接：设备 ID 获取指南 | [`../business-platform/hkt-blade-device-docking/docs/device-id-acquisition.md`](../business-platform/hkt-blade-device-docking/docs/device-id-acquisition.md) | blade 设备入网前置 |
+| 外部平台接入 | hkt-blade-device 对接：PoC 设备配置指南 | [`../business-platform/hkt-blade-device-docking/docs/poc-device-configuration-guide.md`](../business-platform/hkt-blade-device-docking/docs/poc-device-configuration-guide.md) | PoC 配置流程 |
+| 接口契约 | hkt-blade-device 设备接口契约 | [`api-contracts/hkt-blade-device-interface.json`](api-contracts/hkt-blade-device-interface.json) | blade 设备数据维度/端点 |
 
 ### `archive/` — 归档
 
