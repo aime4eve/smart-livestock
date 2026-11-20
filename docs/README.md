@@ -5,9 +5,9 @@
 ## 落位规则（新增文档先看这里）
 
 1. **事实源优先**：代码、Flyway 迁移、部署验证记录优先于任何文档；文档之间的引用以本索引为准。
-2. **落位表**：对外材料 → `docs/gtm/smart-livestock/`（GTM 源稿仓，本仓 `marketing/` 仅存指针）；交互原型与设计令牌 → `prototypes/`；一次性调研分析 → `research/`；常驻参考 → `reference/`；设计规格 → `superpowers/specs/`；实施计划 → `superpowers/plans/`。
-3. **过程文档带日期前缀**（`YYYY-MM-DD-`）；过时或完成使命的文档移入 `archive/`，不删除（git 历史之外仍需可读的归档）。
-4. 历史快照（如 `archive/features/`、`Mobile/docs/`）不作为当前完成状态的事实来源。
+2. **落位表**：对外材料 → `docs/gtm/smart-livestock/`（GTM 源稿仓，本仓 `marketing/` 仅存指针）；**需求规格（SRS）→ `requirements/`**；**测试用例规格 → `testing/test-cases/`**（测试执行报告仍按批次放 `testing/` 根）；交互原型与设计令牌 → `prototypes/`；一次性调研分析 → `research/`（实证数据文件放 `research/data/`）；常驻参考 → `reference/`；设计规格 → `superpowers/specs/`；实施计划 → `superpowers/plans/`。
+3. **需求与测试用例是常驻事实源，不带版本号**（版本演进记录在文内修订表，git 承载历史）；过程文档带日期前缀（`YYYY-MM-DD-`）；过时或完成使命的文档移入 `archive/`，不删除（git 历史之外仍需可读的归档）。
+4. 历史快照（如 `archive/features/`、`Mobile/docs/`）不作为当前完成状态的事实来源；`Mobile/docs/` 为冻结史料区（2026-03~05 早期需求/设计史料），不再新增，编制 SRS 时作为需求谱系输入盘点。
 
 ## 目录结构
 
