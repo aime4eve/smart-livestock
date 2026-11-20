@@ -11,11 +11,11 @@ for (const f of reqFiles) {
     if (m) reqs.set(m[1], { id: m[1], title: m[2], source: m[3], pri: m[4], status: m[6], file: f });
   }
 }
-const tcFiles = readdirSync(join(ROOT, "testing/test-cases")).filter(f => /^tc-(server|app)-.*\.md$/.test(f));
+const tcFiles = readdirSync(join(ROOT, "docs/testing/test-cases")).filter(f => /^tc-(server|app)-.*\.md$/.test(f));
 const tcs = [];
 const tickRe = /(NIX-\d+|#\d+|!1[0-9][0-9])/g;
 for (const f of tcFiles) {
-  const text = readFileSync(join(ROOT, "testing/test-cases", f), "utf8");
+  const text = readFileSync(join(ROOT, "docs/testing/test-cases", f), "utf8");
   for (const line of text.split("\n")) {
     const m = line.match(/^\| (TC-[A-Z]+-\d+) \| (.+?) \| (P\d) \| (.+?) \| \`(.*?)\` \|$/);
     if (m) tcs.push({ tc: m[1], name: m[2], pri: m[3], reqList: m[4].split("、").map(s => s.trim()).filter(s => /^REQ-/.test(s)), src: m[5], file: f });
@@ -35,8 +35,8 @@ out.push("# 追溯矩阵（Traceability Matrix）");
 out.push("");
 out.push("> 唯一权威源：本文件由 docs/traceability-matrix.md.gen.mjs 生成（node docs/traceability-matrix.md.gen.mjs），基线 2026-11-21。");
 out.push("> 需求编号体系：docs/requirements/srs-smart-livestock.md（REQ-<域>-NNN，80 条）+ srs-requirements-debt.md（REQ-DEBT-001~010）。");
-out.push("> 用例编号体系：testing/test-cases/（TC-<域>-NNN，2604 条 / 357 文件；域 RCH/IOT/HLT/IDT/CMC/PLT/JRY）。");
-out.push("> 映射口径：TC→REQ 为 testing/test-cases 分册的自动映射列（关键词映射，人工校对后升级为定稿口径）。");
+out.push("> 用例编号体系：docs/testing/test-cases/（TC-<域>-NNN，2604 条 / 357 文件；域 RCH/IOT/HLT/IDT/CMC/PLT/JRY）。");
+out.push("> 映射口径：TC→REQ 为 docs/testing/test-cases 分册的自动映射列（关键词映射，人工校对后升级为定稿口径）。");
 out.push("");
 out.push("## 一、覆盖统计");
 out.push("");
@@ -89,12 +89,12 @@ const byFile = new Map();
 for (const t of tcs) byFile.set(t.file, (byFile.get(t.file) || 0) + 1);
 out.push("| TC 分册 | TC 域 | 用例数 |");
 out.push("|---|---|---|");
-for (const [f, n] of byFile) out.push("| [test-cases/" + f + "](../testing/test-cases/" + f + ") | " + f.replace(/tc-(server|app)-/, "").replace(/\.md/, "") + " | " + n + " |");
+for (const [f, n] of byFile) out.push("| [test-cases/" + f + "](testing/test-cases/" + f + ") | " + f.replace(/tc-(server|app)-/, "").replace(/\.md/, "") + " | " + n + " |");
 out.push("");
 out.push("## 六、维护规则");
 out.push("");
 out.push("1. 新需求合入：先在 docs/requirements/ 登记 REQ-<域>-NNN（四要素齐备），重跑生成脚本刷新本矩阵。");
-out.push("2. 新用例合入：testing/test-cases/ 分册登记 TC-<域>-NNN 并填 REQ 映射列；生成脚本重跑后矩阵同步。");
+out.push("2. 新用例合入：docs/testing/test-cases/ 分册登记 TC-<域>-NNN 并填 REQ 映射列；生成脚本重跑后矩阵同步。");
 out.push("3. REQ 实现/废弃状态变化：改 SRS 模块文件状态列，不改本矩阵手工内容（本文件除本节外均为生成物）。");
 out.push("4. TC→REQ 自动映射为初稿口径；人工校对后更新分册内映射列即可，本矩阵下次生成自动吸收。");
 out.push("5. 工单关闭/PR 合并不单独改本矩阵；工单号在 SRS 来源列维护。");
