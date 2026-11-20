@@ -91,6 +91,21 @@ GPS 抖动系列（`gps-jitter-*`、`GPS抖动的行业解决思路`）、瘤胃
 
 `ONBOARDING.md`、`server-setup-guide.md`、`subscription-guide.md`、`tileserver-deployment-guide.md`、`tileserver-gl-implementation-overview.md`。
 
+### 硬件资料地图（跨目录汇总）
+
+> 智慧畜牧（BoviScout）硬件相关资料散落多个目录，此处按设备/用途汇总入口（2026-11-20 增）。**LoRaWAN 网关不纳入本仓硬件资料体系**（已裁决，见规划 v1.1 §11.2 决策 9 相关口径）。
+
+| 类别 | 资料 | 位置 | 说明 |
+|------|------|------|------|
+| 设备协议 | 牛羊追踪器（GAT-100）LoRaWAN 上行 Payload 解析 | [`protocols/LoRaWAN 牛羊追踪器上行 Payload 解析协议定义.md`](protocols/LoRaWAN%20牛羊追踪器上行%20Payload%20解析协议定义.md) | 上行帧格式与解析口径 |
+| 设备协议 | 瘤胃胶囊（RBC-100）LoRaWAN 上行 Payload 解析 | [`protocols/LoRa WAN瘤胃胶囊上行Payload解析协议定义.md`](protocols/LoRa%20WAN瘤胃胶囊上行Payload解析协议定义.md) | 上行帧格式与解析口径 |
+| 元器件规格 | LIS3DHTR 姿态传感器（加速度计）规格书 | [`reference/C15134_…LIS3DHTR_规格书_WJ51889.PDF`](reference/) | RBC-100 加速度计（WJ51889） |
+| 设备培训 | GAT-100 项圈（追踪器）培训手册 | [`training/04-gat-100-cattle-sheep-tracker-training.md`](training/04-gat-100-cattle-sheep-tracker-training.md) | 售前/售后培训 |
+| 设备培训 | RBC-100 瘤胃胶囊培训手册 | [`training/05-rbc-100-rumen-capsule-training.md`](training/05-rbc-100-rumen-capsule-training.md) | 售前/售后培训 |
+| 外部平台接入 | hkt-blade-device 对接：设备 ID 获取指南 | [`../business-platform/hkt-blade-device-docking/docs/device-id-acquisition.md`](../business-platform/hkt-blade-device-docking/docs/device-id-acquisition.md) | blade 设备入网前置 |
+| 外部平台接入 | hkt-blade-device 对接：PoC 设备配置指南 | [`../business-platform/hkt-blade-device-docking/docs/poc-device-configuration-guide.md`](../business-platform/hkt-blade-device-docking/docs/poc-device-configuration-guide.md) | PoC 配置流程 |
+| 接口契约 | hkt-blade-device 设备接口契约 | [`api-contracts/hkt-blade-device-interface.json`](api-contracts/hkt-blade-device-interface.json) | blade 设备数据维度/端点 |
+
 ### `archive/` — 归档
 
 - `features/`：2026-05/06 历史功能快照（checklist 与前后端功能清单，不反映当前状态）
