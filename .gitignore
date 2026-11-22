@@ -141,3 +141,6 @@ data/datasets/**
 .codex/
 /output/playwright/
 output/drinking-l1/dataset/
+
+# doc-pack 生成物（PDF 成品与构建中间物，不入库；可复现入口 docs/exports/doc-pack.json）
+docs/exports/print-pack/
