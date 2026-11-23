@@ -2,7 +2,10 @@
   "projectTitle": "智慧畜牧 BoviScout",
   "repoRoot": "../..",
   "outDir": "print-pack",
-  "gtm": { "root": "/Volumes/DEV/00-products-dev/hkt-smart-agentic/docs/gtm", "sub": "smart-livestock" },
+  "gtm": {
+    "root": "/Volumes/DEV/00-products-dev/hkt-smart-agentic/docs/gtm",
+    "sub": "smart-livestock"
+  },
   "mermaidSources": [
     "docs/product/smart-livestock-prd-v2.5.md",
     "docs/product/system-architecture.md",
@@ -10,117 +13,371 @@
   ],
   "volumes": [
     {
-      "id": "vol1", "file": "01-智慧畜牧产品需求册",
-      "title": "智慧畜牧产品需求册", "subtitle": "SRS · PRD v2.5 · 功能需求 · 需求债盘点",
+      "id": "vol1",
+      "file": "01-智慧畜牧产品需求册",
+      "title": "智慧畜牧产品需求册",
+      "subtitle": "SRS · PRD v2.5 · 功能需求 · 需求债盘点",
       "parts": [
-        { "title": "需求总纲", "src": "repo:docs/requirements/srs-smart-livestock.md" },
-        { "title": "牧场与物联网域", "src": "repo:docs/requirements/srs-module-ranch-iot.md" },
-        { "title": "健康与 AI 域", "src": "repo:docs/requirements/srs-module-health-ai.md" },
-        { "title": "身份与商业域", "src": "repo:docs/requirements/srs-module-identity-commerce.md" },
-        { "title": "平台与非功能需求", "src": "repo:docs/requirements/srs-module-platform-nfr.md" },
-        { "title": "产品需求文档 PRD v2.5", "src": "repo:docs/product/smart-livestock-prd-v2.5.md" },
-        { "title": "功能需求", "src": "glob:docs/superpowers/requirements/*.md", "titlePrefix": "功能需求：" },
-        { "title": "需求债盘点", "src": "repo:docs/requirements/srs-requirements-debt.md" }
+        {
+          "title": "需求总纲",
+          "src": "repo:docs/requirements/srs-smart-livestock.md"
+        },
+        {
+          "title": "牧场与物联网域",
+          "src": "repo:docs/requirements/srs-module-ranch-iot.md"
+        },
+        {
+          "title": "健康与 AI 域",
+          "src": "repo:docs/requirements/srs-module-health-ai.md"
+        },
+        {
+          "title": "身份与商业域",
+          "src": "repo:docs/requirements/srs-module-identity-commerce.md"
+        },
+        {
+          "title": "平台与非功能需求",
+          "src": "repo:docs/requirements/srs-module-platform-nfr.md"
+        },
+        {
+          "title": "产品需求文档 PRD v2.5",
+          "src": "repo:docs/product/smart-livestock-prd-v2.5.md"
+        },
+        {
+          "title": "功能需求",
+          "src": "glob:docs/superpowers/requirements/*.md",
+          "titlePrefix": "功能需求："
+        },
+        {
+          "title": "需求债盘点",
+          "src": "repo:docs/requirements/srs-requirements-debt.md"
+        }
       ],
-      "excluded": ["docs/requirements/README.md（目录导航）", "docs/superpowers/plans/ 67 份实施计划（已编入第 06 册实施计划册）"]
-    },
-    {
-      "id": "vol2", "file": "02-智慧畜牧系统设计册",
-      "title": "智慧畜牧系统设计册", "subtitle": "系统架构 · API 契约 · 功能设计规格 78 篇 · 高保真原型 · 旅程与界面走查",
-      "sanitize": "light",
-      "parts": [
-        { "title": "架构总览图", "src": "@gen:arch" },
-        { "title": "系统架构", "src": "repo:docs/product/system-architecture.md" },
-        { "title": "工程与代码总览", "src": "repo:docs/reference/project-overview.md" },
-        { "title": "API 契约：api-overview", "src": "repo:docs/api-contracts/api-overview.md" },
-        { "title": "API 契约：app-api", "src": "repo:docs/api-contracts/app-api.md" },
-        { "title": "API 契约：admin-api", "src": "repo:docs/api-contracts/admin-api.md" },
-        { "title": "API 契约：open-api", "src": "repo:docs/api-contracts/open-api.md" },
-        { "title": "API 契约：agentic-platform", "src": "repo:docs/api-contracts/agentic-platform.md" },
-        { "title": "API 契约：migration-guide", "src": "repo:docs/api-contracts/migration-guide.md" },
-        { "title": "API 契约：changelog", "src": "repo:docs/api-contracts/changelog.md" },
-        { "title": "功能设计规格", "src": "glob:docs/superpowers/specs/*.md", "titlePrefix": "设计规格：" },
-        { "title": "设计令牌", "src": "repo:docs/design-tokens.md" },
-        { "title": "客户旅程", "src": "repo:docs/product/customer-journey.md" },
-        { "title": "用户旅程指南", "src": "repo:docs/product/user-journey-guide.md" },
-        { "title": "用户旅程与数据流总览图", "src": "@gen:journey" },
-        { "title": "高保真原型汇编", "src": "@gen:protos" },
-        { "title": "界面走查截图", "src": "@gen:screens" }
+      "excluded": [
+        "docs/requirements/README.md（目录导航）",
+        "docs/superpowers/plans/ 67 份实施计划（已编入第 06 册实施计划册）"
       ]
     },
     {
-      "id": "vol3", "file": "03-智慧畜牧系统测试册",
-      "title": "智慧畜牧系统测试册", "subtitle": "测试用例规格 2604 条 · 全量合订",
+      "id": "vol2",
+      "file": "02-智慧畜牧系统设计册",
+      "title": "智慧畜牧系统设计册",
+      "subtitle": "系统架构 · API 契约 · 功能设计规格 78 篇 · 高保真原型 · 旅程与界面走查",
       "sanitize": "light",
       "parts": [
-        { "title": "测试用例说明", "src": "repo:docs/testing/test-cases/README.md" },
-        { "title": "测试用例分册", "src": "glob:docs/testing/test-cases/tc-*.md", "titlePrefix": "" },
-        { "title": "需求追溯矩阵", "src": "repo:docs/traceability-matrix.md" },
-        { "title": "E2E 覆盖审计（第七轮）", "src": "repo:docs/reference/e2e-test-coverage-audit.md" }
+        {
+          "title": "架构总览图",
+          "src": "@gen:arch"
+        },
+        {
+          "title": "系统架构",
+          "src": "repo:docs/product/system-architecture.md"
+        },
+        {
+          "title": "工程与代码总览",
+          "src": "repo:docs/reference/project-overview.md"
+        },
+        {
+          "title": "API 契约：api-overview",
+          "src": "repo:docs/api-contracts/api-overview.md"
+        },
+        {
+          "title": "API 契约：app-api",
+          "src": "repo:docs/api-contracts/app-api.md"
+        },
+        {
+          "title": "API 契约：admin-api",
+          "src": "repo:docs/api-contracts/admin-api.md"
+        },
+        {
+          "title": "API 契约：open-api",
+          "src": "repo:docs/api-contracts/open-api.md"
+        },
+        {
+          "title": "API 契约：agentic-platform",
+          "src": "repo:docs/api-contracts/agentic-platform.md"
+        },
+        {
+          "title": "API 契约：migration-guide",
+          "src": "repo:docs/api-contracts/migration-guide.md"
+        },
+        {
+          "title": "API 契约：changelog",
+          "src": "repo:docs/api-contracts/changelog.md"
+        },
+        {
+          "title": "功能设计规格",
+          "src": "glob:docs/superpowers/specs/*.md",
+          "titlePrefix": "设计规格："
+        },
+        {
+          "title": "设计令牌",
+          "src": "repo:docs/design-tokens.md"
+        },
+        {
+          "title": "客户旅程",
+          "src": "repo:docs/product/customer-journey.md"
+        },
+        {
+          "title": "用户旅程指南",
+          "src": "repo:docs/product/user-journey-guide.md"
+        },
+        {
+          "title": "用户旅程与数据流总览图",
+          "src": "@gen:journey"
+        },
+        {
+          "title": "高保真原型汇编",
+          "src": "@gen:protos"
+        },
+        {
+          "title": "界面走查截图",
+          "src": "@gen:screens"
+        }
       ]
     },
     {
-      "id": "vol4", "file": "04-智慧畜牧部署维护册",
-      "title": "智慧畜牧部署维护册", "subtitle": "部署 · 运维 · 开通 · 手册（脱敏版）",
+      "id": "vol3",
+      "file": "03-智慧畜牧系统测试册",
+      "title": "智慧畜牧系统测试册",
+      "subtitle": "测试用例规格 2604 条 · 全量合订",
+      "sanitize": "light",
+      "parts": [
+        {
+          "title": "测试用例说明",
+          "src": "repo:docs/testing/test-cases/README.md"
+        },
+        {
+          "title": "测试用例分册",
+          "src": "glob:docs/testing/test-cases/tc-*.md",
+          "titlePrefix": ""
+        },
+        {
+          "title": "需求追溯矩阵",
+          "src": "repo:docs/traceability-matrix.md"
+        },
+        {
+          "title": "E2E 覆盖审计（第七轮）",
+          "src": "repo:docs/reference/e2e-test-coverage-audit.md"
+        }
+      ]
+    },
+    {
+      "id": "vol4",
+      "file": "04-智慧畜牧部署维护册",
+      "title": "智慧畜牧部署维护册",
+      "subtitle": "部署 · 运维 · 开通 · 手册（脱敏版）",
       "sanitize": "full",
       "parts": [
-        { "title": "部署与运维总览", "src": "repo:docs/reference/deployment.md" },
-        { "title": "服务器搭建指南", "src": "repo:docs/guides/server-setup-guide.md" },
-        { "title": "新仓上手指南", "src": "repo:docs/guides/ONBOARDING.md" },
-        { "title": "租户开通指南", "src": "repo:docs/deployment/tenant-onboarding-guide.md" },
-        { "title": "发版安装指南", "src": "repo:docs/deployment/release-install-guide.md" },
-        { "title": "发版部署手册", "src": "repo:docs/deployment/release-deployment-playbook.md" },
-        { "title": "发版运维手册", "src": "repo:docs/deployment/release-operations-guide.md" },
-        { "title": "发版检查清单", "src": "repo:docs/deployment/release-checklist.md" },
-        { "title": "License 签发部署", "src": "repo:docs/deployment/license-issuer-deploy.md" },
-        { "title": "瓦片服务部署指南", "src": "repo:docs/guides/tileserver-deployment-guide.md" },
-        { "title": "iOS 构建安装指南", "src": "repo:docs/guides/ios-build-install-guide.md" },
-        { "title": "订阅与套餐指南", "src": "repo:docs/guides/subscription-guide.md" },
-        { "title": "运维登记单", "src": "repo:docs/guides/34.智慧畜牧-运维登记单.md" },
-        { "title": "SaaS App 用户手册", "src": "repo:docs/guides/GUIDE-LVS-001-livestock-saas-app-user-manual.md" }
+        {
+          "title": "部署与运维总览",
+          "src": "repo:docs/reference/deployment.md"
+        },
+        {
+          "title": "服务器搭建指南",
+          "src": "repo:docs/guides/server-setup-guide.md"
+        },
+        {
+          "title": "新仓上手指南",
+          "src": "repo:docs/guides/ONBOARDING.md"
+        },
+        {
+          "title": "租户开通指南",
+          "src": "repo:docs/deployment/tenant-onboarding-guide.md"
+        },
+        {
+          "title": "发版安装指南",
+          "src": "repo:docs/deployment/release-install-guide.md"
+        },
+        {
+          "title": "发版部署手册",
+          "src": "repo:docs/deployment/release-deployment-playbook.md"
+        },
+        {
+          "title": "发版运维手册",
+          "src": "repo:docs/deployment/release-operations-guide.md"
+        },
+        {
+          "title": "发版检查清单",
+          "src": "repo:docs/deployment/release-checklist.md"
+        },
+        {
+          "title": "License 签发部署",
+          "src": "repo:docs/deployment/license-issuer-deploy.md"
+        },
+        {
+          "title": "瓦片服务部署指南",
+          "src": "repo:docs/guides/tileserver-deployment-guide.md"
+        },
+        {
+          "title": "iOS 构建安装指南",
+          "src": "repo:docs/guides/ios-build-install-guide.md"
+        },
+        {
+          "title": "订阅与套餐指南",
+          "src": "repo:docs/guides/subscription-guide.md"
+        },
+        {
+          "title": "运维登记单",
+          "src": "repo:docs/guides/34.智慧畜牧-运维登记单.md"
+        },
+        {
+          "title": "SaaS App 用户手册",
+          "src": "repo:docs/guides/GUIDE-LVS-001-livestock-saas-app-user-manual.md"
+        }
       ],
-      "excluded": ["docs/deployment/86-223-upgrade-handoff-prompt.md（一次性交接提示词，不入册）", "docs/guides/tileserver-gl-implementation-overview.md（开发实现说明，不入册）", "docs/reference/lessons-learned.md（智能体经验库，不入册）"]
+      "excluded": [
+        "docs/deployment/86-223-upgrade-handoff-prompt.md（一次性交接提示词，不入册）",
+        "docs/guides/tileserver-gl-implementation-overview.md（开发实现说明，不入册）",
+        "docs/reference/lessons-learned.md（智能体经验库，不入册）"
+      ]
     },
     {
-      "id": "vol5", "file": "05-智慧畜牧上市材料册",
-      "title": "智慧畜牧上市材料册", "subtitle": "GTM 全编 · 中英对照（含内部条目）",
+      "id": "vol5",
+      "file": "05-智慧畜牧上市材料册",
+      "title": "智慧畜牧上市材料册",
+      "subtitle": "GTM 全编 · 中英对照（含内部条目）",
       "gtmSource": true,
       "parts": [
-        { "title": "GTM-LVS-001 SmartLivestock 市场技术支持手册（内部）", "src": "gtm:technical-support-guide.md" },
-        { "title": "GTM-LVS-002 SmartLivestock 市场拓展工具包（内部）", "src": "gtm:market-development-kit.md" },
-        { "title": "GTM-LVS-003 智慧畜牧解决方案介绍（市场测试版）", "src": "gtm:brochure/solution-introduction-market-beta.md" },
-        { "title": "GTM-LVS-004 Solution One-Pager (EN)", "src": "gtm:one-pager/solution-one-pager-en.md" },
-        { "title": "GTM-LVS-006 Technical Integration & Continuity Checklist — Response (EN)", "src": "gtm:responses/HKT_Technical_Continuity_Checklist_Response_EN-v1.1.md" },
-        { "title": "GTM-LVS-007 技术集成与连续性检查清单——答复稿", "src": "gtm:responses/HKT技术集成与连续性检查清单-答复-v1.1.md" },
-        { "title": "GTM-LVS-008 Rumen Bolus Retention — Design Basis & Industry Evidence (EN)", "src": "gtm:responses/customer-response-2026-11/01-Rumen-Bolus-Retention-Design-Basis-and-Industry-Evidence.md" },
-        { "title": "GTM-LVS-009 瘤胃胶囊滞留——设计依据与行业证据", "src": "gtm:responses/customer-response-2026-11/01-瘤胃胶囊滞留-设计依据与行业证据.md" },
-        { "title": "GTM-LVS-010 Joint Field Pilot Study — Protocol (EN)", "src": "gtm:responses/customer-response-2026-11/02-Joint-Field-Pilot-Study-Protocol.md" },
-        { "title": "GTM-LVS-011 联合田间试点研究——研究方案", "src": "gtm:responses/customer-response-2026-11/02-联合田间试点研究-研究方案.md" },
-        { "title": "GTM-LVS-012 Monitoring & Alerting Capability Demonstration (EN)", "src": "gtm:responses/customer-response-2026-11/03-BoviScout-Monitoring-and-Alerting-Capability-Demonstration.md" },
-        { "title": "GTM-LVS-013 监测与告警能力演示", "src": "gtm:responses/customer-response-2026-11/03-BoviScout-监测与告警能力演示.md" },
-        { "title": "GTM-LVS-014 Health & Estrus Detection — Methodology & Algorithm (EN)", "src": "gtm:responses/customer-response-2026-11/04-Health-and-Estrus-Detection-Methodology-and-Algorithm-Specification.md" },
-        { "title": "GTM-LVS-015 健康与发情检测——方法论与算法规格说明", "src": "gtm:responses/customer-response-2026-11/04-健康与发情检测-方法论与算法规格说明.md" },
-        { "title": "GTM-LVS-016 GAT-100 / RBC-100 设备规格对标报告 v1（内部）", "src": "gtm:docs/benchmark/2026-11-20-device-spec-benchmark-gat100-rbc100-v1.md" },
-        { "title": "GTM-LVS-017 GAT-100 LoRaWAN GPS Animal Tracker — Datasheet (EN)", "src": "gtm:device-specs/GAT-100-animal-tracker-device-spec-en.md" },
-        { "title": "GTM-LVS-018 RBC-100 LoRaWAN Rumen Bio-Capsule — Datasheet (EN)", "src": "gtm:device-specs/RBC-100-rumen-bio-capsule-device-spec-en.md" },
-        { "title": "GTM-LVS-019 Customer & Channel FAQ (EN/中文对照)", "src": "gtm:faq/smart-livestock-faq-v1.md" },
-        { "title": "GTM-LVS-020 ROI 话术（内部销售/渠道）", "src": "gtm:roi-talktrack/smart-livestock-roi-talktrack-v1.md" },
-        { "title": "GTM-LVS-021 告警与监测体系说明 v0.6.1 口径复核（内部）", "src": "gtm:docs/reviews/2026-11-20-alerts-monitoring-v061-code-recheck.md" },
-        { "title": "GTM-LVS-022 Product Whitepaper (EN, draft)", "src": "gtm:brochure/whitepaper/boviscout-whitepaper-en-v1.md" },
-        { "title": "GTM-LVS-023 产品白皮书（中文对照, draft）", "src": "gtm:brochure/whitepaper/boviscout-whitepaper-zh-v1.md" },
-        { "title": "GTM-LVS-024 Customer Troubleshooting Guide (EN, draft)", "src": "gtm:support/boviscout-troubleshooting-guide-en-v1.md" },
-        { "title": "GTM-LVS-025 客户故障排查手册（中文对照, draft）", "src": "gtm:support/boviscout-troubleshooting-guide-zh-v1.md" },
-        { "title": "GTM-LVS-026 Service Level Agreement Template (EN, draft)", "src": "gtm:support/boviscout-sla-template-en-v1.md" },
-        { "title": "GTM-LVS-027 SLA 模板（中文对照, draft）", "src": "gtm:support/boviscout-sla-template-zh-v1.md" },
-        { "title": "GTM-LVS-028 Support Workflow (EN, draft)", "src": "gtm:support/boviscout-support-workflow-en-v1.md" },
-        { "title": "GTM-LVS-029 客服工单流程（中文对照, draft）", "src": "gtm:support/boviscout-support-workflow-zh-v1.md" },
-        { "title": "官网文案 LoRaWAN vs Cellular vs Satellite", "src": "gtm:website-copy/iot-cattle-tracking-lorawan-vs-cellular-vs-satellite.md" },
-        { "title": "培训：智慧畜牧解决方案赋能指南", "src": "repo:docs/training/00-smart-livestock-solution-enablement-guide.md" },
-        { "title": "培训：售前（海外）手册", "src": "repo:docs/training/01-presales-overseas-playbook.md" },
-        { "title": "培训：售后支持手册", "src": "repo:docs/training/02-after-sales-support-playbook.md" },
-        { "title": "培训：平台操作培训", "src": "repo:docs/training/03-smart-livestock-platform-training.md" },
-        { "title": "培训：GAT-100 牛羊追踪器培训", "src": "repo:docs/training/04-gat-100-cattle-sheep-tracker-training.md" },
-        { "title": "培训：RBC-100 瘤胃胶囊培训", "src": "repo:docs/training/05-rbc-100-rumen-capsule-training.md" }
+        {
+          "title": "GTM-LVS-001 SmartLivestock 市场技术支持手册（内部）",
+          "src": "gtm:technical-support-guide.md"
+        },
+        {
+          "title": "GTM-LVS-002 SmartLivestock 市场拓展工具包（内部）",
+          "src": "gtm:market-development-kit.md"
+        },
+        {
+          "title": "GTM-LVS-003 智慧畜牧解决方案介绍（市场测试版）",
+          "src": "gtm:brochure/solution-introduction-market-beta.md"
+        },
+        {
+          "title": "GTM-LVS-004 Solution One-Pager (EN)",
+          "src": "gtm:one-pager/solution-one-pager-en.md"
+        },
+        {
+          "title": "GTM-LVS-006 Technical Integration & Continuity Checklist — Response (EN)",
+          "src": "gtm:responses/HKT_Technical_Continuity_Checklist_Response_EN-v1.1.md"
+        },
+        {
+          "title": "GTM-LVS-007 技术集成与连续性检查清单——答复稿",
+          "src": "gtm:responses/HKT技术集成与连续性检查清单-答复-v1.1.md"
+        },
+        {
+          "title": "GTM-LVS-008 Rumen Bolus Retention — Design Basis & Industry Evidence (EN)",
+          "src": "gtm:responses/customer-response-2026-11/01-Rumen-Bolus-Retention-Design-Basis-and-Industry-Evidence.md"
+        },
+        {
+          "title": "GTM-LVS-009 瘤胃胶囊滞留——设计依据与行业证据",
+          "src": "gtm:responses/customer-response-2026-11/01-瘤胃胶囊滞留-设计依据与行业证据.md"
+        },
+        {
+          "title": "GTM-LVS-010 Joint Field Pilot Study — Protocol (EN)",
+          "src": "gtm:responses/customer-response-2026-11/02-Joint-Field-Pilot-Study-Protocol.md"
+        },
+        {
+          "title": "GTM-LVS-011 联合田间试点研究——研究方案",
+          "src": "gtm:responses/customer-response-2026-11/02-联合田间试点研究-研究方案.md"
+        },
+        {
+          "title": "GTM-LVS-012 Monitoring & Alerting Capability Demonstration (EN)",
+          "src": "gtm:responses/customer-response-2026-11/03-BoviScout-Monitoring-and-Alerting-Capability-Demonstration.md"
+        },
+        {
+          "title": "GTM-LVS-013 监测与告警能力演示",
+          "src": "gtm:responses/customer-response-2026-11/03-BoviScout-监测与告警能力演示.md"
+        },
+        {
+          "title": "GTM-LVS-014 Health & Estrus Detection — Methodology & Algorithm (EN)",
+          "src": "gtm:responses/customer-response-2026-11/04-Health-and-Estrus-Detection-Methodology-and-Algorithm-Specification.md"
+        },
+        {
+          "title": "GTM-LVS-015 健康与发情检测——方法论与算法规格说明",
+          "src": "gtm:responses/customer-response-2026-11/04-健康与发情检测-方法论与算法规格说明.md"
+        },
+        {
+          "title": "GTM-LVS-016 GAT-100 / RBC-100 设备规格对标报告 v1（内部）",
+          "src": "gtm:docs/benchmark/2026-11-20-device-spec-benchmark-gat100-rbc100-v1.md"
+        },
+        {
+          "title": "GTM-LVS-017 GAT-100 LoRaWAN GPS Animal Tracker — Datasheet (EN)",
+          "src": "gtm:device-specs/GAT-100-animal-tracker-device-spec-en.md"
+        },
+        {
+          "title": "GTM-LVS-018 RBC-100 LoRaWAN Rumen Bio-Capsule — Datasheet (EN)",
+          "src": "gtm:device-specs/RBC-100-rumen-bio-capsule-device-spec-en.md"
+        },
+        {
+          "title": "GTM-LVS-019 Customer & Channel FAQ (EN/中文对照)",
+          "src": "gtm:faq/smart-livestock-faq-v1.md"
+        },
+        {
+          "title": "GTM-LVS-020 ROI 话术（内部销售/渠道）",
+          "src": "gtm:roi-talktrack/smart-livestock-roi-talktrack-v1.md"
+        },
+        {
+          "title": "GTM-LVS-021 告警与监测体系说明 v0.6.1 口径复核（内部）",
+          "src": "gtm:docs/reviews/2026-11-20-alerts-monitoring-v061-code-recheck.md"
+        },
+        {
+          "title": "GTM-LVS-022 Product Whitepaper (EN, draft)",
+          "src": "gtm:brochure/whitepaper/boviscout-whitepaper-en-v1.md"
+        },
+        {
+          "title": "GTM-LVS-023 产品白皮书（中文对照, draft）",
+          "src": "gtm:brochure/whitepaper/boviscout-whitepaper-zh-v1.md"
+        },
+        {
+          "title": "GTM-LVS-024 Customer Troubleshooting Guide (EN, draft)",
+          "src": "gtm:support/boviscout-troubleshooting-guide-en-v1.md"
+        },
+        {
+          "title": "GTM-LVS-025 客户故障排查手册（中文对照, draft）",
+          "src": "gtm:support/boviscout-troubleshooting-guide-zh-v1.md"
+        },
+        {
+          "title": "GTM-LVS-026 Service Level Agreement Template (EN, draft)",
+          "src": "gtm:support/boviscout-sla-template-en-v1.md"
+        },
+        {
+          "title": "GTM-LVS-027 SLA 模板（中文对照, draft）",
+          "src": "gtm:support/boviscout-sla-template-zh-v1.md"
+        },
+        {
+          "title": "GTM-LVS-028 Support Workflow (EN, draft)",
+          "src": "gtm:support/boviscout-support-workflow-en-v1.md"
+        },
+        {
+          "title": "GTM-LVS-029 客服工单流程（中文对照, draft）",
+          "src": "gtm:support/boviscout-support-workflow-zh-v1.md"
+        },
+        {
+          "title": "官网文案 LoRaWAN vs Cellular vs Satellite",
+          "src": "gtm:website-copy/iot-cattle-tracking-lorawan-vs-cellular-vs-satellite.md"
+        },
+        {
+          "title": "培训：智慧畜牧解决方案赋能指南",
+          "src": "repo:docs/training/00-smart-livestock-solution-enablement-guide.md"
+        },
+        {
+          "title": "培训：售前（海外）手册",
+          "src": "repo:docs/training/01-presales-overseas-playbook.md"
+        },
+        {
+          "title": "培训：售后支持手册",
+          "src": "repo:docs/training/02-after-sales-support-playbook.md"
+        },
+        {
+          "title": "培训：平台操作培训",
+          "src": "repo:docs/training/03-smart-livestock-platform-training.md"
+        },
+        {
+          "title": "培训：GAT-100 牛羊追踪器培训",
+          "src": "repo:docs/training/04-gat-100-cattle-sheep-tracker-training.md"
+        },
+        {
+          "title": "培训：RBC-100 瘤胃胶囊培训",
+          "src": "repo:docs/training/05-rbc-100-rumen-capsule-training.md"
+        }
       ],
       "pdfAppendix": [
         "brochure/BoviScout-告警与监测体系说明-Alerts-and-Monitoring-v0.6.1.pdf",
@@ -131,104 +388,328 @@
       ]
     },
     {
-      "id": "vol6", "file": "06-智慧畜牧实施计划册",
-      "title": "智慧畜牧实施计划册", "subtitle": "实施计划 67 篇 · 任务分解与验证步骤（2026-05 ~ 2026-11）",
+      "id": "vol6",
+      "file": "06-智慧畜牧实施计划册",
+      "title": "智慧畜牧实施计划册",
+      "subtitle": "实施计划 67 篇 · 任务分解与验证步骤（2026-05 ~ 2026-11）",
       "sanitize": "light",
       "parts": [
-        { "title": "实施计划", "src": "glob:docs/superpowers/plans/*.md", "titlePrefix": "实施计划：" }
+        {
+          "title": "实施计划",
+          "src": "glob:docs/superpowers/plans/*.md",
+          "titlePrefix": "实施计划："
+        }
       ],
-      "excluded": ["docs/superpowers/plans/spec-cards/（非 Markdown 卡片素材，不入册）"]
+      "excluded": [
+        "docs/superpowers/plans/spec-cards/（非 Markdown 卡片素材，不入册）"
+      ]
     },
     {
-      "id": "vol7", "file": "07-智慧畜牧研发日志册",
-      "title": "智慧畜牧研发日志册", "subtitle": "两仓 git 历史逐日日志 · AI 逐日叙事+提交明细（2025-04 ~ 2026-11）",
+      "id": "vol7",
+      "file": "07-智慧畜牧研发日志册",
+      "title": "智慧畜牧研发日志册",
+      "subtitle": "两仓 git 历史逐日日志 · AI 逐日叙事+提交明细（2025-04 ~ 2026-11）",
       "parts": [
-        { "title": "2025-04 研发日志", "src": "@devlog:2025-04" },
-        { "title": "2025-05 研发日志", "src": "@devlog:2025-05" },
-        { "title": "2026-04 研发日志", "src": "@devlog:2026-04" },
-        { "title": "2026-05 研发日志", "src": "@devlog:2026-05" },
-        { "title": "2026-06 研发日志", "src": "@devlog:2026-06" },
-        { "title": "2026-07 研发日志", "src": "@devlog:2026-07" },
-        { "title": "2026-08 研发日志", "src": "@devlog:2026-08" },
-        { "title": "2026-09 研发日志", "src": "@devlog:2026-09" },
-        { "title": "2026-10 研发日志", "src": "@devlog:2026-10" },
-        { "title": "2026-11 研发日志", "src": "@devlog:2026-11" }
+        {
+          "title": "2025-04 研发日志",
+          "src": "@devlog:2025-04"
+        },
+        {
+          "title": "2025-05 研发日志",
+          "src": "@devlog:2025-05"
+        },
+        {
+          "title": "2026-04 研发日志",
+          "src": "@devlog:2026-04"
+        },
+        {
+          "title": "2026-05 研发日志",
+          "src": "@devlog:2026-05"
+        },
+        {
+          "title": "2026-06 研发日志",
+          "src": "@devlog:2026-06"
+        },
+        {
+          "title": "2026-07 研发日志",
+          "src": "@devlog:2026-07"
+        },
+        {
+          "title": "2026-08 研发日志",
+          "src": "@devlog:2026-08"
+        },
+        {
+          "title": "2026-09 研发日志",
+          "src": "@devlog:2026-09"
+        },
+        {
+          "title": "2026-10 研发日志",
+          "src": "@devlog:2026-10"
+        },
+        {
+          "title": "2026-11 研发日志",
+          "src": "@devlog:2026-11"
+        }
       ],
-      "excluded": ["merge 提交不入册（已滤）；无提交的自然日不设节；GTM 仓历史仅 2026-11-17 起（36 条）"]
+      "excluded": [
+        "merge 提交不入册（已滤）；无提交的自然日不设节；GTM 仓历史仅 2026-11-17 起（36 条）"
+      ]
     }
   ],
   "gen": {
     "arch": [
-      { "file": "business-v24.png", "caption": "业务架构图 v2.4" },
-      { "file": "technical-v24.png", "caption": "技术架构图 v2.4" }
+      {
+        "file": "business-v24.png",
+        "caption": "业务架构图 v2.4"
+      },
+      {
+        "file": "technical-v24.png",
+        "caption": "技术架构图 v2.4"
+      }
     ],
     "archIntro": "定稿架构图 v2.4（docs/product/），与 PRD v2.5 文字口径配套阅读。",
     "diagrams": [
-      { "file": "user-journey-owner.visual-check.1440x900.light.png", "caption": "牧场主（Owner）角色旅程" },
-      { "file": "user-journey-worker.visual-check.1440x900.light.png", "caption": "牧工（Worker）角色旅程" },
-      { "file": "user-journey-platform-admin.visual-check.1440x900.light.png", "caption": "平台管理员旅程" },
-      { "file": "user-journey-b2b-admin.visual-check.1440x900.light.png", "caption": "B 端管理员旅程" },
-      { "file": "user-journey-super-admin.visual-check.1440x900.light.png", "caption": "超级管理员旅程" },
-      { "file": "user-journey-api-consumer.visual-check.1440x900.light.png", "caption": "API 消费方旅程" },
-      { "file": "telemetry-data-flow.visual-check.1440x900.light.png", "caption": "遥测数据流" }
+      {
+        "file": "user-journey-owner.visual-check.1440x900.light.png",
+        "caption": "牧场主（Owner）角色旅程"
+      },
+      {
+        "file": "user-journey-worker.visual-check.1440x900.light.png",
+        "caption": "牧工（Worker）角色旅程"
+      },
+      {
+        "file": "user-journey-platform-admin.visual-check.1440x900.light.png",
+        "caption": "平台管理员旅程"
+      },
+      {
+        "file": "user-journey-b2b-admin.visual-check.1440x900.light.png",
+        "caption": "B 端管理员旅程"
+      },
+      {
+        "file": "user-journey-super-admin.visual-check.1440x900.light.png",
+        "caption": "超级管理员旅程"
+      },
+      {
+        "file": "user-journey-api-consumer.visual-check.1440x900.light.png",
+        "caption": "API 消费方旅程"
+      },
+      {
+        "file": "telemetry-data-flow.visual-check.1440x900.light.png",
+        "caption": "遥测数据流"
+      }
     ],
     "screensIntro": "截图环境：内网 dev 栈（19080 端口），账号=牧场主种子账号，租户=Main Ranch；标注「基线」的为 2026-11-04 实拍补位。IP 已按脱敏口径展示。",
     "screens": [
-      { "file": "owner/01-home.png", "caption": "牧场概览（Main Ranch，2026-11-21 dev 实拍）：牲畜地图、健康率、告警与待处理事项" },
-      { "file": "owner/04-health-rumination.png", "caption": "健康管理——消化/反刍监测入口" },
-      { "file": "owner/06-alerts.png", "caption": "告警中心列表" },
-      { "file": "owner/07-fence-map.png", "caption": "围栏地图：电子围栏多边形与牛只实时定位" },
-      { "file": "owner/08-ranch.png", "caption": "牧场管理页" },
-      { "file": "owner/09-cattle-detail.png", "caption": "牛只详情弹层（HKT19）：定位、健康状态、通讯距离与关联告警" },
-      { "file": "owner/12-cattle-list.png", "caption": "牲畜管理列表（我的 → 牲畜管理）" },
-      { "file": "owner/11-profile.png", "caption": "「我的」页面：账户、工具入口与套餐信息" },
-      { "file": "owner/14-devices.png", "caption": "设备管理：119 台设备、RSSI/电量与操作入口" },
-      { "file": "owner/16-gateway.png", "caption": "网关位置登记" },
-      { "file": "baseline-2026-11-04/05b-fever-detail-learned.png", "caption": "发热详情页（2026-11-04 基线）" },
-      { "file": "baseline-2026-11-04/07b-estrus-list.png", "caption": "发情监测列表（2026-11-04 基线）" },
-      { "file": "baseline-2026-11-04/08b-estrus-detail-86.png", "caption": "发情详情页（2026-11-04 基线）" },
-      { "file": "baseline-2026-11-04/09b-alerts-page.png", "caption": "告警中心（2026-11-04 基线）" },
-      { "file": "baseline-2026-11-04/11-livestock-detail-86.png", "caption": "牛只详情页整页（2026-11-04 基线）" }
+      {
+        "file": "owner/01-home.png",
+        "caption": "牧场概览（Main Ranch，2026-11-21 dev 实拍）：牲畜地图、健康率、告警与待处理事项"
+      },
+      {
+        "file": "owner/04-health-rumination.png",
+        "caption": "健康管理——消化/反刍监测入口"
+      },
+      {
+        "file": "owner/06-alerts.png",
+        "caption": "告警中心列表"
+      },
+      {
+        "file": "owner/07-fence-map.png",
+        "caption": "围栏地图：电子围栏多边形与牛只实时定位"
+      },
+      {
+        "file": "owner/08-ranch.png",
+        "caption": "牧场管理页"
+      },
+      {
+        "file": "owner/09-cattle-detail.png",
+        "caption": "牛只详情弹层（HKT19）：定位、健康状态、通讯距离与关联告警"
+      },
+      {
+        "file": "owner/12-cattle-list.png",
+        "caption": "牲畜管理列表（我的 → 牲畜管理）"
+      },
+      {
+        "file": "owner/11-profile.png",
+        "caption": "「我的」页面：账户、工具入口与套餐信息"
+      },
+      {
+        "file": "owner/14-devices.png",
+        "caption": "设备管理：119 台设备、RSSI/电量与操作入口"
+      },
+      {
+        "file": "owner/16-gateway.png",
+        "caption": "网关位置登记"
+      },
+      {
+        "file": "baseline-2026-11-04/05b-fever-detail-learned.png",
+        "caption": "发热详情页（2026-11-04 基线）"
+      },
+      {
+        "file": "baseline-2026-11-04/07b-estrus-list.png",
+        "caption": "发情监测列表（2026-11-04 基线）"
+      },
+      {
+        "file": "baseline-2026-11-04/08b-estrus-detail-86.png",
+        "caption": "发情详情页（2026-11-04 基线）"
+      },
+      {
+        "file": "baseline-2026-11-04/09b-alerts-page.png",
+        "caption": "告警中心（2026-11-04 基线）"
+      },
+      {
+        "file": "baseline-2026-11-04/11-livestock-detail-86.png",
+        "caption": "牛只详情页整页（2026-11-04 基线）"
+      }
     ]
   },
   "prototypes": {
     "dir": "docs/prototypes",
     "grouped": [
-      { "title": "高保真原型：接触追踪（contact-tracing，5 视图）", "intro": "方案对比：A 风险流 / B 优先级视图 / C 网络调查 / 统一体验 + 索引页。", "slugs": ["contact-tracing-prototype-index", "contact-tracing-a-risk-stream", "contact-tracing-b-priority-view", "contact-tracing-c-network-investigation", "contact-tracing-unified-experience"] }
+      {
+        "title": "高保真原型：接触追踪（contact-tracing，5 视图）",
+        "intro": "方案对比：A 风险流 / B 优先级视图 / C 网络调查 / 统一体验 + 索引页。",
+        "slugs": [
+          "contact-tracing-prototype-index",
+          "contact-tracing-a-risk-stream",
+          "contact-tracing-b-priority-view",
+          "contact-tracing-c-network-investigation",
+          "contact-tracing-unified-experience"
+        ]
+      }
     ],
     "withDir": [
-      ["datagen-console-prototype", "datagen-console-prototype", "design-tokens-datagen.md"],
-      ["gps-quality-rtk-truth-points-browse-prototype", "gps-quality-rtk-truth-points-browse-prototype", "design-tokens-gps-quality-rtk.md"],
-      ["nix-79-telemetry-import-prototype", "nix-79-telemetry-import-prototype", null],
-      ["nix-60-feature-gate-redesign-prototype", null, "design-tokens-nix60.md"]
+      [
+        "datagen-console-prototype",
+        "datagen-console-prototype",
+        "design-tokens-datagen.md"
+      ],
+      [
+        "gps-quality-rtk-truth-points-browse-prototype",
+        "gps-quality-rtk-truth-points-browse-prototype",
+        "design-tokens-gps-quality-rtk.md"
+      ],
+      [
+        "nix-79-telemetry-import-prototype",
+        "nix-79-telemetry-import-prototype",
+        null
+      ],
+      [
+        "nix-60-feature-gate-redesign-prototype",
+        null,
+        "design-tokens-nix60.md"
+      ]
     ],
     "tokens": {}
   },
   "devlog": {
     "repos": [
-      { "name": "畜牧", "path": "." },
-      { "name": "GTM", "path": "/Volumes/DEV/00-products-dev/hkt-smart-agentic/docs/gtm" }
+      {
+        "name": "畜牧",
+        "path": "."
+      },
+      {
+        "name": "GTM",
+        "path": "/Volumes/DEV/00-products-dev/hkt-smart-agentic/docs/gtm"
+      }
     ]
   },
   "screenWalk": {
     "baseUrl": "http://172.22.1.123:19080/",
-    "account": { "user": "13800138000", "password": "123" },
+    "account": {
+      "user": "13800138000",
+      "password": "123"
+    },
     "screensDir": "owner",
-    "tenantPicker": { "clickXY": [1326, 29], "match": "Main Ranch", "wait": 10000 },
+    "tenantPicker": {
+      "clickXY": [
+        1326,
+        29
+      ],
+      "match": "Main Ranch",
+      "wait": 10000
+    },
     "retryButton": "立即重试",
     "steps": [
-      { "name": "home", "wait": 8000 },
-      { "name": "health-fever", "match": "发热管理", "wait": 6000, "back": true },
-      { "name": "health-rumination", "match": "消化管理", "wait": 6000, "back": true },
-      { "name": "alerts", "match": "^告警$", "wait": 6000 },
-      { "name": "alert-detail", "match": "发热|高温|离群|越界|告警", "wait": 5000 },
-      { "name": "fence-map", "match": "^围栏$", "wait": 9000 },
-      { "name": "ranch", "match": "^牧场$", "wait": 6000 },
-      { "name": "cattle-detail", "match": "TAG-|BPI-|DEV-COW|耳标", "wait": 6000, "back": true },
-      { "name": "profile", "match": "^我的$", "wait": 5000 },
-      { "name": "cattle-list", "match": "牲畜管理", "wait": 6000, "back": true },
-      { "name": "devices", "match": "设备管理", "wait": 6000, "back": true },
-      { "name": "gateway", "match": "网关位置", "wait": 6000 }
+      {
+        "name": "home",
+        "wait": 8000
+      },
+      {
+        "name": "health-fever",
+        "match": "发热管理",
+        "wait": 6000,
+        "back": true
+      },
+      {
+        "name": "health-rumination",
+        "match": "消化管理",
+        "wait": 6000,
+        "back": true
+      },
+      {
+        "name": "alerts",
+        "match": "^告警$",
+        "wait": 6000
+      },
+      {
+        "name": "alert-detail",
+        "match": "发热|高温|离群|越界|告警",
+        "wait": 5000
+      },
+      {
+        "name": "fence-map",
+        "match": "^围栏$",
+        "wait": 9000
+      },
+      {
+        "name": "ranch",
+        "match": "^牧场$",
+        "wait": 6000
+      },
+      {
+        "name": "cattle-detail",
+        "match": "TAG-|BPI-|DEV-COW|耳标",
+        "wait": 6000,
+        "back": true
+      },
+      {
+        "name": "profile",
+        "match": "^我的$",
+        "wait": 5000
+      },
+      {
+        "name": "cattle-list",
+        "match": "牲畜管理",
+        "wait": 6000,
+        "back": true
+      },
+      {
+        "name": "devices",
+        "match": "设备管理",
+        "wait": 6000,
+        "back": true
+      },
+      {
+        "name": "gateway",
+        "match": "网关位置",
+        "wait": 6000
+      }
     ]
+  },
+  "publish": {
+    "gitlab": {
+      "projectId": 190,
+      "projectFullPath": "hkt-smart-agentic/l3/smart-livestock",
+      "packageName": "smart-livestock-doc-pack",
+      "names": {
+        "vol1": "01-requirements.pdf",
+        "vol2": "02-system-design.pdf",
+        "vol3": "03-system-tests.pdf",
+        "vol4": "04-deployment-ops-sanitized.pdf",
+        "vol5": "05-gtm-materials.pdf",
+        "vol6": "06-implementation-plans.pdf",
+        "vol7": "07-devlog.pdf"
+      }
+    }
   }
 }
