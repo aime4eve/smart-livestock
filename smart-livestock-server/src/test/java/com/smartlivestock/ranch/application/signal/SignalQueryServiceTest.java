@@ -4,7 +4,6 @@ import com.smartlivestock.health.domain.model.HealthSnapshot;
 import com.smartlivestock.health.domain.model.TempStatus;
 import com.smartlivestock.health.domain.repository.HealthSnapshotRepository;
 import com.smartlivestock.health.infrastructure.persistence.jpa.AnomalyScoreJpaRepository;
-import com.smartlivestock.identity.domain.repository.UserFarmAssignmentRepository;
 import com.smartlivestock.ranch.application.signal.SignalDtos.LivestockSignal;
 import com.smartlivestock.ranch.application.signal.SignalDtos.LivestockSignalResponse;
 import com.smartlivestock.ranch.application.signal.SignalRevisionService.FarmSignalRevision;
@@ -34,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -59,7 +59,7 @@ class SignalQueryServiceTest {
     @Mock
     private IoTQueryPort ioTQueryPort;
     @Mock
-    private UserFarmAssignmentRepository userFarmAssignmentRepository;
+    private SignalFarmAccessPolicy farmAccessPolicy;
 
     private SignalQueryService service;
 
@@ -74,25 +74,33 @@ class SignalQueryServiceTest {
                 alertRepository,
                 fenceRepository,
                 ioTQueryPort,
-                userFarmAssignmentRepository
+                farmAccessPolicy
         );
     }
 
     @Test
-    void rejectsUserWithoutActiveFarmAssignment() {
-        when(userFarmAssignmentRepository.existsByUserIdAndFarmIdAndStatus(9L, 1L, "ACTIVE"))
-                .thenReturn(false);
+    void accessRefusalPropagatesOnBothSignalEndpoints() {
+        // The policy owns who may read farm signals (farm membership or a
+        // super-admin switched context); the service must not soften its refusal.
+        doThrow(SignalFarmAccessPolicy.forbidden())
+                .when(farmAccessPolicy).requireFarmAccess(1L, 9L);
 
         assertThatThrownBy(() -> service.getLivestockSignals(
                 1L, List.of(14L), "0", 9L
         ))
                 .isInstanceOf(ApiException.class)
                 .hasFieldOrPropertyWithValue("code", ErrorCode.AUTH_FORBIDDEN);
+        assertThatThrownBy(() -> service.getMapSignals(
+                1L, "0:0:0", true, 9L
+        ))
+                .isInstanceOf(ApiException.class)
+                .hasFieldOrPropertyWithValue("code", ErrorCode.AUTH_FORBIDDEN);
+
+        verify(revisionService, never()).ensureFarm(any());
     }
 
     @Test
     void cursorZeroPerformsInitialFullSyncWithNestedMetrics() {
-        mockAuthorizedUser();
         mockRevision(0L, 0L, 0L);
         mockOneLivestockWithAiTemperatureAlert();
 
@@ -110,7 +118,6 @@ class SignalQueryServiceTest {
 
     @Test
     void returnHomeStaysOutOfHealthAndBecomesPresenceSignal() {
-        mockAuthorizedUser();
         mockRevision(0L, 0L, 0L);
 
         Livestock livestock = new Livestock();
@@ -148,13 +155,14 @@ class SignalQueryServiceTest {
 
     @Test
     void unchangedCursorDoesNotBuildMapPayload() {
-        mockAuthorizedUser();
         FarmSignalRevision revision = mockRevision(5L, 6L, 7L);
         when(revisionService.validateMapCursor(revision, "5:6:7"))
                 .thenReturn(new SignalRevisionService.MapCursor(5L, 6L, 7L));
 
         var response = service.getMapSignals(1L, "5:6:7", true, 9L);
 
+        // The caller's user id must reach the access policy as-is.
+        verify(farmAccessPolicy).requireFarmAccess(1L, 9L);
         assertThat(response.changed()).isFalse();
         assertThat(response.cursor()).isEqualTo("5:6:7");
         assertThat(response.fences()).isEmpty();
@@ -165,7 +173,6 @@ class SignalQueryServiceTest {
 
     @Test
     void aheadCursorUsesDedicatedErrorCode() {
-        mockAuthorizedUser();
         mockRevision(2L, 2L, 2L);
         org.mockito.Mockito.doThrow(new SignalCursorInvalidException("cursor ahead"))
                 .when(revisionService).validateListCursor(revisionService.ensureFarm(1L), 3L);
@@ -174,11 +181,6 @@ class SignalQueryServiceTest {
         ))
                 .isInstanceOf(ApiException.class)
                 .hasFieldOrPropertyWithValue("code", ErrorCode.SIGNAL_CURSOR_INVALID);
-    }
-
-    private void mockAuthorizedUser() {
-        when(userFarmAssignmentRepository.existsByUserIdAndFarmIdAndStatus(9L, 1L, "ACTIVE"))
-                .thenReturn(true);
     }
 
     private FarmSignalRevision mockRevision(long status, long position, long geometry) {

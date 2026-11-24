@@ -1,15 +1,13 @@
 package com.smartlivestock.ranch.interfaces;
 
-import com.smartlivestock.identity.domain.repository.UserFarmAssignmentRepository;
 import com.smartlivestock.ranch.application.signal.SignalDtos.LivestockSignalResponse;
 import com.smartlivestock.ranch.application.signal.SignalDtos.MapSignalResponse;
+import com.smartlivestock.ranch.application.signal.SignalFarmAccessPolicy;
 import com.smartlivestock.ranch.application.signal.SignalQueryService;
 import com.smartlivestock.ranch.application.signal.SignalStreamTicketService;
 import com.smartlivestock.ranch.application.signal.SignalStreamTicketService.TicketGrant;
 import com.smartlivestock.ranch.infrastructure.signal.SignalStreamHub;
-import com.smartlivestock.shared.common.ApiException;
 import com.smartlivestock.shared.common.ApiResponse;
-import com.smartlivestock.shared.common.ErrorCode;
 import com.smartlivestock.shared.tenant.TenantContext;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,7 +40,7 @@ public class SignalController {
     private final SignalQueryService signalQueryService;
     private final SignalStreamTicketService streamTicketService;
     private final SignalStreamHub signalStreamHub;
-    private final UserFarmAssignmentRepository userFarmAssignmentRepository;
+    private final SignalFarmAccessPolicy farmAccessPolicy;
 
     @GetMapping("/livestock")
     public ResponseEntity<ApiResponse<LivestockSignalResponse>> livestockSignals(
@@ -71,10 +69,11 @@ public class SignalController {
     ) {
         Long userId = currentUserId();
         Long tenantId = TenantContext.getCurrentTenant();
-        if (userId == null || tenantId == null
-                || !userFarmAssignmentRepository.existsByUserIdAndFarmIdAndStatus(
-                        userId, farmId, "ACTIVE")) {
-            throw new ApiException(ErrorCode.AUTH_FORBIDDEN, "无权访问该牧场信号");
+        farmAccessPolicy.requireFarmAccess(farmId, userId);
+        if (tenantId == null) {
+            // A stream grant is tenant-bound (cookie scope, reconnect checks): a
+            // tenant-less context (e.g. switched PLATFORM_ADMIN) gets no stream.
+            throw SignalFarmAccessPolicy.forbidden();
         }
 
         TicketGrant grant = streamTicketService.issue(userId, tenantId, farmId);

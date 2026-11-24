@@ -61,4 +61,13 @@ class JwtTokenProviderTest {
         String refreshed = provider.refreshToken(token);
         assertThat(provider.parseToken(refreshed).get("act")).isNull();
     }
+
+    @Test
+    void isSwitchedContext_followsTheActClaim() {
+        assertThat(provider.isSwitchedContext(provider.generateToken(9L, 2L, "OWNER",
+                Map.of("sub", 9L, "role", "SUPER_ADMIN")))).isTrue();
+
+        assertThat(provider.isSwitchedContext(provider.generateToken(2L, 2L, "OWNER"))).isFalse();
+        assertThat(provider.isSwitchedContext(provider.generateToken(9L, null, "SUPER_ADMIN"))).isFalse();
+    }
 }
