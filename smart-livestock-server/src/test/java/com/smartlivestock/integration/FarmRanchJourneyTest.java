@@ -6,9 +6,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-
 import java.util.List;
 import java.util.Map;
 
@@ -18,12 +16,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * P1: 牧场 CRUD + 围栏 API + 权限边界 端到端测试。
  * 覆盖旅程：2.3 牧场主旅程（围栏/牲畜） + 2.2 B端管理旅程（牧场列表）。
  */
-@SpringBootTest(
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {
-                "logging.level.org.springframework.web.servlet.DispatcherServlet=TRACE",
-                "logging.level.org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping=TRACE"
-        })
 class FarmRanchJourneyTest extends AbstractJourneyTest {
 
     @Nested
@@ -257,15 +249,7 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
             // access policy requires to stop treating them as a member.
             System.out.println("[cleanup] members before: "
                     + getApi(ownerToken, "/api/v1/farms/1/members"));
-            // Route diagnostics for the 404: same path with GET, trailing
-            // slash, and query-parameter spelling.
-            System.out.println("[cleanup] GET /farms/1/members/3 -> "
-                    + getRaw(ownerToken, "/api/v1/farms/1/members/3").getStatusCode());
-            System.out.println("[cleanup] DELETE trailing slash -> "
-                    + deleteRaw(ownerToken, "/api/v1/farms/1/members/3/").getStatusCode());
-            System.out.println("[cleanup] DELETE query form -> "
-                    + deleteRaw(ownerToken, "/api/v1/farms/1/members?userId=3").getStatusCode());
-            var resp = deleteRaw(ownerToken, "/farms/1/members/3");
+            var resp = deleteRaw(ownerToken, "/api/v1/farms/1/members/3");
             System.out.println("[cleanup] delete response: " + resp.getStatusCode()
                     + " body=" + resp.getBody());
             assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
