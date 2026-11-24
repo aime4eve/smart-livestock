@@ -5536,6 +5536,8 @@
   "@signalSyncStale": {},
   "signalSyncRetry": "立即重试",
   "@signalSyncRetry": {},
+  "signalSyncForbidden": "当前账号无权获取该牧场的实时信号，实时位置与状态不可用",
+  "@signalSyncForbidden": {},
   "epidemicNoSourceTitle": "暂无标记的疑似源头",
   "@epidemicNoSourceTitle": {},
   "epidemicNoSourceBodyV2": "当前牧场还没有确认染病的牲畜。从围栏页选择牛只，在详情页即可标记疑似患病，系统将自动生成接触追踪与处置建议。",

@@ -12437,6 +12437,12 @@ abstract class AppLocalizations {
   /// **'立即重试'**
   String get signalSyncRetry;
 
+  /// No description provided for @signalSyncForbidden.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前账号无权获取该牧场的实时信号，实时位置与状态不可用'**
+  String get signalSyncForbidden;
+
   /// No description provided for @epidemicNoSourceTitle.
   ///
   /// In zh, this message translates to:

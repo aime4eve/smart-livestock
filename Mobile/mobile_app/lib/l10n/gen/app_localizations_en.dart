@@ -6884,6 +6884,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signalSyncRetry => 'Retry now';
 
   @override
+  String get signalSyncForbidden =>
+      'This account cannot access live signals for this farm; live positions and status are unavailable';
+
+  @override
   String get epidemicNoSourceTitle => 'No suspected source marked';
 
   @override

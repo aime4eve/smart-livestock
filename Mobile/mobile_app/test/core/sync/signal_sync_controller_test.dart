@@ -62,6 +62,11 @@ class _FakeSessionController extends SessionController {
 }
 
 class _FakeSignalRepository implements SignalRepository {
+  _FakeSignalRepository({this.forbidMap = false});
+
+  /// When true, every map fetch is refused the way the backend refuses an
+  /// identity without farm-signal access (403 AUTH_FORBIDDEN).
+  bool forbidMap;
   int mapCalls = 0;
   int livestockCalls = 0;
   int statusRevision = 1;
@@ -88,6 +93,12 @@ class _FakeSignalRepository implements SignalRepository {
     required bool includeGeometry,
   }) async {
     mapCalls++;
+    if (forbidMap) {
+      throw const ForbiddenException(
+        statusCode: 403,
+        code: 'AUTH_FORBIDDEN',
+      );
+    }
     if (mapCalls == 2) {
       throw const ConflictException(
         message: 'cursor too old',
@@ -285,6 +296,64 @@ void main() {
     final mapCallsBeforeWindow = repository.mapCalls;
     await tester.pump(const Duration(seconds: 3));
     expect(repository.mapCalls, greaterThan(mapCallsBeforeWindow));
+  });
+
+  testWidgets('a refused map fetch flags the state forbidden, stably', (
+    tester,
+  ) async {
+    final repository = _FakeSignalRepository(forbidMap: true);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sessionControllerProvider.overrideWith(_FakeSessionController.new),
+          signalRepositoryProvider.overrideWithValue(repository),
+          signalTransportProvider.overrideWithValue(_FakeTransport()),
+        ],
+        child: _SubscriptionProbe(onSubscribed: (_) {}),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 150));
+    final container = containerOf(tester);
+    expect(container.read(signalSyncControllerProvider).forbidden, isTrue);
+    expect(container.read(signalSyncControllerProvider).stale, isTrue);
+
+    // Sticky across later polls: every poll clears `error` while in flight,
+    // so a flag that followed the error would flicker every three seconds.
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump(const Duration(seconds: 3));
+    expect(repository.mapCalls, greaterThanOrEqualTo(3));
+    expect(container.read(signalSyncControllerProvider).forbidden, isTrue);
+    expect(container.read(signalSyncControllerProvider).stale, isTrue);
+  });
+
+  testWidgets('a successful map fetch clears the forbidden flag', (
+    tester,
+  ) async {
+    final repository = _FakeSignalRepository(forbidMap: true);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sessionControllerProvider.overrideWith(_FakeSessionController.new),
+          signalRepositoryProvider.overrideWithValue(repository),
+          signalTransportProvider.overrideWithValue(_FakeTransport()),
+        ],
+        child: _SubscriptionProbe(onSubscribed: (_) {}),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 150));
+    final container = containerOf(tester);
+    expect(container.read(signalSyncControllerProvider).forbidden, isTrue);
+
+    repository.forbidMap = false;
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump(const Duration(milliseconds: 150));
+
+    final state = container.read(signalSyncControllerProvider);
+    expect(state.forbidden, isFalse);
+    expect(state.stale, isFalse);
+    expect(state.mapLoaded, isTrue);
   });
 }
 

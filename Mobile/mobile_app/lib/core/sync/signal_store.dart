@@ -12,6 +12,7 @@ class SignalSyncState {
     this.mapLoaded = false,
     this.refreshing = false,
     this.stale = false,
+    this.forbidden = false,
     this.paused = false,
     this.transport = SignalTransportKind.polling,
     this.error,
@@ -26,6 +27,16 @@ class SignalSyncState {
   final bool mapLoaded;
   final bool refreshing;
   final bool stale;
+
+  /// The live-signal endpoint refused this identity (403 AUTH_FORBIDDEN) — as
+  /// opposed to a transient outage, it neither recovers on its own nor changes
+  /// on retry. Reflects the most recent failed attempt; it is deliberately not
+  /// reset when the next poll starts (every poll clears [error] while in
+  /// flight), so consumers — the banner, the fence fallback — must key off
+  /// this flag rather than the error object. A successful refresh or a farm
+  /// change clears it.
+  final bool forbidden;
+
   final bool paused;
   final SignalTransportKind transport;
   final Object? error;
@@ -48,6 +59,7 @@ class SignalSyncState {
     bool? mapLoaded,
     bool? refreshing,
     bool? stale,
+    bool? forbidden,
     bool? paused,
     SignalTransportKind? transport,
     Object? error,
@@ -63,6 +75,7 @@ class SignalSyncState {
       mapLoaded: mapLoaded ?? this.mapLoaded,
       refreshing: refreshing ?? this.refreshing,
       stale: stale ?? this.stale,
+      forbidden: forbidden ?? this.forbidden,
       paused: paused ?? this.paused,
       transport: transport ?? this.transport,
       error: clearError ? null : error ?? this.error,

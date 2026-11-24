@@ -14,6 +14,31 @@ class SignalSyncStatusBanner extends ConsumerWidget {
     if (!state.stale) return const SizedBox.shrink();
     final l10n = AppLocalizations.of(context)!;
 
+    // A permission denial is not an outage: it neither recovers on its own
+    // nor changes on retry, so the banner says so and offers no retry.
+    if (state.forbidden) {
+      return _banner(
+        icon: Icons.lock_outline,
+        message: l10n.signalSyncForbidden,
+      );
+    }
+
+    return _banner(
+      icon: Icons.sync_problem,
+      message: l10n.signalSyncStale,
+      action: TextButton(
+        onPressed: () =>
+            ref.read(signalSyncControllerProvider.notifier).refreshNow(),
+        child: Text(l10n.signalSyncRetry),
+      ),
+    );
+  }
+
+  Widget _banner({
+    required IconData icon,
+    required String message,
+    Widget? action,
+  }) {
     return Material(
       color: AppColors.warningSoft,
       child: Padding(
@@ -23,15 +48,11 @@ class SignalSyncStatusBanner extends ConsumerWidget {
         ),
         child: Row(
           children: [
-            const Icon(
-              Icons.sync_problem,
-              size: 14,
-              color: AppColors.warningStrong,
-            ),
+            Icon(icon, size: 14, color: AppColors.warningStrong),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
-                l10n.signalSyncStale,
+                message,
                 style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
@@ -39,11 +60,7 @@ class SignalSyncStatusBanner extends ConsumerWidget {
                 ),
               ),
             ),
-            TextButton(
-              onPressed: () =>
-                  ref.read(signalSyncControllerProvider.notifier).refreshNow(),
-              child: Text(l10n.signalSyncRetry),
-            ),
+            if (action != null) action,
           ],
         ),
       ),

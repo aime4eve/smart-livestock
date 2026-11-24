@@ -99,6 +99,16 @@ class _FakeSignalSyncController extends SignalSyncController {
       );
 }
 
+/// Publishes a caller-chosen sync state (e.g. the permission-denied one).
+class _StateSignalSyncController extends SignalSyncController {
+  _StateSignalSyncController(this._state);
+
+  final SignalSyncState _state;
+
+  @override
+  SignalSyncState build() => _state;
+}
+
 class _FakeRanchController extends RanchController {
   _FakeRanchController(this._overview);
   final RanchOverview _overview;
@@ -226,6 +236,9 @@ void main() {
     WidgetTester tester, {
     required bool withMetadata,
     bool withBuffer = true,
+    SignalSyncController Function() signalSync = _FakeSignalSyncController.new,
+    bool openFenceTab = true,
+    bool selectFence = true,
   }) async {
     tester.view.physicalSize = const Size(430, 1400);
     tester.view.devicePixelRatio = 1;
@@ -248,9 +261,7 @@ void main() {
                 withBuffer: withBuffer,
               )),
             ),
-            signalSyncControllerProvider.overrideWith(
-              _FakeSignalSyncController.new,
-            ),
+            signalSyncControllerProvider.overrideWith(signalSync),
           ],
           child: const MaterialApp(
             locale: Locale('zh'),
@@ -265,12 +276,14 @@ void main() {
       for (var i = 0; i < 8; i++) {
         await tester.pump(const Duration(milliseconds: 120));
       }
+      if (!openFenceTab) return;
       // Switch the bottom sheet to the fence tab (围栏). '围栏' also heads
       // the overview section, so take the tab label (first in tree order).
       await tester.tap(find.text('围栏').first);
       for (var i = 0; i < 4; i++) {
         await tester.pump(const Duration(milliseconds: 120));
       }
+      if (!selectFence) return;
       // Select the fence to open the detail card. The map also paints a
       // name chip (IgnorePointer), so scope the tap to the fence tab list.
       final listItemName = find.descendant(
@@ -386,5 +399,64 @@ void main() {
       ),
       findsNothing,
     );
+  });
+
+  // 权限被拒兜底（2026-11-24 用户裁决）：实时信号接口拒绝当前身份时信号库里
+  // 没有围栏几何，地图改画总览载荷里已有的围栏（同一份几何、快照计数、无实时
+  // 状态），而不是一张空地图；未被拒而信号库为空时不触发兜底。
+  const forbiddenBannerText = '当前账号无权获取该牧场的实时信号，实时位置与状态不可用';
+
+  PolygonLayer<String> mainFenceLayer(WidgetTester tester) =>
+      tester.widget<PolygonLayer<String>>(
+        // With no fence selected the page paints exactly one typed layer; the
+        // buffer band's own layer is untyped and must not match here.
+        find.byWidgetPredicate((w) => w is PolygonLayer<String>),
+      );
+
+  testWidgets('refused live signals fall back to the overview fences', (
+    tester,
+  ) async {
+    await pumpRanchPage(
+      tester,
+      withMetadata: true,
+      selectFence: false,
+      signalSync: () => _StateSignalSyncController(
+        const SignalSyncState(farmId: 'F1', stale: true, forbidden: true),
+      ),
+    );
+
+    final polygons = mainFenceLayer(tester).polygons;
+    expect(polygons, hasLength(1));
+    expect(polygons.single.hitValue, '7');
+    // The fallback fence gets its name chip on the map...
+    expect(find.text('North Pasture'), findsWidgets);
+    // ...is listed in the fence tab...
+    expect(
+      find.descendant(
+        of: find.byType(RanchFenceTab),
+        matching: find.text('North Pasture'),
+      ),
+      findsOneWidget,
+    );
+    // ...and the banner states the denial instead of promising a recovery.
+    expect(find.text(forbiddenBannerText), findsOneWidget);
+    expect(find.text('实时信号同步中断，正在自动恢复'), findsNothing);
+    expect(find.text('立即重试'), findsNothing);
+  });
+
+  testWidgets('overview fences stay undrawn when signals are merely empty', (
+    tester,
+  ) async {
+    await pumpRanchPage(
+      tester,
+      withMetadata: true,
+      openFenceTab: false,
+      signalSync: () =>
+          _StateSignalSyncController(const SignalSyncState(farmId: 'F1')),
+    );
+
+    expect(mainFenceLayer(tester).polygons, isEmpty);
+    expect(find.text('North Pasture'), findsNothing);
+    expect(find.text(forbiddenBannerText), findsNothing);
   });
 }
