@@ -2,13 +2,11 @@ package com.smartlivestock.integration;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.http.HttpStatus;
-
 import java.util.List;
 import java.util.Map;
 
@@ -242,12 +240,18 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
 
         @Test
         @Order(4)
-        @Disabled("TODO: 需要本地 Docker 环境调试 — updateStatus 端点在 CI 返回非 200")
-        @DisplayName("owner 移除牧场成员成功")
+        @DisplayName("owner 移除牧场成员成功（软停用，不残留 ACTIVE 记录）")
         void owner_removeMember_returnsOk() {
-            var addResp = postRaw(ownerToken, "/api/v1/farms/1/members", Map.of("userId", "1", "role", "WORKER"));
-            assertThat(addResp.getStatusCode()).isIn(HttpStatus.CREATED, HttpStatus.CONFLICT);
-            var resp = deleteRaw(ownerToken, "/api/v1/farms/1/members/1");
+            // Cleans up Order(2)'s added member (the b2b admin, userId 3): a
+            // leftover ACTIVE row here polluted the shared container and broke
+            // SignalAccessJourneyTest's membership-less premise (2026-11-24
+            // CI red). DELETE soft-disables the row, which is exactly what the
+            // access policy requires to stop treating them as a member.
+            System.out.println("[cleanup] members before: "
+                    + getApi(ownerToken, "/api/v1/farms/1/members"));
+            var resp = deleteRaw(ownerToken, "/api/v1/farms/1/members/3");
+            System.out.println("[cleanup] delete response: " + resp.getStatusCode()
+                    + " body=" + resp.getBody());
             assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
     }
