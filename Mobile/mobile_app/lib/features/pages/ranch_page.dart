@@ -185,7 +185,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
     final bufferById = {
       for (final f in overview.fences) f.id: f.bufferPoints,
     };
-    final signalFences = ref
+    final liveSignalFences = ref
         .watch(ranchMapGeometryProvider)
         .values
         .map((s) => _signalFenceToRanchFence(
@@ -194,11 +194,20 @@ class _RanchPageState extends ConsumerState<RanchPage>
               bufferById[s.fenceId],
             ))
         .toList();
+    // Permission-denied fallback (ruling 2026-11-24): when the live-signal
+    // endpoint refuses this identity (e.g. a B2B admin without farm
+    // membership), paint the fences the ranch overview already delivered —
+    // same geometry, snapshot counts, no live status — instead of an empty map.
+    final fences = liveSignalFences.isNotEmpty
+        ? liveSignalFences
+        : signalState.forbidden
+        ? overview.fences
+        : const <RanchFenceData>[];
     // Transform decision follows the tiles actually serving the farm area:
     // 高德 online → GCJ-02, local offline/server OSM tiles → none.
     final refPoint =
-        signalFences.isNotEmpty && signalFences.first.points.isNotEmpty
-        ? signalFences.first.points.first
+        fences.isNotEmpty && fences.first.points.isNotEmpty
+        ? fences.first.points.first
         : overview.livestockMarkers.isNotEmpty
         ? overview.livestockMarkers.first.toLatLng()
         : null;
@@ -254,7 +263,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
               PolygonLayer<String>(
                 hitNotifier: _fenceTapNotifier,
                 polygons: [
-                  for (final fence in signalFences)
+                  for (final fence in fences)
                     Polygon<String>(
                       points: shouldTransform
                           ? CoordTransform.wgs84ToGcj02All(fence.points)
@@ -275,7 +284,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                 builder: (context, _) => PolygonLayer<String>(
                   hitNotifier: _fenceTapNotifier,
                   polygons: [
-                    for (final fence in signalFences)
+                    for (final fence in fences)
                       Polygon<String>(
                         points: shouldTransform
                             ? CoordTransform.wgs84ToGcj02All(fence.points)
@@ -302,7 +311,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
             if (_selectedFenceId != null)
               FenceBufferLayer(
                 fences: [
-                  for (final fence in signalFences)
+                  for (final fence in fences)
                     if (fence.id == _selectedFenceId) fence,
                 ],
                 shouldTransform: shouldTransform,
@@ -310,7 +319,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
             MarkerLayer(
               markers: [
                 // Fence name labels
-                for (final fence in signalFences)
+                for (final fence in fences)
                   if (fence.points.isNotEmpty)
                     Marker(
                       point: _fenceCenter(
@@ -405,7 +414,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
             fenceStatusMap: fenceStatusMap,
             outsideFenceCount: signalOutsideFenceCount,
             noPositionCodes: signalNoPositionCodes,
-            signalFences: signalFences,
+            fences: fences,
             signalLivestockTotal: signalByLivestock.length,
           ),
         ),
@@ -438,7 +447,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
     required Map<String, String> fenceStatusMap,
     required int outsideFenceCount,
     required List<String> noPositionCodes,
-    required List<RanchFenceData> signalFences,
+    required List<RanchFenceData> fences,
     required int signalLivestockTotal,
   }) {
     final l10n = AppLocalizations.of(context)!;
@@ -556,7 +565,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                 ),
                 1 => SingleChildScrollView(
                   child: RanchFenceTab(
-                    fences: signalFences,
+                    fences: fences,
                     alerts: overview.alerts,
                     noGpsCount: noPositionCodes.length,
                     outsideFenceCount: outsideFenceCount,
@@ -571,7 +580,7 @@ class _RanchPageState extends ConsumerState<RanchPage>
                       setState(() {
                         _selectedFenceId = id.isEmpty ? null : id;
                         if (id.isNotEmpty) {
-                          final fence = signalFences
+                          final fence = fences
                               .where((f) => f.id == id)
                               .firstOrNull;
                           if (fence != null) {

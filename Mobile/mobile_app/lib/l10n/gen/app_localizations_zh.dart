@@ -6727,6 +6727,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get signalSyncRetry => '立即重试';
 
   @override
+  String get signalSyncForbidden => '当前账号无权获取该牧场的实时信号，实时位置与状态不可用';
+
+  @override
   String get epidemicNoSourceTitle => '暂无标记的疑似源头';
 
   @override
