@@ -75,12 +75,15 @@ class SignalAccessJourneyTest extends AbstractJourneyTest {
         // b2b admin (userId 3) to farm 1 and its removal test is @Disabled,
         // so farm-1 memberships are polluted in a full-suite run. A fresh
         // farm auto-assigns only its creator (the owner) — provably
-        // membership-less for the b2b admin.
-        Map<String, Object> created = postApi(ownerToken, "/api/v1/farms", Map.of(
+        // membership-less for the b2b admin. POST /farms answers 201 CREATED.
+        ResponseEntity<Map> createdResp = postRaw(ownerToken, "/api/v1/farms", Map.of(
                 "name", "SignalAccess-" + System.nanoTime(),
                 "latitude", 28.20,
                 "longitude", 112.90,
                 "areaHectares", 100));
+        assertThat(createdResp.getStatusCode()).isIn(HttpStatus.OK, HttpStatus.CREATED);
+        Map<String, Object> created =
+                (Map<String, Object>) createdResp.getBody().get("data");
         String farmId = String.valueOf(created.get("id"));
 
         assertError(getRaw(b2bAdminToken,
