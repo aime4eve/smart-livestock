@@ -3,7 +3,6 @@ package com.smartlivestock.ranch.application.signal;
 import com.smartlivestock.health.domain.model.HealthSnapshot;
 import com.smartlivestock.health.domain.repository.HealthSnapshotRepository;
 import com.smartlivestock.health.infrastructure.persistence.jpa.AnomalyScoreJpaRepository;
-import com.smartlivestock.identity.domain.repository.UserFarmAssignmentRepository;
 import com.smartlivestock.ranch.application.signal.SignalDtos.AiSignal;
 import com.smartlivestock.ranch.application.signal.SignalDtos.AlertSummarySignal;
 import com.smartlivestock.ranch.application.signal.SignalDtos.DeviceSignal;
@@ -58,13 +57,13 @@ public class SignalQueryService {
     private final SpringDataAlertRepository alertRepository;
     private final FenceRepository fenceRepository;
     private final IoTQueryPort ioTQueryPort;
-    private final UserFarmAssignmentRepository userFarmAssignmentRepository;
+    private final SignalFarmAccessPolicy farmAccessPolicy;
 
     @Transactional(readOnly = true)
     public LivestockSignalResponse getLivestockSignals(
             Long farmId, List<Long> requestedLivestockIds, String cursor, Long userId) {
         try {
-            authorizeFarmAccess(farmId, userId);
+            farmAccessPolicy.requireFarmAccess(farmId, userId);
             List<Long> livestockIds = normalizeLivestockIds(requestedLivestockIds, MAX_LIVESTOCK_IDS);
             FarmSignalRevision revision = revisionService.ensureFarm(farmId);
             long cursorRevision = parseListCursor(cursor);
@@ -91,7 +90,7 @@ public class SignalQueryService {
     public MapSignalResponse getMapSignals(
             Long farmId, String cursor, boolean includeGeometry, Long userId) {
         try {
-            authorizeFarmAccess(farmId, userId);
+            farmAccessPolicy.requireFarmAccess(farmId, userId);
             FarmSignalRevision revision = revisionService.ensureFarm(farmId);
             MapCursor cursorState = revisionService.validateMapCursor(revision, cursor);
 
@@ -175,16 +174,6 @@ public class SignalQueryService {
         } catch (SignalMapTooLargeException e) {
             throw new com.smartlivestock.shared.common.ApiException(
                     com.smartlivestock.shared.common.ErrorCode.SIGNAL_MAP_TOO_LARGE, e.getMessage());
-        }
-    }
-
-    private void authorizeFarmAccess(Long farmId, Long userId) {
-        if (userId == null
-                || !userFarmAssignmentRepository.existsByUserIdAndFarmIdAndStatus(
-                        userId, farmId, "ACTIVE")) {
-            throw new com.smartlivestock.shared.common.ApiException(
-                    com.smartlivestock.shared.common.ErrorCode.AUTH_FORBIDDEN,
-                    "无权访问该牧场信号");
         }
     }
 

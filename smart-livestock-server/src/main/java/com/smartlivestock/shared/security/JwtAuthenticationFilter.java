@@ -49,6 +49,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         List.of(new SimpleGrantedAuthority("ROLE_" + role));
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userId, null, authorities);
+                if (jwtTokenProvider.isSwitchedContext(token)) {
+                    // Super-admin switched-context token: flag it so farm-level
+                    // policies can grant tenant-wide access (no membership rows).
+                    authentication.setDetails(new SwitchedContext.Marker(userId));
+                }
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
                 // Set TenantContext

@@ -83,6 +83,15 @@ public class JwtTokenProvider {
         return claims.get("role", String.class);
     }
 
+    /**
+     * Super-admin switched-context token (design 2026-10-19 §4.2): the "act"
+     * delegation claim marks a token whose sub is the real super admin while
+     * role/tid carry the chosen entry context.
+     */
+    public boolean isSwitchedContext(String token) {
+        return parseToken(token).get("act") != null;
+    }
+
     public boolean isTokenValid(String token) {
         try {
             parseToken(token);
