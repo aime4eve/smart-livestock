@@ -250,6 +250,14 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
             // access policy requires to stop treating them as a member.
             System.out.println("[cleanup] members before: "
                     + getApi(ownerToken, "/api/v1/farms/1/members"));
+            // Route diagnostics for the 404: same path with GET, trailing
+            // slash, and query-parameter spelling.
+            System.out.println("[cleanup] GET /farms/1/members/3 -> "
+                    + getRaw(ownerToken, "/api/v1/farms/1/members/3").getStatusCode());
+            System.out.println("[cleanup] DELETE trailing slash -> "
+                    + deleteRaw(ownerToken, "/api/v1/farms/1/members/3/").getStatusCode());
+            System.out.println("[cleanup] DELETE query form -> "
+                    + deleteRaw(ownerToken, "/api/v1/farms/1/members?userId=3").getStatusCode());
             var resp = deleteRaw(ownerToken, "/farms/1/members/3");
             System.out.println("[cleanup] delete response: " + resp.getStatusCode()
                     + " body=" + resp.getBody());
