@@ -248,7 +248,11 @@ class FarmRanchJourneyTest extends AbstractJourneyTest {
             // SignalAccessJourneyTest's membership-less premise (2026-11-24
             // CI red). DELETE soft-disables the row, which is exactly what the
             // access policy requires to stop treating them as a member.
+            System.out.println("[cleanup] members before: "
+                    + getApi(ownerToken, "/api/v1/farms/1/members"));
             var resp = deleteRaw(ownerToken, "/farms/1/members/3");
+            System.out.println("[cleanup] delete response: " + resp.getStatusCode()
+                    + " body=" + resp.getBody());
             assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
     }
