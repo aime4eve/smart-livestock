@@ -44,10 +44,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * The three signal endpoints share one access rule (SignalFarmAccessPolicy):
- * farm membership, or a super-admin switched context scoped to its tenant.
- * The real policy runs here with mocked repositories so the wiring — principal
- * to policy, tenant-less contexts, the localized refusal — is what gets tested.
+ * Controller plumbing for the three signal endpoints, with the REAL policy
+ * wired into the ticket endpoint: farm membership, or a super-admin switched
+ * context scoped to its tenant.
+ *
+ * <p>The /map and /livestock guards live inside {@link SignalQueryService},
+ * which is mocked here — the /map tests therefore pin the passthrough of path
+ * parameters and caller identity, and that a service-level refusal surfaces
+ * as the same localized 403 as the controller-guarded ticket endpoint. They
+ * do not exercise the /map authorization itself (covered by
+ * {@code SignalFarmAccessPolicyTest} and {@code SignalAccessJourneyTest}).
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -168,7 +174,11 @@ class SignalControllerTest {
     // ── map signals ─────────────────────────────────────────────────
 
     @Test
-    void switchedContext_readsMapSignals() throws Exception {
+    void switchedContext_requestReachesTheQueryServiceWithItsIdentity() throws Exception {
+        // Controller plumbing only: /map is guarded inside SignalQueryService
+        // (mocked here); a switched-context request must arrive there with the
+        // caller identity and query intact. Any authenticated identity would
+        // pass this test — the authorization itself is pinned elsewhere.
         loginSwitched(SUPER_ADMIN_ID, TENANT_ID, "ROLE_OWNER");
         givenFarmBelongsTo(TENANT_ID);
         when(signalQueryService.getMapSignals(FARM_ID, "0:0:0", true, SUPER_ADMIN_ID))

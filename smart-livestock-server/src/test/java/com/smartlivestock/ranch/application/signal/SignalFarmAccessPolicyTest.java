@@ -18,8 +18,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -62,6 +65,7 @@ class SignalFarmAccessPolicyTest {
     void tearDown() {
         SecurityContextHolder.clearContext();
         TenantContext.clear();
+        RequestContextHolder.resetRequestAttributes();
     }
 
     @Test
@@ -134,6 +138,34 @@ class SignalFarmAccessPolicyTest {
         assertRefused(null);
 
         verifyNoInteractions(userFarmAssignmentRepository, identityQueryPort);
+    }
+
+    @Test
+    void apiKeyPrincipalIsRefusedEvenWhenItsIdCollidesWithAMember() {
+        // ApiKeyAuthFilter authenticates as api_keys.id — a Long the membership
+        // check would mistake for a user id (seeded key 2 collides with user 2,
+        // an ACTIVE farm member). The request attribute is the only tell.
+        loginDirect(2L, TENANT_ID, "ROLE_ADMIN");
+        whenMember(2L, true);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setAttribute(com.smartlivestock.shared.security.ApiKeyAuthFilter.ATTR_API_KEY,
+                new Object());
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+
+        assertRefused(2L);
+
+        // Refusal happens before the colliding membership lookup.
+        verifyNoInteractions(userFarmAssignmentRepository, identityQueryPort);
+    }
+
+    @Test
+    void superAdminWithAMembershipRowIsStillRefusedWithoutASwitchedContext() {
+        // POST /farms/{id}/members can grant the super admin account a
+        // membership row; the root token must stay refused regardless.
+        loginDirect(SUPER_ADMIN_ID, TENANT_ID, "ROLE_SUPER_ADMIN");
+        whenMember(SUPER_ADMIN_ID, true);
+
+        assertRefused(SUPER_ADMIN_ID);
     }
 
     @Test

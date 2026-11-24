@@ -88,9 +88,13 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void tamperedToken_leavesTheRequestAnonymous() throws Exception {
-        String token = provider.generateToken(9L, 1L, "OWNER", SUPER_ADMIN_ACT);
+        // Signed with a different secret: the signature can never validate
+        // (deterministic, unlike byte-level mutation of a valid token).
+        JwtTokenProvider foreignProvider = new JwtTokenProvider(
+                "another-secret-0123456789abcdef0123456789abcdef", 3600000L);
+        String foreignToken = foreignProvider.generateToken(9L, 1L, "OWNER", SUPER_ADMIN_ACT);
 
-        RequestIdentity identity = passThrough(token.substring(0, token.length() - 3) + "xyz");
+        RequestIdentity identity = passThrough(foreignToken);
 
         assertThat(identity.principal()).isNull();
         assertThat(identity.switchedContext()).isFalse();
