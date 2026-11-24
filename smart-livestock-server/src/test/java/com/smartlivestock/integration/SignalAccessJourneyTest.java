@@ -71,6 +71,21 @@ class SignalAccessJourneyTest extends AbstractJourneyTest {
     @Test
     @DisplayName("b2b admin without farm membership is refused farm signals")
     void b2bAdminWithoutMembershipIsRefused() {
-        assertError(getRaw(b2bAdminToken, FARM_1_MAP_URL), HttpStatus.FORBIDDEN, "AUTH_FORBIDDEN");
+        // NOT farm 1: FarmRanchJourneyTest's member-management flow adds the
+        // b2b admin (userId 3) to farm 1 and its removal test is @Disabled,
+        // so farm-1 memberships are polluted in a full-suite run. A fresh
+        // farm auto-assigns only its creator (the owner) — provably
+        // membership-less for the b2b admin.
+        Map<String, Object> created = postApi(ownerToken, "/api/v1/farms", Map.of(
+                "name", "SignalAccess-" + System.nanoTime(),
+                "latitude", 28.20,
+                "longitude", 112.90,
+                "areaHectares", 100));
+        String farmId = String.valueOf(created.get("id"));
+
+        assertError(getRaw(b2bAdminToken,
+                        "/api/v1/farms/" + farmId
+                                + "/signals/map?cursor=0:0:0&includeGeometry=true"),
+                HttpStatus.FORBIDDEN, "AUTH_FORBIDDEN");
     }
 }
