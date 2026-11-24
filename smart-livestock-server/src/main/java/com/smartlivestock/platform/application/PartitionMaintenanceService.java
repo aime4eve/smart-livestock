@@ -8,12 +8,21 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
+import java.time.Duration;
 import java.time.YearMonth;
 
 /**
  * Keeps monthly time-series partitions ready and reports rows left in default.
+ *
+ * <p>Each table runs in its own short transaction with a transaction-local
+ * {@code lock_timeout}: creating a partition needs an ACCESS EXCLUSIVE lock on
+ * the parent table, which collides with the app's own telemetry consumers
+ * reading those tables (observed 2026-11-24 as a startup deadlock → restart
+ * loop). A contended table therefore fails fast, is skipped with a warning,
+ * and never takes the application down — the next daily check or startup
+ * retries it. Moved rows of already-processed tables stay committed.
  */
 @Slf4j
 @Service
@@ -29,22 +38,41 @@ public class PartitionMaintenanceService {
     };
 
     private final EntityManager entityManager;
+    private final TransactionTemplate transactionTemplate;
 
     @Value("${platform.partition.months-ahead:2}")
     private int monthsAhead;
 
+    @Value("${platform.partition.lock-timeout:5s}")
+    private Duration lockTimeout;
+
     @EventListener(ApplicationReadyEvent.class)
     @Scheduled(cron = "${platform.partition.check-cron:0 10 2 * * *}")
-    @Transactional
     public void ensureCurrentAndFuturePartitions() {
         for (String table : PARTITIONED_TABLES) {
-            rebalanceDefaultPartition(table);
-            for (int i = 0; i <= monthsAhead; i++) {
-                ensureMonthPartition(table, YearMonth.now().plusMonths(i));
+            try {
+                transactionTemplate.executeWithoutResult(tx -> maintainTable(table));
+            } catch (RuntimeException e) {
+                log.warn("Partition maintenance for {} skipped this run "
+                                + "(retried on next startup / daily check): {}",
+                        table, e.getMessage());
             }
-            logDefaultPartitionCount(table);
         }
         log.info("Partition maintenance completed for current + {} months", monthsAhead);
+    }
+
+    private void maintainTable(String table) {
+        // Transaction-local: DDL fails fast instead of queuing behind long
+        // readers and deadlocking the application against itself.
+        entityManager.createNativeQuery(
+                "SELECT set_config('lock_timeout', :timeout, true)")
+            .setParameter("timeout", lockTimeout.toSeconds() + "s")
+            .getSingleResult();
+        rebalanceDefaultPartition(table);
+        for (int i = 0; i <= monthsAhead; i++) {
+            ensureMonthPartition(table, YearMonth.now().plusMonths(i));
+        }
+        logDefaultPartitionCount(table);
     }
 
     private void rebalanceDefaultPartition(String table) {
