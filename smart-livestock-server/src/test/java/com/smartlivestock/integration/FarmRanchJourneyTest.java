@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
@@ -17,6 +18,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * P1: 牧场 CRUD + 围栏 API + 权限边界 端到端测试。
  * 覆盖旅程：2.3 牧场主旅程（围栏/牲畜） + 2.2 B端管理旅程（牧场列表）。
  */
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {
+                "logging.level.org.springframework.web.servlet.DispatcherServlet=TRACE",
+                "logging.level.org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping=TRACE"
+        })
 class FarmRanchJourneyTest extends AbstractJourneyTest {
 
     @Nested
