@@ -401,9 +401,11 @@ void main() {
     );
   });
 
-  // 权限被拒兜底（2026-11-24 用户裁决）：实时信号接口拒绝当前身份时信号库里
-  // 没有围栏几何，地图改画总览载荷里已有的围栏（同一份几何、快照计数、无实时
-  // 状态），而不是一张空地图；未被拒而信号库为空时不触发兜底。
+  // Permission-denied fallback (ruling 2026-11-24): when the live-signal
+  // endpoint refuses the caller the signal store holds no fence geometry, so
+  // the map paints the fences the overview payload already delivered (same
+  // geometry, snapshot counts, no live status) instead of an empty map;
+  // an empty signal store WITHOUT a denial draws nothing.
   const forbiddenBannerText = '当前账号无权获取该牧场的实时信号，实时位置与状态不可用';
 
   PolygonLayer<String> mainFenceLayer(WidgetTester tester) =>

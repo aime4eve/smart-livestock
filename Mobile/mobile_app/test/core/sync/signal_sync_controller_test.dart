@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -62,11 +64,32 @@ class _FakeSessionController extends SessionController {
 }
 
 class _FakeSignalRepository implements SignalRepository {
-  _FakeSignalRepository({this.forbidMap = false});
+  _FakeSignalRepository({
+    this.forbidMap = false,
+    this.cursorTooOldOnCall = 2,
+    this.gateOnCall,
+  });
 
   /// When true, every map fetch is refused the way the backend refuses an
   /// identity without farm-signal access (403 AUTH_FORBIDDEN).
   bool forbidMap;
+
+  /// Map-call number that throws SIGNAL_CURSOR_TOO_OLD (0 = never).
+  int cursorTooOldOnCall;
+
+  /// Map-call number to park inside the fetch until [releaseGate] — lets a
+  /// test observe the in-flight moment (poll started, fetch suspended).
+  int? gateOnCall;
+  final Map<int, Completer<void>> _gates = {};
+
+  /// One-shot exception for the next map call (non-denial failure tests);
+  /// consumed before the cursor-too-old stub.
+  ApiException? failNextMapWith;
+
+  void releaseGate(int callNumber) {
+    _gates.remove(callNumber)?.complete();
+  }
+
   int mapCalls = 0;
   int livestockCalls = 0;
   int statusRevision = 1;
@@ -93,13 +116,22 @@ class _FakeSignalRepository implements SignalRepository {
     required bool includeGeometry,
   }) async {
     mapCalls++;
+    if (gateOnCall == mapCalls) {
+      final gate = _gates.putIfAbsent(mapCalls, () => Completer<void>());
+      await gate.future;
+    }
     if (forbidMap) {
       throw const ForbiddenException(
         statusCode: 403,
         code: 'AUTH_FORBIDDEN',
       );
     }
-    if (mapCalls == 2) {
+    final oneShot = failNextMapWith;
+    if (oneShot != null) {
+      failNextMapWith = null;
+      throw oneShot;
+    }
+    if (cursorTooOldOnCall == mapCalls) {
       throw const ConflictException(
         message: 'cursor too old',
         statusCode: 410,
@@ -327,10 +359,58 @@ void main() {
     expect(container.read(signalSyncControllerProvider).stale, isTrue);
   });
 
+  testWidgets('a poll start clears the error but keeps the forbidden flag', (
+    tester,
+  ) async {
+    // Gate the second fetch mid-flight so the moment the poll STARTS — after
+    // the controller cleared `error`, before the fetch resolves — is actually
+    // observable. Boundary-only assertions cannot see that moment.
+    final repository = _FakeSignalRepository(
+      forbidMap: true,
+      cursorTooOldOnCall: 0,
+      gateOnCall: 2,
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sessionControllerProvider.overrideWith(_FakeSessionController.new),
+          signalRepositoryProvider.overrideWithValue(repository),
+          signalTransportProvider.overrideWithValue(_FakeTransport()),
+        ],
+        child: _SubscriptionProbe(onSubscribed: (_) {}),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 150));
+    final container = containerOf(tester);
+    expect(container.read(signalSyncControllerProvider).forbidden, isTrue);
+
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump();
+    final inFlight = container.read(signalSyncControllerProvider);
+    expect(inFlight.refreshing, isTrue, reason: 'fetch is parked at the gate');
+    expect(inFlight.error, isNull, reason: 'poll start cleared the error');
+    expect(
+      inFlight.forbidden,
+      isTrue,
+      reason: 'poll start must NOT reset the forbidden flag',
+    );
+
+    repository.releaseGate(2);
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(container.read(signalSyncControllerProvider).forbidden, isTrue);
+  });
+
   testWidgets('a successful map fetch clears the forbidden flag', (
     tester,
   ) async {
-    final repository = _FakeSignalRepository(forbidMap: true);
+    // cursorTooOldOnCall=0: the second call walks the REAL success path
+    // (_applyMap) instead of the cursor-reset detour the default stub would
+    // take — deleting `forbidden: false` from _applyMap must fail this test.
+    final repository = _FakeSignalRepository(
+      forbidMap: true,
+      cursorTooOldOnCall: 0,
+    );
 
     await tester.pumpWidget(
       ProviderScope(
@@ -354,6 +434,43 @@ void main() {
     expect(state.forbidden, isFalse);
     expect(state.stale, isFalse);
     expect(state.mapLoaded, isTrue);
+  });
+
+  testWidgets('a non-denial failure clears the forbidden flag', (tester) async {
+    // Timeout / socket drop after a denial: the situation is no longer a
+    // denial, so the banner falls back to the outage text with a retry.
+    final repository = _FakeSignalRepository(
+      forbidMap: true,
+      cursorTooOldOnCall: 0,
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sessionControllerProvider.overrideWith(_FakeSessionController.new),
+          signalRepositoryProvider.overrideWithValue(repository),
+          signalTransportProvider.overrideWithValue(_FakeTransport()),
+        ],
+        child: _SubscriptionProbe(onSubscribed: (_) {}),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 150));
+    final container = containerOf(tester);
+    expect(container.read(signalSyncControllerProvider).forbidden, isTrue);
+
+    repository.forbidMap = false;
+    repository.failNextMapWith = const ServerException(
+      message: 'boom',
+      statusCode: 503,
+      code: 'INTERNAL',
+    );
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump(const Duration(milliseconds: 50));
+
+    final state = container.read(signalSyncControllerProvider);
+    expect(state.stale, isTrue);
+    expect(state.forbidden, isFalse);
+    expect(state.error, isA<ServerException>());
   });
 }
 

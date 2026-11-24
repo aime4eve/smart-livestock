@@ -30,11 +30,11 @@ class SignalSyncState {
 
   /// The live-signal endpoint refused this identity (403 AUTH_FORBIDDEN) — as
   /// opposed to a transient outage, it neither recovers on its own nor changes
-  /// on retry. Reflects the most recent failed attempt; it is deliberately not
-  /// reset when the next poll starts (every poll clears [error] while in
-  /// flight), so consumers — the banner, the fence fallback — must key off
-  /// this flag rather than the error object. A successful refresh or a farm
-  /// change clears it.
+  /// on retry. Reflects the most recent failed attempt: a denial sets it, any
+  /// other failure clears it, and it is deliberately not reset when the next
+  /// poll starts (every poll clears [error] while in flight), so consumers —
+  /// the banner, the fence fallback — must key off this flag rather than the
+  /// error object. A successful refresh or a farm change clears it.
   final bool forbidden;
 
   final bool paused;

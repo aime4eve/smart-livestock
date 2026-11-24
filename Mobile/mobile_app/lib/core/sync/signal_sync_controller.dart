@@ -267,13 +267,18 @@ class SignalSyncController extends FarmScopedNotifier<SignalSyncState> {
         state = state.copyWith(
           stale: true,
           error: e,
-          // Reflects the latest failed attempt. Deliberately not reset when
-          // the next poll starts, so the banner does not flicker every 3s.
+          // Reflects the latest failed attempt: a denial sets it, any other
+          // failure clears it. Deliberately not reset when the next poll
+          // starts, so the banner does not flicker every 3s.
           forbidden: e is ForbiddenException && e.code == 'AUTH_FORBIDDEN',
         );
       }
     } catch (e) {
-      if (!_disposed) state = state.copyWith(stale: true, error: e);
+      // Non-API failures (timeout, socket drop after a denial): the situation
+      // is no longer a denial — the banner falls back to the outage text.
+      if (!_disposed) {
+        state = state.copyWith(stale: true, error: e, forbidden: false);
+      }
     } finally {
       _refreshing = false;
       if (!_disposed && state.refreshing) {
