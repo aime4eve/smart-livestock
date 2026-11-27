@@ -42,18 +42,24 @@ public class AnalyticsApplicationService {
 
     public List<UsageTrendDto> getGlobalTrend(LocalDate from, LocalDate to) {
         List<ApiUsageDaily> daily = usageDailyRepository.findAllByUsageDateBetween(from, to);
+        // Per-day aggregate with call-volume-weighted avg response time:
+        // v[0]=totalCalls v[1]=successCalls v[2]=errorCalls v[3]=Σ(avgMs×calls) v[4]=Σcalls.
+        // Bug fix: previously divided totalCalls by row count, reporting call volume as latency.
         java.util.Map<LocalDate, long[]> agg = new java.util.TreeMap<>();
         for (ApiUsageDaily d : daily) {
-            long[] v = agg.computeIfAbsent(d.getUsageDate(), k -> new long[4]);
+            long[] v = agg.computeIfAbsent(d.getUsageDate(), k -> new long[5]);
             v[0] += d.getTotalCalls();
             v[1] += d.getSuccessCalls();
             v[2] += d.getErrorCalls();
-            v[3] += 1;
+            if (d.getAvgResponseMs() != null) {
+                v[3] += (long) d.getAvgResponseMs() * d.getTotalCalls();
+            }
+            v[4] += d.getTotalCalls();
         }
         List<UsageTrendDto> result = new java.util.ArrayList<>();
         for (var entry : agg.entrySet()) {
             long[] v = entry.getValue();
-            int avgMs = v[3] > 0 ? (int)(v[0] / v[3]) : 0;
+            int avgMs = v[4] > 0 ? (int) (v[3] / v[4]) : 0;
             result.add(new UsageTrendDto(entry.getKey(), (int) v[0], (int) v[1], (int) v[2], avgMs));
         }
         return result;
